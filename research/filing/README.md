@@ -77,7 +77,8 @@ filing/
     └── workflow/                     # Submission workflow design
         ├── submission-workflow.md    ✓ Entity-centric submission workflow
         ├── entity-layer-map.md       ✓ Complete entity type path visualization
-        └── mvp-frontend-map.md       ✓ MVP frontend path visualization
+        ├── mvp-frontend-map.md       ✓ MVP frontend path visualization
+        └── dashboard-design.md       ✓ Dashboard component specifications
 ```
 
 ---
@@ -228,6 +229,46 @@ See `/submission/workflow/mvp-frontend-map.md` for complete specifications inclu
 - API routes structure
 - Data flow diagrams
 - Implementation phases
+
+---
+
+## Dashboard Design
+
+The **Dashboard Design** provides detailed component specifications for the main user interface:
+
+### Layout Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ZONE A: Entity Header (full width)                          │
+├─────────────────────────────────────┬───────────────────────┤
+│ ZONE B1: Attention Required         │ ZONE C1: Compliance   │
+├─────────────────────────────────────┤       Score           │
+│ ZONE B2: Upcoming Deadlines         ├───────────────────────┤
+├─────────────────────────────────────┤ ZONE C2: HMRC         │
+│ ZONE B3: Recent Submissions         │       Connections     │
+│                                     ├───────────────────────┤
+│                                     │ ZONE C3: Quick Actions│
+└─────────────────────────────────────┴───────────────────────┘
+```
+
+### Dashboard Zones
+| Zone | Purpose | Key Data |
+|------|---------|----------|
+| **Entity Header** | Current entity context + switcher | Entity name, type, identifiers |
+| **Attention Required** | Critical/overdue filings | Urgency cards with penalties |
+| **Upcoming Deadlines** | Next 30 days timeline | Grouped by date with countdown |
+| **Recent Submissions** | Submission history | Status, timestamp, confirmation |
+| **Compliance Score** | Overall health metric | Percentage + trend indicator |
+| **HMRC Connections** | OAuth status | Connection health by service |
+| **Quick Actions** | Common tasks | Context-aware shortcuts |
+
+See `/submission/workflow/dashboard-design.md` for complete specifications including:
+- TypeScript interfaces and data models
+- React component implementations
+- React Query state management patterns
+- Loading, error, and empty states
+- Accessibility requirements (WCAG 2.1 AA)
+- Performance considerations
 
 ---
 
