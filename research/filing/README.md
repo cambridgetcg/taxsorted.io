@@ -76,7 +76,8 @@ filing/
     │
     └── workflow/                     # Submission workflow design
         ├── submission-workflow.md    ✓ Entity-centric submission workflow
-        └── entity-layer-map.md       ✓ Complete entity type path visualization
+        ├── entity-layer-map.md       ✓ Complete entity type path visualization
+        └── mvp-frontend-map.md       ✓ MVP frontend path visualization
 ```
 
 ---
@@ -184,6 +185,49 @@ See `/submission/workflow/submission-workflow.md` for complete design with:
 - Deadline calculation engine
 - Submission handler implementations
 - UI component mockups
+
+---
+
+## MVP Frontend Design
+
+The **MVP Frontend Path Map** provides complete visualization of the TaxSorted.io user interface:
+
+### Site Map
+```
+Landing → Login/Register → Dashboard → Filings → Calendar → Entities → Settings
+```
+
+### Key User Journeys
+| Journey | Steps |
+|---------|-------|
+| **Onboarding** | Sign up → Select entity type → Enter identifiers → Set attributes → View obligations |
+| **VAT Submission** | Check HMRC connection → Enter figures → Validate → Review & declare → Submit → Confirmation |
+
+### Core Screens
+- **Dashboard**: Attention required, upcoming deadlines, recent submissions, compliance score
+- **Filings**: Filterable list of all filing obligations with status
+- **Calendar**: Month view with deadline markers
+- **Entity Detail**: Identifiers, attributes, required filings, HMRC connections
+
+### Technology Stack
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui
+- **State**: TanStack Query (server), Context/Zustand (client)
+- **Backend**: Next.js API Routes, Prisma ORM, NextAuth.js
+- **Infrastructure**: Vercel, Vercel Postgres, Resend (email)
+
+### MVP Feature Scope
+| Priority | Features |
+|----------|----------|
+| **P0** | Auth, Entity CRUD, Obligation resolver, Filing dashboard, Status tracking |
+| **P1** | VAT MTD submission, Calendar view, Email reminders |
+
+See `/submission/workflow/mvp-frontend-map.md` for complete specifications including:
+- Detailed wireframes (ASCII)
+- Component hierarchy
+- State management architecture
+- API routes structure
+- Data flow diagrams
+- Implementation phases
 
 ---
 
