@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Copy, Check, FileText } from "lucide-react";
+import { CheckCircle2, Copy, Check, FileText, Clock, Send, XCircle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn, formatDate, formatReference, formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,28 +18,28 @@ interface RecentSubmissionsProps {
 const STATUS_CONFIG: Record<
   SubmissionStatus,
   {
-    icon: string;
+    icon: LucideIcon;
     label: string;
     variant: "success" | "info" | "error" | "default";
   }
 > = {
   accepted: {
-    icon: "✓",
+    icon: Check,
     label: "Accepted",
     variant: "success",
   },
   processing: {
-    icon: "⏳",
+    icon: Clock,
     label: "Processing",
     variant: "info",
   },
   submitted: {
-    icon: "📤",
+    icon: Send,
     label: "Submitted",
     variant: "info",
   },
   rejected: {
-    icon: "❌",
+    icon: XCircle,
     label: "Rejected",
     variant: "error",
   },
@@ -64,7 +65,7 @@ export function RecentSubmissions({
             href="/submissions"
             className="text-sm text-blue-600 hover:underline"
           >
-            View All →
+            View All
           </Link>
         )}
       </CardHeader>
@@ -109,6 +110,7 @@ export function RecentSubmissions({
 function SubmissionRow({ submission }: { submission: Submission }) {
   const [copied, setCopied] = useState(false);
   const statusConfig = STATUS_CONFIG[submission.status];
+  const StatusIcon = statusConfig.icon;
 
   const handleCopyReference = async () => {
     if (submission.hmrcReference) {
@@ -128,8 +130,9 @@ function SubmissionRow({ submission }: { submission: Submission }) {
         {formatDate(submission.submittedAt)}
       </td>
       <td className="py-3">
-        <Badge variant={statusConfig.variant}>
-          {statusConfig.icon} {statusConfig.label}
+        <Badge variant={statusConfig.variant} className="inline-flex items-center gap-1">
+          <StatusIcon className="h-3 w-3" />
+          <span>{statusConfig.label}</span>
         </Badge>
       </td>
       <td className="py-3 text-sm text-gray-600 hidden md:table-cell">
@@ -152,7 +155,7 @@ function SubmissionRow({ submission }: { submission: Submission }) {
             )}
           </button>
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-gray-400">-</span>
         )}
       </td>
     </tr>

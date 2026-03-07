@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, ChevronRight } from "lucide-react";
+import { Zap, ChevronRight, Send, BarChart3, Plus, FileText, Download, Upload } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { QuickAction } from "@/types/dashboard";
+import type { QuickAction, QuickActionIconName } from "@/types/dashboard";
+
+const ACTION_ICONS: Record<QuickActionIconName, LucideIcon> = {
+  send: Send,
+  "bar-chart-3": BarChart3,
+  plus: Plus,
+  "file-text": FileText,
+  download: Download,
+  upload: Upload,
+};
 
 interface QuickActionsProps {
   actions: QuickAction[];
@@ -40,12 +50,16 @@ export function QuickActions({ actions, isLoading }: QuickActionsProps) {
 }
 
 function ActionRow({ action }: { action: QuickAction }) {
+  const ActionIcon = ACTION_ICONS[action.icon];
+
   return (
     <Link
       href={action.href}
       className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
     >
-      <span className="text-xl">{action.icon}</span>
+      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100">
+        <ActionIcon className="h-5 w-5 text-gray-600" />
+      </div>
       <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900">{action.title}</div>
         <div className="text-sm text-gray-500 truncate">{action.subtitle}</div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,9 +120,12 @@ export function ComplianceScore({ data, isLoading }: ComplianceScoreProps) {
               {data.onTimeCount} of {data.totalCount} filings on time this year
             </p>
             {data.overdueCount > 0 && (
-              <p className="mt-2 text-sm text-red-600">
-                ⚠️ {data.overdueCount} overdue filing
-                {data.overdueCount > 1 ? "s" : ""} - file now to improve
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-sm text-red-600">
+                <AlertTriangle className="h-4 w-4" />
+                <span>
+                  {data.overdueCount} overdue filing
+                  {data.overdueCount > 1 ? "s" : ""} - file now to improve
+                </span>
               </p>
             )}
           </>
@@ -138,7 +141,7 @@ export function ComplianceScore({ data, isLoading }: ComplianceScoreProps) {
             href="/compliance/history"
             className="mt-4 inline-block text-sm text-blue-600 hover:underline"
           >
-            View History →
+            View History
           </Link>
         )}
       </CardContent>

@@ -138,10 +138,13 @@ export interface HMRCConnection {
   daysUntilExpiry?: number;
 }
 
+// Quick Action Icon Names (Lucide icons)
+export type QuickActionIconName = "send" | "bar-chart-3" | "plus" | "file-text" | "download" | "upload";
+
 // Quick Action Types
 export interface QuickAction {
   id: string;
-  icon: string;
+  icon: QuickActionIconName;
   title: string;
   subtitle: string;
   href: string;
@@ -167,19 +170,30 @@ export interface DashboardResponse {
   };
 }
 
-// Entity Icon Mapping
-export const ENTITY_ICONS: Record<EntityType, string> = {
-  "private-limited-company": "🏢",
-  "public-limited-company": "🏛️",
-  llp: "🤝",
-  "general-partnership": "👥",
-  "individual-self-employed": "👤",
-  "individual-employed": "👤",
-  cic: "🌍",
-  "charitable-company": "💝",
-  cio: "💝",
-  "discretionary-trust": "🏦",
-  "cooperative-society": "👥",
+// Entity Icon Names (Lucide icons)
+export type EntityIconName =
+  | "building-2"
+  | "landmark"
+  | "handshake"
+  | "users"
+  | "user"
+  | "globe"
+  | "heart"
+  | "building"
+  | "users-round";
+
+export const ENTITY_ICON_NAMES: Record<EntityType, EntityIconName> = {
+  "private-limited-company": "building-2",
+  "public-limited-company": "landmark",
+  llp: "handshake",
+  "general-partnership": "users",
+  "individual-self-employed": "user",
+  "individual-employed": "user",
+  cic: "globe",
+  "charitable-company": "heart",
+  cio: "heart",
+  "discretionary-trust": "building",
+  "cooperative-society": "users-round",
 };
 
 export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {

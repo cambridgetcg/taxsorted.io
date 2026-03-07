@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, Circle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,14 @@ interface UpcomingDeadlinesProps {
   isLoading?: boolean;
 }
 
-const URGENCY_INDICATORS = {
-  critical: { icon: "🔴", className: "text-red-600 font-semibold" },
-  warning: { icon: "🟡", className: "text-yellow-600" },
-  normal: { icon: "⚪", className: "text-gray-400" },
-} as const;
+const URGENCY_INDICATORS: Record<
+  "critical" | "warning" | "normal",
+  { iconColor: string; className: string }
+> = {
+  critical: { iconColor: "text-red-500 fill-red-500", className: "text-red-600 font-semibold" },
+  warning: { iconColor: "text-yellow-500 fill-yellow-500", className: "text-yellow-600" },
+  normal: { iconColor: "text-gray-300", className: "text-gray-400" },
+};
 
 export function UpcomingDeadlines({
   deadlineGroups,
@@ -43,7 +47,7 @@ export function UpcomingDeadlines({
           href="/calendar"
           className="text-sm text-blue-600 hover:underline"
         >
-          View Calendar →
+          View Calendar
         </Link>
       </CardHeader>
       <CardContent>
@@ -116,8 +120,9 @@ function DeadlineRow({ deadline }: { deadline: Deadline }) {
       </div>
 
       {/* Days Remaining */}
-      <div className={cn("hidden sm:block text-sm whitespace-nowrap", urgency.className)}>
-        {urgency.icon} {daysText}
+      <div className={cn("hidden sm:flex items-center gap-1.5 text-sm whitespace-nowrap", urgency.className)}>
+        <Circle className={cn("h-2.5 w-2.5", urgency.iconColor)} />
+        <span>{daysText}</span>
       </div>
 
       {/* Amount (if any) */}

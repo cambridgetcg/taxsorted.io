@@ -232,7 +232,7 @@ export const mockConnections: HMRCConnection[] = [
 export const mockQuickActions: QuickAction[] = [
   {
     id: "qa_001",
-    icon: "📤",
+    icon: "send",
     title: "Submit VAT Return",
     subtitle: "VAT Q3 2024 ready to submit",
     href: "/filings/fil_001/submit",
@@ -240,7 +240,7 @@ export const mockQuickActions: QuickAction[] = [
   },
   {
     id: "qa_002",
-    icon: "📊",
+    icon: "bar-chart-3",
     title: "Export CT600 Data",
     subtitle: "For portal submission",
     href: "/filings/fil_004/export",
@@ -248,7 +248,7 @@ export const mockQuickActions: QuickAction[] = [
   },
   {
     id: "qa_003",
-    icon: "➕",
+    icon: "plus",
     title: "Add PAYE Submission",
     subtitle: "Record January FPS",
     href: "/filings/new?type=paye-fps",

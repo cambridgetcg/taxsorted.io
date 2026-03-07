@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { AlertCircle, CheckCircle2, ArrowRight, XCircle, Circle, Clock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,8 @@ const URGENCY_STYLES: Record<
     background: string;
     badge: string;
     badgeVariant: "error" | "warning";
-    icon: string;
+    icon: LucideIcon;
+    iconColor: string;
   }
 > = {
   overdue: {
@@ -29,21 +31,24 @@ const URGENCY_STYLES: Record<
     background: "bg-red-50",
     badge: "OVERDUE",
     badgeVariant: "error",
-    icon: "❌",
+    icon: XCircle,
+    iconColor: "text-red-500",
   },
   critical: {
     border: "border-red-200",
     background: "bg-red-50/50",
     badge: "",
     badgeVariant: "error",
-    icon: "🔴",
+    icon: Circle,
+    iconColor: "text-red-500",
   },
   warning: {
     border: "border-yellow-200",
     background: "bg-yellow-50/50",
     badge: "",
     badgeVariant: "warning",
-    icon: "🟡",
+    icon: Circle,
+    iconColor: "text-yellow-500",
   },
 };
 
@@ -64,7 +69,7 @@ export function AttentionRequired({ filings, isLoading }: AttentionRequiredProps
             href="/filings?filter=attention"
             className="text-sm text-blue-600 hover:underline"
           >
-            View All →
+            View All
           </Link>
         )}
       </CardHeader>
@@ -85,6 +90,7 @@ export function AttentionRequired({ filings, isLoading }: AttentionRequiredProps
 
 function AttentionCard({ filing }: { filing: AttentionFiling }) {
   const styles = URGENCY_STYLES[filing.urgency];
+  const UrgencyIcon = styles.icon;
   const daysText =
     filing.daysRemaining < 0
       ? `${Math.abs(filing.daysRemaining)} DAYS OVERDUE`
@@ -111,7 +117,7 @@ function AttentionCard({ filing }: { filing: AttentionFiling }) {
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
-          <span className="text-lg">{styles.icon}</span>
+          <UrgencyIcon className={cn("h-5 w-5 mt-0.5", styles.iconColor)} />
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-gray-900">{filing.displayName}</h3>
@@ -132,7 +138,7 @@ function AttentionCard({ filing }: { filing: AttentionFiling }) {
 
       <div
         className={cn(
-          "mt-3 rounded-md px-3 py-2 text-sm font-medium",
+          "mt-3 flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
           filing.urgency === "overdue"
             ? "bg-red-100 text-red-700"
             : filing.urgency === "critical"
@@ -140,8 +146,12 @@ function AttentionCard({ filing }: { filing: AttentionFiling }) {
               : "bg-yellow-100 text-yellow-700"
         )}
       >
-        {filing.urgency === "overdue" ? "❌" : "⏰"} {daysText}
-        {filing.penaltyInfo && ` - ${filing.penaltyInfo}`}
+        {filing.urgency === "overdue" ? (
+          <XCircle className="h-4 w-4" />
+        ) : (
+          <Clock className="h-4 w-4" />
+        )}
+        <span>{daysText}{filing.penaltyInfo && ` - ${filing.penaltyInfo}`}</span>
       </div>
 
       {filing.amount && (
@@ -174,7 +184,7 @@ function AttentionRequiredEmpty() {
         href="/filings"
         className="mt-4 inline-block text-sm text-blue-600 hover:underline"
       >
-        View All Filings →
+        View All Filings
       </Link>
     </div>
   );

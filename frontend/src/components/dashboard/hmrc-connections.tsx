@@ -70,7 +70,7 @@ export function HMRCConnections({
           href="/settings/connections"
           className="text-sm text-blue-600 hover:underline"
         >
-          Manage →
+          Manage
         </Link>
       </CardHeader>
       <CardContent>
@@ -82,8 +82,9 @@ export function HMRCConnections({
               <ConnectionRow key={connection.type} connection={connection} />
             ))}
             {needsAttention && (
-              <p className="mt-3 text-sm text-yellow-600">
-                ⚠️ Connect all services to submit filings automatically
+              <p className="mt-3 flex items-center gap-1.5 text-sm text-yellow-600">
+                <AlertTriangle className="h-4 w-4" />
+                <span>Connect all services to submit filings automatically</span>
               </p>
             )}
           </div>
@@ -107,7 +108,7 @@ function ConnectionRow({ connection }: { connection: HMRCConnection }) {
           </div>
           <div className="text-sm text-gray-500">
             {connection.status === "connected" && connection.identifier
-              ? `Connected • ${connection.identifier}`
+              ? `Connected - ${connection.identifier}`
               : connection.status === "expiring" && connection.daysUntilExpiry
                 ? `Expires in ${connection.daysUntilExpiry} days`
                 : config.label}
@@ -117,7 +118,7 @@ function ConnectionRow({ connection }: { connection: HMRCConnection }) {
       {config.action && (
         <Button variant="outline" size="sm" asChild>
           <Link href={`/settings/connections/${connection.type}`}>
-            {config.action} →
+            {config.action}
           </Link>
         </Button>
       )}
