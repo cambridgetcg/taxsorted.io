@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VATReturnForm } from "@/components/vat";
 import type { VATObligation, VATReturnData } from "@/types/vat";
+import { formatDate, formatPeriod } from "@/lib/utils";
 
 // Mock obligations - replace with actual API call
 const mockObligations: VATObligation[] = [
@@ -145,13 +146,14 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
           <div className="rounded-lg border border-green-200 bg-green-50 p-8 text-center">
             <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
             <h1 className="mt-4 text-2xl font-bold text-green-800">
-              VAT Return Submitted
+              VAT Return Prepared
             </h1>
             <p className="mt-2 text-green-700">
-              Your VAT return has been successfully submitted to HMRC.
+              Your return has been checked and saved. Sending to HMRC isn’t switched on in
+              this build yet — it prepares your figures, it doesn’t file them.
             </p>
             <p className="mt-1 text-sm text-green-600">
-              You will receive a confirmation from HMRC shortly.
+              When HMRC submission is enabled, you’ll confirm and file from here.
             </p>
             <p className="mt-4 text-sm text-gray-500">
               Redirecting to VAT portal...
@@ -204,26 +206,4 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
       </div>
     </div>
   );
-}
-
-// Utility functions
-function formatPeriod(start: string, end: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const startMonth = startDate.toLocaleDateString("en-GB", { month: "short" });
-  const endMonth = endDate.toLocaleDateString("en-GB", {
-    month: "short",
-    year: "numeric",
-  });
-
-  return `${startMonth} - ${endMonth}`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }

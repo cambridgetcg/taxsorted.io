@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -86,8 +85,6 @@ const mockPayments: VATPayment[] = [
 interface VATPageClientProps { entityId: string; }
 
 export default function VATPortalPage({ entityId }: VATPageClientProps) {
-  const router = useRouter();
-
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [connection, setConnection] = useState<VATConnection | null>(null);
@@ -197,27 +194,15 @@ export default function VATPortalPage({ entityId }: VATPageClientProps) {
                 onDisconnect={handleDisconnect}
               />
 
-              {/* Quick Links */}
+              {/* Quick links — only doors that actually open */}
               <div className="rounded-lg border bg-white p-4">
-                <h3 className="mb-3 font-medium text-gray-900">Quick Links</h3>
+                <h3 className="mb-3 font-medium text-gray-900">Quick links</h3>
                 <div className="space-y-2">
                   <Link
-                    href={`/vat/${entityId}/history`}
+                    href={`/vat/${entityId}/submit`}
                     className="block text-sm text-blue-600 hover:underline"
                   >
-                    View submission history
-                  </Link>
-                  <Link
-                    href={`/vat/${entityId}/settings`}
-                    className="block text-sm text-blue-600 hover:underline"
-                  >
-                    VAT settings
-                  </Link>
-                  <Link
-                    href="/help/vat"
-                    className="block text-sm text-blue-600 hover:underline"
-                  >
-                    VAT help guide
+                    File a VAT return
                   </Link>
                 </div>
               </div>

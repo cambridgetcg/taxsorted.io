@@ -25,3 +25,10 @@ export function formatReference(ref: string, maxLength = 12): string {
   if (ref.length <= maxLength) return ref;
   return `${ref.slice(0, maxLength - 3)}...`;
 }
+
+/** A VAT period as "Jan – Mar 2024". One definition, imported everywhere. */
+export function formatPeriod(start: string, end: string): string {
+  const startMonth = new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(start));
+  const endMonth = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" }).format(new Date(end));
+  return `${startMonth} – ${endMonth}`;
+}
