@@ -1,4 +1,4 @@
-name: Test, build & deploy
+name: Test, build and deploy
 
 # Every push to main: run the tests, build the static site, and deploy it to the
 # Cloudflare Pages project that owns taxsorted.io. Fully automatic.
