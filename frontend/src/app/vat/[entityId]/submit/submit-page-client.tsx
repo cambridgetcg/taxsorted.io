@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VATReturnForm } from "@/components/vat";
+import { VatWizard } from "@/components/vat/vat-wizard";
 import type { VATObligation, VATReturnData } from "@/types/vat";
-import { formatDate, formatPeriod } from "@/lib/utils";
+import { cn, formatDate, formatPeriod } from "@/lib/utils";
 
 // Mock obligations - replace with actual API call
 const mockObligations: VATObligation[] = [
@@ -41,6 +42,7 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [obligation, setObligation] = useState<VATObligation | null>(null);
   const [obligations, setObligations] = useState<VATObligation[]>([]);
+  const [mode, setMode] = useState<"guided" | "manual">("guided");
 
   // Load obligations
   useEffect(() => {
@@ -187,12 +189,46 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
             <Skeleton className="h-96 w-full" />
           </div>
         ) : obligation ? (
-          <VATReturnForm
-            entityId={entityId}
-            obligation={obligation}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <div className="space-y-6">
+            {/* Guided by default; the raw 9 boxes are there for those who want them. */}
+            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 text-sm">
+              <button
+                type="button"
+                onClick={() => setMode("guided")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 font-medium transition-colors",
+                  mode === "guided" ? "bg-gray-900 text-white" : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                Guided
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("manual")}
+                className={cn(
+                  "rounded-md px-3 py-1.5 font-medium transition-colors",
+                  mode === "manual" ? "bg-gray-900 text-white" : "text-gray-600 hover:text-gray-900"
+                )}
+              >
+                Enter the 9 boxes
+              </button>
+            </div>
+
+            {mode === "guided" ? (
+              <VatWizard
+                obligation={obligation}
+                onConfirm={handleSubmit}
+                isSubmitting={isSubmitting}
+              />
+            ) : (
+              <VATReturnForm
+                entityId={entityId}
+                obligation={obligation}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </div>
         ) : null}
       </div>
     </div>
