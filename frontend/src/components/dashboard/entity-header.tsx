@@ -54,16 +54,16 @@ function formatIdentifiers(entity: Entity): IdentifierDisplay[] {
   const displays: IdentifierDisplay[] = [];
 
   if (entity.identifiers.crn) {
-    displays.push({ label: "CRN", value: entity.identifiers.crn });
+    displays.push({ label: "Company number", value: entity.identifiers.crn });
   }
   if (entity.identifiers.utr) {
-    displays.push({ label: "UTR", value: entity.identifiers.utr });
+    displays.push({ label: "Taxpayer reference", value: entity.identifiers.utr });
   }
   if (entity.identifiers.vrn) {
-    displays.push({ label: "VRN", value: entity.identifiers.vrn });
+    displays.push({ label: "VAT number", value: entity.identifiers.vrn });
   }
   if (entity.identifiers.charityNumber) {
-    displays.push({ label: "Charity No", value: entity.identifiers.charityNumber });
+    displays.push({ label: "Charity number", value: entity.identifiers.charityNumber });
   }
 
   return displays.slice(0, 3);
@@ -97,7 +97,7 @@ export function EntityHeader({
             <EntityIcon type={entityIconName} className="h-6 w-6 text-gray-600" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">{entity.name}</h1>
+            <h2 className="text-xl font-semibold text-gray-900">{entity.name}</h2>
             <p className="text-sm text-gray-500">{entityTypeLabel}</p>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
               {identifiers.map((id, index) => (
@@ -117,7 +117,7 @@ export function EntityHeader({
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2"
             >
-              Switch Entity
+              Switch business
               <ChevronDown
                 className={cn(
                   "h-4 w-4 transition-transform",
@@ -160,7 +160,7 @@ export function EntityHeader({
                   <div className="border-t border-gray-100 mt-2 pt-2">
                     <button className="flex w-full items-center gap-3 px-4 py-3 text-left text-blue-600 hover:bg-gray-50">
                       <Plus className="h-4 w-4" />
-                      <span>Add New Entity</span>
+                      <span>Add a business</span>
                     </button>
                   </div>
                 </div>
@@ -200,11 +200,11 @@ function EntityHeaderEmpty() {
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <div className="text-center py-4">
         <p className="text-gray-600 mb-4">
-          Welcome! Let&apos;s set up your first entity.
+          Welcome! Let&apos;s add your first business.
         </p>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Your First Entity
+          Add your first business
         </Button>
       </div>
     </div>

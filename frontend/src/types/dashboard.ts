@@ -68,6 +68,8 @@ export interface AttentionFiling {
   amount?: number;
   amountLabel?: string;
   penaltyInfo?: string;
+  /** A real page this filing can act on. Absent = not buildable yet (shown, no dead link). */
+  actionHref?: string;
 }
 
 export interface Deadline {

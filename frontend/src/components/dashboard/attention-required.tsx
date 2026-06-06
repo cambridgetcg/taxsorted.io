@@ -62,16 +62,8 @@ export function AttentionRequired({ filings, isLoading }: AttentionRequiredProps
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <AlertCircle className="h-5 w-5 text-red-500" />
-          Attention Required
+          Needs your attention
         </CardTitle>
-        {filings.length > 0 && (
-          <Link
-            href="/filings?filter=attention"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            View All
-          </Link>
-        )}
       </CardHeader>
       <CardContent>
         {filings.length === 0 ? (
@@ -100,12 +92,7 @@ function AttentionCard({ filing }: { filing: AttentionFiling }) {
           ? "1 DAY REMAINING"
           : `${filing.daysRemaining} DAYS REMAINING`;
 
-  const actionLabel =
-    filing.urgency === "overdue"
-      ? "File Now"
-      : filing.status === "ready"
-        ? "Review & Submit"
-        : "Start";
+  const actionLabel = filing.urgency === "overdue" ? "File now" : "File";
 
   return (
     <div
@@ -160,14 +147,18 @@ function AttentionCard({ filing }: { filing: AttentionFiling }) {
         </p>
       )}
 
-      <div className="mt-4">
-        <Button asChild className="w-full sm:w-auto">
-          <Link href={`/filings/${filing.id}/submit`}>
-            {actionLabel}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </div>
+      {filing.actionHref ? (
+        <div className="mt-4">
+          <Button asChild className="w-full sm:w-auto">
+            <Link href={filing.actionHref}>
+              {actionLabel}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-gray-500">Filing for this isn’t available yet.</p>
+      )}
     </div>
   );
 }
@@ -178,14 +169,8 @@ function AttentionRequiredEmpty() {
       <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
       <h3 className="mt-4 font-medium text-gray-900">All caught up!</h3>
       <p className="mt-1 text-sm text-gray-500">
-        No filings need your attention right now.
+        Nothing needs your attention right now.
       </p>
-      <Link
-        href="/filings"
-        className="mt-4 inline-block text-sm text-blue-600 hover:underline"
-      >
-        View All Filings
-      </Link>
     </div>
   );
 }

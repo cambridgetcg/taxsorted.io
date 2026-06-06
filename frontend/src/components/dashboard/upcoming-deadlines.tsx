@@ -38,17 +38,11 @@ export function UpcomingDeadlines({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Calendar className="h-5 w-5 text-blue-500" />
-          Upcoming Deadlines
+          Upcoming deadlines
         </CardTitle>
-        <Link
-          href="/calendar"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          View Calendar
-        </Link>
       </CardHeader>
       <CardContent>
         {totalDeadlines === 0 ? (
@@ -58,16 +52,6 @@ export function UpcomingDeadlines({
             {deadlineGroups.slice(0, 3).map((group) => (
               <DeadlineMonth key={group.monthYear} group={group} />
             ))}
-            {totalDeadlines > 6 && (
-              <div className="border-t border-gray-100 pt-4">
-                <Link
-                  href="/filings"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  + {totalDeadlines - 6} more deadlines this year
-                </Link>
-              </div>
-            )}
           </div>
         )}
       </CardContent>
@@ -132,8 +116,8 @@ function DeadlineRow({ deadline }: { deadline: Deadline }) {
         </div>
       )}
 
-      {/* Action Button */}
-      {deadline.actionLabel && (
+      {/* Action button — only when there's a real page to act on */}
+      {deadline.actionLabel && deadline.actionHref && (
         <Button variant="outline" size="sm" asChild>
           <Link href={deadline.actionHref}>
             {deadline.actionLabel}

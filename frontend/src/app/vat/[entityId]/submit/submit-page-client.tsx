@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ const mockObligations: VATObligation[] = [
 interface VATSubmitPageClientProps { entityId: string; }
 
 export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const periodKey = searchParams.get("period");
 
@@ -77,13 +76,8 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
       // const response = await submitVATReturn(vrn, data, { accessToken });
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Simulate successful submission
+      // Figures prepared and saved. No auto-redirect — let the user read the result and choose.
       setSubmitSuccess(true);
-
-      // Redirect after 3 seconds
-      setTimeout(() => {
-        router.push(`/vat/${entityId}`);
-      }, 3000);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Failed to submit VAT return"
@@ -155,11 +149,8 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
             <p className="mt-1 text-sm text-green-600">
               When HMRC submission is enabled, you’ll confirm and file from here.
             </p>
-            <p className="mt-4 text-sm text-gray-500">
-              Redirecting to VAT portal...
-            </p>
             <Button className="mt-6" asChild>
-              <Link href={`/vat/${entityId}`}>Return to VAT Portal</Link>
+              <Link href={`/vat/${entityId}`}>Back to VAT portal</Link>
             </Button>
           </div>
         </div>

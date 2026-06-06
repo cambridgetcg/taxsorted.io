@@ -89,7 +89,7 @@ export function VATConnectionCard({
             <p className="text-sm text-gray-600">{config.description}</p>
             {connection?.status === "connected" && connection.vrn && (
               <p className="mt-1 text-sm font-medium text-gray-900">
-                VRN: {formatVRN(connection.vrn)}
+                VAT number: {formatVRN(connection.vrn)}
               </p>
             )}
             {connection?.status === "connected" && connection.expiresAt && (
@@ -122,19 +122,12 @@ export function VATConnectionCard({
                 Disconnect
               </Button>
               <Button asChild className="flex-1">
-                <Link href={`/vat/${entityId}/submit`}>Submit VAT Return</Link>
+                <Link href={`/vat/${entityId}/submit`}>File VAT return</Link>
               </Button>
             </>
           )}
         </div>
 
-        {/* Help Link */}
-        <p className="text-xs text-gray-500">
-          Need help?{" "}
-          <Link href="/help/hmrc-connection" className="text-blue-600 hover:underline">
-            Learn about HMRC connections
-          </Link>
-        </p>
       </CardContent>
     </Card>
   );

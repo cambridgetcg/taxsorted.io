@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, CheckCircle, Clock, AlertTriangle, ArrowRight } from "lucide-react";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatDate, formatPeriod } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +24,8 @@ export function VATObligationsList({
     return <VATObligationsListSkeleton />;
   }
 
-  const openObligations = obligations.filter((o) => o.status === "O");
-  const fulfilledObligations = obligations.filter((o) => o.status === "F");
+  const notFiled = obligations.filter((o) => o.status === "O");
+  const filed = obligations.filter((o) => o.status === "F");
 
   return (
     <Card>
@@ -33,10 +33,10 @@ export function VATObligationsList({
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-blue-500" />
-            <span>VAT Obligations</span>
+            <span>Returns due</span>
           </div>
-          {openObligations.length > 0 && (
-            <Badge variant="warning">{openObligations.length} outstanding</Badge>
+          {notFiled.length > 0 && (
+            <Badge variant="warning">{notFiled.length} not filed</Badge>
           )}
         </CardTitle>
       </CardHeader>
@@ -45,12 +45,11 @@ export function VATObligationsList({
           <EmptyState />
         ) : (
           <div className="space-y-6">
-            {/* Outstanding Obligations */}
-            {openObligations.length > 0 && (
+            {notFiled.length > 0 && (
               <div>
-                <h3 className="mb-3 text-sm font-medium text-gray-500">Outstanding</h3>
+                <h3 className="mb-3 text-sm font-medium text-gray-500">Not filed yet</h3>
                 <div className="space-y-3">
-                  {openObligations.map((obligation) => (
+                  {notFiled.map((obligation) => (
                     <ObligationRow
                       key={obligation.periodKey}
                       obligation={obligation}
@@ -61,12 +60,11 @@ export function VATObligationsList({
               </div>
             )}
 
-            {/* Fulfilled Obligations */}
-            {fulfilledObligations.length > 0 && (
+            {filed.length > 0 && (
               <div>
-                <h3 className="mb-3 text-sm font-medium text-gray-500">Completed</h3>
+                <h3 className="mb-3 text-sm font-medium text-gray-500">Filed</h3>
                 <div className="space-y-3">
-                  {fulfilledObligations.slice(0, 3).map((obligation) => (
+                  {filed.slice(0, 3).map((obligation) => (
                     <ObligationRow
                       key={obligation.periodKey}
                       obligation={obligation}
@@ -74,14 +72,6 @@ export function VATObligationsList({
                     />
                   ))}
                 </div>
-                {fulfilledObligations.length > 3 && (
-                  <Link
-                    href={`/vat/${entityId}/history`}
-                    className="mt-3 block text-sm text-blue-600 hover:underline"
-                  >
-                    View all {fulfilledObligations.length} completed returns
-                  </Link>
-                )}
               </div>
             )}
           </div>
@@ -98,12 +88,12 @@ function ObligationRow({
   obligation: VATObligation;
   entityId: string;
 }) {
-  const isFulfilled = obligation.status === "F";
+  const isFiled = obligation.status === "F";
   const dueDate = new Date(obligation.due);
   const today = new Date();
   const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  const isOverdue = !isFulfilled && daysUntilDue < 0;
-  const isUrgent = !isFulfilled && daysUntilDue <= 7 && daysUntilDue >= 0;
+  const isOverdue = !isFiled && daysUntilDue < 0;
+  const isUrgent = !isFiled && daysUntilDue <= 7 && daysUntilDue >= 0;
 
   const periodDescription = formatPeriod(obligation.start, obligation.end);
 
@@ -113,11 +103,11 @@ function ObligationRow({
         "flex items-center justify-between rounded-lg border p-4",
         isOverdue && "border-red-200 bg-red-50",
         isUrgent && !isOverdue && "border-yellow-200 bg-yellow-50",
-        isFulfilled && "border-gray-100 bg-gray-50"
+        isFiled && "border-gray-100 bg-gray-50"
       )}
     >
       <div className="flex items-center gap-3">
-        {isFulfilled ? (
+        {isFiled ? (
           <CheckCircle className="h-5 w-5 text-green-500" />
         ) : isOverdue ? (
           <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -125,15 +115,15 @@ function ObligationRow({
           <Clock className={cn("h-5 w-5", isUrgent ? "text-yellow-500" : "text-gray-400")} />
         )}
         <div>
-          <div className="font-medium text-gray-900">VAT Return</div>
+          <div className="font-medium text-gray-900">VAT return</div>
           <div className="text-sm text-gray-500">{periodDescription}</div>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="text-right">
-          {isFulfilled ? (
-            <div className="text-sm text-green-600">Submitted</div>
+          {isFiled ? (
+            <div className="text-sm text-green-600">Filed</div>
           ) : isOverdue ? (
             <div className="text-sm font-medium text-red-600">
               {Math.abs(daysUntilDue)} days overdue
@@ -146,24 +136,18 @@ function ObligationRow({
             </div>
           )}
           <div className="text-xs text-gray-400">
-            {isFulfilled && obligation.received
+            {isFiled && obligation.received
               ? formatDate(obligation.received)
               : formatDate(obligation.due)}
           </div>
         </div>
 
-        {!isFulfilled && (
+        {!isFiled && (
           <Button size="sm" variant={isOverdue ? "default" : "outline"} asChild>
             <Link href={`/vat/${entityId}/submit?period=${obligation.periodKey}`}>
-              {isOverdue ? "File Now" : "Submit"}
+              {isOverdue ? "File now" : "File"}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
-          </Button>
-        )}
-
-        {isFulfilled && (
-          <Button size="sm" variant="ghost" asChild>
-            <Link href={`/vat/${entityId}/returns/${obligation.periodKey}`}>View</Link>
           </Button>
         )}
       </div>
@@ -175,9 +159,9 @@ function EmptyState() {
   return (
     <div className="py-8 text-center">
       <Calendar className="mx-auto h-12 w-12 text-gray-300" />
-      <h3 className="mt-4 font-medium text-gray-900">No obligations found</h3>
+      <h3 className="mt-4 font-medium text-gray-900">No returns yet</h3>
       <p className="mt-1 text-sm text-gray-500">
-        Connect to HMRC to see your VAT obligations.
+        Connect to HMRC to see your VAT returns.
       </p>
     </div>
   );
@@ -219,17 +203,6 @@ function VATObligationsListSkeleton() {
       </CardContent>
     </Card>
   );
-}
-
-// Utility
-function formatPeriod(start: string, end: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const startMonth = startDate.toLocaleDateString("en-GB", { month: "short" });
-  const endMonth = endDate.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-
-  return `${startMonth} - ${endMonth}`;
 }
 
 export { VATObligationsListSkeleton };

@@ -2,29 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Calculator,
-  Send,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Loader2,
-} from "lucide-react";
-import { cn, formatCurrency } from "@/lib/utils";
+import { AlertTriangle, CheckCircle, Info, Loader2 } from "lucide-react";
+import { cn, formatDate, formatPeriod } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { VATReturnData, VATObligation } from "@/types/vat";
 import { calculateVATReturnTotals, validateVATReturnData } from "@/lib/hmrc/vat-api";
+import { summarizeReturn, explainReturn } from "@/lib/vat";
 
 interface VATReturnFormProps {
   entityId: string;
@@ -33,7 +21,7 @@ interface VATReturnFormProps {
   isSubmitting?: boolean;
 }
 
-// Box definitions with help text
+// Each box: a plain-English label + one line of help, shown as visible text (not a hover tooltip).
 interface BoxDefinition {
   box: number;
   label: string;
@@ -45,58 +33,58 @@ interface BoxDefinition {
 const BOX_DEFINITIONS: Record<string, BoxDefinition> = {
   vatDueSales: {
     box: 1,
-    label: "VAT due on sales and other outputs",
-    help: "VAT charged on sales of goods and services, including zero-rated and exempt supplies.",
+    label: "VAT you charged on sales",
+    help: "The VAT you added to what you sold this period.",
     decimal: true,
   },
   vatDueAcquisitions: {
     box: 2,
-    label: "VAT due on acquisitions from EU",
-    help: "VAT due on goods acquired from other EU member states (if applicable).",
+    label: "VAT on goods bought from the EU",
+    help: "Only if you move goods to/from the EU under the Northern Ireland rules. Otherwise leave at 0.",
     decimal: true,
   },
   totalVatDue: {
     box: 3,
-    label: "Total VAT due",
-    help: "Box 1 + Box 2. This is calculated automatically.",
+    label: "Total VAT you charged",
+    help: "Box 1 + Box 2. Worked out for you.",
     decimal: true,
     calculated: true,
   },
   vatReclaimedCurrPeriod: {
     box: 4,
-    label: "VAT reclaimed on purchases",
-    help: "VAT reclaimed on purchases and other inputs, including acquisitions from EU.",
+    label: "VAT you can claim back on costs",
+    help: "The VAT you paid on business purchases and can reclaim.",
     decimal: true,
   },
   netVatDue: {
     box: 5,
-    label: "Net VAT to pay or reclaim",
-    help: "Box 3 - Box 4. If negative, you are due a refund.",
+    label: "What you owe HMRC (or they owe you)",
+    help: "The difference between Box 3 and Box 4. Worked out for you.",
     decimal: true,
     calculated: true,
   },
   totalValueSalesExVAT: {
     box: 6,
-    label: "Total value of sales (ex VAT)",
-    help: "Total value of all sales excluding VAT. Include zero-rated and exempt.",
+    label: "Total sales, before VAT",
+    help: "Everything you sold this period, not counting the VAT.",
     decimal: false,
   },
   totalValuePurchasesExVAT: {
     box: 7,
-    label: "Total value of purchases (ex VAT)",
-    help: "Total value of all purchases excluding VAT.",
+    label: "Total purchases, before VAT",
+    help: "Everything you bought for the business, not counting the VAT.",
     decimal: false,
   },
   totalValueGoodsSuppliedExVAT: {
     box: 8,
-    label: "Total value of supplies to EU (ex VAT)",
-    help: "Total value of goods and services supplied to EU member states.",
+    label: "Goods sold to the EU, before VAT",
+    help: "Only under the Northern Ireland rules. Otherwise leave at 0.",
     decimal: false,
   },
   totalAcquisitionsExVAT: {
     box: 9,
-    label: "Total value of acquisitions from EU (ex VAT)",
-    help: "Total value of goods and services acquired from EU member states.",
+    label: "Goods bought from the EU, before VAT",
+    help: "Only under the Northern Ireland rules. Otherwise leave at 0.",
     decimal: false,
   },
 };
@@ -120,7 +108,6 @@ export function VATReturnForm({
 }: VATReturnFormProps) {
   const router = useRouter();
 
-  // Form state
   const [formData, setFormData] = useState<Partial<VATReturnData>>({
     periodKey: obligation.periodKey,
     vatDueSales: 0,
@@ -138,35 +125,29 @@ export function VATReturnForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Calculate totals when inputs change
+  // Boxes 3 and 5 are derived, never typed.
   useEffect(() => {
     const { totalVatDue, netVatDue } = calculateVATReturnTotals(formData);
-    setFormData((prev) => ({
-      ...prev,
-      totalVatDue,
-      netVatDue,
-    }));
+    setFormData((prev) => ({ ...prev, totalVatDue, netVatDue }));
   }, [
     formData.vatDueSales,
     formData.vatDueAcquisitions,
     formData.vatReclaimedCurrPeriod,
   ]);
 
+  // The plain answer + the calm "what this means" brief — straight from the engine.
+  const summary = summarizeReturn(formData as VATReturnData, obligation.end);
+  const explanation = explainReturn(summary);
+
   const handleInputChange = (field: BoxKey, value: string) => {
     const def = BOX_DEFINITIONS[field];
     let numValue: number;
-
     if (def.decimal) {
-      numValue = parseFloat(value) || 0;
-      // Round to 2 decimal places
-      numValue = Math.round(numValue * 100) / 100;
+      numValue = Math.round((parseFloat(value) || 0) * 100) / 100;
     } else {
       numValue = Math.round(parseFloat(value) || 0);
     }
-
     setFormData((prev) => ({ ...prev, [field]: numValue }));
-
-    // Clear error for this field
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -177,155 +158,186 @@ export function VATReturnForm({
   };
 
   const handleSubmit = async () => {
-    // Validate form data
     const validation = validateVATReturnData(formData as VATReturnData);
-
     if (!validation.valid) {
       const errorMap: Record<string, string> = {};
       validation.errors.forEach((err) => {
-        errorMap[err.field] = err.message;
+        // Lead the error with the plain box label.
+        const def = BOX_DEFINITIONS[err.field];
+        errorMap[err.field] = def ? `${def.label}: ${err.message}` : err.message;
       });
       setErrors(errorMap);
       return;
     }
-
-    // Show confirmation if not already showing
     if (!showConfirmation) {
       setShowConfirmation(true);
       return;
     }
-
-    // Submit
     try {
       await onSubmit(formData as VATReturnData);
-    } catch (error) {
-      setErrors({ submit: "Failed to submit VAT return. Please try again." });
+    } catch {
+      setErrors({ submit: "Something went wrong preparing your return. Please try again." });
     }
   };
 
-  const isRefund = (formData.netVatDue || 0) < 0;
   const periodDescription = formatPeriod(obligation.start, obligation.end);
+
+  const headlineTone =
+    summary.position === "repayment"
+      ? "border-green-200 bg-green-50"
+      : summary.position === "payable"
+        ? "border-blue-200 bg-blue-50"
+        : "border-gray-200 bg-gray-50";
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Title */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-blue-500" />
-            VAT Return Submission
-          </CardTitle>
+          <CardTitle>Prepare your VAT return</CardTitle>
           <CardDescription>
-            Period: {periodDescription} | Due: {formatDate(obligation.due)}
+            {periodDescription} · due {formatDate(obligation.due)}
           </CardDescription>
         </CardHeader>
       </Card>
 
-      {/* Form */}
+      {/* The plain answer, leading everything */}
+      <div className={cn("rounded-lg border p-5", headlineTone)}>
+        <h2 className="text-xl font-semibold text-gray-900">{summary.headline}</h2>
+        <p className="mt-1 text-sm text-gray-600">{summary.detail}</p>
+        {summary.dueDate && (
+          <p className="mt-1 text-sm text-gray-600">
+            Due {formatDate(summary.dueDate)}
+            {typeof summary.daysRemaining === "number" &&
+              summary.daysRemaining >= 0 &&
+              ` · ${summary.daysRemaining} day${summary.daysRemaining === 1 ? "" : "s"} left`}
+          </p>
+        )}
+      </div>
+
+      {/* What this means — reassurance in plain words */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Info className="h-4 w-4 text-blue-500" />
+            What this means
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-gray-700">{explanation.whatItMeans}</p>
+          <ExplainList title="What you need to do" items={explanation.youNeedTo} />
+          <ExplainList title="What you can skip" items={explanation.youCanSkip} muted />
+          <ExplainList title="How to pay less" items={explanation.howToOptimise} muted />
+        </CardContent>
+      </Card>
+
+      {/* The figures */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">VAT Return Details</CardTitle>
+          <CardTitle className="text-lg">The figures</CardTitle>
           <CardDescription>
-            Enter your VAT figures for this period. Boxes 3 and 5 are calculated automatically.
+            Enter what you charged and what you can claim back. The totals work themselves out.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <TooltipProvider>
-            {/* VAT Output Section */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">VAT Output</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {(["vatDueSales", "vatDueAcquisitions", "totalVatDue"] as BoxKey[]).map(
-                  (field) => (
-                    <FormField
-                      key={field}
-                      field={field}
-                      value={formData[field] as number}
-                      onChange={handleInputChange}
-                      error={errors[field]}
-                      disabled={BOX_DEFINITIONS[field].calculated}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* VAT Input Section */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">VAT Input</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+          {/* VAT you charged */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-gray-900">VAT you charged on sales</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(["vatDueSales", "totalVatDue"] as BoxKey[]).map((field) => (
                 <FormField
-                  field="vatReclaimedCurrPeriod"
-                  value={formData.vatReclaimedCurrPeriod as number}
+                  key={field}
+                  field={field}
+                  value={formData[field] as number}
                   onChange={handleInputChange}
-                  error={errors.vatReclaimedCurrPeriod}
+                  error={errors[field]}
+                  disabled={BOX_DEFINITIONS[field].calculated}
                 />
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Net VAT */}
-            <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
+          {/* VAT you can claim back */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-gray-900">VAT you can claim back on costs</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
               <FormField
-                field="netVatDue"
-                value={formData.netVatDue as number}
+                field="vatReclaimedCurrPeriod"
+                value={formData.vatReclaimedCurrPeriod as number}
                 onChange={handleInputChange}
-                error={errors.netVatDue}
-                disabled
-                highlight
+                error={errors.vatReclaimedCurrPeriod}
               />
-              {isRefund && (
-                <p className="mt-2 text-sm text-green-600">
-                  You are due a refund of {formatCurrency(Math.abs(formData.netVatDue || 0))}
-                </p>
-              )}
             </div>
+          </div>
 
-            {/* Totals Section */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">Total Values (excluding VAT)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {(
-                  [
-                    "totalValueSalesExVAT",
-                    "totalValuePurchasesExVAT",
-                    "totalValueGoodsSuppliedExVAT",
-                    "totalAcquisitionsExVAT",
-                  ] as BoxKey[]
-                ).map((field) => (
-                  <FormField
-                    key={field}
-                    field={field}
-                    value={formData[field] as number}
-                    onChange={handleInputChange}
-                    error={errors[field]}
-                  />
-                ))}
-              </div>
+          {/* Net */}
+          <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
+            <FormField
+              field="netVatDue"
+              value={formData.netVatDue as number}
+              onChange={handleInputChange}
+              error={errors.netVatDue}
+              disabled
+              highlight
+            />
+          </div>
+
+          {/* Totals */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-gray-900">Totals, before VAT</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(["totalValueSalesExVAT", "totalValuePurchasesExVAT"] as BoxKey[]).map((field) => (
+                <FormField
+                  key={field}
+                  field={field}
+                  value={formData[field] as number}
+                  onChange={handleInputChange}
+                  error={errors[field]}
+                />
+              ))}
             </div>
-          </TooltipProvider>
+          </div>
 
-          {/* Declaration */}
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+          {/* EU trade — hidden by default, since most UK businesses don't need it */}
+          <details className="rounded-lg border border-gray-200 p-4">
+            <summary className="cursor-pointer text-sm font-medium text-gray-700">
+              EU trade — most UK businesses leave these at 0
+            </summary>
+            <p className="mt-2 text-sm text-gray-500">
+              Only fill these in if you move goods between Northern Ireland and the EU.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {(
+                ["vatDueAcquisitions", "totalValueGoodsSuppliedExVAT", "totalAcquisitionsExVAT"] as BoxKey[]
+              ).map((field) => (
+                <FormField
+                  key={field}
+                  field={field}
+                  value={formData[field] as number}
+                  onChange={handleInputChange}
+                  error={errors[field]}
+                />
+              ))}
+            </div>
+          </details>
+
+          {/* Confirm — plain, honest, no fear */}
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 text-yellow-600" />
+              <Checkbox
+                id="finalised"
+                checked={formData.finalised}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, finalised: checked === true }))
+                }
+              />
               <div className="flex-1">
-                <h4 className="font-medium text-yellow-800">Declaration</h4>
-                <p className="mt-1 text-sm text-yellow-700">
-                  By submitting this VAT return, you are making a legal declaration that the
-                  information is true and complete. A false declaration can result in prosecution.
+                <Label htmlFor="finalised" className="text-sm font-medium text-gray-900">
+                  Tick to confirm these figures are right.
+                </Label>
+                <p className="mt-1 text-sm text-gray-500">
+                  This prepares your return — it doesn&apos;t send it to HMRC yet.
                 </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <Checkbox
-                    id="finalised"
-                    checked={formData.finalised}
-                    onCheckedChange={(checked) =>
-                      setFormData((prev) => ({ ...prev, finalised: checked === true }))
-                    }
-                  />
-                  <Label htmlFor="finalised" className="text-sm text-yellow-800">
-                    I declare that the information is true and complete
-                  </Label>
-                </div>
                 {errors.finalised && (
                   <p className="mt-1 text-sm text-red-600">{errors.finalised}</p>
                 )}
@@ -333,35 +345,21 @@ export function VATReturnForm({
             </div>
           </div>
 
-          {/* Submission Error */}
           {errors.submit && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Submission Failed</AlertTitle>
+              <AlertTitle>Couldn&apos;t prepare the return</AlertTitle>
               <AlertDescription>{errors.submit}</AlertDescription>
             </Alert>
           )}
 
-          {/* Confirmation */}
           {showConfirmation && (
             <Alert>
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <AlertTitle>Confirm Submission</AlertTitle>
+              <AlertTitle>Ready to prepare</AlertTitle>
               <AlertDescription>
-                You are about to submit a VAT return for {periodDescription}.
-                {isRefund ? (
-                  <span className="font-medium text-green-600">
-                    {" "}
-                    You will receive a refund of {formatCurrency(Math.abs(formData.netVatDue || 0))}.
-                  </span>
-                ) : (
-                  <span className="font-medium text-blue-600">
-                    {" "}
-                    You owe {formatCurrency(formData.netVatDue || 0)}.
-                  </span>
-                )}
-                <br />
-                This cannot be undone. Click Submit again to confirm.
+                {summary.headline} for {periodDescription}. Click &ldquo;Prepare return&rdquo;
+                again to save these figures. Nothing is sent to HMRC yet.
               </AlertDescription>
             </Alert>
           )}
@@ -375,25 +373,16 @@ export function VATReturnForm({
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !formData.finalised}
-            >
+            <Button onClick={handleSubmit} disabled={isSubmitting || !formData.finalised}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  Preparing…
                 </>
               ) : showConfirmation ? (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Confirm Submission
-                </>
+                "Prepare return"
               ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit VAT Return
-                </>
+                "Review figures"
               )}
             </Button>
           </div>
@@ -403,7 +392,23 @@ export function VATReturnForm({
   );
 }
 
-// Form Field Component
+function ExplainList({ title, items, muted }: { title: string; items: string[]; muted?: boolean }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <p className="font-medium text-gray-900">{title}</p>
+      <ul className="mt-1 space-y-1">
+        {items.map((item, i) => (
+          <li key={i} className={cn("flex gap-2", muted ? "text-gray-500" : "text-gray-700")}>
+            <span aria-hidden="true">·</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function FormField({
   field,
   value,
@@ -420,32 +425,21 @@ function FormField({
   highlight?: boolean;
 }) {
   const def = BOX_DEFINITIONS[field];
+  const helpId = `${field}-help`;
 
   return (
-    <div className={cn("space-y-2", highlight && "col-span-full")}>
-      <div className="flex items-center gap-2">
-        <Label
-          htmlFor={field}
-          className={cn(
-            "text-sm",
-            highlight ? "font-medium text-blue-900" : "text-gray-700"
-          )}
-        >
-          Box {def.box}: {def.label}
-        </Label>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Info className="h-4 w-4 text-gray-400 cursor-help" />
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            <p>{def.help}</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
+    <div className={cn("space-y-1", highlight && "col-span-full")}>
+      <Label
+        htmlFor={field}
+        className={cn("text-sm", highlight ? "font-medium text-blue-900" : "text-gray-700")}
+      >
+        {def.label} <span className="text-gray-400">(Box {def.box})</span>
+      </Label>
+      <p id={helpId} className="text-sm text-gray-500">
+        {def.help}
+      </p>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-          £
-        </span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">£</span>
         <Input
           id={field}
           type="number"
@@ -454,6 +448,8 @@ function FormField({
           value={value}
           onChange={(e) => onChange(field, e.target.value)}
           disabled={disabled}
+          aria-describedby={helpId}
+          aria-invalid={!!error}
           className={cn(
             "pl-7",
             disabled && "bg-gray-100",
@@ -465,23 +461,4 @@ function FormField({
       {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
-}
-
-// Utility functions
-function formatPeriod(start: string, end: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const startMonth = startDate.toLocaleDateString("en-GB", { month: "short" });
-  const endMonth = endDate.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-
-  return `${startMonth} - ${endMonth}`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }

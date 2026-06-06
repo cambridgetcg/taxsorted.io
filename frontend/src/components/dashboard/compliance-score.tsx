@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { BarChart3, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,13 +67,21 @@ export function ComplianceScore({ data, isLoading }: ComplianceScoreProps) {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <BarChart3 className="h-5 w-5 text-blue-500" />
-          Compliance Score
+          Filing record
         </CardTitle>
       </CardHeader>
       <CardContent className="text-center">
         {/* Circular Progress */}
         <div className="relative mx-auto h-32 w-32">
-          <svg className="h-32 w-32 -rotate-90 transform">
+          <svg
+            className="h-32 w-32 -rotate-90 transform"
+            role="img"
+            aria-label={
+              hasData
+                ? `${data.score}% — ${data.onTimeCount} of ${data.totalCount} filings on time`
+                : "No filing record yet"
+            }
+          >
             {/* Background circle */}
             <circle
               cx="64"
@@ -135,15 +142,6 @@ export function ComplianceScore({ data, isLoading }: ComplianceScoreProps) {
           </p>
         )}
 
-        {/* Link */}
-        {hasData && (
-          <Link
-            href="/compliance/history"
-            className="mt-4 inline-block text-sm text-blue-600 hover:underline"
-          >
-            View History
-          </Link>
-        )}
       </CardContent>
     </Card>
   );

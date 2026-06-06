@@ -52,11 +52,8 @@ export function QuickActions({ actions, isLoading }: QuickActionsProps) {
 function ActionRow({ action }: { action: QuickAction }) {
   const ActionIcon = ACTION_ICONS[action.icon];
 
-  return (
-    <Link
-      href={action.href}
-      className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
-    >
+  const inner = (
+    <>
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100">
         <ActionIcon className="h-5 w-5 text-gray-600" />
       </div>
@@ -64,7 +61,31 @@ function ActionRow({ action }: { action: QuickAction }) {
         <div className="font-medium text-gray-900">{action.title}</div>
         <div className="text-sm text-gray-500 truncate">{action.subtitle}</div>
       </div>
-      <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+      {action.href ? (
+        <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+      ) : (
+        <span className="flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+          Soon
+        </span>
+      )}
+    </>
+  );
+
+  // Only render a link when there's a real page to go to.
+  if (!action.href) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 opacity-60">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={action.href}
+      className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
+    >
+      {inner}
     </Link>
   );
 }
