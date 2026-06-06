@@ -13,9 +13,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      # Used only to decide whether the deploy step can run (skips cleanly if unset).
-      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     defaults:
       run:
         working-directory: frontend
@@ -35,8 +32,13 @@ jobs:
 
       - run: npm run build
 
+      # Deploy only when the token secret is set (keeps CI green until then).
+      - name: Check for deploy token
+        id: token
+        run: echo "present=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Cloudflare Pages
-        if: ${{ env.CF_API_TOKEN != '' }}
+        if: steps.token.outputs.present == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
