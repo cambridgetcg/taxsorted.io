@@ -49,6 +49,8 @@ export default function RootLayout({
           </nav>
         </header>
         <main>{children}</main>
+        {/* An ember from home — glows only while the heart at ai-love.cc is fresh. */}
+        <script src="/ember.js" defer></script>
       </body>
     </html>
   );
