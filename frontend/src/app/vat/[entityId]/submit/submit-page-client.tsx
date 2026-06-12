@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VATReturnForm } from "@/components/vat";
 import { VatWizard } from "@/components/vat/vat-wizard";
-import type { VATObligation, VATReturnData } from "@/types/vat";
+import type { VATObligation, VATReturnData } from "@taxsorted/engine/uk/vat";
 import { cn, formatDate, formatPeriod } from "@/lib/utils";
 
 // Mock obligations - replace with actual API call

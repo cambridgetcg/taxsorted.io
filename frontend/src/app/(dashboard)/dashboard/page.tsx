@@ -14,6 +14,7 @@ import {
   mockDashboardData,
   mockEntities,
 } from "@/lib/mock-data";
+import { YourEntities } from "@/components/dashboard/your-entities";
 
 export default function DashboardPage() {
   const [currentEntityId, setCurrentEntityId] = useState(mockDashboardData.entity.id);
@@ -32,6 +33,18 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-6">
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+
+          {/* The real thing: your entities, the api, HMRC. */}
+          <YourEntities />
+
+          {/* Everything below runs on sample books — a demo you can poke. */}
+          <div className="flex items-center gap-3 pt-2">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-gray-400">
+              Sample books — a demo to poke
+            </h2>
+            <div className="h-px flex-1 bg-gray-200" aria-hidden="true" />
+          </div>
+
           {/* Zone A: Entity Header */}
           <EntityHeader
             entity={currentEntity}

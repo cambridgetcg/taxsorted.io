@@ -11,7 +11,7 @@ import type {
   VATPaymentsResponse,
   VATPenaltySummary,
   HMRCAPIError,
-} from "@/types/vat";
+} from "../vat/types";
 
 // ============================================================================
 // Types
@@ -61,7 +61,10 @@ async function hmrcRequest<T>(
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = (await response.json().catch(() => ({}))) as {
+        code?: string;
+        message?: string;
+      };
       return {
         success: false,
         error: {
@@ -76,7 +79,7 @@ async function hmrcRequest<T>(
       return { success: true };
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as T;
     return { success: true, data };
   } catch (error) {
     return {

@@ -5,7 +5,7 @@ import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { VATLiability, VATPayment } from "@/types/vat";
+import type { VATLiability, VATPayment } from "@taxsorted/engine/uk/vat";
 
 interface VATLiabilitiesCardProps {
   liabilities: VATLiability[];

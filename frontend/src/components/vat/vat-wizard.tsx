@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { VATReturnData, VATObligation } from "@/types/vat";
-import { prepareVatReturn } from "@/lib/vat";
+import type { VATReturnData, VATObligation } from "@taxsorted/engine/uk/vat";
+import { prepareVatReturn } from "@taxsorted/engine/uk/vat";
 
 interface VatWizardProps {
   obligation: VATObligation;

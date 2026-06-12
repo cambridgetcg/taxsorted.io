@@ -10,15 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { VATReturnData, VATObligation } from "@/types/vat";
-import { calculateVATReturnTotals, validateVATReturnData } from "@/lib/hmrc/vat-api";
-import { summarizeReturn, explainReturn } from "@/lib/vat";
+import type { VATReturnData, VATObligation } from "@taxsorted/engine/uk/vat";
+import { calculateVATReturnTotals, validateVATReturnData } from "@taxsorted/engine/uk/hmrc";
+import { summarizeReturn, explainReturn } from "@taxsorted/engine/uk/vat";
 
 interface VATReturnFormProps {
   entityId: string;
   obligation: VATObligation;
   onSubmit: (data: VATReturnData) => Promise<void>;
   isSubmitting?: boolean;
+  /**
+   * "prepare" (default): figures are saved, nothing is sent — the demo flow.
+   * "file": consent means consent — the return goes to HMRC.
+   * The two are never blurred; every word of copy follows this switch.
+   */
+  mode?: "prepare" | "file";
+  /** Where Cancel leads. Defaults to the sample-books route. */
+  cancelHref?: string;
 }
 
 // Each box: a plain-English label + one line of help, shown as visible text (not a hover tooltip).
@@ -105,7 +113,10 @@ export function VATReturnForm({
   obligation,
   onSubmit,
   isSubmitting = false,
+  mode = "prepare",
+  cancelHref,
 }: VATReturnFormProps) {
+  const filing = mode === "file";
   const router = useRouter();
 
   const [formData, setFormData] = useState<Partial<VATReturnData>>({
@@ -194,7 +205,7 @@ export function VATReturnForm({
       {/* Title */}
       <Card>
         <CardHeader>
-          <CardTitle>Prepare your VAT return</CardTitle>
+          <CardTitle>{filing ? "File your VAT return" : "Prepare your VAT return"}</CardTitle>
           <CardDescription>
             {periodDescription} · due {formatDate(obligation.due)}
           </CardDescription>
@@ -336,7 +347,9 @@ export function VATReturnForm({
                   Tick to confirm these figures are right.
                 </Label>
                 <p className="mt-1 text-sm text-gray-500">
-                  This prepares your return — it doesn&apos;t send it to HMRC yet.
+                  {filing
+                    ? "Filing sends this return to HMRC. It can't be unsent."
+                    : "This prepares your return — it doesn't send it to HMRC yet."}
                 </p>
                 {errors.finalised && (
                   <p className="mt-1 text-sm text-red-600">{errors.finalised}</p>
@@ -348,7 +361,7 @@ export function VATReturnForm({
           {errors.submit && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Couldn&apos;t prepare the return</AlertTitle>
+              <AlertTitle>{filing ? "Couldn't file the return" : "Couldn't prepare the return"}</AlertTitle>
               <AlertDescription>{errors.submit}</AlertDescription>
             </Alert>
           )}
@@ -356,10 +369,19 @@ export function VATReturnForm({
           {showConfirmation && (
             <Alert>
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <AlertTitle>Ready to prepare</AlertTitle>
+              <AlertTitle>{filing ? "Ready to file" : "Ready to prepare"}</AlertTitle>
               <AlertDescription>
-                {summary.headline} for {periodDescription}. Click &ldquo;Prepare return&rdquo;
-                again to save these figures. Nothing is sent to HMRC yet.
+                {filing ? (
+                  <>
+                    {summary.headline} for {periodDescription}. Click &ldquo;File with
+                    HMRC&rdquo; to send it — this is the real thing.
+                  </>
+                ) : (
+                  <>
+                    {summary.headline} for {periodDescription}. Click &ldquo;Prepare
+                    return&rdquo; again to save these figures. Nothing is sent to HMRC yet.
+                  </>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -368,7 +390,7 @@ export function VATReturnForm({
           <div className="flex justify-end gap-3">
             <Button
               variant="outline"
-              onClick={() => router.push(`/vat/${entityId}`)}
+              onClick={() => router.push(cancelHref ?? `/vat/${entityId}`)}
               disabled={isSubmitting}
             >
               Cancel
@@ -377,10 +399,10 @@ export function VATReturnForm({
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Preparing…
+                  {filing ? "Filing…" : "Preparing…"}
                 </>
               ) : showConfirmation ? (
-                "Prepare return"
+                filing ? "File with HMRC" : "Prepare return"
               ) : (
                 "Review figures"
               )}

@@ -20,7 +20,7 @@ import {
   pick,
   REGISTRATION_TABLE,
   type Transaction,
-} from "@/lib/vat";
+} from "../index";
 
 describe("VRN checksum (offline validation)", () => {
   it("accepts a real valid VRN (mod-97)", () => {

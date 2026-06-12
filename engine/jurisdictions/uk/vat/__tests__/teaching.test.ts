@@ -10,7 +10,7 @@ import {
   computeReturnFromTransactions,
   compareSchemes,
   type Transaction,
-} from "@/lib/vat";
+} from "../index";
 
 describe("categorise (plain VAT treatment)", () => {
   it("knows the zero-vs-exempt difference (the catch)", () => {

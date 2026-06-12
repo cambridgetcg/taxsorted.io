@@ -1,7 +1,7 @@
 // Say the message. Nine boxes → one clear sentence a human (or an agent) gets instantly.
 
 import { format } from "date-fns";
-import type { VATReturnData } from "@/types/vat";
+import type { VATReturnData } from "./types";
 import { daysUntilDue, vatDueDate, type DueStatus, dueStatus } from "./deadlines";
 
 export type VatPosition = "payable" | "repayment" | "nil";

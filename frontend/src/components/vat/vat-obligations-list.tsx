@@ -7,18 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { VATObligation } from "@/types/vat";
+import type { VATObligation } from "@taxsorted/engine/uk/vat";
 
 interface VATObligationsListProps {
   obligations: VATObligation[];
   entityId: string;
   isLoading?: boolean;
+  /** Where the File button leads. Defaults to the sample-books route. */
+  fileHref?: (periodKey: string) => string;
 }
 
 export function VATObligationsList({
   obligations,
   entityId,
   isLoading,
+  fileHref,
 }: VATObligationsListProps) {
   if (isLoading) {
     return <VATObligationsListSkeleton />;
@@ -54,6 +57,7 @@ export function VATObligationsList({
                       key={obligation.periodKey}
                       obligation={obligation}
                       entityId={entityId}
+                      fileHref={fileHref}
                     />
                   ))}
                 </div>
@@ -69,6 +73,7 @@ export function VATObligationsList({
                       key={obligation.periodKey}
                       obligation={obligation}
                       entityId={entityId}
+                      fileHref={fileHref}
                     />
                   ))}
                 </div>
@@ -84,9 +89,11 @@ export function VATObligationsList({
 function ObligationRow({
   obligation,
   entityId,
+  fileHref,
 }: {
   obligation: VATObligation;
   entityId: string;
+  fileHref?: (periodKey: string) => string;
 }) {
   const isFiled = obligation.status === "F";
   const dueDate = new Date(obligation.due);
@@ -144,7 +151,13 @@ function ObligationRow({
 
         {!isFiled && (
           <Button size="sm" variant={isOverdue ? "default" : "outline"} asChild>
-            <Link href={`/vat/${entityId}/submit?period=${obligation.periodKey}`}>
+            <Link
+              href={
+                fileHref
+                  ? fileHref(obligation.periodKey)
+                  : `/vat/${entityId}/submit?period=${obligation.periodKey}`
+              }
+            >
               {isOverdue ? "File now" : "File"}
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>

@@ -1,0 +1,19 @@
+{
+  "name": "@taxsorted/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One engine; every country is rules, dates and words plugged into it.",
+  "exports": {
+    "./uk/vat": "./jurisdictions/uk/vat/index.ts",
+    "./uk/hmrc": "./jurisdictions/uk/hmrc/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

@@ -10,7 +10,7 @@
 // Boxes 2/8/9 apply to Northern Ireland Protocol goods movements only (post-Brexit).
 
 import { addMonths } from "date-fns";
-import type { VATReturnData } from "@/types/vat";
+import type { VATReturnData } from "./types";
 
 /** Standard UK VAT rates. Pass a number for anything bespoke. */
 export const VAT_RATES = { standard: 0.2, reduced: 0.05, zero: 0 } as const;

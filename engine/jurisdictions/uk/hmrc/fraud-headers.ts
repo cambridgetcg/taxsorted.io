@@ -1,8 +1,10 @@
+/// <reference lib="dom" />
 // HMRC Fraud Prevention Headers
 // Required by law for MTD VAT API calls
+// Browser-side collection — guarded so it is safe to import on a server.
 
 import { getHMRCConfig } from "./config";
-import type { FraudPreventionHeaders } from "@/types/vat";
+import type { FraudPreventionHeaders } from "../vat/types";
 
 // Connection methods
 export type ConnectionMethod =

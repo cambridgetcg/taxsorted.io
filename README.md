@@ -21,17 +21,20 @@ See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 ## Project Structure
 
 ```
-taxsorted.io/
+taxsorted.io/           # npm workspaces: engine · frontend · api
 ├── PRINCIPLES.md       # The soul
+├── engine/             # One engine, countries as plugins — pure TypeScript
+│   └── jurisdictions/uk/   # Plugin #1: vat/ (compute, explain, optimise) + hmrc/
 ├── frontend/           # Next.js web application (static export)
-│   └── src/
-│       ├── app/        # Routes: landing, dashboard, vat/
-│       └── lib/        # VAT engine + HMRC client (moving to engine/jurisdictions/uk)
+│   └── src/app/        # Landing (the map), dashboard, vat/ (real cockpit + demo)
+├── api/                # The rails — Hono on Fly.io (lhr): OAuth vault, receipts
+│   ├── migrations/     # Postgres: sessions → entities → connections → submissions
+│   └── RUNBOOK.md      # How the HMRC rail switches on
 ├── research/           # The Learn pillar's source of truth
 │   ├── _schema/        # Meta-models every country fills in
 │   ├── world/          # True everywhere — neutral tax ontology
 │   └── uk/             # Country #1: filing, laws, entities, deadlines, …
-└── infrastructure/     # Delivery: Cloudflare Pages CI; API server on Fly.io (planned)
+└── infrastructure/     # Delivery truth
 ```
 
 ## Getting Started
@@ -49,8 +52,10 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 - **Deployment**: Cloudflare Pages. CI runs test → build on every push (verified green
   2026-06-12); the deploy step switches on once the `CLOUDFLARE_API_TOKEN` secret is
   added — until then, deploys are manual via `npm run deploy`
-- **Backend (planned)**: Fly.io (London) + Postgres — server-side OAuth, token vault,
-  queued submissions, one typed API for humans and agents alike
+- **Backend**: `api/` — Hono + Postgres on Fly.io (London): anonymous device
+  sessions, server-side HMRC OAuth with an encrypted token vault, engine-validated
+  submission, immutable receipts. One typed API for humans and agents alike.
+  Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Documentation

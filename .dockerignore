@@ -1,0 +1,12 @@
+# Build context is the repo root — keep secrets and junk out of the image.
+**/node_modules
+**/.env
+**/.env.*
+.git
+.github
+frontend/out
+frontend/.next
+research
+infrastructure
+**/*.pem
+**/*.key

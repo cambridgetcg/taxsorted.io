@@ -1,0 +1,13 @@
+{
+  "name": "taxsorted",
+  "private": true,
+  "workspaces": [
+    "engine",
+    "frontend",
+    "api"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspace frontend"
+  }
+}

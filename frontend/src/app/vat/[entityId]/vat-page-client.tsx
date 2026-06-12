@@ -14,7 +14,7 @@ import type {
   VATObligation,
   VATLiability,
   VATPayment,
-} from "@/types/vat";
+} from "@taxsorted/engine/uk/vat";
 
 // Mock data for development - replace with actual API calls
 const mockConnection: VATConnection = {

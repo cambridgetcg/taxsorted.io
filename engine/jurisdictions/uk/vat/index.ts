@@ -3,17 +3,18 @@
 // Both worlds: a human UI renders these results; an agent calls the same functions.
 // One honest path: transactions → 9 boxes → validation → a plain-language answer.
 //
-//   import { prepareVatReturn } from "@/lib/vat";
+//   import { prepareVatReturn } from "@taxsorted/engine/uk/vat";
 //   const { data, summary, validation } = prepareVatReturn(transactions, {
 //     periodKey: "24A1", periodEnd: "2024-03-31",
 //   });
 //   summary.headline // "You owe HMRC £500.00"
 
-import type { VATReturnData } from "@/types/vat";
-import { validateVATReturnData, type ValidationResult } from "@/lib/hmrc/vat-api";
+import type { VATReturnData } from "./types";
+import { validateVATReturnData, type ValidationResult } from "../hmrc/vat-api";
 import { computeReturnFromTransactions, type Transaction } from "./compute";
 import { summarizeReturn, type VatReturnSummary } from "./summary";
 
+export * from "./types";
 export * from "./vrn";
 export * from "./compute";
 export * from "./deadlines";
@@ -23,7 +24,7 @@ export * from "./optimiser";
 export * from "./categorise";
 export * from "./explain";
 // Re-export HMRC-contract validation so the engine is one import surface.
-export { validateVATReturnData, calculateVATReturnTotals } from "@/lib/hmrc/vat-api";
+export { validateVATReturnData, calculateVATReturnTotals } from "../hmrc/vat-api";
 
 export interface PreparedVatReturn {
   data: VATReturnData;
