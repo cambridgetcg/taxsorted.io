@@ -121,6 +121,59 @@ async function accessToken(entityId: string): Promise<string> {
   return tokens.access_token;
 }
 
+/** Sandbox only: mint a pretend VAT-registered organisation to file as.
+    Uses the app's own credentials — no human ever handles a secret. */
+export async function createTestOrganisation(): Promise<{
+  userId: string;
+  password: string;
+  vrn: string;
+  name: string | null;
+}> {
+  const tokenRes = await fetch(`${base}${HMRC_CONFIG.oauth.token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: config.hmrc.clientId,
+      client_secret: config.hmrc.clientSecret,
+    }),
+  });
+  if (!tokenRes.ok) {
+    const detail = await tokenRes.text().catch(() => "");
+    throw new HmrcError(tokenRes.status, `app token failed: ${detail.slice(0, 200)}`);
+  }
+  const { access_token } = (await tokenRes.json()) as { access_token: string };
+
+  await rateLimit();
+  const res = await fetch(`${base}${HMRC_CONFIG.testSupport.createTestOrganisation}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/vnd.hmrc.1.0+json",
+    },
+    body: JSON.stringify({ serviceNames: ["mtd-vat"] }),
+  });
+  const body = (await res.json().catch(() => undefined)) as
+    | {
+        userId?: string;
+        password?: string;
+        vatRegistrationNumber?: string;
+        organisationDetails?: { name?: string };
+        message?: string;
+      }
+    | undefined;
+  if (!res.ok || !body?.userId || !body.password || !body.vatRegistrationNumber) {
+    throw new HmrcError(res.status, body?.message || `HMRC ${res.status}`, body);
+  }
+  return {
+    userId: body.userId,
+    password: body.password,
+    vrn: body.vatRegistrationNumber,
+    name: body.organisationDetails?.name ?? null,
+  };
+}
+
 export class HmrcError extends Error {
   constructor(
     public status: number,

@@ -37,6 +37,11 @@ export const HMRC_CONFIG = {
     },
   },
 
+  // Test Support (sandbox only — these endpoints do not exist in production)
+  testSupport: {
+    createTestOrganisation: "/create-test-user/organisations",
+  },
+
   // Token Configuration
   tokens: {
     accessTokenTTL: 4 * 60 * 60, // 4 hours in seconds

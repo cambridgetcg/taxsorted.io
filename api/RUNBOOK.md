@@ -13,7 +13,9 @@ HMRC application credentials. Only a human can mint those.
    - **VAT (MTD)** — the one that matters
    - **Create Test User** — mints pretend taxpayers to file as
    - (optional) **Test Fraud Prevention Headers** — validates our Gov-* headers
-4. **Redirect URIs**: add `https://api.taxsorted.io/v1/hmrc/callback`
+4. **Redirect URIs**: add `https://api.taxsorted.io/v1/hmrc/callback` — the
+   match must be EXACT (verified 2026-06-12: HMRC rejects our OAuth start with
+   "redirect_uri is invalid" until this is registered, character for character)
 5. Copy the **client ID** and generate a **client secret**.
 
 ## 2. Hand the credentials to the api
@@ -29,21 +31,17 @@ The api restarts; `GET /v1/health` flips to `"configured": true`; every honest
 
 ## 3. Mint a test taxpayer (sandbox has no real people)
 
-The Create Test User API needs only the application's own credentials:
+The api has a sandbox-only door for this — no secrets ever touch your hands:
 
 ```bash
-TOKEN=$(curl -s https://test-api.service.hmrc.gov.uk/oauth/token \
-  -d "grant_type=client_credentials&client_id=$HMRC_CLIENT_ID&client_secret=$HMRC_CLIENT_SECRET" \
-  | jq -r .access_token)
-
-curl -s https://test-api.service.hmrc.gov.uk/create-test-user/organisations \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/vnd.hmrc.1.0+json" \
-  -d '{"serviceNames": ["mtd-vat"]}' | jq
+curl -s -X POST https://api.taxsorted.io/v1/hmrc/test-user | jq
 ```
 
-Keep the response: `userId`, `password`, and `vatRegistrationNumber` (the VRN).
+Keep the response: `userId`, `password`, and `vrn`. (In production this door
+does not exist — it answers `no_such_door` like any other missing room.)
+
+If it returns `test_user_failed`, the `detail` field carries HMRC's own words —
+most often it means the **Create Test User** API isn't subscribed yet (step 1.3).
 
 ## 4. File the first sandbox return (the proof)
 

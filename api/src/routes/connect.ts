@@ -8,7 +8,9 @@ import { signState, verifyState } from "../crypto.js";
 import { ownedEntity } from "../session.js";
 import {
   authorizeUrl,
+  createTestOrganisation,
   exchangeCode,
+  HmrcError,
   revokeConnection,
   storeConnection,
 } from "../hmrc.js";
@@ -25,6 +27,34 @@ connect.get("/status", (c) => {
     configured: config.hmrc.configured,
     env: config.hmrc.env,
   });
+});
+
+// Sandbox practice door: mint a pretend taxpayer to file as.
+// In production this door does not exist.
+connect.post("/test-user", async (c) => {
+  if (config.hmrc.env !== "sandbox") return c.json({ error: "no_such_door" }, 404);
+  if (!config.hmrc.configured) {
+    return c.json(
+      { error: "rail_not_configured", message: "HMRC sandbox credentials are not set yet." },
+      503
+    );
+  }
+  try {
+    const testUser = await createTestOrganisation();
+    return c.json({ testUser }, 201);
+  } catch (e) {
+    // App-level HMRC messages only (no taxpayer data flows through this door).
+    const detail = e instanceof HmrcError ? e.message : undefined;
+    console.error(`test user mint failed: ${detail ?? e}`);
+    return c.json(
+      {
+        error: "test_user_failed",
+        message: "HMRC would not mint a practice taxpayer just now.",
+        detail,
+      },
+      502
+    );
+  }
 });
 
 connect.get("/start/:entityId", async (c) => {
