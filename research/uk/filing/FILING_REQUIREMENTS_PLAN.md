@@ -132,7 +132,7 @@ ALL WAYPOINTS COMPLETE ✅
 
 **Deliverables**:
 ```
-research/filing/
+research/uk/filing/
 ├── FILING_REQUIREMENTS_PLAN.md    # This file
 ├── README.md                       # Index and methodology
 ├── _form-template.md               # Template for each form

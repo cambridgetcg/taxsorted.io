@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TaxSorted — UK VAT made simple",
-  description: "Turn your sales and purchases into a correct UK VAT return. Plain English, no jargon.",
+  title: "TaxSorted — Tax, understood. Then sorted.",
+  description:
+    "TaxSorted is making tax simple for everyone — plain words, figures derived from your records, honest filing. For people, businesses, charities and trusts. The UK is drawn first.",
 };
 
 export default function RootLayout({
@@ -29,17 +30,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* One shared shell on every page — navigation can never disappear. */}
-        <header className="border-b border-gray-200 bg-white">
+        <header className="border-b border-line bg-paper">
           <nav
             aria-label="Main"
             className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
           >
             <Link href="/" className="flex items-baseline gap-2">
-              <span className="text-lg font-semibold text-gray-900">TaxSorted</span>
-              <span className="hidden text-sm text-gray-500 sm:inline">UK VAT, made simple</span>
+              <span className="text-lg font-semibold text-ink">TaxSorted</span>
+              <span className="hidden text-sm text-ink-soft sm:inline">
+                Tax, understood. Then sorted.
+              </span>
             </Link>
             <div className="flex items-center gap-5 text-sm">
-              <Link href="/dashboard" className="text-gray-700 hover:text-gray-900">
+              <Link href="/dashboard" className="text-ink-soft hover:text-ink">
                 Dashboard
               </Link>
             </div>

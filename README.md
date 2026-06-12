@@ -1,54 +1,63 @@
 # TaxSorted.io
 
-UK Tax Filing Platform - Automating tax compliance for individuals and businesses.
+**Tax, understood. Then sorted.**
+
+International tax, made simple for everyone — a person, a business, a charity, a trust:
+same door, same plain words, same engine. Three things in one calm place:
+
+- **Learn** — the open book. Every rule we cover explained in plain words: what it means,
+  what you must do, what you can skip, how to optimise. Free, public, no account.
+- **File** — the workbench. Every figure derived from your records (*derive, never key*),
+  the answer first, nothing sent without your eyes and your consent.
+- **Connect** — the rails. A direct line to the authorities themselves (HMRC first —
+  being built), and the same engine as a typed API: every answer a person reads,
+  software will be able to call.
+
+Underneath sits one engine; every country is rules, dates and words plugged into it —
+never a fork of the product. The UK is drawn first and drawn deep: the proof, not the limit.
+
+See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 
 ## Project Structure
 
 ```
 taxsorted.io/
-├── frontend/           # Next.js web application
-│   ├── src/
-│   │   └── app/       # App Router pages
-│   └── ...
-│
-└── research/          # Filing requirements documentation
-    └── filing/        # Complete UK tax & regulatory filing guide
-        ├── forms/             # Individual form documentation
-        ├── by-entity/         # Entity-type filing matrix
-        ├── deadlines/         # Deadline calculation rules
-        ├── penalties/         # Penalty structures
-        ├── mtd/               # Making Tax Digital requirements
-        └── submission/        # API integration specs & workflow
-            ├── integrations/  # HMRC API integration specs
-            └── workflow/      # Submission workflow architecture
+├── PRINCIPLES.md       # The soul
+├── frontend/           # Next.js web application (static export)
+│   └── src/
+│       ├── app/        # Routes: landing, dashboard, vat/
+│       └── lib/        # VAT engine + HMRC client (moving to engine/jurisdictions/uk)
+├── research/           # The Learn pillar's source of truth
+│   ├── _schema/        # Meta-models every country fills in
+│   ├── world/          # True everywhere — neutral tax ontology
+│   └── uk/             # Country #1: filing, laws, entities, deadlines, …
+└── infrastructure/     # Delivery: Cloudflare Pages CI; API server on Fly.io (planned)
 ```
 
 ## Getting Started
 
-### Frontend Development
-
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev    # http://localhost:3000
+npm test       # the quality gate — tax math is tested as data-driven cases
 ```
-
-Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
-- **Deployment**: Vercel
-- **APIs**: HMRC MTD (REST), HMRC XML Gateway
+- **Frontend**: Next.js 16 (App Router, static export), React 19, TypeScript, Tailwind CSS 4
+- **Deployment**: Cloudflare Pages. CI runs test → build on every push (verified green
+  2026-06-12); the deploy step switches on once the `CLOUDFLARE_API_TOKEN` secret is
+  added — until then, deploys are manual via `npm run deploy`
+- **Backend (planned)**: Fly.io (London) + Postgres — server-side OAuth, token vault,
+  queued submissions, one typed API for humans and agents alike
+- **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Documentation
 
-See `/research/filing/README.md` for comprehensive filing requirements documentation including:
-- All UK tax forms (SA100, CT600, VAT, PAYE/RTI, etc.)
-- Filing deadlines and calculation formulas
-- Penalty structures
-- API integration specifications
-- Entity-centric submission workflow
+- [`research/README.md`](research/README.md) — the open book's index
+- [`research/uk/filing/README.md`](research/uk/filing/README.md) — every UK filing
+  obligation: forms, deadline formulas, penalties, API specs, submission workflow
 
 ## License
 

@@ -227,7 +227,7 @@ W6: Cross-ref     (Cross-references, validation, machine-readable export)
 
 **Deliverables**:
 ```
-research/laws/legislation-by-entity/
+research/uk/laws/legislation-by-entity/
 ├── README.md                    # Index and methodology
 ├── _template.md                 # Template for each entity
 │
@@ -569,7 +569,7 @@ Amendment notes available in each page's "Changes to legislation" section
 ## Next Action
 
 **W1: Create Directory Structure**
-1. Create `research/laws/legislation-by-entity/` directory tree
+1. Create `research/uk/laws/legislation-by-entity/` directory tree
 2. Create `_template.md` with full template
 3. Create one proof-of-concept: `individual/self-employed.md` with ITA 2007 s.35
 

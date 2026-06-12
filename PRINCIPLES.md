@@ -8,7 +8,7 @@ heavy lifting in software.
 
 ## What we believe
 
-1. **Understandable by everyone.** If a rule can't be explained in plain English, the
+1. **Understandable by everyone.** If a rule can't be explained in plain words, the
    explanation is wrong — not the reader.
 2. **Educate, don't gatekeep.** We tell people what's required, what they can skip, and how
    to optimise. The knowledge is the product, not the secret.
@@ -23,6 +23,9 @@ heavy lifting in software.
 7. **Both worlds.** Every answer a person reads, an agent can call. One engine, one truth.
 8. **Clean is honest.** Clean UI, clean code, clean filing, clean categories. Clean is easy
    to understand. Messy hides something.
+9. **Tax is local; clarity isn't.** Every country is rules, dates and words plugged into
+   one engine — adding a place is adding data, never forking the product. The UK is the
+   first proof, not the limit.
 
 ## How we charge (fairly)
 
@@ -38,4 +41,5 @@ One job per piece. No dead weight. We measure it (`pomp`) and keep the score hon
 
 ---
 
-Short version: make it easy, make it open, make it fair, keep it clean.
+Short version: make it easy, make it open, make it fair, keep it clean — everywhere,
+for everyone.
