@@ -158,19 +158,25 @@ export async function createTestOrganisation(): Promise<{
     | {
         userId?: string;
         password?: string;
+        vrn?: string;
         vatRegistrationNumber?: string;
         organisationDetails?: { name?: string };
+        userFullName?: string;
         message?: string;
       }
     | undefined;
-  if (!res.ok || !body?.userId || !body.password || !body.vatRegistrationNumber) {
-    throw new HmrcError(res.status, body?.message || `HMRC ${res.status}`, body);
+  const vrn = body?.vatRegistrationNumber ?? body?.vrn;
+  if (!res.ok || !body?.userId || !body.password || !vrn) {
+    // Sandbox door: name the keys we got (never the values) so a shape
+    // mismatch diagnoses itself.
+    const shape = body ? `got fields: ${Object.keys(body).join(", ")}` : "unparseable body";
+    throw new HmrcError(res.status, body?.message || `HMRC ${res.status} — ${shape}`, body);
   }
   return {
     userId: body.userId,
     password: body.password,
-    vrn: body.vatRegistrationNumber,
-    name: body.organisationDetails?.name ?? null,
+    vrn,
+    name: body.organisationDetails?.name ?? body.userFullName ?? null,
   };
 }
 
