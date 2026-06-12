@@ -47,7 +47,8 @@ export async function session(c: Context, next: Next) {
   // regenerated if anyone hands us something that isn't ours.
   let deviceId = getCookie(c, DEVICE_COOKIE);
   if (!deviceId || !UUID_RE.test(deviceId)) deviceId = randomUUID();
-  setCookie(c, DEVICE_COOKIE, deviceId, { ...cookieBase, maxAge: 2 * YEAR });
+  // One year, same as the session: browsers cap cookies at 400 days anyway.
+  setCookie(c, DEVICE_COOKIE, deviceId, { ...cookieBase, maxAge: YEAR });
 
   c.set("sessionId", sessionId);
   c.set("deviceId", deviceId);
