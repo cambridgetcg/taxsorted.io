@@ -4,8 +4,10 @@
 app = "taxsorted-api"
 primary_region = "lhr"
 
+# Run `fly deploy -c api/fly.toml` from the repo root: the build context is the
+# root (the api needs the engine workspace); this path is relative to this file.
 [build]
-  dockerfile = "api/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8080"
