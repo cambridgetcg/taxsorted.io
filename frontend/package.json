@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "next build && npx wrangler pages deploy out --project-name=taxsorted --branch=main"
+    "deploy": "next build && npx wrangler pages deploy out --project-name=taxsorted --branch=main",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@taxsorted/engine": "*",
