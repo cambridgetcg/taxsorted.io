@@ -1,0 +1,92 @@
+{
+  "schema": "taxsorted.uk.personal-tax-playbook/1",
+  "updated": "2026-07-02",
+  "title": "玩爆英國個税 — UK personal tax, made plain",
+  "tone": "spicy-but-safe",
+  "ethicalLine": "Optimisation is using the law accurately with records. Evasion is hiding income, lying, sham arrangements, fake residence, false invoices, or pretending personal spending is business. TaxSorted explains the system; it does not help anyone evade tax.",
+  "corePattern": "Work is taxed in real time; wealth often has timing, wrapper, rate, residence and transfer choices. The game is usually not one magic loophole — it is who gets choices and who does not.",
+  "snapshot": {
+    "personalAllowance": 12570,
+    "personalAllowanceTaperStarts": 100000,
+    "personalAllowanceTaperRate": "£1 lost for every £2 adjusted net income over £100,000",
+    "incomeTaxBandsEnglandWalesNI": [
+      { "name": "basic", "from": 12571, "to": 50270, "rate": 0.20 },
+      { "name": "higher", "from": 50271, "to": 125140, "rate": 0.40 },
+      { "name": "additional", "from": 125140, "to": null, "rate": 0.45 }
+    ],
+    "cgtAnnualExemptAmount": 3000,
+    "isaAnnualAllowance": 20000
+  },
+  "plays": [
+    {
+      "id": "uk-60-percent-trap",
+      "name": "£100k personal allowance trap — stealth 60% band",
+      "cantonese": "十萬鎊位，表面40%，實際好似60%咁咬你 😂",
+      "howItWorks": "Between £100,000 and about £125,140 adjusted net income, the personal allowance is withdrawn £1 for every £2 over the threshold. That makes an extra £1 of income expose extra taxable income, producing an effective marginal rate around 60% before National Insurance or student loan effects.",
+      "whoCanPlayHard": "High earners with control over pension contributions, gift aid timing, salary sacrifice, bonus timing or company/director remuneration.",
+      "ordinaryCounterMove": "If you are near £100k, learn adjusted net income. Pension contributions and Gift Aid can sometimes restore allowance, but cashflow and annual allowance matter.",
+      "legalLine": "Legit: real pension/Gift Aid/salary-sacrifice arrangements documented properly. Not legit: fake donations, backdated documents, or hiding income.",
+      "sourceIds": ["govuk-income-tax-rates", "govuk-pension-annual-allowance"]
+    },
+    {
+      "id": "uk-income-vs-gains-rate-gap",
+      "name": "Income vs gains — work gets one lane, wealth another",
+      "cantonese": "打工錢即刻收稅；資產升值可以揀時機先賣。呢個就係game位。",
+      "howItWorks": "Employment income can hit 40%/45% Income Tax plus National Insurance, while capital gains are taxed under separate CGT rules, with an annual exempt amount and rates that can be lower depending on asset and income band.",
+      "whoCanPlayHard": "People with investable assets, company shares, property or carried interests who can choose when and how gains are realised.",
+      "ordinaryCounterMove": "Understand the difference, use lawful wrappers like ISA/pension where suitable, and keep basis/acquisition records so gains are not guessed later.",
+      "legalLine": "Legit: planning disposals and using allowances. Not legit: hiding disposals, understating sale proceeds, inventing acquisition costs.",
+      "sourceIds": ["govuk-income-tax-rates", "govuk-cgt-rates"]
+    },
+    {
+      "id": "uk-isa-wrapper",
+      "name": "ISA wrapper — simple legal shelter, but unequal in practice",
+      "cantonese": "ISA係平民都用得嘅合法shield，但每年有£20k先有得shield得盡。",
+      "howItWorks": "Within ISA rules, eligible savings/investments can grow free of UK Income Tax and CGT. The wrapper is simple and legal, but the biggest benefit goes to people who can afford to fill allowances consistently.",
+      "whoCanPlayHard": "People with spare cash/investments who can use the allowance every year and leave growth compounding.",
+      "ordinaryCounterMove": "If you save or invest, check whether an ISA is appropriate before using a taxable account. Even partial use can reduce future paperwork.",
+      "legalLine": "Legit: using authorised ISA accounts within annual rules. Not legit: breaching subscription rules or misdescribing account status.",
+      "sourceIds": ["govuk-isa", "govuk-tax-on-savings-interest"]
+    },
+    {
+      "id": "uk-fig-non-dom-reform",
+      "name": "Non-dom → FIG regime — residence is a tax lever",
+      "cantonese": "以前non-dom玩得好盡；而家改咗做4年FIG，但residence仍然係大招。",
+      "howItWorks": "From 6 April 2025, the remittance basis was replaced by a residence-based regime for foreign income and gains. Qualifying new UK residents may receive a four-year FIG regime; long-term globally mobile people still need residence/treaty planning.",
+      "whoCanPlayHard": "Internationally mobile high-net-worth people with foreign income/gains, advisers and ability to choose where/when they become resident.",
+      "ordinaryCounterMove": "If you move to/from the UK, do not guess residence. Read the official rules and get advice before arrival/disposal/remittance decisions.",
+      "legalLine": "Legit: accurate residence and FIG claims. Not legit: fake residence, undeclared remittances, or pretending funds were clean without records.",
+      "sourceIds": ["govuk-non-dom-reform"]
+    },
+    {
+      "id": "uk-badr-exit-rate",
+      "name": "Business Asset Disposal Relief — founder exit discount",
+      "cantonese": "賣公司有機會低CGT rate，打工bonus就冇呢種exit lane。",
+      "howItWorks": "BADR can reduce CGT on qualifying business disposals up to a lifetime limit. The rate was 10%, rose to 14% from 6 April 2025, and rises to 18% from 6 April 2026 under current GOV.UK guidance.",
+      "whoCanPlayHard": "Business owners/founders with qualifying shares or business assets and the ability to structure a disposal around eligibility rules.",
+      "ordinaryCounterMove": "If you own a business, know the conditions early. If you do not, understand that some tax breaks attach to ownership exits, not wages.",
+      "legalLine": "Legit: meeting the conditions for qualifying assets/shares. Not legit: papering over ownership, officer, employee or trading conditions after the fact.",
+      "sourceIds": ["govuk-badr"]
+    },
+    {
+      "id": "uk-iht-threshold-planning",
+      "name": "IHT threshold planning — transfers, gifts, timing",
+      "cantonese": "遺產稅唔係淨係死嗰刻，係生前已經開始玩時間同threshold。",
+      "howItWorks": "Inheritance Tax uses thresholds, rates, exemptions, gifts and residence/nil-rate rules. Larger estates can plan transfers, gifts and structures around timing and documentation.",
+      "whoCanPlayHard": "Families with estates above thresholds, property, trusts, advisers and time to plan years ahead.",
+      "ordinaryCounterMove": "Keep records of gifts, wills and estate values. If a home or family transfer is involved, check the official thresholds before assuming nothing matters.",
+      "legalLine": "Legit: real gifts and honest valuation/reporting. Not legit: sham ownership, hidden assets, or pretending control was given up when it was not.",
+      "sourceIds": ["govuk-inheritance-tax"]
+    },
+    {
+      "id": "uk-pension-relief-timing",
+      "name": "Pension relief and timing — tax now vs later",
+      "cantonese": "Pension唔只退休，仲係高收入人調整taxable income嘅工具。",
+      "howItWorks": "Pension contributions can receive tax relief and can reduce adjusted net income, which matters for thresholds such as the £100k personal allowance taper. Annual allowance, taper and carry-forward rules limit the play.",
+      "whoCanPlayHard": "Higher earners with cashflow and pension headroom, especially those near threshold cliffs.",
+      "ordinaryCounterMove": "Learn the annual allowance before contributing large amounts. Use pensions for retirement first, tax optimisation second.",
+      "legalLine": "Legit: real pension contributions within rules. Not legit: circular/fake arrangements or ignoring annual allowance/taper charges.",
+      "sourceIds": ["govuk-pension-annual-allowance", "govuk-income-tax-rates"]
+    }
+  ]
+}

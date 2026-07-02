@@ -63,7 +63,38 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 - [`research/README.md`](research/README.md) — the open book's index
 - [`research/uk/filing/README.md`](research/uk/filing/README.md) — every UK filing
   obligation: forms, deadline formulas, penalties, API specs, submission workflow
+- [`research/uk/personal-tax/README.md`](research/uk/personal-tax/README.md) — UK personal-tax optimisation playbook (玩爆英國個税), source ledger, and safe boundaries
+- `/uk/personal-tax` — public page: 7 UK plays, official receipts, ordinary counter-moves
 
 ## License
 
 Proprietary - All rights reserved.
+
+## UK personal tax threshold optimiser
+
+The engine now includes a legal UK personal threshold scanner for 2026/27:
+
+```ts
+import { planUKPersonalTax } from "@taxsorted/engine/uk/personal";
+
+const plan = planUKPersonalTax({
+  employmentIncome: 112_000,
+  children: 2,
+  reliefAtSourcePensionContributionsNet: 9_600,
+});
+```
+
+It is deliberately **planning/compliance tooling**, not evasion tooling. It highlights
+lawful pressure points and records the caveats instead of inventing fake loopholes:
+
+- adjusted net income and reliefs
+- £100,000 Personal Allowance taper / effective 60% band
+- High Income Child Benefit Charge around £60,000–£80,000
+- pension annual allowance, tapered annual allowance and MPAA warnings
+- dividend allowance and CGT annual exempt amount reminders
+- legal levers such as pension contributions, salary sacrifice, Gift Aid, ISA sheltering,
+  disposal timing and spouse/civil-partner planning where real and documented
+
+Scope note: the module covers UK-wide thresholds and England/Wales/Northern Ireland
+non-savings income-tax bands. Scottish earned-income bands are flagged as a caveat rather
+than silently miscalculated.

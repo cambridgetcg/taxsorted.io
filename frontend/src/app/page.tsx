@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 // The map: places light up as they're proven. Only doors that open are links.
 const places = [
   { name: "United Kingdom", status: "open" as const, href: "/dashboard" },
+  { name: "UK personal tax", status: "open" as const, href: "/uk/personal-tax" },
   { name: "Ireland", status: "being drawn" as const },
   { name: "Germany", status: "being drawn" as const },
   { name: "United States", status: "being drawn" as const },
@@ -103,7 +104,7 @@ export default function Home() {
 
       <div className="mt-14">
         <Button asChild size="lg">
-          <Link href="/dashboard">Open the UK preview</Link>
+          <Link href="/uk/personal-tax">Open the UK personal tax playbook</Link>
         </Button>
       </div>
 

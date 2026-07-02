@@ -1,0 +1,115 @@
+[
+  {
+    "id": "govuk-income-tax-rates",
+    "name": "GOV.UK Income Tax rates and Personal Allowances",
+    "url": "https://www.gov.uk/income-tax-rates",
+    "authority": "official-government",
+    "supports": [
+      "UK personal allowance and Income Tax bands/rates for England, Wales and Northern Ireland.",
+      "The personal allowance is reduced by £1 for every £2 of adjusted net income over £100,000."
+    ],
+    "doesNotProve": [
+      "Scottish income tax rates for non-savings/non-dividend income.",
+      "That a specific person has no other allowances, reliefs or tapered effects."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-cgt-rates",
+    "name": "GOV.UK Capital Gains Tax rates and allowances",
+    "url": "https://www.gov.uk/capital-gains-tax/rates",
+    "authority": "official-government",
+    "supports": [
+      "Capital gains rates can differ from Income Tax rates.",
+      "Current annual exempt amount and rates depend on asset type and income band."
+    ],
+    "doesNotProve": [
+      "That a disposal qualifies for a particular relief.",
+      "That losses or residence rules are fully accounted for."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-non-dom-reform",
+    "name": "GOV.UK policy paper: residence-based regime for foreign income and gains",
+    "url": "https://www.gov.uk/government/publications/tax-changes-for-non-uk-domiciled-individuals/the-new-residence-based-regime-for-foreign-income-and-gains",
+    "authority": "official-government-policy",
+    "supports": [
+      "The former remittance basis for non-domiciled individuals was replaced by a residence-based foreign income and gains regime from 6 April 2025.",
+      "The new four-year FIG regime can provide relief for qualifying new UK residents."
+    ],
+    "doesNotProve": [
+      "That every internationally mobile person qualifies.",
+      "That treaty, remittance, trust or transitional rules are simple."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-badr",
+    "name": "GOV.UK Business Asset Disposal Relief",
+    "url": "https://www.gov.uk/business-asset-disposal-relief",
+    "authority": "official-government",
+    "supports": [
+      "Business Asset Disposal Relief can reduce the CGT rate on qualifying business disposals up to a lifetime limit.",
+      "Rates changed from 6 April 2025 and 6 April 2026."
+    ],
+    "doesNotProve": [
+      "That a specific shareholding, office-holder status or trading company condition is satisfied.",
+      "That all business sales qualify."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-tax-on-savings-interest",
+    "name": "GOV.UK Tax on savings interest",
+    "url": "https://www.gov.uk/apply-tax-free-interest-on-savings",
+    "authority": "official-government",
+    "supports": [
+      "Savings interest can be covered by starting rate, personal savings allowance, ISA sheltering or taxed otherwise."
+    ],
+    "doesNotProve": [
+      "That a particular account is an ISA or that the person has unused allowance."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-isa",
+    "name": "GOV.UK Individual Savings Accounts",
+    "url": "https://www.gov.uk/individual-savings-accounts",
+    "authority": "official-government",
+    "supports": [
+      "ISAs shelter eligible savings/investments from UK Income Tax and Capital Gains Tax within subscription rules."
+    ],
+    "doesNotProve": [
+      "That ISA sheltering benefits everyone equally.",
+      "That the visitor can or should use the full annual allowance."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-inheritance-tax",
+    "name": "GOV.UK Inheritance Tax",
+    "url": "https://www.gov.uk/inheritance-tax",
+    "authority": "official-government",
+    "supports": [
+      "Inheritance Tax has thresholds, exemptions and rates that make estate planning highly threshold-sensitive."
+    ],
+    "doesNotProve": [
+      "That an estate owes IHT or that a gift is exempt without facts."
+    ],
+    "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "govuk-pension-annual-allowance",
+    "name": "GOV.UK Pension annual allowance",
+    "url": "https://www.gov.uk/tax-on-your-private-pension/annual-allowance",
+    "authority": "official-government",
+    "supports": [
+      "Pension tax relief and annual allowance rules can make pension contributions a major planning lever."
+    ],
+    "doesNotProve": [
+      "That a specific contribution is advisable or within allowance after taper/carry-forward rules."
+    ],
+    "lastReviewed": "2026-07-02"
+  }
+]
