@@ -6,6 +6,7 @@ import {
   locales,
   playgroundCopy,
   politicsCards,
+  sourceKindLabels,
   taxSources,
 } from "../taxsorted-world";
 
@@ -52,5 +53,15 @@ describe("taxsorted-world multilingual content", () => {
       expect(getSources(card.sourceIds)).toHaveLength(card.sourceIds.length);
     }
     for (const source of taxSources) expect(source.url).toMatch(/^https:\/\//);
+  });
+
+  test("every source kind used has a label translated for every locale", () => {
+    const usedKinds = new Set(taxSources.map((source) => source.kind));
+    for (const kind of usedKinds) {
+      expect(sourceKindLabels[kind], `missing label for kind ${kind}`).toBeTruthy();
+      for (const locale of locales) {
+        expect(sourceKindLabels[kind][locale], `${kind}/${locale} missing`).toBeTruthy();
+      }
+    }
   });
 });

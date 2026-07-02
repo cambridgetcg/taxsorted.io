@@ -103,7 +103,74 @@ export const playgroundCopy = {
     hi: "सबूत, vibes नहीं",
     ur: "ثبوت، vibes نہیں",
   },
+  playLabel: {
+    en: "Play",
+    "zh-HK": "玩法",
+    "zh-CN": "玩法",
+    pl: "Zagranie",
+    hi: "खेल",
+    ur: "کھیل",
+  },
+  cleanLineLabel: {
+    en: "Clean line",
+    "zh-HK": "合法界線",
+    "zh-CN": "合法边界",
+    pl: "Granica legalności",
+    hi: "कानूनी सीमा",
+    ur: "قانونی حد",
+  },
+  whyPoliticsLabel: {
+    en: "Why politics matters",
+    "zh-HK": "點解政治關事",
+    "zh-CN": "为什么政治重要",
+    pl: "Dlaczego polityka ma znaczenie",
+    hi: "राजनीति क्यों मायने रखती है",
+    ur: "سیاست کیوں اہم ہے",
+  },
+  moveLabel: {
+    en: "Move",
+    "zh-HK": "行動",
+    "zh-CN": "行动",
+    pl: "Ruch",
+    hi: "कदम",
+    ur: "قدم",
+  },
+  switcherHint: {
+    en: "Use the globe switcher above to change the whole site.",
+    "zh-HK": "用上面個地球掣，就可以轉成成個網站嘅語言。",
+    "zh-CN": "用上面的地球按钮，即可切换整个网站的语言。",
+    pl: "Użyj przełącznika z globusem powyżej, aby zmienić język całej strony.",
+    hi: "पूरी साइट की भाषा बदलने के लिए ऊपर globe switcher का उपयोग करें।",
+    ur: "پوری سائٹ کی زبان بدلنے کے لیے اوپر globe switcher استعمال کریں۔",
+  },
 } satisfies Record<string, LocalisedText>;
+
+export const sourceKindLabels: Record<TaxSource["kind"], LocalisedText> = {
+  official: {
+    en: "official",
+    "zh-HK": "官方",
+    "zh-CN": "官方",
+    pl: "oficjalne",
+    hi: "आधिकारिक",
+    ur: "سرکاری",
+  },
+  parliament: {
+    en: "parliament",
+    "zh-HK": "議會",
+    "zh-CN": "议会",
+    pl: "parlament",
+    hi: "संसद",
+    ur: "پارلیمان",
+  },
+  "fiscal-watchdog": {
+    en: "fiscal watchdog",
+    "zh-HK": "財政監察",
+    "zh-CN": "财政监察",
+    pl: "nadzór fiskalny",
+    hi: "राजकोषीय निगरानी",
+    ur: "مالیاتی نگران",
+  },
+};
 
 export const taxSources: TaxSource[] = [
   {

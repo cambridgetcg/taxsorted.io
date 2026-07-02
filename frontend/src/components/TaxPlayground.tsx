@@ -7,6 +7,7 @@ import {
   localeLabels,
   playgroundCopy,
   politicsCards,
+  sourceKindLabels,
   type TaxSortedLocale,
 } from "@/lib/taxsorted-world";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -49,7 +50,7 @@ export function TaxPlayground() {
         <div className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink">
           <p className="font-medium">{siteT("lang.label")}</p>
           <p className="mt-1 text-ink-soft">{localeLabels[locale].native} · {localeLabels[locale].english}</p>
-          <p className="mt-2 text-xs text-ink-soft">Use the globe switcher above to change the whole site.</p>
+          <p className="mt-2 text-xs text-ink-soft">{t(playgroundCopy.switcherHint, locale)}</p>
         </div>
       </div>
 
@@ -66,8 +67,8 @@ export function TaxPlayground() {
                 <p className="text-3xl" aria-hidden="true">{card.emoji}</p>
                 <h4 className="mt-3 text-lg font-semibold text-ink">{t(card.title, locale)}</h4>
                 <p className="mt-2 text-sm text-ink-soft">{t(card.body, locale)}</p>
-                <p className="mt-3 text-sm text-ink"><strong>Play:</strong> {t(card.play, locale)}</p>
-                <p className="mt-2 text-xs text-ink-soft"><strong>Clean line:</strong> {t(card.legalBoundary, locale)}</p>
+                <p className="mt-3 text-sm text-ink"><strong>{t(playgroundCopy.playLabel, locale)}:</strong> {t(card.play, locale)}</p>
+                <p className="mt-2 text-xs text-ink-soft"><strong>{t(playgroundCopy.cleanLineLabel, locale)}:</strong> {t(card.legalBoundary, locale)}</p>
               </article>
             ))}
           </div>
@@ -80,12 +81,12 @@ export function TaxPlayground() {
               <article key={card.id} className="rounded-3xl border border-line bg-white p-5 shadow-sm">
                 <h4 className="text-lg font-semibold text-ink">{t(card.title, locale)}</h4>
                 <p className="mt-2 text-sm text-ink-soft">{t(card.plain, locale)}</p>
-                <p className="mt-3 text-sm text-ink"><strong>Why politics matters:</strong> {t(card.whyItMatters, locale)}</p>
-                <p className="mt-2 text-sm text-ink"><strong>Move:</strong> {t(card.action, locale)}</p>
+                <p className="mt-3 text-sm text-ink"><strong>{t(playgroundCopy.whyPoliticsLabel, locale)}:</strong> {t(card.whyItMatters, locale)}</p>
+                <p className="mt-2 text-sm text-ink"><strong>{t(playgroundCopy.moveLabel, locale)}:</strong> {t(card.action, locale)}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {getSources(card.sourceIds).map((source) => (
                     <a key={source.id} href={source.url} className="rounded-full border border-line px-3 py-1 text-xs text-accent hover:text-accent-deep">
-                      {source.kind}: {source.name}
+                      {t(sourceKindLabels[source.kind], locale)}: {source.name}
                     </a>
                   ))}
                 </div>
