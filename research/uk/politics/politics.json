@@ -1,0 +1,203 @@
+{
+  "schema": "taxsorted.uk.politics/1",
+  "updated": "2026-07-03",
+  "title": "Deep into UK tax politics",
+  "stance": "non-partisan-educational",
+  "note": "This explains the machine of UK tax politics — who decides, how a rule becomes law, and the live fights. It names positions, not villains, and never tells anyone how to vote.",
+  "deciders": [
+    {
+      "id": "chancellor",
+      "role": "Chancellor of the Exchequer",
+      "what": "Runs HM Treasury and sets the Budget — the yearly plan of tax and spending. The Chancellor chooses the rates, thresholds and reliefs that decide who pays what.",
+      "power": "high",
+      "checkedBy": "The Cabinet, Parliament's votes, the OBR's independent forecast, and the bond markets."
+    },
+    {
+      "id": "treasury",
+      "role": "HM Treasury",
+      "what": "The department that designs tax policy and writes the numbers behind the Budget.",
+      "power": "high",
+      "checkedBy": "Ministers, Parliament, and public consultation on draft legislation."
+    },
+    {
+      "id": "hmrc",
+      "role": "HMRC",
+      "what": "Collects the tax and runs the system. It administers the rules but does not set the rates — that is Parliament's job.",
+      "power": "medium",
+      "checkedBy": "Courts and tribunals, the Adjudicator, and Parliament's committees."
+    },
+    {
+      "id": "parliament",
+      "role": "Parliament (Commons + Lords)",
+      "what": "MPs vote tax changes into law through the annual Finance Bill. The elected Commons holds the purse strings; the Lords can scrutinise but not block money bills.",
+      "power": "high",
+      "checkedBy": "Elections, and the convention that the Commons controls taxation."
+    },
+    {
+      "id": "obr",
+      "role": "Office for Budget Responsibility (OBR)",
+      "what": "The independent forecaster. It scores whether the Budget meets the government's own fiscal rules, which shapes what a Chancellor dares to announce.",
+      "power": "medium",
+      "checkedBy": "Its legal mandate for independence and public methodology."
+    },
+    {
+      "id": "voters",
+      "role": "Voters",
+      "what": "The ultimate check. Manifesto promises on tax (for example 'no rise in income tax rates') constrain what a government feels able to do — which is why 'stealth' measures exist.",
+      "power": "high-but-slow",
+      "checkedBy": "Elections, roughly every five years."
+    }
+  ],
+  "howLawWorks": [
+    {
+      "step": 1,
+      "title": "The Budget speech",
+      "body": "The Chancellor announces tax plans to the Commons, usually once a year in an Autumn Budget."
+    },
+    {
+      "step": 2,
+      "title": "The OBR scores it",
+      "body": "The independent OBR publishes forecasts saying whether the plans meet the fiscal rules. This can force last-minute changes."
+    },
+    {
+      "step": 3,
+      "title": "The Finance Bill",
+      "body": "The announced measures are written as a Finance Bill and debated by MPs, line by line."
+    },
+    {
+      "step": 4,
+      "title": "Commons votes; Lords scrutinise",
+      "body": "The elected Commons decides tax. The Lords can review and suggest, but by convention cannot block a money bill."
+    },
+    {
+      "step": 5,
+      "title": "Royal Assent → law",
+      "body": "Once passed and signed, it becomes a Finance Act. HMRC then administers it. Many changes are dated years ahead."
+    }
+  ],
+  "debates": [
+    {
+      "id": "fiscal-drag",
+      "title": "Frozen thresholds — the quiet 'stealth tax'",
+      "cantonese": "唔加稅率，但凍結門檻，通脹幫政府自動加稅 😏",
+      "plain": "In the Autumn Budget 2025 the government extended the freeze on income tax and National Insurance thresholds for three more years, to April 2031. When thresholds stay flat while wages rise, more people are pulled into higher bands — a 'stealth' rise without changing the headline rate.",
+      "whoItHits": "Anyone whose pay rises with inflation, and first-time taxpayers newly pulled over £12,570. The Personal Allowance stays £12,570 and the higher-rate threshold £50,270 until 2031.",
+      "whatToWatch": "The OBR scored the threshold freeze as the Budget's single largest revenue raiser, expected to raise about £23bn by 2030/31.",
+      "sourceIds": [
+        "commons-budget-2025",
+        "obr-budget-2025"
+      ]
+    },
+    {
+      "id": "income-tax-u-turn",
+      "title": "The income-tax-rate U-turn",
+      "cantonese": "本來想加入息稅率，臨尾縮沙，改用其他招 😅",
+      "plain": "In the run-up to the 2025 Budget the government considered raising income tax rates — which would have broken a manifesto pledge — then U-turned. Instead it leaned on frozen thresholds and taxes on property, savings and dividends. This is politics shaping the tool: promises restrict the obvious lever, so quieter levers get used.",
+      "whoItHits": "Everyone, indirectly: it is why 'stealth' and asset-side taxes rose instead of headline rates.",
+      "whatToWatch": "Watch the gap between 'we won't raise income tax rates' and the rising overall tax burden — set to reach a record share of GDP.",
+      "sourceIds": [
+        "ifg-budget-2025",
+        "commons-budget-2025"
+      ]
+    },
+    {
+      "id": "work-vs-wealth",
+      "title": "Work vs wealth — closing the gap, slowly",
+      "cantonese": "打工稅重、資產稅輕，開始拉近但仲有距離。",
+      "plain": "A long-running fight is that income from work has been taxed more heavily than income from wealth. The 2025 Budget nudged this: dividend ordinary/upper rates rise to 10.75%/35.75% from April 2026, and savings income rates rise by 2 points from April 2027.",
+      "whoItHits": "Company directors taking dividends, and savers/investors outside ISAs and pensions.",
+      "whatToWatch": "Whether future Budgets keep narrowing the work-vs-wealth gap, or stop here.",
+      "sourceIds": [
+        "travers-budget-2025",
+        "commons-budget-2025"
+      ]
+    },
+    {
+      "id": "property-and-council-tax",
+      "title": "High-value homes and the un-revalued council tax",
+      "cantonese": "貴樓開始加辣，但council tax自1991年冇重估 🏠",
+      "plain": "From April 2028 England gets a High Value Council Tax Surcharge on homes worth £2m or more — from £2,500 up to £7,500 a year. Critics note the deeper issue: council tax bands in England have not been revalued since 1991, so the base itself is decades out of date.",
+      "whoItHits": "Owners of high-value homes first; the revaluation debate affects everyone's council tax.",
+      "whatToWatch": "Whether the surcharge threshold is lowered over time, and whether any government dares a full revaluation.",
+      "sourceIds": [
+        "osborne-budget-2025",
+        "ifg-budget-2025"
+      ]
+    },
+    {
+      "id": "isa-and-savings",
+      "title": "The ISA squeeze and the savings shift",
+      "cantonese": "現金ISA額度縮，想你啲錢去投資唔係淨係擺定期 💷",
+      "plain": "From April 2027 the cash ISA allowance falls to £12,000 for under-65s (the overall £20,000 stays, but £8,000 is steered toward investments). It is a political nudge: the state using tax wrappers to shape where savings go.",
+      "whoItHits": "Under-65 cash savers; over-65s are protected from this change.",
+      "whatToWatch": "Whether wrapper rules keep being used as behavioural policy, not just tax shelter.",
+      "sourceIds": [
+        "deloitte-budget-2025",
+        "travers-budget-2025"
+      ]
+    },
+    {
+      "id": "pensions-and-iht",
+      "title": "Pensions pulled into inheritance tax",
+      "cantonese": "退休金2027年起計入遺產稅網，salary sacrifice都收緊 ⚖️",
+      "plain": "Unused pension funds are due to fall within Inheritance Tax from April 2027, and from April 2029 only the first £2,000 of pension contributions via salary sacrifice stays NIC-free. Meanwhile the IHT nil-rate bands (£325k + £175k) stay frozen to 2030/31, so more estates are drawn in.",
+      "whoItHits": "People planning to pass on pensions, and higher earners using salary-sacrifice pensions.",
+      "whatToWatch": "How pension-IHT is administered (personal representatives, 15-month windows) and whether frozen IHT bands catch ordinary homeowners.",
+      "sourceIds": [
+        "deloitte-budget-2025",
+        "travers-budget-2025"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "commons-budget-2025",
+      "name": "House of Commons Library — Autumn Budget 2025: A summary",
+      "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-10405/",
+      "authority": "official-parliament",
+      "supports": "Threshold freeze extended to April 2031; OBR expects about £23bn by 2030/31; how Parliament scrutinises the Finance Bill."
+    },
+    {
+      "id": "obr-budget-2025",
+      "name": "Office for Budget Responsibility — Economic and fiscal outlook (November 2025)",
+      "url": "https://obr.uk/efo/economic-and-fiscal-outlook-november-2025/",
+      "authority": "official-independent-forecaster",
+      "supports": "Independent forecast and fiscal-rule scoring behind the Budget."
+    },
+    {
+      "id": "gov-budget-2025",
+      "name": "GOV.UK — Autumn Budget 2025",
+      "url": "https://www.gov.uk/government/publications/budget-2025-document/budget-2025-html",
+      "authority": "official-government",
+      "supports": "Primary government Budget documents and measures."
+    },
+    {
+      "id": "travers-budget-2025",
+      "name": "Travers Smith — Autumn Budget 2025: Personal Taxes",
+      "url": "https://www.traverssmith.com/knowledge/knowledge-container/autumn-budget-2025-personal-taxes/",
+      "authority": "professional-analysis",
+      "supports": "Dividend rate rises (Apr 2026), savings +2% (Apr 2027), ISA change, threshold freeze detail."
+    },
+    {
+      "id": "deloitte-budget-2025",
+      "name": "Deloitte TaxScape — Autumn Budget 2025",
+      "url": "https://taxscape.deloitte.com/insights/article/autumn-budget-2025.aspx",
+      "authority": "professional-analysis",
+      "supports": "Pensions into IHT from April 2027; personal-representative withholding mechanics; Cash ISA allowance falling to £12,000 for under-65s from April 2027."
+    },
+    {
+      "id": "osborne-budget-2025",
+      "name": "Osborne Clarke — UK Autumn Budget 2025 tax measures",
+      "url": "https://www.osborneclarke.com/insights/uk-autumn-budget-2025-what-tax-measures-were-announced",
+      "authority": "professional-analysis",
+      "supports": "High Value Council Tax Surcharge (£2m+ from April 2028), salary-sacrifice NIC change."
+    },
+    {
+      "id": "ifg-budget-2025",
+      "name": "Institute for Government — Autumn Budget 2025 analysis",
+      "url": "https://www.instituteforgovernment.org.uk/comment/autumn-budget-2025-rachel-reeves-announcements",
+      "authority": "think-tank-analysis",
+      "supports": "Fiscal drag as the main driver; record tax share of GDP; council-tax revaluation gap; the pre-Budget U-turn."
+    }
+  ]
+}

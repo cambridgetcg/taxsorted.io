@@ -1,0 +1,162 @@
+{
+  "schema": "taxsorted.uk.personal-tax-i18n/1",
+  "defaultLocale": "en",
+  "locales": [
+    "en",
+    "zh-HK",
+    "zh-CN",
+    "pl",
+    "hi",
+    "ur"
+  ],
+  "ui": {
+    "en": {
+      "localeName": "English",
+      "heroEyebrow": "UK personal tax · spicy but safe",
+      "heroTitle": "Play the UK tax game — legally, plainly, with receipts.",
+      "heroBody": "Rich people do not have magic. They know rules, wrappers, timing, residence and reliefs. TaxSorted teaches the game without helping anyone cheat it.",
+      "legalBadge": "Legal line",
+      "sameMoneyTitle": "Same £80k, different lane",
+      "thresholdScannerTitle": "Threshold scanner — legal levers, no fake loopholes",
+      "thresholdScannerBody": "The engine scans adjusted net income pressure points and suggests lawful moves with caveats. No hiding income, no sham invoices, no pretend residence.",
+      "politicsTitle": "Deep politics: who wrote the game board?",
+      "politicsBody": "UK personal tax is politics expressed as thresholds. The loud fight is rates; the quiet machinery is frozen allowances, clawbacks and who gets timing choices.",
+      "playsTitle": "7 UK personal-tax plays",
+      "sourceLedgerTitle": "Source ledger",
+      "receiptLabel": "receipt"
+    },
+    "zh-HK": {
+      "localeName": "繁中 / 港式",
+      "heroEyebrow": "UK 個税 · 辣但安全",
+      "heroTitle": "玩爆英國個税 — 合法、講人話、有 receipts。",
+      "heroBody": "有錢人唔係識魔法；佢哋識 rules、wrappers、timing、residence、reliefs。TaxSorted 教你睇穿個 game，但唔教人呃稅。",
+      "legalBadge": "合法界線",
+      "sameMoneyTitle": "同樣 £80k，唔同 lane",
+      "thresholdScannerTitle": "Threshold scanner — 合法工具，唔係假 loophole",
+      "thresholdScannerBody": "Engine 會掃 adjusted net income 壓力位，再講合法 moves 同 caveats。唔藏收入、唔假 invoice、唔扮 residence。",
+      "politicsTitle": "Deep politics：邊個寫咗個 game board？",
+      "politicsBody": "英國個税好多時係 thresholds 包住嘅政治。表面嗌 rates；靜雞雞最勁係 freeze allowances、clawbacks、同邊個有 timing choices。",
+      "playsTitle": "7 個 UK personal-tax 玩法",
+      "sourceLedgerTitle": "Source ledger / receipts",
+      "receiptLabel": "receipt"
+    },
+    "zh-CN": {
+      "localeName": "简中",
+      "heroEyebrow": "英国个人税 · 有趣但守法",
+      "heroTitle": "把英国个人税规则玩明白 — 合法、清楚、有来源。",
+      "heroBody": "有钱人不是会魔法；他们懂规则、税务包装、时间安排、居住身份和减免。TaxSorted 教你看懂游戏，但不帮助逃税。",
+      "legalBadge": "合法边界",
+      "sameMoneyTitle": "同样 £80k，不同通道",
+      "thresholdScannerTitle": "阈值扫描器 — 合法工具，不是假漏洞",
+      "thresholdScannerBody": "引擎扫描 adjusted net income 压力点，并给出带边界说明的合法动作。不隐瞒收入、不做假发票、不伪造居住身份。",
+      "politicsTitle": "深挖政治：谁设计了这张游戏板？",
+      "politicsBody": "英国个人税常常是以阈值表达的政治。公开争论的是税率；安静运转的是冻结免税额、追回机制，以及谁拥有选择时间点的能力。",
+      "playsTitle": "7 个英国个人税玩法",
+      "sourceLedgerTitle": "来源账本",
+      "receiptLabel": "来源"
+    },
+    "pl": {
+      "localeName": "Polski",
+      "heroEyebrow": "UK personal tax · pikantnie, ale bezpiecznie",
+      "heroTitle": "Graj w brytyjski podatek legalnie, jasno i z dowodami.",
+      "heroBody": "Bogaci nie mają magii. Znają zasady, wrappers, timing, residence i reliefs. TaxSorted uczy gry, ale nie pomaga oszukiwać.",
+      "legalBadge": "Granica legalności",
+      "sameMoneyTitle": "To samo £80k, inny pas",
+      "thresholdScannerTitle": "Skaner progów — legalne dźwignie, zero fałszywych loopholes",
+      "thresholdScannerBody": "Silnik skanuje punkty nacisku adjusted net income i pokazuje legalne ruchy z caveats. Bez ukrywania dochodu, bez fikcyjnych faktur, bez udawanej rezydencji.",
+      "politicsTitle": "Głęboka polityka: kto napisał planszę?",
+      "politicsBody": "UK personal tax to często polityka zapisana jako thresholds. Głośna walka to rates; cicha maszyna to frozen allowances, clawbacks i kto ma timing choices.",
+      "playsTitle": "7 ruchów UK personal tax",
+      "sourceLedgerTitle": "Source ledger",
+      "receiptLabel": "źródło"
+    },
+    "hi": {
+      "localeName": "हिन्दी",
+      "heroEyebrow": "UK personal tax · spicy but safe",
+      "heroTitle": "UK tax game खेलो — कानूनी, साफ़, receipts के साथ।",
+      "heroBody": "अमीर लोगों के पास magic नहीं; वे rules, wrappers, timing, residence और reliefs जानते हैं। TaxSorted खेल सिखाता है, cheating नहीं।",
+      "legalBadge": "कानूनी सीमा",
+      "sameMoneyTitle": "वही £80k, अलग lane",
+      "thresholdScannerTitle": "Threshold scanner — legal levers, fake loopholes नहीं",
+      "thresholdScannerBody": "Engine adjusted net income pressure points scan करता है और caveats के साथ lawful moves बताता है। Income hide नहीं, fake invoices नहीं, fake residence नहीं।",
+      "politicsTitle": "Deep politics: game board किसने लिखा?",
+      "politicsBody": "UK personal tax अक्सर thresholds में लिखी politics है। शोर rates पर होता है; असली मशीन frozen allowances, clawbacks और timing choices में है।",
+      "playsTitle": "7 UK personal-tax plays",
+      "sourceLedgerTitle": "Source ledger",
+      "receiptLabel": "receipt"
+    },
+    "ur": {
+      "localeName": "اردو",
+      "heroEyebrow": "UK personal tax · spicy مگر safe",
+      "heroTitle": "UK tax game کھیلیں — قانونی، صاف، receipts کے ساتھ۔",
+      "heroBody": "امیر لوگوں کے پاس جادو نہیں؛ وہ rules، wrappers، timing، residence اور reliefs جانتے ہیں۔ TaxSorted کھیل سکھاتا ہے، cheating نہیں۔",
+      "legalBadge": "قانونی حد",
+      "sameMoneyTitle": "وہی £80k، مختلف lane",
+      "thresholdScannerTitle": "Threshold scanner — legal levers، fake loopholes نہیں",
+      "thresholdScannerBody": "Engine adjusted net income pressure points scan کرتا ہے اور caveats کے ساتھ lawful moves بتاتا ہے۔ Income hide نہیں، fake invoices نہیں، fake residence نہیں۔",
+      "politicsTitle": "Deep politics: game board کس نے لکھا؟",
+      "politicsBody": "UK personal tax اکثر thresholds میں لکھی politics ہے۔ شور rates پر ہوتا ہے؛ اصل مشین frozen allowances، clawbacks اور timing choices میں ہے۔",
+      "playsTitle": "7 UK personal-tax plays",
+      "sourceLedgerTitle": "Source ledger",
+      "receiptLabel": "receipt"
+    }
+  },
+  "playTranslations": {
+    "uk-60-percent-trap": {
+      "en": "The £100k trap: effective 60% Income Tax-only band before NI/student loans.",
+      "zh-HK": "£100k trap：表面 40%，因 personal allowance taper，Income Tax-only 邊際可以似 60%。",
+      "zh-CN": "£100k 陷阱：表面 40%，因为个人免税额递减，所得税边际效果可接近 60%。",
+      "pl": "Pułapka £100k: przez taper Personal Allowance marginalny Income Tax-only efekt może wyglądać jak 60%.",
+      "hi": "£100k trap: Personal Allowance taper की वजह से Income Tax-only marginal effect लगभग 60% जैसा लग सकता है।",
+      "ur": "£100k trap: Personal Allowance taper کی وجہ سے Income Tax-only marginal effect تقریباً 60% جیسا لگ سکتا ہے۔"
+    },
+    "uk-income-vs-gains-rate-gap": {
+      "en": "Work income and capital gains run through different lanes; ownership often has timing choices wages do not.",
+      "zh-HK": "打工錢同資產增值係唔同 lane；有資產通常有 timing choice，打工通常冇。",
+      "zh-CN": "工资收入和资本收益走不同通道；资产通常有时间选择，工资通常没有。",
+      "pl": "Dochód z pracy i capital gains jadą innymi pasami; ownership często ma timing choices, wages zwykle nie.",
+      "hi": "Work income और capital gains अलग lanes में चलते हैं; ownership में timing choices होती हैं, wages में कम।",
+      "ur": "Work income اور capital gains الگ lanes میں چلتے ہیں؛ ownership میں timing choices ہوتی ہیں، wages میں کم۔"
+    },
+    "uk-isa-wrapper": {
+      "en": "ISA is a simple legal wrapper: boring, powerful, unequal in practice because spare cash matters.",
+      "zh-HK": "ISA 係合法 shield：悶但勁；現實上有閒錢先用得盡。",
+      "zh-CN": "ISA 是合法保护壳：朴素但有效；现实中有余钱的人更能用满。",
+      "pl": "ISA to legalna tarcza: nudna, mocna, ale w praktyce nierówna, bo spare cash ma znaczenie.",
+      "hi": "ISA legal shield है: boring लेकिन powerful; practice में unequal क्योंकि spare cash matter करता है।",
+      "ur": "ISA legal shield ہے: boring مگر powerful؛ practice میں unequal کیونکہ spare cash matter کرتا ہے۔"
+    },
+    "uk-fig-non-dom-reform": {
+      "en": "Residence is a tax lever: the old non-dom remittance basis became a residence-based FIG regime from April 2025.",
+      "zh-HK": "Residence 係大招：舊 non-dom remittance basis 由 2025 年 4 月起改成 residence-based FIG regime。",
+      "zh-CN": "Residence 是关键杠杆：旧 non-dom remittance basis 从 2025 年 4 月起改为 residence-based FIG regime。",
+      "pl": "Residence to mocna dźwignia: dawny non-dom remittance basis od kwietnia 2025 zastąpił residence-based FIG regime.",
+      "hi": "Residence बड़ा lever है: पुराना non-dom remittance basis April 2025 से residence-based FIG regime बना।",
+      "ur": "Residence بڑا lever ہے: پرانا non-dom remittance basis April 2025 سے residence-based FIG regime بنا۔"
+    },
+    "uk-badr-exit-rate": {
+      "en": "Founder exits can have their own CGT lane if BADR conditions are met; eligibility matters before the sale, not after.",
+      "zh-HK": "Founder exit 有機會走自己嘅 CGT lane，但 BADR conditions 要賣之前已經 meet，唔係事後補戲。",
+      "zh-CN": "Founder exit 可能有自己的 CGT 通道，但 BADR 条件要在出售前满足，不是事后补材料。",
+      "pl": "Founder exit może mieć osobny pas CGT, jeśli warunki BADR są spełnione przed sprzedażą, nie po fakcie.",
+      "hi": "Founder exit की अपनी CGT lane हो सकती है अगर BADR conditions sale से पहले meet हों, बाद में नहीं।",
+      "ur": "Founder exit کی اپنی CGT lane ہو سکتی ہے اگر BADR conditions sale سے پہلے meet ہوں، بعد میں نہیں۔"
+    },
+    "uk-iht-threshold-planning": {
+      "en": "IHT is a timing-and-records game: real gifts, honest valuations, wills and thresholds matter years before death.",
+      "zh-HK": "IHT 係 timing 加 records game：真 gift、誠實 valuation、will 同 thresholds，死之前好多年已經重要。",
+      "zh-CN": "IHT 是 timing 和 records game：真实赠与、诚实估值、遗嘱和 thresholds，往往在去世前多年就重要。",
+      "pl": "IHT to gra czasu i dokumentów: prawdziwe gifts, uczciwe valuations, wills i thresholds liczą się lata wcześniej.",
+      "hi": "IHT timing और records का game है: real gifts, honest valuations, wills और thresholds कई साल पहले matter करते हैं।",
+      "ur": "IHT timing اور records کا game ہے: real gifts، honest valuations، wills اور thresholds کئی سال پہلے matter کرتے ہیں۔"
+    },
+    "uk-pension-relief-timing": {
+      "en": "Pensions are retirement first and tax timing second: powerful near cliffs, but annual allowance and taper rules bite.",
+      "zh-HK": "Pension 第一係退休，第二先係 tax timing：近 cliff 好有力，但 annual allowance 同 taper 會咬人。",
+      "zh-CN": "Pension 首先是退休，其次才是 tax timing：接近 cliff 时有力，但 annual allowance 和 taper 会咬人。",
+      "pl": "Pension jest najpierw emeryturą, potem tax timing: mocne przy klifach, ale annual allowance i taper gryzą.",
+      "hi": "Pension पहले retirement है, फिर tax timing: cliffs के पास powerful, पर annual allowance और taper bite करते हैं।",
+      "ur": "Pension پہلے retirement ہے، پھر tax timing: cliffs کے پاس powerful، مگر annual allowance اور taper bite کرتے ہیں۔"
+    }
+  }
+}

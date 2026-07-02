@@ -111,5 +111,44 @@
       "That a specific contribution is advisable or within allowance after taper/carry-forward rules."
     ],
     "lastReviewed": "2026-07-02"
+  },
+  {
+    "id": "commons-fiscal-drag",
+    "name": "House of Commons Library: Fiscal drag explainer",
+    "url": "https://commonslibrary.parliament.uk/research-briefings/cbp-9687/",
+    "authority": "official-parliamentary-research",
+    "supports": [
+      "Fiscal drag describes frozen or slow-rising thresholds pulling more people into tax or higher rates as incomes rise."
+    ],
+    "doesNotProve": [
+      "That any specific individual owes more tax without running their figures."
+    ],
+    "lastReviewed": "2026-07-03"
+  },
+  {
+    "id": "obr-fiscal-drag",
+    "name": "Office for Budget Responsibility: impact of frozen or reduced personal tax thresholds",
+    "url": "https://obr.uk/box/the-impact-of-frozen-or-reduced-personal-tax-thresholds/",
+    "authority": "official-fiscal-watchdog",
+    "supports": [
+      "Frozen or reduced personal-tax thresholds raise receipts by bringing more people into tax and higher rates as nominal incomes rise."
+    ],
+    "doesNotProve": [
+      "That fiscal drag is illegal or avoidable by artificial steps."
+    ],
+    "lastReviewed": "2026-07-03"
+  },
+  {
+    "id": "govuk-hicbc",
+    "name": "GOV.UK High Income Child Benefit Charge",
+    "url": "https://www.gov.uk/child-benefit-tax-charge",
+    "authority": "official-government",
+    "supports": [
+      "The High Income Child Benefit Charge threshold and clawback mechanics."
+    ],
+    "doesNotProve": [
+      "That a household should stop claiming Child Benefit without considering NI credits."
+    ],
+    "lastReviewed": "2026-07-03"
   }
 ]

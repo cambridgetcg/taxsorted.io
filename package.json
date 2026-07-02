@@ -9,6 +9,8 @@
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace frontend",
-    "validate:uk-personal-tax": "node scripts/validate-uk-personal-tax.mjs"
+    "validate:uk-personal-tax": "node scripts/validate-uk-personal-tax.mjs",
+    "validate:uk-politics": "node scripts/validate-uk-politics.mjs",
+    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics"
   }
 }

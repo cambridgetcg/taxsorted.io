@@ -1,0 +1,35 @@
+{
+  "schema": "taxsorted.uk.personal-tax-politics/1",
+  "updated": "2026-07-03",
+  "title": "The politics of the UK personal-tax game board",
+  "ethicalLine": "Politics explains incentives; it does not excuse evasion. Use the map to comply better and plan lawfully.",
+  "themes": [
+    {
+      "id": "fiscal-drag",
+      "label": "Fiscal drag",
+      "emoji": "🧊",
+      "plain": "Freezing allowances and thresholds can raise tax without raising headline rates: inflation/wage growth pulls more people into tax or higher bands.",
+      "cantonese": "唔加 tax rate 都可以收多啲：freeze thresholds，人工/通脹一升，你就被拖入更高 band。",
+      "whyItMatters": "It is politically quieter than saying 'we raised Income Tax', but it changes who pays and how much.",
+      "sourceIds": ["commons-fiscal-drag", "obr-fiscal-drag"]
+    },
+    {
+      "id": "cliff-edges",
+      "label": "Cliff edges and tapers",
+      "emoji": "🪤",
+      "plain": "The system is full of thresholds: £60k/£80k Child Benefit charge, £100k Personal Allowance taper, pension taper and allowance traps.",
+      "cantonese": "英國税唔係平滑斜路，係好多陷阱位：£60k/£80k child benefit、£100k allowance taper、pension taper。",
+      "whyItMatters": "People with advisers can plan around thresholds; people without advice often only notice after payroll or Self Assessment bites.",
+      "sourceIds": ["govuk-income-tax-rates", "govuk-hicbc"]
+    },
+    {
+      "id": "choice-inequality",
+      "label": "Choice inequality",
+      "emoji": "🎛️",
+      "plain": "Tax planning often comes from choice: when to realise gains, whether to use a wrapper, how to structure work, and whether income can be deferred or sacrificed.",
+      "cantonese": "真正 game 位係 choice：幾時賣、放唔放 ISA/pension、點樣收 remuneration、可唔可以 salary sacrifice。",
+      "whyItMatters": "The more control someone has over timing and form, the more legal planning tools they can use.",
+      "sourceIds": ["govuk-cgt-rates", "govuk-isa"]
+    }
+  ]
+}

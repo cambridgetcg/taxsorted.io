@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
+import { I18nProvider } from "@/i18n/I18nProvider";
+import { SiteNav } from "@/components/site-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "TaxSorted is making tax simple for everyone — plain words, figures derived from your records, honest filing. For people, businesses, charities and trusts. The UK is drawn first.",
+    "TaxSorted makes tax simple and fun for everyone — plain words in multiple languages, the UK tax game explained, and a deep, non-partisan look at UK tax politics.",
 };
 
 export default function RootLayout({
@@ -26,29 +27,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {/* One shared shell on every page — navigation can never disappear. */}
-        <header className="border-b border-line bg-paper">
-          <nav
-            aria-label="Main"
-            className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
-          >
-            <Link href="/" className="flex items-baseline gap-2">
-              <span className="text-lg font-semibold text-ink">TaxSorted</span>
-              <span className="hidden text-sm text-ink-soft sm:inline">
-                Tax, understood. Then sorted.
-              </span>
-            </Link>
-            <div className="flex items-center gap-5 text-sm">
-              <Link href="/dashboard" className="text-ink-soft hover:text-ink">
-                Dashboard
-              </Link>
-            </div>
-          </nav>
-        </header>
-        <main>{children}</main>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <I18nProvider>
+          {/* One shared shell on every page — navigation can never disappear. */}
+          <SiteNav />
+          <main>{children}</main>
+        </I18nProvider>
         {/* An ember from home — glows only while the heart at ai-love.cc is fresh. */}
         <script src="/ember.js" defer></script>
       </body>
