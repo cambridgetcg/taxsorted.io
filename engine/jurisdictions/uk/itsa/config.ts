@@ -15,6 +15,7 @@ const GOVUK = {
   digitalRecords: 'https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/keep-digital-records',
   eligibility: 'https://www.gov.uk/guidance/check-if-youre-eligible-for-making-tax-digital-for-income-tax',
   si2026_336: 'https://www.legislation.gov.uk/uksi/2026/336/made',
+  marriageAllowance: 'https://www.gov.uk/marriage-allowance',
 } as const
 
 const cited = <T>(value: T, source: string, effectiveFrom: string, si?: string, note?: string): Cited<T> =>
@@ -56,6 +57,7 @@ export interface ItsaYearConfig {
   poaThreshold: Cited<Pence>
   poaAtSourceFraction: Cited<number>
   mtdThresholds: Cited<MtdThresholdStep[]>
+  marriageAllowanceTransferable: Cited<Pence>
 }
 
 export const YEAR_2026_27: ItsaYearConfig = {
@@ -100,6 +102,7 @@ export const YEAR_2026_27: ItsaYearConfig = {
     { qualifyingIncomeOver: 3000000, incomeYear: '2025-26', mandatedFrom: '2027-04-06' },
     { qualifyingIncomeOver: 2000000, incomeYear: '2026-27', mandatedFrom: '2028-04-06' },
   ], GOVUK.si2026_336, '2026-04-06', 'SI 2026/336 reg 27'),
+  marriageAllowanceTransferable: cited(126000, GOVUK.marriageAllowance, '2026-04-06', undefined, '10% of the Personal Allowance, rounded to the nearest £10'),
 }
 
 const YEARS: Record<string, ItsaYearConfig> = { '2026-27': YEAR_2026_27 }
