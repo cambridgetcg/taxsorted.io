@@ -22,6 +22,10 @@ const cited = <T>(value: T, source: string, effectiveFrom: string, si?: string, 
 
 export interface MtdThresholdStep { qualifyingIncomeOver: Pence; incomeYear: TaxYear; mandatedFrom: string }
 
+// gov.uk's plain-words "check if you're eligible" guide — cited by eligibility.ts explain lines
+// alongside the SI 2026/336 threshold citation on `mtdThresholds`.
+export const MTD_ELIGIBILITY_URL = GOVUK.eligibility
+
 export interface ItsaYearConfig {
   taxYear: TaxYear
   personalAllowance: Cited<Pence>
