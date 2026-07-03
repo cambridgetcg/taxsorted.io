@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { todayIsoLocal } from "@/lib/local-date";
 import { parsePounds, INVALID_AMOUNT_MESSAGE } from "@/lib/parse";
 import { SOURCES } from "@/lib/sources";
 
@@ -30,10 +31,6 @@ const TOGGLE_BASE =
 const TOGGLE_ON = "border-accent bg-accent text-white";
 const TOGGLE_OFF = "border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 /** The first category of the given kind for a source, falling back to the list's first entry. */
 function defaultCategoryFor(source: SourceType, kind: LedgerRecord["kind"]): string {
   const list = categoriesFor(source);
@@ -47,7 +44,7 @@ function defaultCategoryFor(source: SourceType, kind: LedgerRecord["kind"]): str
  * leaves this component.
  */
 export function RecordForm({ onAdd }: RecordFormProps) {
-  const [date, setDate] = useState(todayIso());
+  const [date, setDate] = useState(todayIsoLocal());
   const [amount, setAmount] = useState("");
   const [kind, setKind] = useState<LedgerRecord["kind"]>("income");
   const [source, setSource] = useState<SourceType>("self-employment");

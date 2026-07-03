@@ -19,15 +19,12 @@ import { CsvImport } from "@/components/prep/csv-import";
 import { Ledger } from "@/components/prep/ledger";
 import { Badge } from "@/components/ui/badge";
 import { gbpCompact } from "@/lib/format";
+import { todayIsoLocal } from "@/lib/local-date";
 
 // MTD ITSA is mandatory from 2026-27 onward, so quarter-to-date chips are
 // pinned to that year until a real tax-year picker exists.
 const TAX_YEAR: TaxYear = "2026-27";
 const ELECTION = "standard" as const;
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default function RecordsClient() {
   // One store for the lifetime of this page; the browser's IndexedDB by
@@ -75,7 +72,7 @@ export default function RecordsClient() {
     [store]
   );
 
-  const quarter = quarterForDate(todayIso(), TAX_YEAR, ELECTION);
+  const quarter = quarterForDate(todayIsoLocal(), TAX_YEAR, ELECTION);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
