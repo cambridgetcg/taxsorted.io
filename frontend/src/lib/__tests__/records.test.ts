@@ -21,6 +21,13 @@ describe('records store', () => {
     expect(csv.split('\n')[0]).toBe('date,kind,category,amount,source,description')
     expect(csv).toContain('2026-05-01,income,turnover,123.45,self-employment,')
   })
+  it('rejects a category whose kind disagrees with the record kind', async () => {
+    const s = createRecordsStore(new Map())
+    const base = { date: '2026-05-01', amount: 100, source: 'self-employment' } as const
+    await expect(s.add({ ...base, kind: 'expense', category: 'turnover' })).rejects.toThrow(/kind mismatch/i)
+    await expect(s.add({ ...base, kind: 'income', category: 'otherExpenses' })).rejects.toThrow(/kind mismatch/i)
+    expect(await s.list()).toHaveLength(0)
+  })
   it('rejects non-integer or non-positive amounts', async () => {
     const s = createRecordsStore(new Map())
     const base = { date: '2026-05-01', kind: 'income', category: 'turnover', source: 'self-employment' } as const

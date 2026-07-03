@@ -118,7 +118,16 @@ export function createRecordsStore(
     // Throws `unknown category: '<key>'` for a bad category. `source` is
     // always passed through, so a key that exists in both the
     // self-employment and property lists never hits the ambiguous-key throw.
-    categoryByKey(r.category, r.source);
+    const def = categoryByKey(r.category, r.source);
+    // A record whose kind disagrees with its category's kind (an "income"
+    // record filed under an expense field, or vice versa) would slip past
+    // this store only to blow up quarterly aggregation later — reject it at
+    // the door instead, whatever UI built it.
+    if (def.kind !== r.kind) {
+      throw new Error(
+        `kind mismatch: category '${r.category}' is ${def.kind}, but this record is ${r.kind}`
+      );
+    }
   }
 
   // The unserialized body — only ever called from inside serialize()

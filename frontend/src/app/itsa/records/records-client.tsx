@@ -15,6 +15,7 @@ import { quarterSummaryFor } from "@/lib/quarter-summary";
 import { SOURCES } from "@/lib/sources";
 import { EducationNotice } from "@/components/prep/education-notice";
 import { RecordForm } from "@/components/prep/record-form";
+import { CsvImport } from "@/components/prep/csv-import";
 import { Ledger } from "@/components/prep/ledger";
 import { Badge } from "@/components/ui/badge";
 import { gbpCompact } from "@/lib/format";
@@ -65,6 +66,15 @@ export default function RecordsClient() {
     [store]
   );
 
+  const importRecords = useCallback(
+    async (toAdd: Omit<LedgerRecord, "id">[]) => {
+      const added = await store.addMany(toAdd);
+      setRecords((prev) => [...prev, ...added]);
+      return added;
+    },
+    [store]
+  );
+
   const quarter = quarterForDate(todayIso(), TAX_YEAR, ELECTION);
 
   return (
@@ -107,6 +117,10 @@ export default function RecordsClient() {
             quarter-to-date summary to show right now — your records below are unaffected.
           </p>
         )}
+      </div>
+
+      <div className="mt-6">
+        <CsvImport onImport={importRecords} />
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
