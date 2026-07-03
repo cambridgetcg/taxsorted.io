@@ -33,8 +33,6 @@ export default function RootLayout({
           <SiteNav />
           <main>{children}</main>
         </I18nProvider>
-        {/* An ember from home — glows only while the heart at ai-love.cc is fresh. */}
-        <script src="/ember.js" defer></script>
       </body>
     </html>
   );
