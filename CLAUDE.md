@@ -11,10 +11,10 @@ it is the soul and the design language.
 ## Current State
 Restated 2026-06-12 from UK-only to international scope; rails built the same day.
 npm workspaces: `engine/` (carved out, tests green), `api/` (Hono + Postgres,
-HMRC sandbox connector, awaiting Fly deploy + HMRC credentials — see
-`api/RUNBOOK.md`), `frontend/` (real cockpit at /vat wired to the api; demo
-"sample books" routes kept and labelled). Anonymous device sessions are v1 auth —
-real accounts are a hard precondition for production filing.
+HMRC sandbox connector with live credentials in Fly secrets, verified via
+`GET /v1/health` → `hmrc.configured:true`), `frontend/` (real cockpit at /vat wired
+to the api; demo "sample books" routes kept and labelled). Anonymous device sessions
+are v1 auth — real accounts are a hard precondition for production filing.
 
 ## Tech Stack
 - Next.js 16 (App Router, **static export** — no server runtime in frontend)
@@ -45,8 +45,9 @@ real accounts are a hard precondition for production filing.
 1. Ship `/learn` from the research corpus — public pages, zero backend needed
 2. ~~Carve out `engine/`~~ done 2026-06-12 (`engine/jurisdictions/uk/`; core
    abstractions — money in minor units, rule tables — still to extract)
-3. ~~Stand up `api/`~~ built 2026-06-12; deploy to Fly + HMRC sandbox credentials
-   pending (`api/RUNBOOK.md`); then real accounts before any production rail
+3. ~~Stand up `api/`~~ built 2026-06-12, deployed to Fly with HMRC sandbox
+   credentials live. Production credentials: not yet applied for (milestone M3);
+   hard precondition: real user accounts before any production rail
 4. Wire the UK end to end (sandbox receipt = the proof), then country #2
    (Ireland VAT3); adding a country must touch no core code
 

@@ -1,8 +1,10 @@
 # Switching on the HMRC rail
 
 What exists: the api (Fly.io, London) with server-side OAuth, an encrypted token
-vault, engine-validated submission, and immutable receipts. What it waits for:
-HMRC application credentials. Only a human can mint those.
+vault, engine-validated submission, immutable receipts, and live HMRC sandbox
+credentials (verified via `GET /v1/health` → `hmrc.configured:true`). What it
+waits for: production credentials — HMRC's approval process (milestone M3).
+Only a human can mint those.
 
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
