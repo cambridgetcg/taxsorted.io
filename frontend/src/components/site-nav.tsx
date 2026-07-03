@@ -26,6 +26,10 @@ export function SiteNav() {
           <Link href="/dashboard" className="text-ink-soft hover:text-ink">
             {t("nav.dashboard")}
           </Link>
+          {/* i18n: deferred to M2 — plain English for launch */}
+          <Link href="/itsa" className="text-ink-soft hover:text-ink">
+            Income Tax (MTD)
+          </Link>
           <LanguageSwitcher />
         </div>
       </nav>
