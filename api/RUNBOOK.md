@@ -191,7 +191,10 @@ GitHub secrets existing (same presence-gate pattern as `deploy`/`deploy-api`)
 non-zero on `INVALID_HEADERS`; `POTENTIALLY_INVALID_HEADERS` (advisories)
 exits 0 but prints the warnings, which should still be read and treated as
 findings per HMRC's own guidance ("you still need to fix any issues we find
-when we test it manually").
+when we test it manually"). Also add `GOV_VENDOR_PUBLIC_IP` as a GitHub
+Actions secret (same value as the Fly secret above) if you want CI to
+validate the vendor-IP-present path — the job passes it through when set,
+and otherwise validates the vendor-IP-omitted path CI runs today.
 
 **Open question, to resolve on the first real run:** HMRC's validator may
 classify the two documented cannot-collect omissions

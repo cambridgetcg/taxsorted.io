@@ -251,6 +251,22 @@ export default function WhoRunsYourTaxesPage() {
             <p className="mt-1 text-ink-soft">{extraSupportChannel.hours}</p>
           ) : null}
         </div>
+
+        <div className="mt-4 rounded-xl border border-line bg-white p-4 text-sm text-ink">
+          <p className="font-semibold">
+            What we&apos;re legally required to send when we contact HMRC on your behalf
+          </p>
+          <p className="mt-1 text-ink-soft">
+            Every API call our software makes to HMRC carries a set of fraud-prevention headers
+            about your browser and device — required by UK law, not our choice.
+          </p>
+          <Link
+            href="/learn/gov/what-we-send-hmrc"
+            className="mt-1 inline-block font-medium text-accent underline hover:text-accent-deep"
+          >
+            See exactly what we send, and why
+          </Link>
+        </div>
       </section>
 
       {/* 6. Complaints ladder */}

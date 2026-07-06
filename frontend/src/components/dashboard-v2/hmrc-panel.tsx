@@ -70,6 +70,10 @@ function PanelShell({
           <Link href="/learn/mtd-income-tax" className="underline hover:text-ink">
             How MTD for Income Tax works
           </Link>
+          {" · "}
+          <Link href="/learn/gov/what-we-send-hmrc" className="underline hover:text-ink">
+            What we&apos;re legally required to send
+          </Link>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
