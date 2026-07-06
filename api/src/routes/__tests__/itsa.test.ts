@@ -116,6 +116,215 @@ describe("ITSA obligations", () => {
   });
 });
 
+// Individual Calculations API v8.0: trigger an in-year calculation, then
+// retrieve its mapped summary. Wire shapes verified against the fetched OAS
+// (recorded in the task report): trigger.yaml (POST .../trigger/{calculationType},
+// calculationType=in-year for this endpoint) and retrieve.yaml (GET
+// .../{calculationId}, oneOf def1..def4 — def4 is the TY 2026-27-onwards
+// shape). The retrieve response is huge; only
+// calculation.taxCalculation.totalIncomeTaxAndNicsDue and
+// calculation.taxCalculation.incomeTax.totalTaxableIncome are mapped through,
+// as the plan specifies — everything else is M3 surface.
+describe("POST /:id/calculation (trigger)", () => {
+  it("does not exist in production", async () => {
+    vi.stubEnv("HMRC_ENV", "production");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const app = await freshItsaApp();
+    const res = await app.request("/v1/itsa/e1/calculation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taxYear: "2026-27" }),
+    });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "no_such_door" });
+  });
+
+  it("requires a well-formed taxYear", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const app = await freshItsaApp();
+    const res = await app.request("/v1/itsa/e1/calculation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taxYear: "202627" }),
+    });
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toBe("tax_year_required");
+  });
+
+  it("triggers an in-year calculation and returns the calculationId HMRC hands back", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const calls: Array<Record<string, unknown>> = [];
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async (call: Record<string, unknown>) => {
+          calls.push(call);
+          return { calculationId: "f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c" };
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    const res = await app.request("/v1/itsa/e1/calculation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taxYear: "2026-27" }),
+    });
+    expect(res.status).toBe(202);
+    expect(await res.json()).toEqual({ calculationId: "f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c" });
+    expect(calls[0]?.rail).toBe("itsa");
+    expect(calls[0]?.method).toBe("POST");
+    expect(calls[0]?.path).toBe(
+      "/individuals/calculations/AA123456A/self-assessment/2026-27/trigger/in-year"
+    );
+    expect(calls[0]?.accept).toBe("application/vnd.hmrc.8.0+json");
+  });
+
+  it("an unconnected entity fails clean, not crashed (HmrcError bubbles through hmrcFail)", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async () => {
+          throw new actual.HmrcError(428, "not connected to HMRC");
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    const res = await app.request("/v1/itsa/e1/calculation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taxYear: "2026-27" }),
+    });
+    expect(res.status).toBe(428);
+    expect((await res.json()).error).toBe("hmrc");
+  });
+});
+
+describe("GET /:id/calculation/:calcId (retrieve)", () => {
+  it("does not exist in production", async () => {
+    vi.stubEnv("HMRC_ENV", "production");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const app = await freshItsaApp();
+    const res = await app.request("/v1/itsa/e1/calculation/calc-1?taxYear=2026-27");
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "no_such_door" });
+  });
+
+  it("surfaces HMRC's 404-while-computing honestly, as a computing status rather than an error", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async () => {
+          throw new actual.HmrcError(404, "MATCHING_RESOURCE_NOT_FOUND");
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    const res = await app.request(
+      "/v1/itsa/e1/calculation/f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c?taxYear=2026-27"
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ status: "computing", source: "hmrc-sandbox" });
+  });
+
+  it("rejects a calculationId that does not match HMRC's own pattern, before any HMRC call", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    let hmrcCalls = 0;
+    mockHmrcRequest(async () => {
+      hmrcCalls += 1;
+      return {};
+    });
+    const app = await freshItsaApp();
+    // Path-shaped garbage: matches neither the 8-digit nor the UUID form.
+    const res = await app.request("/v1/itsa/e1/calculation/not-a-calc-id?taxYear=2026-27");
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toBe("calculation_id_invalid");
+    expect(hmrcCalls).toBe(0);
+  });
+
+  it("maps only status/incomeTaxAndNicsDuePounds/taxableIncomePounds from a realistic (huge) OAS retrieve payload", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const calls: Array<Record<string, unknown>> = [];
+    // Shape trimmed from the fetched def4 (TY 2026-27 onwards) example —
+    // metadata/inputs/messages are real siblings in the OAS example but are
+    // M3 surface, so this mock omits them to prove they're NOT read.
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async (call: Record<string, unknown>) => {
+          calls.push(call);
+          return {
+            calculation: {
+              taxCalculation: {
+                totalIncomeTaxAndNicsDue: 1234.56,
+                totalIncomeTaxNicsCharged: 1234.56,
+                incomeTax: {
+                  totalIncomeReceivedFromAllSources: 30000,
+                  totalTaxableIncome: 17430,
+                },
+                nics: { nic2Amount: 0, nic4Amount: 0 },
+              },
+            },
+          };
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    const res = await app.request(
+      "/v1/itsa/e1/calculation/f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c?taxYear=2026-27"
+    );
+    expect(res.status).toBe(200);
+    // The Pounds suffix is load-bearing: these are HMRC's decimal pounds
+    // passed through untouched — NOT this codebase's integer pence. A
+    // bare-named field here would invite the frontend's pence formatter and
+    // show HMRC's figure 100x too small.
+    expect(await res.json()).toEqual({
+      status: "complete",
+      incomeTaxAndNicsDuePounds: 1234.56,
+      taxableIncomePounds: 17430,
+      source: "hmrc-sandbox",
+    });
+    expect(calls[0]?.rail).toBe("itsa");
+    expect(calls[0]?.path).toBe(
+      "/individuals/calculations/AA123456A/self-assessment/2026-27/f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c"
+    );
+    expect(calls[0]?.accept).toBe("application/vnd.hmrc.8.0+json");
+  });
+
+  it("an unconnected entity fails clean, not crashed (HmrcError bubbles through hmrcFail)", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async () => {
+          throw new actual.HmrcError(428, "not connected to HMRC");
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    const res = await app.request(
+      "/v1/itsa/e1/calculation/f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c?taxYear=2026-27"
+    );
+    expect(res.status).toBe(428);
+    expect((await res.json()).error).toBe("hmrc");
+  });
+});
+
 // Pins the ITSA side of the collision fix: these routes must spend a token
 // from the itsa rail's connection, never fall through to vat's default.
 describe("rail-scoped connection reads", () => {
