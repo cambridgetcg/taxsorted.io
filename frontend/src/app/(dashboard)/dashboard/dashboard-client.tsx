@@ -25,6 +25,7 @@ import { EducationNotice } from "@/components/prep/education-notice";
 import { StandStrip } from "@/components/dashboard-v2/stand-strip";
 import { QuarterTimeline } from "@/components/dashboard-v2/quarter-timeline";
 import { HmrcPanel } from "@/components/dashboard-v2/hmrc-panel";
+import { VoicePanel } from "@/components/dashboard-v2/voice-panel";
 import {
   Card,
   CardContent,
@@ -193,13 +194,10 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
 
       <QuarterTimeline records={records} taxYear={TAX_YEAR} election={ELECTION} today={today} />
 
-      {/* Row 3 — HMRC connect panel (real sandbox OAuth) + your voice (arriving next) */}
+      {/* Row 3 — HMRC connect panel (real sandbox OAuth) + your voice (civic panel) */}
       <div className="grid gap-4 sm:grid-cols-2">
         <HmrcPanel taxYear={TAX_YEAR} />
-        <ComingSoonCard
-          title="Your voice"
-          description="Find your MP and see who's accountable for tax policy, plus how tax law actually gets made — arriving in this build."
-        />
+        <VoicePanel today={today} />
       </div>
 
       {/* Row 4 — VAT stays its own cockpit */}
@@ -218,18 +216,5 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function ComingSoonCard({ title, description }: { title: string; description: string }) {
-  return (
-    <Card className="border-dashed">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-ink-soft">{description}</p>
-      </CardContent>
-    </Card>
   );
 }

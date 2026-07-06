@@ -32,8 +32,11 @@ export function RoleCard({ role, today }: RoleCardProps) {
   // the nicer "how to reach them" page when one exists, but falling back to
   // sourceUrl means every card still links somewhere to verify the holder —
   // about half of ROLES (HMRC governance, OBR) have no separate contactUrl.
+  // Both are official gov.uk/parliament.uk pages (data discipline in
+  // contacts.ts), so one label covers either: "Official page" (unified here
+  // — was two different labels depending on which field was present).
   const linkUrl = role.contactUrl ?? role.sourceUrl;
-  const linkLabel = role.contactUrl ? "Official page" : "Source — check current holder";
+  const linkLabel = "Official page";
 
   return (
     <div className="rounded-2xl border border-line bg-white p-4 sm:p-5" data-role-id={role.id}>
