@@ -115,8 +115,15 @@ export default function YourLeversPage() {
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Your levers on tax policy</h1>
       <p className="mt-3 text-ink-soft">
         Not happy with a tax, a threshold or a deadline? There are real, official channels for
-        saying so — and some of them have demonstrably moved policy before. Here&apos;s every one
-        of them, with the honest odds attached and every fact cited to its official source.
+        saying so — and some are on record as having moved policy —{" "}
+        <Link
+          href="/learn/gov/receipts"
+          className="font-medium text-accent underline hover:text-accent-deep"
+        >
+          see the receipts
+        </Link>
+        . Here&apos;s every one of them, with the honest odds attached and every fact cited to its
+        official source.
       </p>
 
       <div role="note" className="mt-6 rounded-2xl border border-line bg-accent-soft p-4 text-sm text-ink sm:p-5">
@@ -426,9 +433,12 @@ export default function YourLeversPage() {
             guidance says plainly, &ldquo;Representations will not receive a bespoke written
             reply.&rdquo;
           </Cited>{" "}
-          It&apos;s cheap to do and genuinely read as an input sweep before each Budget — best
-          used for one specific, costed, deliverable ask, not a general complaint. Watch gov.uk for
-          the representations portal once the next Budget date is announced.
+          It&apos;s cheap to do and genuinely read as an input sweep before each Budget — but be
+          honest about the whole picture: no bespoke reply <em>and</em> a zero feedback loop, so
+          you&apos;ll likely never learn whether your representation was read, considered, or
+          changed anything. Best used for one specific, costed, deliverable ask, not a general
+          complaint. Watch gov.uk for the representations portal once the next Budget date is
+          announced.
         </p>
         <p className="mt-3 text-sm text-ink-soft">
           Source:{" "}
