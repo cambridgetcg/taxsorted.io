@@ -196,7 +196,7 @@ export const api = {
 
   submissions: (id: string) => call<{ submissions: ApiSubmission[] }>(`/v1/entities/${id}/submissions`),
 
-  /** SA Individual Details v2.0 — sandbox-only rail, read-only for now. */
+  /** SA Individual Details v2.0 — sandbox-only rail. */
   itsaStatus: (id: string, taxYear: string) =>
     call<ItsaStatusResponse>(`/v1/itsa/${id}/status?taxYear=${encodeURIComponent(taxYear)}`, {
       fraud: true,

@@ -1,4 +1,4 @@
-// ITSA through the rail, read-only for now: status and obligations straight
+// ITSA through the rail: status, obligations and calculations straight
 // from HMRC's sandbox — no submission until write:self-assessment lands.
 // Sandbox-only, exactly like the test-user door: this rail does not exist in
 // production yet (no HMRC recognition).

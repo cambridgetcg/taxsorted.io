@@ -114,7 +114,8 @@ API=https://api.taxsorted.io   # or http://localhost:8787 locally
    Keep the returned `entity.id`.
 
 3. Connect at HMRC for the ITSA rail (`rail=itsa` — requests
-   `read:self-assessment` only, never a write scope):
+   `read:self-assessment write:self-assessment`; the write scope is what
+   lets the quarterly-update PUT go through):
 
    ```bash
    open "$API/v1/hmrc/start/<entityId>?rail=itsa"

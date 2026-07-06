@@ -177,8 +177,9 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
         if (cancelled) return;
 
         // An ITSA entity carries a NINO — a VAT-only entity (VRN, no NINO)
-        // from /vat is never reused here, since one entity holds one HMRC
-        // connection (rail-agnostic at the vault layer). A bare "Self
+        // from /vat is never reused here; connections are per-rail in the
+        // vault (unique entity+rail) but this panel keeps ITSA on its own
+        // entity anyway for a clean separation. A bare "Self
         // Assessment" person is this panel's own earlier creation waiting
         // for its NINO — reuse it, never mint a duplicate per visit.
         let picked =
