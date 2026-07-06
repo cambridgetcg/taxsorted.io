@@ -204,9 +204,20 @@ Source: https://www.gov.uk/government/organisations/hm-revenue-customs/contact/c
 | Online services helpdesk | 0300 200 3600 | — | +44 161 930 8445 | Mon–Fri 8am–6pm |
 
 ### 3.6 Freedom of Information
-Source: https://www.gov.uk/government/organisations/hm-revenue-customs (fetched 2026-07-06)
+Source: https://www.gov.uk/government/organisations/hm-revenue-customs/about/publication-scheme (live-verified 2026-07-06 — see ⚠ CORRECTION below)
 - Email: `foi.request@hmrc.gov.uk`
-- Post: HMRC FoI Act Team, S1715 7th Floor, Central Mail Unit, Newcastle Upon Tyne, NE98 1ZZ
+- Post: HMRC Freedom of Information Team, S1715, 6th Floor, Central Mail Unit, Newcastle Upon Tyne, NE98 1ZZ
+
+⚠ **CORRECTION (2026-07-06, gov-pillar Task 3 build):** this section previously read "HMRC
+FoI Act Team, S1715 **7th** Floor…", sourced only to the generic HMRC organisation page —
+wrong team name, wrong floor, and the wrong page cited as source. Before shipping any FOI
+address on the who-runs-your-taxes page, the actual publication-scheme page was fetched
+live (WebFetch, 2026-07-06) and returns **"HMRC Freedom of Information Team"** (not "FoI Act
+Team") on the **6th Floor** (not 7th) — matching `regs/research/gov/transparency-tools.md`
+§1.4 exactly. The line above is the corrected version; the S1715 reference code, Central Mail
+Unit, Newcastle Upon Tyne and NE98 1ZZ postcode were already correct in both files.
+Confidence upgraded: MEDIUM → HIGH (direct live fetch of the primary page, not a
+secondary/generic citation).
 - (Civic-tools tie-in for the pillar: whatdotheyknow.com publishes FoI requests to HMRC publicly.)
 
 ---

@@ -37,6 +37,15 @@ Rule followed: every claim carries the URL actually fetched; named office-holder
   - Email: `foi.request@hmrc.gov.uk`
   - Post: HMRC Freedom of Information Team, S1715, 6th Floor, Central Mail Unit, Newcastle Upon Tyne NE98 1ZZ
   Source: https://www.gov.uk/government/organisations/hm-revenue-customs/about/publication-scheme
+
+  ⚠ **CORRECTION-CHECK (2026-07-06, gov-pillar Task 3 build):** `hmrc-anatomy.md` §3.6 carried
+  a conflicting address for this same team ("FoI Act Team", 7th Floor, sourced only to the
+  generic org page) — now corrected there to match this entry. Before shipping any FOI
+  address on the who-runs-your-taxes page, this exact address was re-verified live via
+  WebFetch against the publication-scheme URL above (2026-07-06) and confirmed correct as
+  printed: team name, 6th Floor, S1715, Central Mail Unit, NE98 1ZZ all match. Confidence
+  upgraded: MEDIUM → HIGH (direct live fetch immediately before publish, not carried over
+  from the original research pass).
 - **What HMRC will NEVER release:** "any information relating to identifiable HMRC customers (including legal entities, such as limited companies)". The legal chain:
   1. CRCA 2005 s.18(1): "Revenue and Customs officials may not disclose information which is held by the Revenue and Customs in connection with a function of the Revenue and Customs." (statutory duty of confidentiality)
      Source: https://www.legislation.gov.uk/ukpga/2005/11/section/18 (fetched 2026-07-06)
