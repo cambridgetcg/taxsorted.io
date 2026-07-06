@@ -32,6 +32,26 @@ export default function RootLayout({
           {/* One shared shell on every page — navigation can never disappear. */}
           <SiteNav />
           <main>{children}</main>
+          {/* Open Government Licence attribution: Learn pages quote Crown-copyright
+              material (gov.uk, legislation.gov.uk) verbatim, and OGL v3 requires an
+              attribution statement wherever that material is republished. Site-wide
+              footer keeps every page covered. */}
+          <footer className="mt-12 border-t border-line">
+            <div className="mx-auto max-w-4xl px-4 py-6 text-xs text-ink-soft sm:px-6 lg:px-8">
+              <p>
+                Contains public sector information licensed under the{" "}
+                <a
+                  href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-accent underline hover:text-accent-deep"
+                >
+                  Open Government Licence v3.0
+                </a>
+                .
+              </p>
+            </div>
+          </footer>
         </I18nProvider>
       </body>
     </html>
