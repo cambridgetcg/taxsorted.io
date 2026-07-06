@@ -45,6 +45,43 @@ export function HomeClient() {
       </h1>
       <p className="mt-5 text-lg text-ink-soft">{t("home.intro")}</p>
 
+      {/* i18n: deferred to M2 — plain English for launch */}
+      <section
+        aria-label="MTD Income Tax"
+        className="mt-10 rounded-lg border border-accent/30 bg-accent-soft p-6 sm:p-8"
+      >
+        <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          MTD Income Tax is here — are you in?
+        </h2>
+        <p className="mt-2 text-ink-soft">
+          Mandatory since 6 April 2026 for sole traders and landlords with income over £50,000.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            href="/itsa/am-i-in"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-8 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
+          >
+            Am I in? 60-second check
+          </Link>
+          <Link
+            href="/learn/mtd-income-tax"
+            className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-sm font-medium text-ink transition-colors hover:bg-accent-soft"
+          >
+            Don&apos;t panic — what&apos;s actually true
+          </Link>
+          <Link
+            href="/itsa"
+            className="inline-flex h-11 items-center px-2 text-sm font-medium text-accent hover:text-accent-deep"
+          >
+            Explore the toolkit →
+          </Link>
+        </div>
+        <p className="mt-4 text-xs text-ink-soft">
+          Free &amp; open-source (AGPL) · working towards HMRC recognition · no account — your
+          records stay in your browser
+        </p>
+      </section>
+
       <section
         aria-label="Find your path"
         className="mt-12 rounded-lg border border-line bg-white p-6 sm:p-8"
