@@ -146,6 +146,11 @@ export function createRecordsStore(
 
     add: (r) => serialize(() => addOne(r)),
 
+    // Sequential per-record: each record is validated and persisted in turn,
+    // not as one all-or-nothing batch. A mid-batch validation failure leaves
+    // every record added before it persisted and stops there — callers
+    // should pre-validate every row themselves (as csv-import.tsx does)
+    // rather than rely on this method to reject a batch atomically.
     addMany: (rs) =>
       serialize(async () => {
         const added: LedgerRecord[] = [];

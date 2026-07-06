@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { configFor } from "@taxsorted/engine/uk/itsa";
 import { TaxPlayground } from "@/components/TaxPlayground";
 import { useI18n } from "@/i18n/I18nProvider";
+import { gbpCompact, formatUkDate } from "@/lib/format";
+
+// The lowest-income phase of the MTD IT rollout — cited here so the homepage
+// headline can never drift from the engine's own SI 2026/336 threshold table.
+const [MTD_FIRST_PHASE] = configFor("2026-27").mtdThresholds.value;
 
 export function HomeClient() {
   const { t } = useI18n();
@@ -54,7 +60,8 @@ export function HomeClient() {
           MTD Income Tax is here — are you in?
         </h2>
         <p className="mt-2 text-ink-soft">
-          Mandatory since 6 April 2026 for sole traders and landlords with income over £50,000.
+          Mandatory since {formatUkDate(MTD_FIRST_PHASE.mandatedFrom)} for sole traders and
+          landlords with income over {gbpCompact(MTD_FIRST_PHASE.qualifyingIncomeOver)}.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link

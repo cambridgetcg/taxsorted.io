@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { parsePounds, penceOf, INVALID_AMOUNT_MESSAGE } from "@/lib/parse";
+import { formatUkDate } from "@/lib/format";
 
 const YEARS: TaxYear[] = ["2024-25", "2025-26", "2026-27"];
 
@@ -30,17 +31,6 @@ const EMPTY_FIELDS: FieldState = {
   "2025-26": { se: "", property: "" },
   "2026-27": { se: "", property: "" },
 };
-
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-/** ISO 'YYYY-MM-DD' -> '6 April 2026' */
-function formatIsoDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
-}
 
 // A year nobody typed anything into is "not measured", not "measured at
 // zero" — those read completely differently to checkEligibility, so a fully
@@ -89,10 +79,10 @@ function linkify(text: string, keyPrefix: string): ReactNode[] {
 
 function headlineFor(result: EligibilityResult): string {
   if (result.status === "mandated" && result.mandatedFrom) {
-    return `You're already in — since ${formatIsoDate(result.mandatedFrom)}`;
+    return `You're already in — since ${formatUkDate(result.mandatedFrom)}`;
   }
   if (result.status === "mandated-later" && result.mandatedFrom) {
-    return `You'll be in from ${formatIsoDate(result.mandatedFrom)}`;
+    return `You'll be in from ${formatUkDate(result.mandatedFrom)}`;
   }
   return "Not required on these figures";
 }

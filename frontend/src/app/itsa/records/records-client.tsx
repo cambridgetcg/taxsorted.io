@@ -20,6 +20,7 @@ import { Ledger } from "@/components/prep/ledger";
 import { Badge } from "@/components/ui/badge";
 import { gbpCompact } from "@/lib/format";
 import { todayIsoLocal } from "@/lib/local-date";
+import { useMounted } from "@/lib/use-mounted";
 
 // MTD ITSA is mandatory from 2026-27 onward, so quarter-to-date chips are
 // pinned to that year until a real tax-year picker exists.
@@ -32,6 +33,7 @@ export default function RecordsClient() {
   const store = useMemo<RecordsStore>(() => createRecordsStore(), []);
   const [records, setRecords] = useState<LedgerRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const mounted = useMounted();
 
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +74,12 @@ export default function RecordsClient() {
     [store]
   );
 
-  const quarter = quarterForDate(todayIsoLocal(), TAX_YEAR, ELECTION);
+  // "Today's quarter" can only be known client-side — computed straight in
+  // render (not stored via an effect) and gated on useMounted() so the
+  // server-rendered shell and the first client paint always agree on the
+  // deterministic null (neutral) fallback; the real value lands the render
+  // after (same reasoning as quarter-client.tsx / estimate-card.tsx).
+  const quarter = mounted ? quarterForDate(todayIsoLocal(), TAX_YEAR, ELECTION) : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">

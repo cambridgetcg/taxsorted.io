@@ -9,6 +9,12 @@ describe('2026-27 liability estimate (rUK)', () => {
     expect(e.class2).toBe(0)              // ≥ £7,105 → treated as paid
     expect(e.totalLiability).toBe(1143200 + 245660)
   })
+  it('£60,000 case: band-line labels show pounds, never raw pence', () => {
+    const e = estimateLiability({ taxYear: '2026-27', tradingProfit: 6000000, propertyIncome: 0, propertyExpenses: 0, residentialFinanceCosts: 0 })
+    const basicLine = e.lines.find((l) => l.label.startsWith('Basic rate'))
+    expect(basicLine?.label).toContain('£37,700')
+    expect(basicLine?.label).not.toMatch(/p @/)
+  })
   it('PA tapers at £110,000: PA £7,570, IT £33,432', () => {
     const e = estimateLiability({ taxYear: '2026-27', tradingProfit: 11000000, propertyIncome: 0, propertyExpenses: 0, residentialFinanceCosts: 0 })
     expect(e.personalAllowance).toBe(757000)

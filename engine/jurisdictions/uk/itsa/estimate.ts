@@ -43,6 +43,15 @@ export interface Estimate {
 
 const round = (n: number): Pence => Math.round(n)
 
+/** Pence -> "£X,XXX" for a whole-pound amount, "£X,XXX.XX" when it isn't — band-line labels only. */
+function poundsLabel(p: Pence): string {
+  const isWhole = p % 100 === 0
+  return `£${(p / 100).toLocaleString('en-GB', {
+    minimumFractionDigits: isWhole ? 0 : 2,
+    maximumFractionDigits: isWhole ? 0 : 2,
+  })}`
+}
+
 export function estimateLiability(input: EstimateInput): Estimate {
   const config = configFor(input.taxYear)
   const lines: Estimate['lines'] = []
@@ -81,9 +90,9 @@ export function estimateLiability(input: EstimateInput): Estimate {
   const additionalTax = round(additionalSlice * config.additionalRate.value)
   const incomeTax = basicTax + higherTax + additionalTax
 
-  if (basicSlice > 0) lines.push({ label: `Basic rate: ${basicSlice}p @ ${config.basicRate.value * 100}%`, amount: basicTax, cite: config.basicRate.source })
-  if (higherSlice > 0) lines.push({ label: `Higher rate: ${higherSlice}p @ ${config.higherRate.value * 100}%`, amount: higherTax, cite: config.higherRate.source })
-  if (additionalSlice > 0) lines.push({ label: `Additional rate: ${additionalSlice}p @ ${config.additionalRate.value * 100}%`, amount: additionalTax, cite: config.additionalRate.source })
+  if (basicSlice > 0) lines.push({ label: `Basic rate: ${poundsLabel(basicSlice)} @ ${config.basicRate.value * 100}%`, amount: basicTax, cite: config.basicRate.source })
+  if (higherSlice > 0) lines.push({ label: `Higher rate: ${poundsLabel(higherSlice)} @ ${config.higherRate.value * 100}%`, amount: higherTax, cite: config.higherRate.source })
+  if (additionalSlice > 0) lines.push({ label: `Additional rate: ${poundsLabel(additionalSlice)} @ ${config.additionalRate.value * 100}%`, amount: additionalTax, cite: config.additionalRate.source })
 
   // --- Step 5: Class 4 and Class 2 NIC (trading profit only — property income is not NICable) ---
   const c4Lower = config.class4LowerLimit.value
