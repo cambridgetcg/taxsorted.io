@@ -22,12 +22,14 @@ app.use(
     allowHeaders: [
       "Content-Type",
       "Gov-Test-Scenario",
+      // Mirrors CLIENT_ALLOWLIST in fraud.ts — only the browser-observable
+      // headers WEB_APP_VIA_SERVER actually names (research §1). Plugins and
+      // Do-Not-Track were dropped from the required list (research lines
+      // 76-82) and are not collected or forwarded.
       "Gov-Client-Timezone",
       "Gov-Client-Screens",
       "Gov-Client-Window-Size",
       "Gov-Client-Browser-JS-User-Agent",
-      "Gov-Client-Browser-Plugins",
-      "Gov-Client-Browser-Do-Not-Track",
     ],
   })
 );

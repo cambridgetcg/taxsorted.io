@@ -14,6 +14,14 @@ primary_region = "lhr"
   NODE_ENV = "production"
   APP_ORIGIN = "https://taxsorted.io"
   API_ORIGIN = "https://api.taxsorted.io"
+  # GOV_VENDOR_PUBLIC_IP is deliberately NOT set here: it's the app's real
+  # egress IP, not a build-time constant we'd know without asking Fly, and
+  # this file is not the right place for a value that might need rotating.
+  # Set it as a secret instead — see RUNBOOK.md "Fraud-prevention headers"
+  # for how to fetch it (`fly ips list`) and apply it
+  # (`fly secrets set -a taxsorted-api GOV_VENDOR_PUBLIC_IP=<ip>`). Until
+  # it's set, Gov-Vendor-Public-IP and Gov-Vendor-Forwarded are both omitted
+  # (never sent malformed) — see api/src/fraud.ts.
 
 [http_service]
   internal_port = 8080

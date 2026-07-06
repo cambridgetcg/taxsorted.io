@@ -1,20 +1,41 @@
 // HMRC fraud-prevention headers, WEB_APP_VIA_SERVER flavour.
 // The browser collects what only it can see (engine's collectFraudPreventionHeaders);
 // we accept that allowlisted set and overlay what only the server knows.
+//
+// Three of the 16 required headers are spec-recognised "cannot-collect" cases
+// for TaxSorted today (regs/research/fraud-headers.md §2.3, the missing-data
+// protocol) — see RUNBOOK.md "Fraud-prevention headers" for the SDSTeam-
+// notification drafts. None are sent empty and none are fabricated:
+//   - Gov-Client-Multi-Factor: no MFA exists yet (anonymous device sessions;
+//     ships once accounts + real MFA land — plan C).
+//   - Gov-Vendor-License-IDs: no licensed software in this free/open commons.
+//   - Gov-Client-Public-Port: Fly's proxy exposes Fly-Forwarded-Port (the
+//     SERVER port the client connected to, e.g. 443) and X-Forwarded-Port
+//     (the port the client set out to connect to) — never the client's
+//     ephemeral TCP source port. Genuinely unobtainable behind Fly's proxy.
 
 import type { Context } from "hono";
+import {
+  buildVendorForwarded,
+  buildVendorVersion,
+  buildVendorProductName,
+  buildUserIds,
+  VENDOR_VERSION,
+} from "@taxsorted/engine/uk/hmrc";
 
-// Headers the browser may supply; everything else is ours to assert.
+// Headers the browser may supply; everything else is ours to assert. Only
+// the four headers the WEB_APP_VIA_SERVER spec actually names as browser-
+// observable (research §1) — Gov-Client-Browser-Plugins and
+// Gov-Client-Browser-Do-Not-Track were dropped from this connection method's
+// required list and are no longer forwarded (research lines 76-82).
 const CLIENT_ALLOWLIST = [
   "gov-client-timezone",
   "gov-client-screens",
   "gov-client-window-size",
   "gov-client-browser-js-user-agent",
-  "gov-client-browser-plugins",
-  "gov-client-browser-do-not-track",
 ] as const;
 
-const VENDOR = { name: "TaxSorted", version: "0.1.0" };
+const VENDOR_PRODUCT_NAME = "TaxSorted";
 
 export function fraudHeaders(c: Context): Record<string, string> {
   const headers: Record<string, string> = {};
@@ -26,20 +47,34 @@ export function fraudHeaders(c: Context): Record<string, string> {
 
   // Only Fly's own header — X-Forwarded-For is client-spoofable and never trusted.
   const clientIp = c.req.header("fly-client-ip") || "";
+  const vendorIp = serverIp();
   const now = new Date().toISOString();
 
   headers["Gov-Client-Connection-Method"] = "WEB_APP_VIA_SERVER";
   headers["Gov-Client-Device-ID"] = c.get("deviceId");
-  headers["Gov-Client-User-IDs"] = `taxsorted=${c.get("sessionId")}`;
+  // RFC-3986-strict percent-encoding (buildUserIds → percentEncode), not JS's
+  // own encodeURIComponent — the latter leaves `! ' ( ) *` unescaped, dormant
+  // drift that would reopen the moment account identifiers stop being UUIDs.
+  headers["Gov-Client-User-IDs"] = buildUserIds([["taxsorted", c.get("sessionId")]]);
   if (clientIp) {
     headers["Gov-Client-Public-IP"] = clientIp;
     headers["Gov-Client-Public-IP-Timestamp"] = now;
-    headers["Gov-Vendor-Forwarded"] = `by=${serverIp()}&for=${clientIp}`;
   }
-  headers["Gov-Vendor-Version"] = `taxsorted-api=${VENDOR.version}`;
-  headers["Gov-Vendor-Product-Name"] = VENDOR.name;
-  const vendorIp = serverIp();
+
+  headers["Gov-Vendor-Version"] = buildVendorVersion([
+    ["taxsorted-frontend", VENDOR_VERSION],
+    ["taxsorted-server", VENDOR_VERSION],
+  ]);
+  headers["Gov-Vendor-Product-Name"] = buildVendorProductName(VENDOR_PRODUCT_NAME);
   if (vendorIp) headers["Gov-Vendor-Public-IP"] = vendorIp;
+
+  // Never emit a malformed by=&for=<ip> (the deployed bug this fixes) — only
+  // when BOTH sides of the hop are known does the header go out at all.
+  const forwarded = buildVendorForwarded(vendorIp, clientIp);
+  if (forwarded) headers["Gov-Vendor-Forwarded"] = forwarded;
+
+  // Gov-Client-Multi-Factor, Gov-Vendor-License-IDs, Gov-Client-Public-Port:
+  // deliberately absent — see the file-header comment and RUNBOOK.md.
 
   return headers;
 }

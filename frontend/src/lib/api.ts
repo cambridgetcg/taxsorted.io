@@ -133,14 +133,25 @@ async function call<T>(path: string, init?: RequestInit & { fraud?: boolean }): 
     ...(init?.body ? { "Content-Type": "application/json" } : {}),
     ...(init?.headers as Record<string, string>),
   };
-  // The browser tells the api what only it can see; the api asserts the rest.
+  // The browser tells the api what only it can see; the api asserts the
+  // rest. Exact set the WEB_APP_VIA_SERVER spec names as browser-observable
+  // (regs/research/fraud-headers.md §1) — mirrors api/src/fraud.ts's
+  // CLIENT_ALLOWLIST byte-for-byte. Gov-Client-Browser-Plugins and
+  // Gov-Client-Browser-Do-Not-Track are never collected upstream (dropped
+  // from the required list, research lines 76-82), so an explicit allowlist
+  // here — rather than a "Gov-Client-Browser*" prefix match — is the belt to
+  // that suspenders: a future browser-collected field can't silently start
+  // piggybacking to the api without a deliberate change on both sides.
+  const CLIENT_PIGGYBACK_KEYS = [
+    "Gov-Client-Timezone",
+    "Gov-Client-Screens",
+    "Gov-Client-Window-Size",
+    "Gov-Client-Browser-JS-User-Agent",
+  ] as const;
   if (init?.fraud) {
     const collected = headersToRecord(collectFraudPreventionHeaders());
-    for (const [k, v] of Object.entries(collected)) {
-      if (k.startsWith("Gov-Client-Browser") || k === "Gov-Client-Timezone" ||
-          k === "Gov-Client-Screens" || k === "Gov-Client-Window-Size") {
-        headers[k] = v;
-      }
+    for (const k of CLIENT_PIGGYBACK_KEYS) {
+      if (collected[k]) headers[k] = collected[k];
     }
   }
   const res = await fetch(`${apiBase()}${path}`, {

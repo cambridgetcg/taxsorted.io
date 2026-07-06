@@ -55,6 +55,99 @@ most often it means the **Create Test User** API isn't subscribed yet (step 1.3)
 
 That receipt is the milestone: the full rail, walked end to end.
 
+## Fraud-prevention headers (Gov-Client-*/Gov-Vendor-*)
+
+Ground truth: `regs/research/fraud-headers.md` (spec v3.3). WEB_APP_VIA_SERVER
+requires all 16 headers by law (SI 2019/360 + the Commissioners' Directions);
+13 are wired end to end (`engine/jurisdictions/uk/hmrc/fraud-headers.ts` +
+`api/src/fraud.ts`). Three are spec-recognised "cannot-collect" cases
+(research §2.3, the missing-data protocol) — HMRC requires contacting
+**SDSTeam@hmrc.gov.uk** to explain the restriction *before* the header may be
+omitted or sent empty. The drafts below are that explanation; sending them is
+a human action (M3), not something CI or an agent should do unprompted.
+
+### GOV_VENDOR_PUBLIC_IP — how to fetch and apply it
+
+`Gov-Vendor-Public-IP` and `Gov-Vendor-Forwarded` both need the api's own
+public egress IP. Fetch it from Fly, then set it as a secret (never hardcode
+an IP in `fly.toml` — it's an operational value, not a build-time constant):
+
+```bash
+fly ips list -a taxsorted-api
+# Note the dedicated/shared IPv4 (v4) address in the output.
+
+fly secrets set -a taxsorted-api GOV_VENDOR_PUBLIC_IP=<that ip>
+```
+
+Until this secret is set, `api/src/fraud.ts` omits `Gov-Vendor-Public-IP`
+**and** `Gov-Vendor-Forwarded` entirely (never a malformed `by=&for=<ip>` —
+`buildVendorForwarded` only emits the header when both the vendor and client
+IP are known). Re-run this after any Fly IP change (e.g. switching from
+shared to dedicated IPv4).
+
+### Cannot-collect case 1: Gov-Client-Multi-Factor
+
+**Status:** not sent (omitted, not empty). **Why:** TaxSorted's v1 auth is
+anonymous device sessions (a cookie) — there is no sign-in, therefore no MFA
+event to report. Ships once real accounts + MFA exist (see plan C).
+`buildMultiFactor()` in the engine is already implemented and tested against
+the spec's exact format so wiring it in later is a call-site change, not a
+new format to get right under deadline.
+
+> **Draft — SDSTeam@hmrc.gov.uk notification (send at M3 alongside the
+> production application, not before):**
+> Subject: Fraud prevention headers — Gov-Client-Multi-Factor — TaxSorted
+>
+> TaxSorted (MTD VAT + MTD ITSA, WEB_APP_VIA_SERVER) currently authenticates
+> end users via anonymous per-device sessions only — there is no account
+> sign-in and therefore no multi-factor authentication event to report. We
+> omit `Gov-Client-Multi-Factor` entirely per the missing-data protocol
+> (fraud prevention "Getting it right" guide) rather than send a placeholder
+> or fabricated value. We are building real user accounts with MFA (targeted
+> for [plan C milestone]); once live, every request will include a truthful
+> `Gov-Client-Multi-Factor` value. Please confirm this omission is
+> acceptable in the interim.
+
+### Cannot-collect case 2: Gov-Vendor-License-IDs
+
+**Status:** not sent (omitted, not empty). **Why:** TaxSorted is a free,
+open-source commons — there is no licensed software on the originating
+device to report a hashed licence key for. `buildLicenseIds()` in the engine
+is implemented and tested; it will be used if that ever changes.
+
+> **Draft — SDSTeam@hmrc.gov.uk notification (send at M3):**
+> Subject: Fraud prevention headers — Gov-Vendor-License-IDs — TaxSorted
+>
+> TaxSorted is free, open-source software with no licensed components on the
+> originating device — there are no licence keys to hash and report. We omit
+> `Gov-Vendor-License-IDs` entirely per the missing-data protocol rather than
+> send a placeholder value. Please confirm this omission is acceptable.
+
+### Cannot-collect case 3: Gov-Client-Public-Port
+
+**Status:** not sent (omitted, not empty). **Why:** researched directly
+against Fly.io's proxy documentation (https://fly.io/docs/networking/request-headers/):
+Fly's proxy exposes `Fly-Forwarded-Port` (the **server** port the client
+connected to, e.g. 443 — explicitly disallowed by the spec, which says this
+header "must not be a server port") and `X-Forwarded-Port` (the port the
+client *set out* to connect to, again not a source port). Neither header
+carries the client's ephemeral TCP source port. This matches the spec's own
+list of cannot-collect causes almost verbatim: "some popular load balancers
+do not" support collecting it (research line 62, 425-427).
+
+> **Draft — SDSTeam@hmrc.gov.uk notification (send at M3):**
+> Subject: Fraud prevention headers — Gov-Client-Public-Port — TaxSorted
+>
+> TaxSorted runs WEB_APP_VIA_SERVER on Fly.io. Fly's edge proxy does not
+> expose the client's ephemeral TCP source port in any header available to
+> our application (`Fly-Forwarded-Port` is the server port the client
+> connected to; `X-Forwarded-Port` is the port the client intended to
+> connect to — neither is the source port). We therefore omit
+> `Gov-Client-Public-Port` per the missing-data protocol rather than send a
+> fabricated or server-port value. Please confirm this omission is
+> acceptable, or advise if there is a Fly.io configuration we have missed
+> that would expose it.
+
 ## Production (later, not now)
 
 Production credentials require HMRC's approval process: they review the app,

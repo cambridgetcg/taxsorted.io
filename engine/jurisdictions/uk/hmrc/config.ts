@@ -1,6 +1,12 @@
 // HMRC API Configuration
 // MTD VAT API v1.0
 
+// Single source of truth for the vendor version sent in the fraud-prevention
+// Gov-Vendor-Version header — engine, api, and frontend all read this one
+// constant so the strings can never drift apart again (was: engine "1.0.0"
+// vs api "0.1.0", regs/research/fraud-headers.md's build notes call this out).
+export const VENDOR_VERSION = "1.0.0";
+
 export const HMRC_CONFIG = {
   // API Base URLs
   sandbox: {
@@ -55,11 +61,14 @@ export const HMRC_CONFIG = {
     maxRetries: 3,
   },
 
-  // Vendor Information (replace with actual values)
+  // Vendor Information. No `licenseId` field: TaxSorted is a free/open-source
+  // commons with no licensed software on the originating device, which is the
+  // spec-recognised Gov-Vendor-License-IDs cannot-collect case (regs/research/
+  // fraud-headers.md lines 173-177) — a fabricated licence key would be worse
+  // than the honest omission, so nothing here pretends otherwise.
   vendor: {
     name: "TaxSorted",
-    version: "1.0.0",
-    licenseId: "taxsorted-license",
+    version: VENDOR_VERSION,
   },
 } as const;
 

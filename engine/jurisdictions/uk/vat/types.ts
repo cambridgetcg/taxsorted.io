@@ -192,22 +192,31 @@ export type VATAPIErrorCode =
   | "INTERNAL_SERVER_ERROR";
 
 // ============================================================================
-// Fraud Prevention Headers
+// Fraud Prevention Headers — the full 16-header WEB_APP_VIA_SERVER set
+// (regs/research/fraud-headers.md §1, lines 56-71). No `Gov-Client-Local-IPs`,
+// `Gov-Client-Browser-Plugins` or `Gov-Client-Browser-Do-Not-Track` — all
+// three were dropped from this connection method's required list (research
+// lines 76-82) and are not collected.
 // ============================================================================
 
 export interface FraudPreventionHeaders {
   "Gov-Client-Connection-Method": string;
-  "Gov-Client-Device-ID": string;
-  "Gov-Client-User-IDs": string;
-  "Gov-Client-Timezone": string;
-  "Gov-Client-Local-IPs"?: string;
-  "Gov-Client-Screens"?: string;
-  "Gov-Client-Window-Size"?: string;
   "Gov-Client-Browser-JS-User-Agent"?: string;
-  "Gov-Client-Browser-Plugins"?: string;
-  "Gov-Client-Browser-Do-Not-Track"?: string;
+  "Gov-Client-Device-ID": string;
+  /** Cannot-collect today (no MFA) — omit, never empty, never fabricated. */
   "Gov-Client-Multi-Factor"?: string;
-  "Gov-Vendor-Version": string;
+  "Gov-Client-Public-IP"?: string;
+  "Gov-Client-Public-IP-Timestamp"?: string;
+  /** Cannot-collect today — unobtainable behind Fly's proxy (see RUNBOOK). */
+  "Gov-Client-Public-Port"?: string;
+  "Gov-Client-Screens"?: string;
+  "Gov-Client-Timezone": string;
+  "Gov-Client-User-IDs": string;
+  "Gov-Client-Window-Size"?: string;
+  "Gov-Vendor-Forwarded"?: string;
+  /** Cannot-collect today (no licensed software) — omit, never empty. */
   "Gov-Vendor-License-IDs"?: string;
   "Gov-Vendor-Product-Name": string;
+  "Gov-Vendor-Public-IP"?: string;
+  "Gov-Vendor-Version": string;
 }
