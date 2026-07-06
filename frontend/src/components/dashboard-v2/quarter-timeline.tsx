@@ -52,8 +52,8 @@ export function QuarterTimeline({ records, taxYear, election, today }: QuarterTi
       <CardHeader className="pb-2">
         <CardTitle>Quarter timeline</CardTitle>
         <CardDescription>
-          Your own records, by quarter — not confirmed by HMRC until you connect (arriving in
-          this build).
+          Your own records, by quarter — nothing here is confirmed by HMRC until your updates
+          go through them, and submission isn&apos;t built yet.
         </CardDescription>
       </CardHeader>
       <CardContent>
