@@ -143,3 +143,96 @@ API=https://api.taxsorted.io   # or http://localhost:8787 locally
    Add `-H "Gov-Test-Scenario: OPEN"` (or `FULFILLED`, `DYNAMIC`, ...) to a
    request to drive specific sandbox states; omit it for the default success
    simulation.
+
+## The first submission
+
+The quarterly cumulative update is the whole rail's proof: local records →
+derived category totals → an api PUT into HMRC's sandbox → an immutable
+receipt → HMRC's own calculation shown beside our estimate. Every leg of it
+is covered by mocked-HMRC tests (`itsa-submit.test.ts`, `itsa.test.ts`, and
+the cross-endpoint chain in `itsa-chain.test.ts` — businesses → quarterly-
+update → receipts → calculation trigger → calculation retrieve, one stateful
+mock and one in-memory receipts table spanning all five calls, asserting the
+exact outbound wire payload at the end).
+
+**Why this section exists anyway:** none of those tests can do what this
+runbook does. HMRC's OAuth dance is an interactive Government Gateway sign-in
+— a browser, a redirect, a human typing a test user's password. CI has no
+browser and no human, so it can never exercise the one step that makes every
+downstream step possible: *getting connected*. This runbook — walked by a
+human, in a real browser, against the real sandbox — **is** the end-to-end
+verification the automated suite structurally cannot provide. Run it after
+any change that touches the OAuth flow, the connect/callback routes, or the
+submission/calculation endpoints, and update the log below every time.
+
+1. **Mint a test individual** through the sandbox-only door (see "The ITSA
+   sandbox door" above for the full curl):
+
+   ```bash
+   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" | jq
+   ```
+
+   Keep `userId`, `password`, `nino`.
+
+2. **Create an entity** carrying that NINO, in the browser:
+   taxsorted.io/dashboard → **Yours, for real** → new entity → paste the
+   NINO (or `PATCH /v1/entities/<id>` with `{"nino": "<nino>"}` if you'd
+   rather do this leg by curl too).
+
+3. **The browser Gov Gateway dance** — this is the interactive step nothing
+   automated can do: from the dashboard, **Connect at HMRC** → HMRC's own
+   sign-in page → the test `userId`/`password` from step 1 → grant access.
+   You land back on the dashboard with `hmrc=connected` in the URL.
+
+4. **Dashboard shows connected** — the HMRC panel now reads connected for
+   the ITSA rail (`connections.itsa`, not the legacy any-rail `connected` —
+   see Task 1's per-rail connections). If it doesn't, stop here; nothing
+   downstream will work.
+
+5. **Add records** at `/itsa/records` — a few realistic entries for the
+   quarter you're about to file (self-employment or UK property). Records
+   never leave the browser; only their category totals do.
+
+6. **Open `/itsa/quarter`** — the QuarterCard shows the derived cumulative
+   totals for the source and quarter you picked. The submission flow
+   (`submit-flow.tsx`) appears beneath it once HMRC is connected and records
+   exist — otherwise it shows the honest locked state instead of a dead
+   button.
+
+7. **Send to HMRC (sandbox demo)** — pick the business (auto-selected if
+   there's only one), review the exact totals about to leave the device (the
+   review screen names every category and repeats the privacy line: "HMRC
+   receives these totals — never your individual records"), then confirm.
+   The button is labelled **"Send to HMRC (sandbox demo)"** — never anything
+   implying a production filing.
+
+8. **Receipt** — a card appears with the quarter, period end, submitted-at,
+   and a sandbox badge. Reload the page: the receipt is still there (it's
+   server-side, from `GET /v1/itsa/:id/receipts`, not local state).
+
+9. **HMRC calculation** — trigger it from the "What HMRC calculates" panel;
+   it polls (max 5 tries, backoff) until HMRC's `incomeTaxAndNicsDue` and
+   `totalTaxableIncome` appear beside our own engine estimate. A material
+   difference is expected and is labelled honestly ("HMRC's number wins —
+   ours is an estimate; differences usually mean records we can't see"),
+   never hidden or force-reconciled.
+
+That receipt, plus a calculation HMRC computed independently of our engine,
+is the milestone: the full rail, walked end to end, by a human, because only
+a human can complete step 3.
+
+> **If step 7 fails with a 403 naming `INVALID_SCOPE` or similar:** the
+> entity's ITSA connection predates the `write:self-assessment` scope (see
+> "After the write-scope deploy" above) — disconnect
+> (`DELETE /v1/hmrc/connection/<entityId>`) and redo the connect dance
+> (step 3) before retrying. The sandbox error's `detail` names this
+> explicitly; that's `hmrcFail`'s sandbox-only passthrough doing its job.
+
+### Verification log
+
+Record every human walk-through here — date, who, and the outcome (receipt +
+calculation, or where it broke):
+
+| Date | Who | Result |
+|------|-----|--------|
+| last human-verified: ____ | | |
