@@ -9,6 +9,7 @@ import { session } from "./session.js";
 import { entities } from "./routes/entities.js";
 import { connect } from "./routes/connect.js";
 import { vat } from "./routes/vat.js";
+import { itsa } from "./routes/itsa.js";
 
 const app = new Hono();
 
@@ -38,6 +39,7 @@ app.use("/v1/*", session);
 app.route("/v1/entities", entities);
 app.route("/v1/entities", vat);
 app.route("/v1/hmrc", connect);
+app.route("/v1/itsa", itsa);
 
 app.notFound((c) => c.json({ error: "no_such_door" }, 404));
 app.onError((err, c) => {

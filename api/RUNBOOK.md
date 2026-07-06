@@ -67,3 +67,71 @@ real user accounts with sign-in, sign-out and session revocation — an anonymou
 year-long cookie must never be the only key to live tax filing. Also: scrub
 HMRC error bodies from client responses, and re-test fraud headers with the
 Test Fraud Prevention Headers API.
+
+## The ITSA sandbox door (read-only: status + obligations)
+
+The rail also carries HMRC's Making Tax Digital Income Tax (ITSA) sandbox —
+read-only for now: OAuth scope is `read:self-assessment` only, no
+`write:self-assessment` until submission lands. Same sandbox-only door
+pattern as everything above: every ITSA route answers `no_such_door` in
+production. ITSA identifies a taxpayer by National Insurance number (NINO),
+not VRN — the entity needs one before it can connect.
+
+All calls below share one cookie session, so carry a cookie jar throughout:
+
+```bash
+JAR=cookies.txt
+API=https://api.taxsorted.io   # or http://localhost:8787 locally
+```
+
+1. Mint a practice ITSA taxpayer — an individual, not an organisation
+   (`?rail=itsa` mints via `mtd-income-tax`, generating a NINO instead of a VRN):
+
+   ```bash
+   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" | jq
+   ```
+
+   Keep `userId`, `password`, and `nino` from `testUser`. (In production this
+   door does not exist — `no_such_door`, like the VAT one.)
+
+2. Create an entity carrying that NINO (or `PATCH` an existing one with
+   `{"nino": "<nino>"}`):
+
+   ```bash
+   curl -s -b $JAR -c $JAR -X POST "$API/v1/entities" \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Sandbox Sole Trader","kind":"person","nino":"<nino>"}' | jq
+   ```
+
+   Keep the returned `entity.id`.
+
+3. Connect at HMRC for the ITSA rail (`rail=itsa` — requests
+   `read:self-assessment` only, never a write scope):
+
+   ```bash
+   open "$API/v1/hmrc/start/<entityId>?rail=itsa"
+   ```
+
+   Sign in with the test `userId`/`password`, grant access. You land back on
+   `hmrc=connected`, same as the VAT dance.
+
+4. Read the ITSA status for a tax year (SA Individual Details v2.0 —
+   Accept `application/vnd.hmrc.2.0+json`, applied automatically):
+
+   ```bash
+   curl -s -b $JAR "$API/v1/itsa/<entityId>/status?taxYear=2025-26" | jq
+   ```
+
+   `status` is HMRC's own vocabulary, passed straight through (e.g.
+   `"MTD Mandated"`, `"No Status"`) — never relabelled.
+
+5. Read income-and-expenditure obligations (Obligations v3.0 — Accept
+   `application/vnd.hmrc.3.0+json`):
+
+   ```bash
+   curl -s -b $JAR "$API/v1/itsa/<entityId>/obligations" | jq
+   ```
+
+   Add `-H "Gov-Test-Scenario: OPEN"` (or `FULFILLED`, `DYNAMIC`, ...) to a
+   request to drive specific sandbox states; omit it for the default success
+   simulation.

@@ -8,11 +8,13 @@ import { signState, verifyState } from "../crypto.js";
 import { ownedEntity } from "../session.js";
 import {
   authorizeUrl,
+  createTestIndividual,
   createTestOrganisation,
   exchangeCode,
   HmrcError,
   revokeConnection,
   storeConnection,
+  type Rail,
 } from "../hmrc.js";
 
 interface ConnectState {
@@ -29,8 +31,14 @@ connect.get("/status", (c) => {
   });
 });
 
+function railFrom(c: { req: { query: (name: string) => string | undefined } }): Rail {
+  return c.req.query("rail") === "itsa" ? "itsa" : "vat";
+}
+
 // Sandbox practice door: mint a pretend taxpayer to file as.
-// In production this door does not exist.
+// In production this door does not exist. ?rail=itsa mints an ITSA
+// individual (NINO) instead of a VAT organisation (VRN) — default
+// unchanged, so existing VAT callers are byte-identical.
 connect.post("/test-user", async (c) => {
   if (config.hmrc.env !== "sandbox") return c.json({ error: "no_such_door" }, 404);
   if (!config.hmrc.configured) {
@@ -39,8 +47,9 @@ connect.post("/test-user", async (c) => {
       503
     );
   }
+  const rail = railFrom(c);
   try {
-    const testUser = await createTestOrganisation();
+    const testUser = rail === "itsa" ? await createTestIndividual() : await createTestOrganisation();
     return c.json({ testUser }, 201);
   } catch (e) {
     // App-level HMRC messages only (no taxpayer data flows through this door).
@@ -58,6 +67,12 @@ connect.post("/test-user", async (c) => {
 });
 
 connect.get("/start/:entityId", async (c) => {
+  const rail = railFrom(c);
+  // ITSA is sandbox-only until HMRC recognition (no production credentials yet).
+  // Same door pattern as the test-user mint.
+  if (rail === "itsa" && config.hmrc.env !== "sandbox") {
+    return c.json({ error: "no_such_door" }, 404);
+  }
   if (!config.hmrc.configured) {
     return c.json(
       { error: "rail_not_configured", message: "HMRC sandbox credentials are not set yet." },
@@ -66,14 +81,21 @@ connect.get("/start/:entityId", async (c) => {
   }
   const entity = await ownedEntity(c, c.req.param("entityId"));
   if (!entity) return c.json({ error: "not_found" }, 404);
-  if (!entity.vrn) {
+  if (rail === "itsa") {
+    if (!entity.nino) {
+      return c.json(
+        { error: "nino_required", message: "Add the entity's National Insurance number before connecting." },
+        422
+      );
+    }
+  } else if (!entity.vrn) {
     return c.json({ error: "vrn_required", message: "Add the entity's VRN before connecting." }, 422);
   }
   const state = signState(
     { entityId: entity.id, sessionId: c.get("sessionId") } satisfies ConnectState,
     config.tokenKey
   );
-  return c.redirect(authorizeUrl(state));
+  return c.redirect(authorizeUrl(state, rail));
 });
 
 // Severing the link is always available: revoke at HMRC (best effort), then

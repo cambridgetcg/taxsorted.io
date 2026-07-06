@@ -31,11 +31,20 @@ export function redirectUri(): string {
   return `${config.apiOrigin}/v1/hmrc/callback`;
 }
 
-export function authorizeUrl(state: string): string {
+export type Rail = "vat" | "itsa";
+
+/** Additive scope selection: VAT keeps its historical two-scope grant; ITSA
+    gets read-only self-assessment access — no write scope until submission
+    lands (Global Constraints: read:self-assessment only, for now). */
+export function scopeFor(rail: Rail): string {
+  return rail === "itsa" ? "read:self-assessment" : "read:vat write:vat";
+}
+
+export function authorizeUrl(state: string, rail: Rail = "vat"): string {
   const params = new URLSearchParams({
     response_type: "code",
     client_id: config.hmrc.clientId,
-    scope: "read:vat write:vat",
+    scope: scopeFor(rail),
     redirect_uri: redirectUri(),
     state,
   });
@@ -180,6 +189,61 @@ export async function createTestOrganisation(): Promise<{
   };
 }
 
+/** Sandbox only: mint a pretend ITSA individual (a National Insurance number,
+    not a VRN — ITSA identifies people). Same app-credentials pattern as
+    createTestOrganisation — no human ever handles a secret. */
+export async function createTestIndividual(): Promise<{
+  userId: string;
+  password: string;
+  nino: string;
+  name: string | null;
+}> {
+  const tokenRes = await fetch(`${base}${HMRC_CONFIG.oauth.token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: config.hmrc.clientId,
+      client_secret: config.hmrc.clientSecret,
+    }),
+  });
+  if (!tokenRes.ok) {
+    const detail = await tokenRes.text().catch(() => "");
+    throw new HmrcError(tokenRes.status, `app token failed: ${detail.slice(0, 200)}`);
+  }
+  const { access_token } = (await tokenRes.json()) as { access_token: string };
+
+  await rateLimit();
+  const res = await fetch(`${base}/create-test-user/individuals`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+      Accept: "application/vnd.hmrc.1.0+json",
+    },
+    body: JSON.stringify({ serviceNames: ["mtd-income-tax"] }),
+  });
+  const body = (await res.json().catch(() => undefined)) as
+    | {
+        userId?: string;
+        password?: string;
+        nino?: string;
+        userFullName?: string;
+        message?: string;
+      }
+    | undefined;
+  if (!res.ok || !body?.userId || !body.password || !body.nino) {
+    const shape = body ? `got fields: ${Object.keys(body).join(", ")}` : "unparseable body";
+    throw new HmrcError(res.status, body?.message || `HMRC ${res.status} — ${shape}`, body);
+  }
+  return {
+    userId: body.userId,
+    password: body.password,
+    nino: body.nino,
+    name: body.userFullName ?? null,
+  };
+}
+
 export class HmrcError extends Error {
   constructor(
     public status: number,
@@ -197,6 +261,9 @@ export interface HmrcCall {
   body?: unknown;
   fraud: Record<string, string>;
   testScenario?: string;
+  /** Per-endpoint Accept version (e.g. Obligations v3.0, ITSA status v2.0).
+      Defaults to the VAT API's v1.0 — additive, VAT callers untouched. */
+  accept?: string;
 }
 
 export async function hmrcRequest<T>(call: HmrcCall): Promise<T> {
@@ -204,7 +271,7 @@ export async function hmrcRequest<T>(call: HmrcCall): Promise<T> {
   const token = await accessToken(call.entityId);
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.hmrc.1.0+json",
+    Accept: call.accept ?? "application/vnd.hmrc.1.0+json",
     ...call.fraud,
   };
   if (call.body) headers["Content-Type"] = "application/json";
