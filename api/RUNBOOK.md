@@ -68,14 +68,22 @@ year-long cookie must never be the only key to live tax filing. Also: scrub
 HMRC error bodies from client responses, and re-test fraud headers with the
 Test Fraud Prevention Headers API.
 
-## The ITSA sandbox door (read-only: status + obligations)
+## The ITSA sandbox door (status, obligations, quarterly submission)
 
-The rail also carries HMRC's Making Tax Digital Income Tax (ITSA) sandbox —
-read-only for now: OAuth scope is `read:self-assessment` only, no
-`write:self-assessment` until submission lands. Same sandbox-only door
+The rail also carries HMRC's Making Tax Digital Income Tax (ITSA) sandbox.
+OAuth scope is `read:self-assessment write:self-assessment` — the quarterly
+cumulative-update PUTs require the write scope. Same sandbox-only door
 pattern as everything above: every ITSA route answers `no_such_door` in
 production. ITSA identifies a taxpayer by National Insurance number (NINO),
 not VRN — the entity needs one before it can connect.
+
+> **After the write-scope deploy:** ITSA connections consented before
+> `write:self-assessment` was added keep their old read-only grant forever —
+> a token refresh never upgrades scope — so any pre-existing sandbox ITSA
+> connection must **disconnect and reconnect** (`DELETE
+> /v1/hmrc/connection/<entityId>`, then the connect dance again) before it
+> can submit. Until it does, submissions fail with HMRC's insufficient-scope
+> 403, passed through verbatim in the sandbox error `detail`.
 
 All calls below share one cookie session, so carry a cookie jar throughout:
 

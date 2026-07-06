@@ -34,10 +34,14 @@ export function redirectUri(): string {
 export type Rail = "vat" | "itsa";
 
 /** Additive scope selection: VAT keeps its historical two-scope grant; ITSA
-    gets read-only self-assessment access — no write scope until submission
-    lands (Global Constraints: read:self-assessment only, for now). */
+    carries both self-assessment scopes now that the quarterly-update write
+    path exists — the cumulative period summary PUTs require
+    write:self-assessment (per both OAS operation definitions; reads stay on
+    read:self-assessment). NOTE: connections consented before the write scope
+    landed keep their old read-only grant — a token refresh does NOT upgrade
+    scope, so those entities must disconnect and reconnect (see RUNBOOK). */
 export function scopeFor(rail: Rail): string {
-  return rail === "itsa" ? "read:self-assessment" : "read:vat write:vat";
+  return rail === "itsa" ? "read:self-assessment write:self-assessment" : "read:vat write:vat";
 }
 
 export function authorizeUrl(state: string, rail: Rail = "vat"): string {
@@ -270,7 +274,7 @@ export interface HmrcCall {
       pass "itsa" explicitly. */
   rail?: Rail;
   path: string;
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   fraud: Record<string, string>;
   testScenario?: string;
@@ -305,7 +309,12 @@ export async function hmrcRequest<T>(call: HmrcCall): Promise<T> {
       body
     );
   }
-  if (res.status === 204) return undefined as T;
+  // The MTD ITSA cumulative-update PUTs answer 204 No Content — there is no
+  // receipt body the way VAT's return submission has one, so the
+  // correlation id (the only trace of the call HMRC gives back) has to be
+  // surfaced some other way. Same `_correlationId`-on-the-object convention
+  // as the JSON-body case below, just on an otherwise-empty object.
+  if (res.status === 204) return (correlationId ? { _correlationId: correlationId } : {}) as T;
   const data = (await res.json()) as T;
   if (data && typeof data === "object" && correlationId) {
     (data as Record<string, unknown>)._correlationId = correlationId;

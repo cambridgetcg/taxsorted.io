@@ -171,7 +171,7 @@ describe("connect with rail=itsa", () => {
     expect(await res.json()).toEqual({ error: "no_such_door" });
   });
 
-  it("requests the read:self-assessment scope on the authorize URL in sandbox", async () => {
+  it("requests both self-assessment scopes on the authorize URL in sandbox (the cumulative PUTs need write:self-assessment)", async () => {
     sandboxEnv();
     mockEntity({ id: "e1", vrn: null, nino: "AA123456A" });
     const { Hono } = await import("hono");
@@ -180,7 +180,7 @@ describe("connect with rail=itsa", () => {
     const res = await app.request("/v1/hmrc/start/e1?rail=itsa", { redirect: "manual" });
     expect(res.status).toBe(302);
     const location = new URL(res.headers.get("location") ?? "", "https://example.com");
-    expect(location.searchParams.get("scope")).toBe("read:self-assessment");
+    expect(location.searchParams.get("scope")).toBe("read:self-assessment write:self-assessment");
   });
 
   it("still requests the vat scope when rail is omitted (byte-identical default)", async () => {
