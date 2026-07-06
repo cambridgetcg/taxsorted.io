@@ -5,10 +5,13 @@
 // The moment of truth: the first UI where a user's own figures actually
 // leave their device for HMRC. Every branch below is written to be read
 // literally — a locked state says exactly why it's locked, a receipt only
-// ever renders after a genuine 2xx, and every api/HMRC failure is shown in
-// its own words (never softened — receipt_write_failed specifically tells
-// the reader not to resubmit blindly, and paraphrasing that would be
-// actively harmful).
+// ever renders after a genuine 2xx (this session's, or a server-stored one
+// from a past session: the receipt list survives reload, so a quarter that
+// was already sent greets the reader with its receipt and a resubmit door,
+// never a bare submit button that hides the history), and every api/HMRC
+// failure is shown in its own words (never softened — receipt_write_failed
+// specifically tells the reader not to resubmit blindly, and paraphrasing
+// that would be actively harmful).
 //
 // Money boundary discipline: `update` (from cumulativeUpdate, the SAME call
 // QuarterCard renders from) is derived exactly once per render via useMemo
@@ -72,10 +75,22 @@ type BusinessesState =
   | { kind: "ready"; business: ItsaBusiness };
 
 type FlowStep =
+  /** Undecided: a server-stored receipt may already claim this quarter (the
+      receipt list survives reload) — until the receipts check settles, the
+      flow must not show a bare submit button that would invite a confused
+      "did it go?" resend. */
+  | { kind: "start" }
   | { kind: "review" }
   | { kind: "submitting" }
   | { kind: "submit-error"; message: string }
   | { kind: "submitted"; receipt: ItsaReceipt };
+
+type ReceiptsState =
+  | { kind: "loading" }
+  | { kind: "loaded"; receipts: ItsaReceipt[] }
+  /** Non-blocking: the flow still works without the history — the review
+      screen just carries a quiet notice that the check didn't happen. */
+  | { kind: "error" };
 
 type CalcState =
   | { kind: "idle" }
@@ -140,7 +155,8 @@ export function SubmitFlow({
   const unlocked = connectedItsa && update.recordCount > 0;
 
   const [businessesState, setBusinessesState] = useState<BusinessesState>({ kind: "loading" });
-  const [flowStep, setFlowStep] = useState<FlowStep>({ kind: "review" });
+  const [receiptsState, setReceiptsState] = useState<ReceiptsState>({ kind: "loading" });
+  const [flowStep, setFlowStep] = useState<FlowStep>({ kind: "start" });
   const [calcState, setCalcState] = useState<CalcState>({ kind: "idle" });
   // Bumped whenever the quarter/business context moves on — guards a poll
   // chain in flight against writing state for a context the reader has left.
@@ -174,12 +190,39 @@ export function SubmitFlow({
     };
   }, [entityId, unlocked, source]);
 
+  // The receipt list survives reload server-side — fetched up front so a
+  // quarter that was already submitted greets the reader with its receipt
+  // rather than a plain submit screen with no sign a submission exists.
+  useEffect(() => {
+    if (!unlocked || !entityId) return;
+    let cancelled = false;
+
+    async function loadReceipts() {
+      setReceiptsState({ kind: "loading" });
+      try {
+        const { receipts } = await api.receipts(entityId as string);
+        if (cancelled) return;
+        setReceiptsState({ kind: "loaded", receipts });
+      } catch {
+        if (cancelled) return;
+        setReceiptsState({ kind: "error" });
+      }
+    }
+
+    loadReceipts();
+    return () => {
+      cancelled = true;
+    };
+  }, [entityId, unlocked]);
+
   // Switching quarter/election means a DIFFERENT cumulative figure — any
   // prior submitted/error/calc state belongs to the old quarter, so it is
-  // cleared here rather than left to read as stale.
+  // cleared here rather than left to read as stale. Back to "start", not
+  // "review": the new quarter may itself already carry a server-stored
+  // receipt.
   useEffect(() => {
     function resetForNewQuarter() {
-      setFlowStep({ kind: "review" });
+      setFlowStep({ kind: "start" });
       setCalcState({ kind: "idle" });
       pollToken.current += 1;
     }
@@ -223,6 +266,13 @@ export function SubmitFlow({
         totals: update.totals,
       });
       setFlowStep({ kind: "submitted", receipt });
+      // Keep the fetched receipt list in step with what the server now holds,
+      // so browsing away to another quarter and back still finds this one.
+      setReceiptsState((prev) =>
+        prev.kind === "loaded"
+          ? { kind: "loaded", receipts: [receipt, ...prev.receipts.filter((r) => r.id !== receipt.id)] }
+          : prev
+      );
     } catch (e) {
       setFlowStep({ kind: "submit-error", message: unreachableMessage(e) });
     }
@@ -269,6 +319,30 @@ export function SubmitFlow({
     }
   }
 
+  // A server-stored receipt for exactly this {taxYear, quarter periodEnd,
+  // businessId} — the reload-survivor. Only consulted while the flow is
+  // undecided ("start"): once the reader explicitly chooses to resubmit, or
+  // a fresh submission lands, this render no longer second-guesses them.
+  // periodEnd is compared on its date part so a timestamp-serialized date
+  // column still matches the engine's plain yyyy-mm-dd.
+  const priorReceipt =
+    flowStep.kind === "start" && businessesState.kind === "ready" && receiptsState.kind === "loaded"
+      ? (receiptsState.receipts.find(
+          (r) =>
+            r.taxYear === taxYear &&
+            String(r.periodEnd).slice(0, 10) === update.quarter.periodEnd &&
+            r.businessId === businessesState.business.businessId
+        ) ?? null)
+      : null;
+  // The receipt this render shows: a fresh 2xx receipt always wins; failing
+  // that, the restored one. Never anything a 2xx (now or in a past session)
+  // didn't produce.
+  const shownReceipt = flowStep.kind === "submitted" ? flowStep.receipt : priorReceipt;
+  // While the receipts check is still in flight, showing the submit screen
+  // would flash exactly the resubmission-confusing state this exists to
+  // prevent — hold with an honest one-liner instead.
+  const checkingReceipts = flowStep.kind === "start" && receiptsState.kind === "loading";
+
   return (
     <FlowShell title={`Send ${sourceLabel} to HMRC`}>
       {businessesState.kind === "loading" && (
@@ -312,8 +386,18 @@ export function SubmitFlow({
         </div>
       )}
 
-      {businessesState.kind === "ready" && flowStep.kind !== "submitted" && (
+      {businessesState.kind === "ready" && checkingReceipts && (
+        <p className="text-sm text-ink-soft">Checking for earlier submissions…</p>
+      )}
+
+      {businessesState.kind === "ready" && !checkingReceipts && !shownReceipt && (
         <div className="space-y-4">
+          {flowStep.kind === "start" && receiptsState.kind === "error" && (
+            <p className="text-sm text-ink-soft">
+              Couldn&apos;t check for earlier submissions just now — if you already sent this
+              quarter, resending simply updates it (cumulative model).
+            </p>
+          )}
           <p className="text-sm text-ink">
             Submitting for{" "}
             <span className="font-medium">
@@ -363,7 +447,7 @@ export function SubmitFlow({
         </div>
       )}
 
-      {flowStep.kind === "submitted" && (
+      {shownReceipt && (
         <div className="space-y-4">
           <div className="rounded-2xl border border-line bg-accent-soft p-4">
             <p className="flex items-center gap-2 font-semibold text-ink">
@@ -371,33 +455,45 @@ export function SubmitFlow({
               <Badge variant="outline">SANDBOX</Badge>
             </p>
             <p className="mt-1 text-sm text-ink-soft">
-              Q{flowStep.receipt.quarterIndex} {flowStep.receipt.taxYear} — period ending{" "}
-              {formatUkDate(flowStep.receipt.periodEnd)}
+              Q{shownReceipt.quarterIndex} {shownReceipt.taxYear} — period ending{" "}
+              {formatUkDate(shownReceipt.periodEnd)}
             </p>
             <p className="text-sm text-ink-soft">
-              Submitted {formatUkDateTime(flowStep.receipt.submittedAt)}
+              Submitted {formatUkDateTime(shownReceipt.submittedAt)}
             </p>
-            {flowStep.receipt.hmrcCorrelationId ? (
+            {shownReceipt.hmrcCorrelationId ? (
               <p className="text-xs text-ink-soft">
-                HMRC correlation id: {flowStep.receipt.hmrcCorrelationId}
+                HMRC correlation id: {shownReceipt.hmrcCorrelationId}
               </p>
             ) : null}
-            {flowStep.receipt.supersededCount > 0 ? (
-              <p className="text-xs text-ink-soft">Resent ×{flowStep.receipt.supersededCount}</p>
+            {shownReceipt.supersededCount > 0 ? (
+              <p className="text-xs text-ink-soft">Resent ×{shownReceipt.supersededCount}</p>
             ) : null}
           </div>
 
-          <p className="text-sm text-ink-soft">
-            Added or corrected a record since?{" "}
-            <button
-              type="button"
-              className="underline hover:text-ink"
-              onClick={() => setFlowStep({ kind: "review" })}
-            >
-              Review and resubmit this quarter
-            </button>{" "}
-            — cumulative updates are designed to be corrected this way.
-          </p>
+          {flowStep.kind === "submitted" ? (
+            <p className="text-sm text-ink-soft">
+              Added or corrected a record since?{" "}
+              <button
+                type="button"
+                className="underline hover:text-ink"
+                onClick={() => setFlowStep({ kind: "review" })}
+              >
+                Review and resubmit this quarter
+              </button>{" "}
+              — cumulative updates are designed to be corrected this way.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-sm text-ink-soft">
+                This quarter was already sent to HMRC&apos;s sandbox — resubmitting replaces those
+                totals with your current figures (the cumulative correction model).
+              </p>
+              <Button type="button" variant="outline" onClick={() => setFlowStep({ kind: "review" })}>
+                Resubmit with updated figures
+              </Button>
+            </div>
+          )}
 
           <CalcPanel
             calcState={calcState}
@@ -500,6 +596,12 @@ function CalcPanel({
             <p className="text-sm text-ink-soft">
               HMRC&apos;s number wins — ours is an estimate; differences usually mean records we
               can&apos;t see.
+            </p>
+          ) : null}
+          {calcState.taxableIncomePounds !== null ? (
+            <p className="text-xs text-ink-soft">
+              HMRC also calculated taxable income of{" "}
+              {gbpFromPounds(calcState.taxableIncomePounds)} for this figure.
             </p>
           ) : null}
         </div>

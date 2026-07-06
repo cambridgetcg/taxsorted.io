@@ -41,16 +41,20 @@ export function formatUkDate(iso: string): string {
 }
 
 /**
- * ISO datetime (e.g. a server timestamp, 'YYYY-MM-DDTHH:MM:SS.sssZ') ->
- * '7 August 2026, 14:03'. Same deterministic-table approach as formatUkDate
- * (no toLocaleString) — the hour:minute is read straight off the string, not
- * reinterpreted through any runtime timezone.
+ * UTC ISO datetime (a server timestamp, 'YYYY-MM-DDTHH:MM:SS.sssZ') ->
+ * '7 August 2026, 14:03 UTC'. Same deterministic-table approach as
+ * formatUkDate (no toLocaleString) — the hour:minute is read straight off
+ * the string, never reinterpreted through any runtime timezone. Deliberately
+ * NO conversion to UK wall-clock: that would need a BST transition table
+ * this codebase doesn't want to own, and an unlabelled UTC time shown during
+ * British Summer Time would silently read an hour off — so the time carries
+ * an explicit UTC label instead, which is honest year-round.
  */
 export function formatUkDateTime(iso: string): string {
   const [datePart, timePart] = iso.split("T");
   const dateStr = formatUkDate(datePart);
   if (!timePart) return dateStr;
-  return `${dateStr}, ${timePart.slice(0, 5)}`;
+  return `${dateStr}, ${timePart.slice(0, 5)} UTC`;
 }
 
 /**

@@ -80,6 +80,8 @@ describe("SubmitFlow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockApi.businesses.mockResolvedValue({ businesses: [ONE_BUSINESS] });
+    // The default world for most tests: no earlier submissions on the server.
+    mockApi.receipts.mockResolvedValue({ receipts: [] });
   });
 
   it("locked: not connected to HMRC — honest copy pointing to the dashboard, no network calls", () => {
@@ -90,6 +92,7 @@ describe("SubmitFlow", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute("href", "/dashboard");
     expect(mockApi.businesses).not.toHaveBeenCalled();
+    expect(mockApi.receipts).not.toHaveBeenCalled();
   });
 
   it("locked: connected but no records for this source+quarter — never claims a connection problem", () => {
@@ -97,9 +100,10 @@ describe("SubmitFlow", () => {
 
     expect(screen.getByText(/no self-employment records yet for q1 2026-27/i)).toBeInTheDocument();
     expect(mockApi.businesses).not.toHaveBeenCalled();
+    expect(mockApi.receipts).not.toHaveBeenCalled();
   });
 
-  it("review: shows the privacy line and the exact category totals QuarterCard shows", async () => {
+  it("review (no earlier receipt on the server): shows the privacy line and the exact category totals QuarterCard shows", async () => {
     render(<SubmitFlow {...BASE_PROPS} />);
 
     expect(
@@ -110,6 +114,48 @@ describe("SubmitFlow", () => {
     expect(screen.getByText(/Car, van and travel/)).toBeInTheDocument();
     expect(screen.getByText("£400.00")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /send to hmrc \(sandbox demo\)/i })).toBeInTheDocument();
+    // No earlier submission and the receipts check succeeded — no restored
+    // receipt card and no couldn't-check notice.
+    expect(screen.queryByRole("button", { name: /resubmit with updated figures/i })).toBeNull();
+    expect(screen.queryByText(/couldn't check for earlier submissions/i)).toBeNull();
+  });
+
+  it("reload with an existing receipt: opens at the receipt card (submittedAt in UTC, resend count), resubmit returns to review", async () => {
+    // What a reload looks like: the server remembers a submission this
+    // session never made — the flow must surface it, not offer a bare
+    // submit button that reads as "never sent".
+    mockApi.receipts.mockResolvedValue({ receipts: [receipt({ supersededCount: 3 })] });
+
+    render(<SubmitFlow {...BASE_PROPS} />);
+
+    expect(await screen.findByText(/this quarter was already sent/i)).toBeInTheDocument();
+    // formatUkDateTime pins: date table + raw UTC time, explicitly labelled
+    // (no unlabelled wall-clock that would read an hour off during BST).
+    expect(screen.getByText(/6 July 2026, 14:03 UTC/)).toBeInTheDocument();
+    expect(screen.getByText(/resent ×3/i)).toBeInTheDocument();
+    expect(screen.getByText(/corr-abc-123/)).toBeInTheDocument();
+    // The submit button is NOT the first thing shown for an already-sent quarter…
+    expect(screen.queryByRole("button", { name: /send to hmrc \(sandbox demo\)/i })).toBeNull();
+
+    // …but resubmission stays one honest click away (cumulative correction model).
+    fireEvent.click(screen.getByRole("button", { name: /resubmit with updated figures/i }));
+    expect(await screen.findByRole("button", { name: /send to hmrc \(sandbox demo\)/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/hmrc receives these totals.{0,3}never your individual records/i)
+    ).toBeInTheDocument();
+  });
+
+  it("receipts check fails: non-blocking — review renders with a quiet couldn't-check notice, never an error state", async () => {
+    mockApi.receipts.mockRejectedValue(new MockApiError(500, "db", "receipts store unavailable"));
+
+    render(<SubmitFlow {...BASE_PROPS} />);
+
+    expect(
+      await screen.findByRole("button", { name: /send to hmrc \(sandbox demo\)/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/couldn't check for earlier submissions/i)).toBeInTheDocument();
+    // Quiet one-liner, not an alert — the flow itself still works.
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("submit success: sends exactly the displayed totals and renders a receipt with the sandbox badge, correlation id and resend count", async () => {
