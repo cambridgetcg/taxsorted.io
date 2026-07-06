@@ -1,85 +1,14 @@
-"use client";
+import type { Metadata } from "next";
+import DashboardClient from "./dashboard-client";
 
-import { useState } from "react";
-import {
-  EntityHeader,
-  AttentionRequired,
-  UpcomingDeadlines,
-  RecentSubmissions,
-  ComplianceScore,
-  HMRCConnections,
-  QuickActions,
-} from "@/components/dashboard";
-import {
-  mockDashboardData,
-  mockEntities,
-} from "@/lib/mock-data";
-import { YourEntities } from "@/components/dashboard/your-entities";
+// i18n: deferred to M2 — plain English for launch
+
+export const metadata: Metadata = {
+  title: "Your cockpit — TaxSorted",
+  description:
+    "Where you stand on Making Tax Digital for Income Tax, derived from your own records — no mock figures.",
+};
 
 export default function DashboardPage() {
-  const [currentEntityId, setCurrentEntityId] = useState(mockDashboardData.entity.id);
-
-  // In a real app, this would be fetched based on currentEntityId
-  const data = mockDashboardData;
-  const currentEntity = mockEntities.find((e) => e.id === currentEntityId) || data.entity;
-
-  const handleEntityChange = (entityId: string) => {
-    setCurrentEntityId(entityId);
-    // In a real app, this would trigger a data refetch
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-
-          {/* The real thing: your entities, the api, HMRC. */}
-          <YourEntities />
-
-          {/* Everything below runs on sample books — a demo you can poke. */}
-          <div className="flex items-center gap-3 pt-2">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-gray-400">
-              Sample books — a demo to poke
-            </h2>
-            <div className="h-px flex-1 bg-gray-200" aria-hidden="true" />
-          </div>
-
-          {/* Zone A: Entity Header */}
-          <EntityHeader
-            entity={currentEntity}
-            entities={mockEntities}
-            onEntityChange={handleEntityChange}
-          />
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-12 gap-6">
-            {/* Zone B: Main Content (8 columns on desktop) */}
-            <div className="col-span-12 lg:col-span-8 space-y-6">
-              {/* B1: Attention Required */}
-              <AttentionRequired filings={data.attentionFilings} />
-
-              {/* B2: Upcoming Deadlines */}
-              <UpcomingDeadlines deadlineGroups={data.upcomingDeadlines} />
-
-              {/* B3: Recent Submissions */}
-              <RecentSubmissions submissions={data.recentSubmissions} />
-            </div>
-
-            {/* Zone C: Sidebar (4 columns on desktop) */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
-              {/* C1: Compliance Score */}
-              <ComplianceScore data={data.complianceScore} />
-
-              {/* C2: HMRC Connections */}
-              <HMRCConnections connections={data.connections} />
-
-              {/* C3: Quick Actions */}
-              <QuickActions actions={data.quickActions} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <DashboardClient />;
 }
