@@ -76,14 +76,16 @@ export function exchangeCode(code: string): Promise<TokenSet> {
   });
 }
 
-export async function storeConnection(entityId: string, tokens: TokenSet) {
+/** Each rail keeps its own row per entity (unique(entity_id, rail) — see
+    migration 003) so connecting one rail never clobbers the other's tokens. */
+export async function storeConnection(entityId: string, rail: Rail, tokens: TokenSet) {
   const access = encrypt(tokens.access_token, config.tokenKey);
   const refresh = encrypt(tokens.refresh_token, config.tokenKey);
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
   await sql`
-    insert into hmrc_connections (entity_id, hmrc_env, access_token_enc, refresh_token_enc, expires_at, scope)
-    values (${entityId}, ${config.hmrc.env}, ${access}, ${refresh}, ${expiresAt}, ${tokens.scope})
-    on conflict (entity_id) do update set
+    insert into hmrc_connections (entity_id, rail, hmrc_env, access_token_enc, refresh_token_enc, expires_at, scope)
+    values (${entityId}, ${rail}, ${config.hmrc.env}, ${access}, ${refresh}, ${expiresAt}, ${tokens.scope})
+    on conflict (entity_id, rail) do update set
       hmrc_env = excluded.hmrc_env,
       access_token_enc = excluded.access_token_enc,
       refresh_token_enc = excluded.refresh_token_enc,
@@ -93,31 +95,38 @@ export async function storeConnection(entityId: string, tokens: TokenSet) {
   `;
 }
 
-export async function getConnection(entityId: string) {
-  const [row] = await sql`select * from hmrc_connections where entity_id = ${entityId}`;
+export async function getConnection(entityId: string, rail: Rail) {
+  const [row] = await sql`
+    select * from hmrc_connections where entity_id = ${entityId} and rail = ${rail}
+  `;
   return row ?? null;
 }
 
-/** Best-effort revocation at HMRC; the row deletion is the caller's job. */
+/** Best-effort revocation at HMRC for every rail this entity holds; the row
+    deletion is the caller's job. Queried directly (not per-rail via
+    getConnection) so disconnecting an entity that holds both a VAT and an
+    ITSA connection revokes both tokens, not just one. */
 export async function revokeConnection(entityId: string) {
-  const conn = await getConnection(entityId);
-  if (!conn) return;
-  for (const blob of [conn.access_token_enc, conn.refresh_token_enc]) {
-    await fetch(`${base}${HMRC_CONFIG.oauth.revoke}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        token: decrypt(blob, config.tokenKey),
-        client_id: config.hmrc.clientId,
-        client_secret: config.hmrc.clientSecret,
-      }),
-    }).catch(() => {});
+  const conns = await sql`select * from hmrc_connections where entity_id = ${entityId}`;
+  for (const conn of conns) {
+    for (const blob of [conn.access_token_enc, conn.refresh_token_enc]) {
+      await fetch(`${base}${HMRC_CONFIG.oauth.revoke}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          token: decrypt(blob, config.tokenKey),
+          client_id: config.hmrc.clientId,
+          client_secret: config.hmrc.clientSecret,
+        }),
+      }).catch(() => {});
+    }
   }
 }
 
-/** A valid access token for the entity, refreshing through HMRC when stale. */
-async function accessToken(entityId: string): Promise<string> {
-  const conn = await getConnection(entityId);
+/** A valid access token for the entity's given rail, refreshing through HMRC
+    when stale. */
+async function accessToken(entityId: string, rail: Rail): Promise<string> {
+  const conn = await getConnection(entityId, rail);
   if (!conn) throw new HmrcError(428, "not connected to HMRC");
   if (new Date(conn.expires_at).getTime() - Date.now() > 60_000) {
     return decrypt(conn.access_token_enc, config.tokenKey);
@@ -126,7 +135,7 @@ async function accessToken(entityId: string): Promise<string> {
     grant_type: "refresh_token",
     refresh_token: decrypt(conn.refresh_token_enc, config.tokenKey),
   });
-  await storeConnection(entityId, tokens);
+  await storeConnection(entityId, rail, tokens);
   return tokens.access_token;
 }
 
@@ -256,6 +265,10 @@ export class HmrcError extends Error {
 
 export interface HmrcCall {
   entityId: string;
+  /** Which rail's connection to spend a token from. Defaults to "vat" —
+      every VAT caller predates rails and stays byte-identical; ITSA callers
+      pass "itsa" explicitly. */
+  rail?: Rail;
   path: string;
   method?: "GET" | "POST";
   body?: unknown;
@@ -268,7 +281,7 @@ export interface HmrcCall {
 
 export async function hmrcRequest<T>(call: HmrcCall): Promise<T> {
   await rateLimit();
-  const token = await accessToken(call.entityId);
+  const token = await accessToken(call.entityId, call.rail ?? "vat");
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     Accept: call.accept ?? "application/vnd.hmrc.1.0+json",

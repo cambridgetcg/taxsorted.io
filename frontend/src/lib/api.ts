@@ -19,7 +19,12 @@ export interface ApiEntity {
   /** National Insurance number — ITSA identifies a taxpayer by NINO, not VRN. */
   nino?: string | null;
   created_at: string;
+  /** Legacy: any rail connected. The VAT cockpit still reads this — kept
+      byte-identical for it. New readers should use `connections`. */
   connected: boolean;
+  /** Per-rail connection state — a VAT-only connection must never read as
+      "connected" on the ITSA panel, and vice versa. */
+  connections: { vat: boolean; itsa: boolean };
   hmrc_env?: string | null;
 }
 

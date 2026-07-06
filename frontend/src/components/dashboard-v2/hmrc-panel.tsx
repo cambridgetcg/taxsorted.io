@@ -196,7 +196,9 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
           setStatus("need-nino");
           return;
         }
-        if (!picked.connected) {
+        // ITSA-specific: a VAT-only connection on this entity must not read
+        // as connected here — that's the collision bug's user-visible half.
+        if (!picked.connections.itsa) {
           setStatus("not-connected");
           return;
         }
@@ -221,7 +223,7 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
       const { entity: updated } = await api.setNino(entity.id, ninoDraft.trim());
       setEntity(updated);
       setNinoDraft("");
-      if (updated.connected) {
+      if (updated.connections.itsa) {
         setStatus("connected");
         loadConnected(updated.id);
       } else {

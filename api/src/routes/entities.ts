@@ -36,13 +36,23 @@ export const entities = new Hono();
 entities.get("/", async (c) => {
   const rows = await sql`
     select e.id, e.name, e.kind, e.vrn, e.nino, e.created_at,
-           (hc.entity_id is not null) as connected
+           bool_or(hc.rail = 'vat') as vat_connected,
+           bool_or(hc.rail = 'itsa') as itsa_connected
     from entities e
     left join hmrc_connections hc on hc.entity_id = e.id
     where e.session_id = ${c.get("sessionId")}
+    group by e.id
     order by e.created_at
   `;
-  return c.json({ entities: rows });
+  return c.json({
+    entities: rows.map(({ vat_connected, itsa_connected, ...e }) => {
+      const vat = Boolean(vat_connected);
+      const itsa = Boolean(itsa_connected);
+      // Legacy `connected` = any rail — the VAT cockpit reads this and stays
+      // untouched; new callers should read `connections` instead.
+      return { ...e, connected: vat || itsa, connections: { vat, itsa } };
+    }),
+  });
 });
 
 entities.post("/", async (c) => {
@@ -63,14 +73,26 @@ entities.post("/", async (c) => {
     values (${c.get("sessionId")}, ${name}, ${kind}, ${vrn ?? null}, ${nino ?? null})
     returning id, name, kind, vrn, nino, created_at
   `;
-  return c.json({ entity: { ...row, connected: false } }, 201);
+  return c.json(
+    { entity: { ...row, connected: false, connections: { vat: false, itsa: false } } },
+    201
+  );
 });
 
 // VRN or NINO can arrive after creation — no need to make the entity twice.
 entities.patch("/:id", async (c) => {
   const entity = await ownedEntity(c, c.req.param("id"));
   if (!entity) return c.json({ error: "not_found" }, 404);
-  const parsed = PatchEntity.safeParse(await c.req.json().catch(() => ({})));
+  const body: Record<string, unknown> = await c.req.json().catch(() => ({}));
+  // Normalize at the boundary: HMRC's NINO is case-insensitive and
+  // occasionally copy-pasted with a mid-string space (the standard "two
+  // letters, six digits, one letter, space before the last two digit pairs"
+  // formatting) — store one canonical shape so every later read (and every
+  // regex check downstream) can assume it.
+  if (typeof body.nino === "string") {
+    body.nino = body.nino.toUpperCase().replace(/\s/g, "");
+  }
+  const parsed = PatchEntity.safeParse(body);
   if (!parsed.success) {
     return c.json(
       {
@@ -89,13 +111,28 @@ entities.patch("/:id", async (c) => {
     where id = ${entity.id}
     returning id, name, kind, vrn, nino, created_at
   `;
-  return c.json({ entity: row });
+  // Same connections shape as GET /:id — the panel reads `connections.itsa`
+  // straight off this response after saving a NINO, so it must be here too.
+  const [vatConnection, itsaConnection] = await Promise.all([
+    getConnection(entity.id, "vat"),
+    getConnection(entity.id, "itsa"),
+  ]);
+  return c.json({
+    entity: {
+      ...row,
+      connected: Boolean(vatConnection) || Boolean(itsaConnection),
+      connections: { vat: Boolean(vatConnection), itsa: Boolean(itsaConnection) },
+    },
+  });
 });
 
 entities.get("/:id", async (c) => {
   const entity = await ownedEntity(c, c.req.param("id"));
   if (!entity) return c.json({ error: "not_found" }, 404);
-  const connection = await getConnection(entity.id);
+  const [vatConnection, itsaConnection] = await Promise.all([
+    getConnection(entity.id, "vat"),
+    getConnection(entity.id, "itsa"),
+  ]);
   return c.json({
     entity: {
       id: entity.id,
@@ -104,8 +141,11 @@ entities.get("/:id", async (c) => {
       vrn: entity.vrn,
       nino: entity.nino,
       created_at: entity.created_at,
-      connected: Boolean(connection),
-      hmrc_env: connection?.hmrc_env ?? null,
+      // Legacy `connected` = any rail — the VAT cockpit reads this and stays
+      // untouched; new callers should read `connections` instead.
+      connected: Boolean(vatConnection) || Boolean(itsaConnection),
+      connections: { vat: Boolean(vatConnection), itsa: Boolean(itsaConnection) },
+      hmrc_env: vatConnection?.hmrc_env ?? itsaConnection?.hmrc_env ?? null,
     },
   });
 });

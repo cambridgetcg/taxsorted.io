@@ -54,6 +54,7 @@ function connectedEntity() {
     nino: "AA123456A",
     created_at: "2026-01-01T00:00:00.000Z",
     connected: true,
+    connections: { vat: false, itsa: true },
     hmrc_env: "sandbox",
   };
 }
@@ -90,6 +91,7 @@ describe("HmrcPanel", () => {
           nino: "AA123456A",
           created_at: "2026-01-01T00:00:00.000Z",
           connected: false,
+          connections: { vat: false, itsa: false },
         },
       ],
     });
@@ -111,6 +113,41 @@ describe("HmrcPanel", () => {
     );
   });
 
+  it("collision regression: a VAT-only connection on this entity reads as NOT connected here", async () => {
+    // Legacy `connected` is true (some rail is connected — VAT), but
+    // `connections.itsa` is false. Before the per-rail fix, this panel read
+    // the legacy `connected` flag and would have wrongly shown "Connected to
+    // HMRC" for a rail that never actually completed its own OAuth dance.
+    mockApi.listEntities.mockResolvedValue({
+      entities: [
+        {
+          id: "e1",
+          name: "Self Assessment",
+          kind: "person",
+          vrn: "123456789",
+          nino: "AA123456A",
+          created_at: "2026-01-01T00:00:00.000Z",
+          connected: true,
+          connections: { vat: true, itsa: false },
+          hmrc_env: "sandbox",
+        },
+      ],
+    });
+
+    render(<HmrcPanel taxYear="2026-27" />);
+
+    const link = await screen.findByRole("link", { name: /connect to hmrc/i });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/hmrc/start/e1?rail=itsa"
+    );
+    // Never the connected view's content for a rail that isn't connected.
+    expect(screen.queryByText(/sandbox source/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: /disconnect/i })).toBeNull();
+    expect(mockApi.itsaStatus).not.toHaveBeenCalled();
+    expect(mockApi.itsaObligations).not.toHaveBeenCalled();
+  });
+
   it("state (c): renders the ITSA status chip and at least one obligation row when connected", async () => {
     mockApi.listEntities.mockResolvedValue({
       entities: [
@@ -122,6 +159,7 @@ describe("HmrcPanel", () => {
           nino: "AA123456A",
           created_at: "2026-01-01T00:00:00.000Z",
           connected: true,
+          connections: { vat: false, itsa: true },
           hmrc_env: "sandbox",
         },
       ],
@@ -162,6 +200,7 @@ describe("HmrcPanel", () => {
           nino: "AA123456A",
           created_at: "2026-01-01T00:00:00.000Z",
           connected: true,
+          connections: { vat: false, itsa: true },
           hmrc_env: "sandbox",
         },
       ],
@@ -193,6 +232,7 @@ describe("HmrcPanel", () => {
           nino: null,
           created_at: "2026-01-01T00:00:00.000Z",
           connected: false,
+          connections: { vat: false, itsa: false },
         },
       ],
     });
@@ -225,7 +265,9 @@ describe("HmrcPanel", () => {
   it("surfaces ?hmrc=denied honestly — no success theatre", async () => {
     window.history.replaceState(null, "", "/dashboard?hmrc=denied");
     mockApi.listEntities.mockResolvedValue({
-      entities: [{ ...connectedEntity(), connected: false }],
+      entities: [
+        { ...connectedEntity(), connected: false, connections: { vat: false, itsa: false } },
+      ],
     });
 
     render(<HmrcPanel taxYear="2026-27" />);

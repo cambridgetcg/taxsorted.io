@@ -116,6 +116,48 @@ describe("ITSA obligations", () => {
   });
 });
 
+// Pins the ITSA side of the collision fix: these routes must spend a token
+// from the itsa rail's connection, never fall through to vat's default.
+describe("rail-scoped connection reads", () => {
+  it("status asks hmrcRequest for the itsa rail", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const calls: Array<{ rail?: string }> = [];
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async (call: { rail?: string }) => {
+          calls.push(call);
+          return { itsaStatuses: [] };
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    await app.request("/v1/itsa/e1/status?taxYear=2025-26");
+    expect(calls[0]?.rail).toBe("itsa");
+  });
+
+  it("obligations asks hmrcRequest for the itsa rail", async () => {
+    sandboxEnv();
+    mockEntity({ id: "e1", nino: "AA123456A" });
+    const calls: Array<{ rail?: string }> = [];
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        hmrcRequest: vi.fn(async (call: { rail?: string }) => {
+          calls.push(call);
+          return { obligations: [] };
+        }),
+      };
+    });
+    const app = await freshItsaApp();
+    await app.request("/v1/itsa/e1/obligations");
+    expect(calls[0]?.rail).toBe("itsa");
+  });
+});
+
 describe("connect with rail=itsa", () => {
   it("does not exist in production", async () => {
     vi.stubEnv("HMRC_ENV", "production");

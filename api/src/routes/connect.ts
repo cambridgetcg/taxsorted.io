@@ -131,7 +131,9 @@ connect.get("/callback", async (c) => {
 
   try {
     const tokens = await exchangeCode(code);
-    await storeConnection(valid.entityId, tokens);
+    // Absent rail (pre-rails state) meant VAT, exactly as railFrom() defaults —
+    // the callback lands the token in the same rail the dance began on.
+    await storeConnection(valid.entityId, valid.rail ?? "vat", tokens);
     return back("connected", valid.entityId);
   } catch (e) {
     console.error("hmrc token exchange failed", e);

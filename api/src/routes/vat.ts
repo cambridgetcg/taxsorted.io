@@ -2,7 +2,6 @@
 // returns are engine-validated, submitted once, and receipted forever.
 
 import { Hono } from "hono";
-import type { Context } from "hono";
 import { z } from "zod";
 import { validateVATReturnData } from "@taxsorted/engine/uk/hmrc";
 import type { VATReturnData } from "@taxsorted/engine/uk/vat";
@@ -10,7 +9,8 @@ import { sql } from "../db.js";
 import { config } from "../config.js";
 import { ownedEntity } from "../session.js";
 import { fraudHeaders } from "../fraud.js";
-import { hmrcRequest, HmrcError } from "../hmrc.js";
+import { hmrcRequest } from "../hmrc.js";
+import { hmrcFail } from "../hmrc-fail.js";
 
 const SubmitReturn = z.object({
   periodKey: z.string().min(1).max(8),
@@ -49,14 +49,6 @@ vat.use("/:id/*", async (c, next) => {
   c.set("entity", entity as EntityRow);
   await next();
 });
-
-function hmrcFail(c: Context, e: unknown) {
-  if (e instanceof HmrcError) {
-    const status = e.status === 428 ? 428 : e.status >= 500 ? 502 : e.status;
-    return c.json({ error: "hmrc", message: e.message, detail: e.body ?? null }, status as 400);
-  }
-  throw e;
-}
 
 vat.get("/:id/obligations", async (c) => {
   const entity = c.get("entity");

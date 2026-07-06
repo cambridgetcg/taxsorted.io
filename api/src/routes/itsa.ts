@@ -4,11 +4,11 @@
 // production yet (no HMRC recognition).
 
 import { Hono } from "hono";
-import type { Context } from "hono";
 import { config } from "../config.js";
 import { ownedEntity } from "../session.js";
 import { fraudHeaders } from "../fraud.js";
-import { hmrcRequest, HmrcError } from "../hmrc.js";
+import { hmrcRequest } from "../hmrc.js";
+import { hmrcFail } from "../hmrc-fail.js";
 
 interface EntityRow {
   id: string;
@@ -40,14 +40,6 @@ itsa.use("/:id/*", async (c, next) => {
   await next();
 });
 
-function hmrcFail(c: Context, e: unknown) {
-  if (e instanceof HmrcError) {
-    const status = e.status === 428 ? 428 : e.status >= 500 ? 502 : e.status;
-    return c.json({ error: "hmrc", message: e.message, detail: e.body ?? null }, status as 400);
-  }
-  throw e;
-}
-
 // Accept versions per HMRC endpoint (Global Constraints): SA Individual
 // Details v2.0, Obligations v3.0. VAT's default (v1.0) is untouched.
 const ACCEPT_ITSA_STATUS = "application/vnd.hmrc.2.0+json";
@@ -75,6 +67,7 @@ itsa.get("/:id/status", async (c) => {
   try {
     const data = await hmrcRequest<ItsaStatusResponse>({
       entityId: entity.id,
+      rail: "itsa",
       path: `/individuals/person/itsa-status/${entity.nino}/${taxYear}`,
       accept: ACCEPT_ITSA_STATUS,
       fraud: fraudHeaders(c),
@@ -106,6 +99,7 @@ itsa.get("/:id/obligations", async (c) => {
   try {
     const data = await hmrcRequest<ObligationsResponse>({
       entityId: entity.id,
+      rail: "itsa",
       path: `/obligations/details/${entity.nino}/income-and-expenditure`,
       accept: ACCEPT_OBLIGATIONS,
       fraud: fraudHeaders(c),
