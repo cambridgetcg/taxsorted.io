@@ -20,6 +20,10 @@ import {
 interface ConnectState {
   entityId: string;
   sessionId: string;
+  /** Which rail began the dance — decides where the callback lands (ITSA
+      connects start on the dashboard, VAT on the VAT cockpit). Absent in
+      states signed before this field existed, which all meant VAT. */
+  rail?: Rail;
 }
 
 export const connect = new Hono();
@@ -92,7 +96,7 @@ connect.get("/start/:entityId", async (c) => {
     return c.json({ error: "vrn_required", message: "Add the entity's VRN before connecting." }, 422);
   }
   const state = signState(
-    { entityId: entity.id, sessionId: c.get("sessionId") } satisfies ConnectState,
+    { entityId: entity.id, sessionId: c.get("sessionId"), rail } satisfies ConnectState,
     config.tokenKey
   );
   return c.redirect(authorizeUrl(state, rail));
@@ -110,23 +114,27 @@ connect.delete("/connection/:entityId", async (c) => {
 
 connect.get("/callback", async (c) => {
   const { code, state, error } = c.req.query();
+  // Verify state up front (when present) so "back" knows which cockpit
+  // began the dance. An unverifiable state can't tell us its rail — those
+  // land on the VAT cockpit exactly as every callback did before rails.
+  const parsed = state ? verifyState<ConnectState>(state, config.tokenKey) : null;
+  const valid = parsed && parsed.sessionId === c.get("sessionId") ? parsed : null;
   const back = (outcome: string, entityId?: string) =>
-    c.redirect(
-      `${config.appOrigin}/vat/?${entityId ? `e=${entityId}&` : ""}hmrc=${outcome}`
-    );
+    valid?.rail === "itsa"
+      ? c.redirect(`${config.appOrigin}/dashboard?hmrc=${outcome}`)
+      : c.redirect(
+          `${config.appOrigin}/vat/?${entityId ? `e=${entityId}&` : ""}hmrc=${outcome}`
+        );
 
   if (error) return back("denied");
-  if (!code || !state) return back("invalid");
-
-  const parsed = verifyState<ConnectState>(state, config.tokenKey);
-  if (!parsed || parsed.sessionId !== c.get("sessionId")) return back("invalid");
+  if (!code || !state || !valid) return back("invalid");
 
   try {
     const tokens = await exchangeCode(code);
-    await storeConnection(parsed.entityId, tokens);
-    return back("connected", parsed.entityId);
+    await storeConnection(valid.entityId, tokens);
+    return back("connected", valid.entityId);
   } catch (e) {
     console.error("hmrc token exchange failed", e);
-    return back("failed", parsed.entityId);
+    return back("failed", valid.entityId);
   }
 });

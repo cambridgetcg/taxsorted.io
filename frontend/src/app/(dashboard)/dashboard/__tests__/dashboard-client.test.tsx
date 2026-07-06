@@ -1,8 +1,17 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { createRecordsStore } from "@/lib/records";
 import DashboardClient from "../dashboard-client";
+
+// The dashboard now embeds the HMRC connect panel (Task 3), which calls the
+// api client on mount. No real network in this suite — a rejected call is
+// the honest "api unreachable" case, exercised on its own in
+// hmrc-panel.test.tsx; this file only needs the dashboard shell to render.
+vi.mock("@/lib/api", () => ({
+  api: { listEntities: vi.fn().mockRejectedValue(new Error("no network in tests")) },
+  ApiError: class ApiError extends Error {},
+}));
 
 describe("dashboard client", () => {
   it("shows the honest outside-periods copy, never a stuck loading state, when today is past the tax year", async () => {

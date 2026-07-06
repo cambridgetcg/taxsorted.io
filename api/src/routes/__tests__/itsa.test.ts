@@ -153,3 +153,91 @@ describe("connect with rail=itsa", () => {
     expect(location.searchParams.get("scope")).toBe("read:vat write:vat");
   });
 });
+
+// The callback lands the reader back where the dance began: ITSA connects
+// start on the dashboard, VAT connects on the VAT cockpit. The rail rides
+// inside the HMAC-signed state, so a callback can never be steered to a
+// different cockpit than the one that started it.
+describe("OAuth callback, rail-aware", () => {
+  const SESSION = "s1";
+  const KEY = "a".repeat(64);
+
+  function mockExchange() {
+    vi.doMock("../../hmrc.js", async () => {
+      const actual = await vi.importActual<typeof import("../../hmrc.js")>("../../hmrc.js");
+      return {
+        ...actual,
+        exchangeCode: vi.fn(async () => ({
+          access_token: "at",
+          refresh_token: "rt",
+          expires_in: 3600,
+          scope: "read:self-assessment",
+        })),
+        storeConnection: vi.fn(async () => {}),
+      };
+    });
+  }
+
+  async function callbackApp() {
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("sessionId", SESSION);
+      await next();
+    });
+    return app.route("/v1/hmrc", connect);
+  }
+
+  it("itsa: success lands on the dashboard", async () => {
+    sandboxEnv();
+    mockExchange();
+    const { signState } = await import("../../crypto.js");
+    const state = signState({ entityId: "e1", sessionId: SESSION, rail: "itsa" }, KEY);
+    const app = await callbackApp();
+    const res = await app.request(
+      `/v1/hmrc/callback?code=abc&state=${encodeURIComponent(state)}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("https://taxsorted.io/dashboard?hmrc=connected");
+  });
+
+  it("itsa: denial lands on the dashboard too", async () => {
+    sandboxEnv();
+    const { signState } = await import("../../crypto.js");
+    const state = signState({ entityId: "e1", sessionId: SESSION, rail: "itsa" }, KEY);
+    const app = await callbackApp();
+    const res = await app.request(
+      `/v1/hmrc/callback?error=access_denied&state=${encodeURIComponent(state)}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("https://taxsorted.io/dashboard?hmrc=denied");
+  });
+
+  it("vat: success lands on the VAT cockpit, byte-identical to before", async () => {
+    sandboxEnv();
+    mockExchange();
+    const { signState } = await import("../../crypto.js");
+    // No rail field — exactly what every pre-rail state looked like.
+    const state = signState({ entityId: "e1", sessionId: SESSION }, KEY);
+    const app = await callbackApp();
+    const res = await app.request(
+      `/v1/hmrc/callback?code=abc&state=${encodeURIComponent(state)}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("https://taxsorted.io/vat/?e=e1&hmrc=connected");
+  });
+
+  it("invalid state still lands on the VAT cockpit (rail unknowable)", async () => {
+    sandboxEnv();
+    const app = await callbackApp();
+    const res = await app.request("/v1/hmrc/callback?code=abc&state=garbage", {
+      redirect: "manual",
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("https://taxsorted.io/vat/?hmrc=invalid");
+  });
+});

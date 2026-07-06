@@ -16,9 +16,33 @@ export interface ApiEntity {
   name: string;
   kind: "person" | "business" | "charity" | "trust";
   vrn: string | null;
+  /** National Insurance number — ITSA identifies a taxpayer by NINO, not VRN. */
+  nino?: string | null;
   created_at: string;
   connected: boolean;
   hmrc_env?: string | null;
+}
+
+/** Which HMRC scope a connection asks for — additive to the VAT-only surface. */
+export type Rail = "vat" | "itsa";
+
+/** SA Individual Details v2.0, passed through — HMRC's own status vocabulary. */
+export interface ItsaStatusResponse {
+  taxYear: string;
+  status: string | null;
+  source: "hmrc-sandbox";
+}
+
+export interface ItsaObligation {
+  periodStart: string;
+  periodEnd: string;
+  dueDate: string;
+  status: "open" | "fulfilled";
+}
+
+export interface ItsaObligationsResponse {
+  obligations: ItsaObligation[];
+  source: "hmrc-sandbox";
 }
 
 export interface ApiSubmission {
@@ -84,7 +108,7 @@ export const api = {
 
   listEntities: () => call<{ entities: ApiEntity[] }>("/v1/entities"),
   getEntity: (id: string) => call<{ entity: ApiEntity }>(`/v1/entities/${id}`),
-  createEntity: (input: { name: string; kind: ApiEntity["kind"]; vrn?: string }) =>
+  createEntity: (input: { name: string; kind: ApiEntity["kind"]; vrn?: string; nino?: string }) =>
     call<{ entity: ApiEntity }>("/v1/entities", {
       method: "POST",
       body: JSON.stringify(input),
@@ -94,6 +118,13 @@ export const api = {
     call<{ entity: ApiEntity }>(`/v1/entities/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ vrn }),
+    }),
+
+  /** Mirrors setVrn — ITSA's precondition for connecting is a NINO, not a VRN. */
+  setNino: (id: string, nino: string) =>
+    call<{ entity: ApiEntity }>(`/v1/entities/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ nino }),
     }),
 
   disconnect: (id: string) =>
@@ -111,6 +142,16 @@ export const api = {
 
   submissions: (id: string) => call<{ submissions: ApiSubmission[] }>(`/v1/entities/${id}/submissions`),
 
+  /** SA Individual Details v2.0 — sandbox-only rail, read-only for now. */
+  itsaStatus: (id: string, taxYear: string) =>
+    call<ItsaStatusResponse>(`/v1/itsa/${id}/status?taxYear=${encodeURIComponent(taxYear)}`, {
+      fraud: true,
+    }),
+
+  /** Obligations v3.0 income-and-expenditure — sandbox-only rail. */
+  itsaObligations: (id: string) =>
+    call<ItsaObligationsResponse>(`/v1/itsa/${id}/obligations`, { fraud: true }),
+
   fileReturn: (id: string, data: VATReturnData) =>
     call<{ filed: true; submission: ApiSubmission }>(`/v1/entities/${id}/returns`, {
       method: "POST",
@@ -118,6 +159,13 @@ export const api = {
       fraud: true,
     }),
 
-  /** Full-page redirect into the HMRC OAuth dance. */
-  connectUrl: (id: string) => `${apiBase()}/v1/hmrc/start/${id}`,
+  /**
+   * Full-page redirect into the HMRC OAuth dance. Defaults to the VAT rail
+   * so every existing caller is byte-identical; pass "itsa" to request
+   * read:self-assessment instead (?rail=itsa, additive query param).
+   */
+  connectUrl: (id: string, rail: Rail = "vat") =>
+    rail === "itsa"
+      ? `${apiBase()}/v1/hmrc/start/${id}?rail=itsa`
+      : `${apiBase()}/v1/hmrc/start/${id}`,
 };

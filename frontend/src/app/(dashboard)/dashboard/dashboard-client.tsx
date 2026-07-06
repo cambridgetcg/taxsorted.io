@@ -24,6 +24,7 @@ import { SOURCES } from "@/lib/sources";
 import { EducationNotice } from "@/components/prep/education-notice";
 import { StandStrip } from "@/components/dashboard-v2/stand-strip";
 import { QuarterTimeline } from "@/components/dashboard-v2/quarter-timeline";
+import { HmrcPanel } from "@/components/dashboard-v2/hmrc-panel";
 import {
   Card,
   CardContent,
@@ -192,12 +193,9 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
 
       <QuarterTimeline records={records} taxYear={TAX_YEAR} election={ELECTION} today={today} />
 
-      {/* Row 3 — arriving in this build */}
+      {/* Row 3 — HMRC connect panel (real sandbox OAuth) + your voice (arriving next) */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <ComingSoonCard
-          title="Connect to HMRC (sandbox)"
-          description="A real HMRC sandbox connection is arriving in this build — first ITSA bytes through our own pipes. There's nothing to connect yet, and this panel will keep saying so plainly until there is."
-        />
+        <HmrcPanel taxYear={TAX_YEAR} />
         <ComingSoonCard
           title="Your voice"
           description="Find your MP and see who's accountable for tax policy, plus how tax law actually gets made — arriving in this build."
