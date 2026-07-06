@@ -37,27 +37,46 @@ const CLIENT_ALLOWLIST = [
 
 const VENDOR_PRODUCT_NAME = "TaxSorted";
 
-export function fraudHeaders(c: Context): Record<string, string> {
+type ClientAllowlistName = (typeof CLIENT_ALLOWLIST)[number];
+
+export interface FraudHeaderInputs {
+  /** Values the browser sent, keyed by the lowercase allowlisted header name
+      (as received over the wire) — everything else is ours to assert. */
+  clientHeaders: Partial<Record<ClientAllowlistName, string | undefined>>;
+  sessionId: string;
+  deviceId: string;
+  /** Only ever Fly's own header in production — X-Forwarded-For is
+      client-spoofable and never trusted. Empty string means unknown. */
+  clientIp: string;
+  /** The api's own public egress IP (GOV_VENDOR_PUBLIC_IP). Empty string
+      means unknown — never fabricated. */
+  vendorIp: string;
+}
+
+/**
+ * The pure, context-independent header assembly — the single code path both
+ * the live request handler (`fraudHeaders` below) and the CI validation
+ * script (`api/scripts/validate-fraud-headers.ts`) go through, so what's
+ * validated against HMRC's Test API is never a copy of production's logic.
+ */
+export function assembleFraudHeaders(input: FraudHeaderInputs): Record<string, string> {
   const headers: Record<string, string> = {};
 
   for (const name of CLIENT_ALLOWLIST) {
-    const value = c.req.header(name);
+    const value = input.clientHeaders[name];
     if (value) headers[canonical(name)] = value;
   }
 
-  // Only Fly's own header — X-Forwarded-For is client-spoofable and never trusted.
-  const clientIp = c.req.header("fly-client-ip") || "";
-  const vendorIp = serverIp();
   const now = new Date().toISOString();
 
   headers["Gov-Client-Connection-Method"] = "WEB_APP_VIA_SERVER";
-  headers["Gov-Client-Device-ID"] = c.get("deviceId");
+  headers["Gov-Client-Device-ID"] = input.deviceId;
   // RFC-3986-strict percent-encoding (buildUserIds → percentEncode), not JS's
   // own encodeURIComponent — the latter leaves `! ' ( ) *` unescaped, dormant
   // drift that would reopen the moment account identifiers stop being UUIDs.
-  headers["Gov-Client-User-IDs"] = buildUserIds([["taxsorted", c.get("sessionId")]]);
-  if (clientIp) {
-    headers["Gov-Client-Public-IP"] = clientIp;
+  headers["Gov-Client-User-IDs"] = buildUserIds([["taxsorted", input.sessionId]]);
+  if (input.clientIp) {
+    headers["Gov-Client-Public-IP"] = input.clientIp;
     headers["Gov-Client-Public-IP-Timestamp"] = now;
   }
 
@@ -66,17 +85,33 @@ export function fraudHeaders(c: Context): Record<string, string> {
     ["taxsorted-server", VENDOR_VERSION],
   ]);
   headers["Gov-Vendor-Product-Name"] = buildVendorProductName(VENDOR_PRODUCT_NAME);
-  if (vendorIp) headers["Gov-Vendor-Public-IP"] = vendorIp;
+  if (input.vendorIp) headers["Gov-Vendor-Public-IP"] = input.vendorIp;
 
   // Never emit a malformed by=&for=<ip> (the deployed bug this fixes) — only
   // when BOTH sides of the hop are known does the header go out at all.
-  const forwarded = buildVendorForwarded(vendorIp, clientIp);
+  const forwarded = buildVendorForwarded(input.vendorIp, input.clientIp);
   if (forwarded) headers["Gov-Vendor-Forwarded"] = forwarded;
 
   // Gov-Client-Multi-Factor, Gov-Vendor-License-IDs, Gov-Client-Public-Port:
   // deliberately absent — see the file-header comment and RUNBOOK.md.
 
   return headers;
+}
+
+export function fraudHeaders(c: Context): Record<string, string> {
+  const clientHeaders: FraudHeaderInputs["clientHeaders"] = {};
+  for (const name of CLIENT_ALLOWLIST) {
+    clientHeaders[name] = c.req.header(name);
+  }
+
+  return assembleFraudHeaders({
+    clientHeaders,
+    sessionId: c.get("sessionId"),
+    deviceId: c.get("deviceId"),
+    // Only Fly's own header — X-Forwarded-For is client-spoofable and never trusted.
+    clientIp: c.req.header("fly-client-ip") || "",
+    vendorIp: serverIp(),
+  });
 }
 
 function serverIp(): string {

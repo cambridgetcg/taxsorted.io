@@ -148,6 +148,63 @@ do not" support collecting it (research line 62, 425-427).
 > acceptable, or advise if there is a Fly.io configuration we have missed
 > that would expose it.
 
+### Validating fraud-prevention headers against HMRC's Test API
+
+HMRC's guide: "Before you submit any headers, you need to use the Test Fraud
+Prevention Headers API." (research §3). `api/scripts/validate-fraud-headers.ts`
+does exactly that — it builds the full header set via `assembleFraudHeaders`
+in `api/src/fraud.ts` (the same function the live request handler calls, not
+a copy), then calls `GET /test/fraud-prevention-headers/validate` and
+`GET /test/fraud-prevention-headers/{api}/validation-feedback` against the
+sandbox and prints HMRC's response verbatim. This is application-restricted
+(client-credentials — the same app-token grant `createTestOrganisation` uses),
+so it runs headlessly: no browser, no human sign-in.
+
+**Locally:**
+
+```bash
+cd api
+HMRC_CLIENT_ID=<client id> HMRC_CLIENT_SECRET=<client secret> \
+  npm run validate:fraud-headers
+```
+
+Optional: `GOV_VENDOR_PUBLIC_IP=<ip>` to test with the api's real egress IP —
+when unset, `Gov-Vendor-Public-IP` and `Gov-Vendor-Forwarded` are omitted from
+the request under test, same never-fabricate behaviour as production.
+Optional: `FRAUD_HEADERS_VALIDATE_API=<api>` to pick a different
+`{api}` path segment for the validation-feedback call (default `vat-mtd` —
+the one MTD API TaxSorted has live end-to-end today; the enum of 30 values
+covering the whole MTD ITSA surface is in research §3.2).
+
+There is no local-secrets convention in this repo (`api/src/config.ts` boots
+unconfigured when the env vars are absent) — the credentials above are the
+same `HMRC_CLIENT_ID`/`HMRC_CLIENT_SECRET` values already living in Fly
+secrets (`fly secrets list -a taxsorted-api` shows they're set; Fly never
+prints secret *values* back out, so fetch them from wherever they were
+originally generated — the HMRC Developer Hub application — if you don't
+have them to hand).
+
+**In CI:** the `validate-headers` job in `.github/workflows/deploy.yml` runs
+this on every push to `main`, gated on the `HMRC_CLIENT_ID`/`HMRC_CLIENT_SECRET`
+GitHub secrets existing (same presence-gate pattern as `deploy`/`deploy-api`)
+— it stays green until those are added to the repo's Actions secrets. It exits
+non-zero on `INVALID_HEADERS`; `POTENTIALLY_INVALID_HEADERS` (advisories)
+exits 0 but prints the warnings, which should still be read and treated as
+findings per HMRC's own guidance ("you still need to fix any issues we find
+when we test it manually").
+
+**Open question, to resolve on the first real run:** HMRC's validator may
+classify the two documented cannot-collect omissions
+(`Gov-Client-Multi-Factor`, `Gov-Vendor-License-IDs`) as `MISSING_HEADER`
+errors, which would make the overall response `INVALID_HEADERS` even though
+the omission is a considered, documented decision (see the cannot-collect
+sections above) rather than a bug. If the first real sandbox run confirms
+that, the fix is *not* to fabricate values — it's either (a) get SDSTeam's
+sign-off on the omission per the missing-data protocol and note that here, or
+(b) if the validator output makes the distinction, adjust `decideExitCode` in
+the script to tolerate exactly those two documented `MISSING_HEADER` entries
+and no others. Don't pre-guess this — read the real output first.
+
 ## Production (later, not now)
 
 Production credentials require HMRC's approval process: they review the app,
