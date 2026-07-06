@@ -18,8 +18,8 @@ import { Cited } from "@/components/prep/cited";
 // whole point is causation, and causation is exactly where a hedge silently
 // dropped becomes an overclaim. Copy says "following pressure from X", not
 // "because of X", except where the corpus's own source explicitly names the
-// cause (e.g. the 13 Jul 2017 and 19 Dec 2022 gov.uk announcements, which
-// name the pressure sources themselves).
+// cause (e.g. the 13 Jul 2017 gov.uk announcement, which names the pressure
+// sources itself).
 const VERIFIED_ON = "2026-07-06";
 
 // --- MTD -----------------------------------------------------------------

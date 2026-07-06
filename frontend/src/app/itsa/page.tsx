@@ -41,6 +41,12 @@ const CARDS = [
     title: "Mileage",
     desc: "Work out your simplified mileage deduction for a car, van or motorcycle, cited to gov.uk's current rates.",
   },
+  {
+    href: "/learn/gov/your-levers",
+    tag: "Bigger picture",
+    title: "Angry about MTD? Here's who decided — and how to say so",
+    desc: "MTD wasn't handed down by fiat — it went through select committees, consultations and phased threshold changes. See who moved it, and the real channels for having your own say.",
+  },
 ] as const;
 
 export default function ItsaHubPage() {

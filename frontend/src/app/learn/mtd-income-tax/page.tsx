@@ -198,6 +198,16 @@ export default function MtdDePanicPage() {
           Read both halves of that: the easement removes points for LATE quarterly updates only.
           It changes nothing about paying what you owe on time.
         </p>
+        <p className="mt-3 text-sm text-ink-soft">
+          Angry about MTD?{" "}
+          <Link
+            href="/learn/gov/your-levers"
+            className="font-medium text-accent underline hover:text-accent-deep"
+          >
+            Here&apos;s who decided — and how to say so
+          </Link>
+          .
+        </p>
       </section>
 
       {/* What it costs elsewhere vs here */}
