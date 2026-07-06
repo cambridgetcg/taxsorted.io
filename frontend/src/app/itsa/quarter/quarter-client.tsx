@@ -7,8 +7,10 @@ import Link from "next/link";
 import { quarterForDate, type LedgerRecord, type TaxYear } from "@taxsorted/engine/uk/itsa";
 import { createRecordsStore, type RecordsStore } from "@/lib/records";
 import { SOURCES } from "@/lib/sources";
+import { api } from "@/lib/api";
 import { EducationNotice } from "@/components/prep/education-notice";
 import { QuarterCard } from "@/components/prep/quarter-card";
+import { SubmitFlow } from "@/components/prep/submit-flow";
 import { EstimateCard } from "@/components/prep/estimate-card";
 import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
@@ -32,6 +34,14 @@ export default function QuarterClient() {
   const [pickedQuarterIndex, setPickedQuarterIndex] = useState<1 | 2 | 3 | 4 | null>(null);
   const mounted = useMounted();
 
+  // Whether there's a real ITSA connection to submit through — same
+  // `connections.itsa` source of truth the HMRC panel reads (never the
+  // legacy any-rail `connected`). Unlike the panel, this page never CREATES
+  // an entity just from being visited — that stays the dashboard's job;
+  // finding none just means the submit flow stays locked.
+  const [entityId, setEntityId] = useState<string | null>(null);
+  const [connectedItsa, setConnectedItsa] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     store.list().then((all) => {
@@ -44,6 +54,29 @@ export default function QuarterClient() {
       cancelled = true;
     };
   }, [store]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConnection() {
+      try {
+        const { entities } = await api.listEntities();
+        if (cancelled) return;
+        const picked = entities.find((e) => e.nino) ?? null;
+        setEntityId(picked?.id ?? null);
+        setConnectedItsa(picked?.connections.itsa ?? false);
+      } catch {
+        if (cancelled) return;
+        setEntityId(null);
+        setConnectedItsa(false);
+      }
+    }
+
+    loadConnection();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // "Today's quarter" can only be known client-side — computed straight in
   // render (not stored via an effect) and gated on useMounted() so the
@@ -70,24 +103,34 @@ export default function QuarterClient() {
 
       <div className="mt-6 rounded-2xl border border-line bg-white p-4 text-sm text-ink-soft sm:p-5">
         <p>
-          No submission from here yet — we&apos;re building the pipes and walking HMRC&apos;s
-          recognition path in the open. Meanwhile these are exactly the cumulative figures MTD
-          software sends.
+          These are exactly the cumulative figures MTD software sends. Connect to HMRC&apos;s
+          sandbox on your dashboard to practice a real submission below — production filing stays
+          gated on HMRC recognition, which we&apos;re walking in the open.
         </p>
       </div>
 
       <div className="mt-8 space-y-6">
         {SOURCES.map((s) => (
-          <QuarterCard
-            key={s.value}
-            records={loaded ? records : []}
-            source={s.value}
-            taxYear={TAX_YEAR}
-            quarterIndex={quarterIndex}
-            election={election}
-            onQuarterChange={setPickedQuarterIndex}
-            onElectionChange={setElection}
-          />
+          <div key={s.value} className="space-y-4">
+            <QuarterCard
+              records={loaded ? records : []}
+              source={s.value}
+              taxYear={TAX_YEAR}
+              quarterIndex={quarterIndex}
+              election={election}
+              onQuarterChange={setPickedQuarterIndex}
+              onElectionChange={setElection}
+            />
+            <SubmitFlow
+              entityId={entityId}
+              connectedItsa={connectedItsa}
+              records={loaded ? records : []}
+              source={s.value}
+              taxYear={TAX_YEAR}
+              quarterIndex={quarterIndex}
+              election={election}
+            />
+          </div>
         ))}
       </div>
 

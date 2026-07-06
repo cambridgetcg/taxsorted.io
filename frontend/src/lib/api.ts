@@ -2,6 +2,7 @@
 
 import { collectFraudPreventionHeaders, headersToRecord } from "@taxsorted/engine/uk/hmrc";
 import type { VATObligationsResponse, VATReturnData } from "@taxsorted/engine/uk/vat";
+import type { SourceType } from "@taxsorted/engine/uk/itsa";
 
 export function apiBase(): string {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -49,6 +50,54 @@ export interface ItsaObligationsResponse {
   obligations: ItsaObligation[];
   source: "hmrc-sandbox";
 }
+
+/** Business Details API v2.0's list-businesses, mapped by the api. */
+export interface ItsaBusiness {
+  businessId: string;
+  typeOfBusiness: SourceType;
+  tradingName?: string;
+}
+
+/** The immutable (but resubmittable) record of one cumulative quarterly
+    update PUT to HMRC's sandbox — `supersededCount` counts resubmissions of
+    the SAME quarter (the MTD correction model), never a new row per send. */
+export interface ItsaReceipt {
+  id: string;
+  taxYear: string;
+  quarterIndex: 1 | 2 | 3 | 4;
+  periodEnd: string;
+  businessId: string;
+  typeOfBusiness: SourceType;
+  submittedAt: string;
+  supersededCount: number;
+  hmrcCorrelationId?: string | null;
+}
+
+/** `totals` is PENCE, keyed by the same wire category names cumulativeUpdate
+    returns — the api converts to HMRC's decimal pounds exactly once, at the
+    boundary; this client never does that conversion itself. */
+export interface ItsaQuarterlyUpdateInput {
+  taxYear: string;
+  businessId: string;
+  typeOfBusiness: SourceType;
+  quarterIndex: 1 | 2 | 3 | 4;
+  election: "standard" | "calendar";
+  totals: Record<string, number>;
+}
+
+/** Individual Calculations v8.0, mapped down to the two figures M2 shows.
+    Both money fields are HMRC's own DECIMAL POUNDS — never pence, never
+    divide by 100 (see lib/format.ts's gbpFromPounds). A 404 while HMRC is
+    still computing is surfaced by the api as `status: 'computing'`, not an
+    error — the same honest distinction the api route itself makes. */
+export type ItsaCalculation =
+  | { status: "computing"; source: "hmrc-sandbox" }
+  | {
+      status: "complete";
+      incomeTaxAndNicsDuePounds: number | null;
+      taxableIncomePounds: number | null;
+      source: "hmrc-sandbox";
+    };
 
 export interface ApiSubmission {
   id: string;
@@ -156,6 +205,42 @@ export const api = {
   /** Obligations v3.0 income-and-expenditure — sandbox-only rail. */
   itsaObligations: (id: string) =>
     call<ItsaObligationsResponse>(`/v1/itsa/${id}/obligations`, { fraud: true }),
+
+  /** Business Details API v2.0 list-businesses — which self-employment/
+      property businesses this NINO can submit quarterly updates for. */
+  businesses: (id: string) =>
+    call<{ businesses: ItsaBusiness[] }>(`/v1/itsa/${id}/businesses`, { fraud: true }),
+
+  /** The write path: category totals (pence) -> HMRC's cumulative period
+      summary PUT -> an immutable-but-resubmittable receipt. */
+  submitQuarterlyUpdate: (id: string, input: ItsaQuarterlyUpdateInput) =>
+    call<{ receipt: ItsaReceipt }>(`/v1/itsa/${id}/quarterly-update`, {
+      method: "POST",
+      body: JSON.stringify(input),
+      fraud: true,
+    }),
+
+  /** Newest first — the receipt list survives a reload (server-side). */
+  receipts: (id: string) =>
+    call<{ receipts: ItsaReceipt[] }>(`/v1/itsa/${id}/receipts`, { fraud: true }),
+
+  /** Individual Calculations v8.0 trigger — always the in-year type (never a
+      final declaration). Returns HMRC's calculationId for getCalc to poll. */
+  triggerCalc: (id: string, taxYear: string) =>
+    call<{ calculationId: string | null }>(`/v1/itsa/${id}/calculation`, {
+      method: "POST",
+      body: JSON.stringify({ taxYear }),
+      fraud: true,
+    }),
+
+  /** Individual Calculations v8.0 retrieve. May answer `{status:'computing'}`
+      while HMRC works it out — callers poll, they never treat that as an
+      error. */
+  getCalc: (id: string, calculationId: string, taxYear: string) =>
+    call<ItsaCalculation>(
+      `/v1/itsa/${id}/calculation/${calculationId}?taxYear=${encodeURIComponent(taxYear)}`,
+      { fraud: true }
+    ),
 
   fileReturn: (id: string, data: VATReturnData) =>
     call<{ filed: true; submission: ApiSubmission }>(`/v1/entities/${id}/returns`, {

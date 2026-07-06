@@ -39,3 +39,32 @@ export function formatUkDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return `${d} ${UK_MONTHS[m - 1]} ${y}`;
 }
+
+/**
+ * ISO datetime (e.g. a server timestamp, 'YYYY-MM-DDTHH:MM:SS.sssZ') ->
+ * '7 August 2026, 14:03'. Same deterministic-table approach as formatUkDate
+ * (no toLocaleString) — the hour:minute is read straight off the string, not
+ * reinterpreted through any runtime timezone.
+ */
+export function formatUkDateTime(iso: string): string {
+  const [datePart, timePart] = iso.split("T");
+  const dateStr = formatUkDate(datePart);
+  if (!timePart) return dateStr;
+  return `${dateStr}, ${timePart.slice(0, 5)}`;
+}
+
+/**
+ * A HMRC calculation figure — already DECIMAL POUNDS, not pence — formatted
+ * directly as GBP. Never pass a pence value here (use `gbp`/`gbpCompact` for
+ * that); this exists specifically so HMRC's calculation endpoints (which
+ * reply in pounds, unlike every pence figure elsewhere in this app) can
+ * never be accidentally divided by 100 a second time.
+ */
+export function gbpFromPounds(pounds: number): string {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(pounds);
+}
