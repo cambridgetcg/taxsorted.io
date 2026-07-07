@@ -284,9 +284,9 @@ export default function WhatWeSendHmrcPage() {
             omit the header or submit it with an empty value. You must not include a placeholder
             value, for example null or undefined.&rdquo;
           </Cited>{" "}
-          We follow that route for three headers today, each contacted with HMRC&apos;s
-          SDSTeam@hmrc.gov.uk before going to production, never guessed at or filled in with a
-          fake number.
+          We follow that route for three headers today — each will be raised with HMRC&apos;s
+          SDSTeam@hmrc.gov.uk before we apply for production access (the drafts are written,
+          not yet sent), and none is ever guessed at or filled in with a fake number.
         </p>
         <ul className="mt-4 space-y-3 text-sm text-ink">
           {CANNOT_COLLECT.map((h) => (

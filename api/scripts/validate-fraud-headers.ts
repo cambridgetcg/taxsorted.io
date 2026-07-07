@@ -14,7 +14,7 @@
 //
 // Usage: `cd api && npx tsx scripts/validate-fraud-headers.ts`
 // Required env: HMRC_CLIENT_ID, HMRC_CLIENT_SECRET (see RUNBOOK.md
-// "Validating fraud-prevention headers locally"). Optional:
+// "Validating fraud-prevention headers against HMRC's Test API"). Optional:
 // GOV_VENDOR_PUBLIC_IP (the api's real egress IP — when unset, Gov-Vendor-
 // Public-IP and Gov-Vendor-Forwarded are omitted, same as production).
 // FRAUD_HEADERS_VALIDATE_API selects the `{api}` path segment for the
@@ -40,7 +40,7 @@ export function assertCredentials(clientId: string, clientSecret: string): void 
   if (!clientSecret) missing.push("HMRC_CLIENT_SECRET");
   if (missing.length) {
     throw new Error(
-      `Missing ${missing.join(", ")} — see api/RUNBOOK.md "Validating fraud-prevention headers locally".`
+      `Missing ${missing.join(", ")} — see api/RUNBOOK.md "Validating fraud-prevention headers against HMRC's Test API".`
     );
   }
 }

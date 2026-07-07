@@ -67,11 +67,12 @@ export function HeaderPreview() {
         These four are the only ones your own browser computes — reading straight from{" "}
         <code>window.screen</code>, <code>window.innerWidth/innerHeight</code>,{" "}
         <code>navigator.userAgent</code> and your device&apos;s clock, the same values any
-        website could already read. The other twelve headers in the table above are added by
-        our server when it actually calls HMRC — a device/session cookie, your IP address as
-        our server sees it, and our own vendor details — none of which this page, running in
-        your browser, can see or verify. We show you what we can genuinely show you, and
-        describe the rest rather than guess at it.
+        website could already read. Nine of the other twelve headers are added by our server
+        when it actually calls HMRC — a device/session cookie, your IP address as our server
+        sees it, and our own vendor details — and the remaining three are the ones we
+        honestly can&apos;t collect (see the section above). None of the server side is
+        something this page, running in your browser, can see or verify. We show you what we
+        can genuinely show you, and describe the rest rather than guess at it.
       </p>
     </div>
   );
