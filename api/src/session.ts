@@ -25,6 +25,14 @@ const cookieBase = {
   path: "/",
 };
 
+/** Set the ts_session cookie with the exact attributes the middleware uses —
+    httpOnly, Secure-in-prod, SameSite=Lax, host-only, 1-year rolling. Session
+    rotation (register/login/recover finish) re-issues the cookie through here
+    so a rotated cookie is byte-identical to the one this middleware plants. */
+export function setSessionCookie(c: Context, sessionId: string) {
+  setCookie(c, SESSION_COOKIE, sessionId, { ...cookieBase, maxAge: YEAR });
+}
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Two identities ride on one signed-in session, and they are NOT the same:
@@ -81,7 +89,7 @@ export async function session(c: Context, next: Next) {
     const [row] = await sql`insert into sessions default values returning id`;
     sessionId = row.id as string;
   }
-  setCookie(c, SESSION_COOKIE, sessionId, { ...cookieBase, maxAge: YEAR });
+  setSessionCookie(c, sessionId);
 
   // The device id feeds Gov-Client-Device-ID; durable, per-browser, and
   // regenerated if anyone hands us something that isn't ours.
