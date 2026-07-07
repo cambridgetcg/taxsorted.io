@@ -758,6 +758,68 @@ describe("insufficient scope (pre-write-scope connections)", () => {
   });
 });
 
+// Task 10: production filing needs a passkey. The quarterly-update POST now
+// carries the same account_needed gate as vat.ts/connect.ts, placed right
+// after entity resolution — but this whole router already 404s ANY request
+// outside sandbox (the file-level "*" middleware above, unchanged since DASH
+// Task 1: ITSA has no HMRC production recognition yet). That gate always
+// fires first, so the new check is presently unreachable in practice; it's
+// kept for parity so the day ITSA earns production recognition, this route
+// needs zero extra wiring. These tests prove the addition changed nothing:
+// production still 404s "no_such_door" regardless of account state.
+describe("production gate — quarterly-update (currently shadowed by the ITSA sandbox-only door)", () => {
+  it("HMRC_ENV=production + anonymous → still 404 no_such_door, unchanged", async () => {
+    vi.stubEnv("HMRC_ENV", "production");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    mockEntity(ENTITY);
+    const app = await freshItsaSubmitApp();
+    const res = await app.request("/v1/itsa/e1/quarterly-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quarterlyBody()),
+    });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "no_such_door" });
+  });
+
+  it("HMRC_ENV=production + signed in (userId set) → still 404 no_such_door — the account gate never gets a chance to run", async () => {
+    vi.stubEnv("HMRC_ENV", "production");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    mockEntity(ENTITY);
+    const { Hono } = await import("hono");
+    const { itsaSubmit } = await import("../itsa-submit.js");
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("userId", "u1");
+      await next();
+    });
+    app.route("/v1/itsa", itsaSubmit);
+
+    const res = await app.request("/v1/itsa/e1/quarterly-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quarterlyBody()),
+    });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "no_such_door" });
+  });
+
+  it("HMRC_ENV=sandbox + anonymous → unchanged, still files as normal", async () => {
+    sandboxEnv();
+    mockEntity(ENTITY);
+    const { sql } = fakeReceiptsDb();
+    vi.doMock("../../db.js", () => ({ sql }));
+    mockHmrcRequest(async () => ({}));
+    const app = await freshItsaSubmitApp();
+    const res = await app.request("/v1/itsa/e1/quarterly-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quarterlyBody()),
+    });
+    expect(res.status).toBe(201);
+  });
+});
+
 describe("pence <-> pounds money boundary (round-trip exactness)", () => {
   it("round-trips 1p, 99p, 123456p, 0p, negatives, and HMRC's own declared maximum with zero float artefacts", async () => {
     const { penceToPounds } = await import("../itsa-submit.js");

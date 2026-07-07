@@ -113,6 +113,13 @@ vat.get("/:id/submissions", async (c) => {
 
 vat.post("/:id/returns", async (c) => {
   const entity = c.get("entity");
+  // Live HMRC needs a real account behind it — sandbox stays anonymous-capable.
+  if (config.hmrc.env === "production" && !c.get("userId")) {
+    return c.json(
+      { error: "account_needed", message: "Sign in with a passkey to file for real." },
+      403
+    );
+  }
   const parsed = SubmitReturn.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) {
     return c.json(

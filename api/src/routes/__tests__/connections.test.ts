@@ -25,6 +25,13 @@ function sandboxEnv() {
   vi.stubEnv("TOKEN_KEY", KEY);
 }
 
+function productionEnv() {
+  vi.stubEnv("HMRC_ENV", "production");
+  vi.stubEnv("HMRC_CLIENT_ID", "id");
+  vi.stubEnv("HMRC_CLIENT_SECRET", "secret");
+  vi.stubEnv("TOKEN_KEY", KEY);
+}
+
 /** A tiny in-memory stand-in for postgres.js's `sql`, just enough surface for
     hmrc.ts's hmrc_connections queries: the rail-keyed upsert storeConnection
     issues, and the rail-scoped select getConnection issues. Not a general SQL
@@ -281,5 +288,70 @@ describe("HMRC error scrubbing (hmrcFail)", () => {
       "not an hmrc error"
     );
     expect(json).not.toHaveBeenCalled();
+  });
+});
+
+// Task 10: production filing needs a passkey. Sandbox stays fully
+// anonymous-capable — only live HMRC (config.hmrc.env === 'production')
+// gates on c.get('userId'). Exercised on the default (VAT) rail, which has
+// no other production restriction; the itsa rail keeps its own pre-existing
+// "no such door in production" gate (tested in itsa.test.ts), which simply
+// fires first — same short-circuit order the file already uses for its
+// nino_required/vrn_required checks.
+describe("production gate — GET /start/:entityId needs a passkey to connect to live HMRC", () => {
+  const ENTITY = { id: "e1", vrn: "123456789", nino: null };
+
+  it("HMRC_ENV=production + anonymous → 403 account_needed", async () => {
+    productionEnv();
+    vi.doMock("../../session.js", () => ({ ownedEntity: vi.fn(async () => ENTITY) }));
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("sessionId", "s1");
+      await next();
+    });
+    app.route("/v1/hmrc", connect);
+
+    const res = await app.request("/v1/hmrc/start/e1");
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({
+      error: "account_needed",
+      message: "Sign in with a passkey to connect to live HMRC.",
+    });
+  });
+
+  it("HMRC_ENV=production + signed in (userId set) → gate passes, proceeds to the authorize redirect", async () => {
+    productionEnv();
+    vi.doMock("../../session.js", () => ({ ownedEntity: vi.fn(async () => ENTITY) }));
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("sessionId", "s1");
+      c.set("userId", "u1");
+      await next();
+    });
+    app.route("/v1/hmrc", connect);
+
+    const res = await app.request("/v1/hmrc/start/e1", { redirect: "manual" });
+    expect(res.status).not.toBe(403);
+    expect(res.status).toBe(302);
+  });
+
+  it("HMRC_ENV=sandbox + anonymous → unchanged, still proceeds to the authorize redirect", async () => {
+    sandboxEnv();
+    vi.doMock("../../session.js", () => ({ ownedEntity: vi.fn(async () => ENTITY) }));
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("sessionId", "s1");
+      await next();
+    });
+    app.route("/v1/hmrc", connect);
+
+    const res = await app.request("/v1/hmrc/start/e1", { redirect: "manual" });
+    expect(res.status).toBe(302);
   });
 });

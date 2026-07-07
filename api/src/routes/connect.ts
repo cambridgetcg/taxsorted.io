@@ -85,6 +85,13 @@ connect.get("/start/:entityId", async (c) => {
   }
   const entity = await ownedEntity(c, c.req.param("entityId"));
   if (!entity) return c.json({ error: "not_found" }, 404);
+  // Live HMRC needs a real account behind it — sandbox stays anonymous-capable.
+  if (config.hmrc.env === "production" && !c.get("userId")) {
+    return c.json(
+      { error: "account_needed", message: "Sign in with a passkey to connect to live HMRC." },
+      403
+    );
+  }
   if (rail === "itsa") {
     if (!entity.nino) {
       return c.json(

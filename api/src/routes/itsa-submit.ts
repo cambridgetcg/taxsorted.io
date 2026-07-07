@@ -302,6 +302,17 @@ function propertyBody(quarter: { cumulativeStart: string; periodEnd: string }, {
 
 itsaSubmit.post("/:id/quarterly-update", async (c) => {
   const entity = c.get("itsaEntity");
+  // Live HMRC needs a real account behind it — sandbox stays anonymous-capable.
+  // (Presently shadowed by the file-level sandbox-only gate above, same as
+  // connect.ts's itsa-rail branch: ITSA has no production door at all yet.
+  // Kept in place so the day HMRC recognition lands, this route is already
+  // wired for parity with vat.ts/connect.ts — zero extra work needed then.)
+  if (config.hmrc.env === "production" && !c.get("userId")) {
+    return c.json(
+      { error: "account_needed", message: "Sign in with a passkey to file for real." },
+      403
+    );
+  }
   const parsed = QuarterlyUpdate.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) {
     return c.json(
