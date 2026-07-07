@@ -14,8 +14,14 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { z } from "zod";
-import { generateRegistrationOptions, verifyRegistrationResponse } from "@simplewebauthn/server";
+import {
+  generateAuthenticationOptions,
+  generateRegistrationOptions,
+  verifyAuthenticationResponse,
+  verifyRegistrationResponse,
+} from "@simplewebauthn/server";
 import type {
+  AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
   RegistrationResponseJSON,
   Uint8Array_,
@@ -25,7 +31,13 @@ import { generateUserID, isoBase64URL } from "@simplewebauthn/server/helpers";
 import { config } from "../config.js";
 import { sql } from "../db.js";
 import { setSessionCookie } from "../session.js";
-import { consumeChallenge, mfaFactorRef, mintRecoveryCodes, putChallenge } from "../webauthn.js";
+import {
+  consumeChallenge,
+  hashRecoveryCode,
+  mfaFactorRef,
+  mintRecoveryCodes,
+  putChallenge,
+} from "../webauthn.js";
 
 export const account = new Hono();
 
@@ -61,6 +73,23 @@ const FinishBody = z.object({
   // insist it is present and an object here.
   response: z.record(z.string(), z.unknown()),
   nickname: z.string().trim().max(64).optional(),
+});
+
+// login/finish carries only the assertion; there is no nickname to set on a
+// sign-in (the passkey already exists).
+const AuthFinishBody = z.object({
+  response: z.record(z.string(), z.unknown()),
+});
+
+// recover redeems one recovery code. Any string; hashRecoveryCode normalises
+// (strips spaces/dashes, lowercases) before the equality lookup.
+const RecoverBody = z.object({
+  code: z.string(),
+});
+
+// logout: optional "sign out of every browser" flag.
+const LogoutBody = z.object({
+  everywhere: z.boolean().optional(),
 });
 
 /** Rotate this request's session into a fresh signed-in row: fixation defeated
@@ -121,6 +150,23 @@ function ceremonyFailed(c: Context) {
     { error: "ceremony_failed", message: "That passkey didn't check out. Try again." },
     422
   );
+}
+
+// The [passkey] route-guard marker the plan defines. A handler calls it at its
+// top and returns the result if it is truthy, else proceeds:
+//   const gate = requirePasskey(c); if (gate) return gate;
+// It demands a full data session (userId present); a recovery session — accountId
+// but no userId — is turned away here, which is exactly how its restriction is
+// enforced. Login / recover / logout in this file are open to anonymous and
+// recovery callers by design, so they take no guard; Task 9's manage doors
+// (adopt, delete passkey, regenerate codes) are the [passkey] doors that reuse
+// this. ([signed-in] needs no helper: GET /account is anonymous-OK and logout is
+// intentionally ungated for idempotency, so no route gates on accountId alone.)
+function requirePasskey(c: Context) {
+  if (!c.get("userId")) {
+    return c.json({ error: "passkey_needed", message: "Add a passkey to open this door." }, 403);
+  }
+  return null;
 }
 
 // ---- POST /passkey/register/start -----------------------------------------
@@ -282,4 +328,181 @@ account.post("/passkey/register/finish", async (c) => {
     mfaFactorRef: mfaFactorRef(cred.id),
   });
   return c.json({ signedIn: true, passkey: { id: cred.id, nickname }, mfa: true });
+});
+
+// ---- POST /login/start ----------------------------------------------------
+// Usernameless / discoverable sign-in: no allowCredentials, so the browser
+// offers whatever resident passkey it holds for this rpID and the picker — not
+// us — chooses the account. UV is required, which is what makes the resulting
+// session honest enough to assert Gov-Client-Multi-Factor. Anonymous-accessible
+// (this IS the sign-in door); the challenge rides one row per session.
+account.post("/login/start", async (c) => {
+  const sessionId = c.get("sessionId");
+  const challenge = await putChallenge(sql, sessionId, "authentication");
+  const options = await generateAuthenticationOptions({
+    rpID: config.webauthn.rpId,
+    userVerification: "required",
+    // Empty on purpose — discoverable credentials, chosen by the authenticator.
+    allowCredentials: [],
+    // Emit exactly the bytes we stored, so verify's expectedChallenge matches.
+    challenge: isoBase64URL.toBuffer(challenge),
+  });
+  return c.json(options);
+});
+
+// ---- POST /login/finish ---------------------------------------------------
+// Verify the assertion, advance the stored counter, and rotate into a fresh
+// FULL session. Rotation re-parents this browser's still-anonymous entities so
+// they follow the person, but login NEVER claims them — they stay claimable and
+// an explicit adopt door (Task 9) is the only thing that hangs them on the
+// account.
+account.post("/login/finish", async (c) => {
+  const parsed = AuthFinishBody.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return c.json({ error: "invalid_request", message: "That didn't look like a passkey response." }, 422);
+  }
+  const sessionId = c.get("sessionId");
+  const response = parsed.data.response as unknown as AuthenticationResponseJSON;
+
+  // Atomic single-use: the challenge is deleted as it is read, so a replay or
+  // two racing verifies can never both find it. Absent/expired → start again.
+  const challengeRow = await consumeChallenge(sql, sessionId, "authentication");
+  if (!challengeRow) {
+    return c.json({ error: "challenge_expired", message: "That attempt took too long. Start again." }, 422);
+  }
+
+  // Discoverable sign-in hands us the credential id; look up the passkey it
+  // names. No row → they are asserting a credential we have never seen.
+  const [passkey] = await sql`
+    select id, user_id, public_key, counter from passkeys where id = ${response.id}
+  `;
+  if (!passkey) {
+    return c.json(
+      {
+        error: "unknown_passkey",
+        message: "We don't recognise that passkey. Lost them all? Use a recovery code.",
+      },
+      401
+    );
+  }
+
+  let verification;
+  try {
+    verification = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge: challengeRow.challenge,
+      expectedOrigin: config.webauthn.origin,
+      expectedRPID: config.webauthn.rpId,
+      requireUserVerification: true,
+      credential: {
+        id: passkey.id as string,
+        publicKey: passkey.public_key as Uint8Array_,
+        // Postgres bigint arrives as a string; the verifier wants a number. A
+        // regression against this stored value is the clone signal — the
+        // library hard-fails it and we keep that, surfacing it as ceremony_failed.
+        counter: Number(passkey.counter),
+      },
+    });
+  } catch (e) {
+    // Detail stays server-side only. A counter regression lands here too — log
+    // it loudly, it is a genuine clone signal, not just a fumbled ceremony.
+    console.error(`login ceremony_failed: ${(e as Error).message}`);
+    return ceremonyFailed(c);
+  }
+  if (!verification.verified) {
+    return ceremonyFailed(c);
+  }
+
+  const accountId = passkey.user_id as string;
+  // Persist the advanced counter + touch last_used_at BEFORE rotating, so a
+  // crash after this leaves the replay defence updated either way.
+  await sql`
+    update passkeys set counter = ${verification.authenticationInfo.newCounter}, last_used_at = now()
+    where id = ${passkey.id}
+  `;
+
+  const newSid = await rotateSession(c, {
+    userId: accountId,
+    mfaAt: new Date(),
+    mfaFactorRef: mfaFactorRef(passkey.id as string),
+  });
+
+  const [user] = await sql`select id, name from users where id = ${accountId}`;
+  // The entities rotation just re-parented onto the new session — still
+  // anonymous, so still claimable until the person explicitly adopts them.
+  const [{ n: claimableEntities }] = await sql`
+    select count(*)::int as n from entities where session_id = ${newSid} and user_id is null
+  `;
+
+  return c.json({
+    signedIn: true,
+    account: { id: accountId, name: user.name },
+    claimableEntities,
+  });
+});
+
+// ---- POST /recover --------------------------------------------------------
+// The passkey-less way back in: redeem one single-use recovery code. The redeem
+// is atomic (update ... where used_at is null returning) so a code can never be
+// spent twice, even under a race. Success earns a RESTRICTED session — accountId
+// but no userId (mfa_at NULL) — enough to add a passkey or sign out, nothing
+// that touches tax data. Anonymous-accessible: you recover precisely when you
+// cannot sign in.
+account.post("/recover", async (c) => {
+  const parsed = RecoverBody.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return c.json({ error: "invalid_request", message: "Enter a recovery code." }, 422);
+  }
+  const codeHash = hashRecoveryCode(parsed.data.code);
+  const [redeemed] = await sql`
+    update recovery_codes set used_at = now()
+    where code_hash = ${codeHash} and used_at is null
+    returning user_id
+  `;
+  if (!redeemed) {
+    return c.json(
+      { error: "bad_recovery_code", message: "That code didn't match. Each code works exactly once." },
+      401
+    );
+  }
+  const accountId = redeemed.user_id as string;
+
+  // Restricted: signed_in_at now (accountId lights up) but mfa_at / factor ref
+  // NULL, so the data identity stays dark until a passkey is added.
+  await rotateSession(c, { userId: accountId, mfaAt: null, mfaFactorRef: null });
+
+  const [{ n: recoveryCodesLeft }] = await sql`
+    select count(*)::int as n from recovery_codes where user_id = ${accountId} and used_at is null
+  `;
+
+  return c.json({ signedIn: true, mfa: false, addPasskeyNow: true, recoveryCodesLeft });
+});
+
+// ---- POST /logout ---------------------------------------------------------
+// Clear the four signed-in columns. Idempotent by design — no signed-in gate,
+// so a repeat call on an already-anonymous session still answers 200. Recovery
+// sessions are included (accountId is enough to sign out). "everywhere" clears
+// every session of the account; it is guarded on accountId so an anonymous
+// caller can never trigger a `where user_id = null` sweep, falling back to a
+// harmless this-browser clear instead.
+account.post("/logout", async (c) => {
+  const parsed = LogoutBody.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return c.json({ error: "invalid_request", message: "That request didn't look right." }, 422);
+  }
+  const accountId = c.get("accountId");
+
+  if (parsed.data.everywhere && accountId) {
+    await sql`
+      update sessions set user_id = null, signed_in_at = null, mfa_at = null, mfa_factor_ref = null
+      where user_id = ${accountId}
+    `;
+    return c.json({ signedOut: "everywhere" });
+  }
+
+  await sql`
+    update sessions set user_id = null, signed_in_at = null, mfa_at = null, mfa_factor_ref = null
+    where id = ${c.get("sessionId")}
+  `;
+  return c.json({ signedOut: "this-browser" });
 });
