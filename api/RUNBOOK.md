@@ -248,9 +248,49 @@ is proven. Until then `HMRC_ENV` stays `sandbox` and the UI says so.
 
 **Hard preconditions before any production rail** (from the security review):
 real user accounts with sign-in, sign-out and session revocation — an anonymous
-year-long cookie must never be the only key to live tax filing. Also: scrub
-HMRC error bodies from client responses, and re-test fraud headers with the
-Test Fraud Prevention Headers API.
+year-long cookie must never be the only key to live tax filing.
+
+**This precondition is now met (M2-accounts, landed 2026-07-07).** An account
+is a set of passkeys, nothing else — no email, no username, no password.
+Sign-in is a real WebAuthn ceremony (`@simplewebauthn/server`, user
+verification required, so a passkey sign-in is a genuine MFA event — see
+`Gov-Client-Multi-Factor` below); sign-out clears the session's four account
+columns, either "this browser" or "everywhere" (one UPDATE `where
+user_id=$uid`, idempotent, `POST /v1/account/logout`); losing every passkey
+is recoverable via one of the 10 single-use recovery codes minted at account
+creation (sha256-hashed at rest, shown to the person exactly once); and
+deleting a passkey (`DELETE /v1/account/passkey/:credentialId`) signs out
+every session that passkey ever opened first (`mfa_factor_ref` join), then
+removes it — revocation is real, not cosmetic. Production `connect`/`file`
+doors already answer `403 account_needed` for any session without a
+passkey-asserted account; sandbox stays fully anonymous-capable, by design.
+The other two items in this line are also done: `api/src/hmrc-fail.ts` scrubs
+every HMRC error body from production responses (sandbox alone sees the raw
+`detail`; production gets a generic message and the detail only ever reaches
+the server log), and fraud headers have been re-tested live against HMRC's
+own Test Fraud Prevention Headers API (validation log below).
+
+**What M3 still owes before production filing opens** (named honestly, not
+folded into "done"):
+
+- **Recovery hardening** — v1 ships recovery codes only. Email (or
+  manual-support) recovery is a named M3 gate, still awaiting Yu's
+  ratification (the plan's Global Constraints consciously narrowed spec §3's
+  "email fallback" to codes-only for v1 — see
+  `docs/superpowers/plans/2026-07-07-m2-accounts.md`). Until that lands,
+  losing every passkey AND every recovery code is genuinely unrecoverable —
+  the account page says so plainly today, not buried in small print.
+- **Pen test** — the terms-of-use evidence pack for HMRC's approval gauntlet
+  requires one (G7, spec §9); not yet commissioned.
+- **G4 GDPR operating stack** — ICO registration (in Mindicraft's name, once
+  G2 is wired), a DPIA (NINOs + full financials + device fingerprints make
+  one near-mandatory), the controller/processor map, and the
+  international-transfer analysis (Fly.io/Cloudflare US ownership) are all
+  still to build. None of them exist yet.
+- **Edge rate limiting** — a deliberate M2-accounts cut (no in-app rate
+  limiting on the passkey endpoints — see the plan's "Explicit v1 cuts").
+  Needed at the edge before production so login/recovery ceremonies can't be
+  brute-forced.
 
 ## The ITSA sandbox door (status, obligations, quarterly submission)
 
@@ -443,6 +483,33 @@ calculation, or where it broke):
   Gov-Client-Multi-Factor" above. The next fresh sandbox run should show
   `gov-client-multi-factor` passing format validation rather than
   warned-missing; log that run here when it happens.
+
+## Least-privilege operator access (G7)
+
+Plain words, written down once so it's a policy and not a habit: **production
+database access is the operator's alone.** There is no support role, no
+dashboard, no second set of credentials that reaches production Postgres —
+whoever holds the operator's own hosting-account access is the only one who
+can query it directly. Schema changes go through a reviewed migration file
+in this repo (the boot runner picks up `api/migrations/*.sql` by filename),
+never a hand-typed statement against the live database.
+
+The token vault is encrypted at rest (`api/src/crypto.ts`, AES-256-GCM,
+keyed by the `TOKEN_KEY` Fly secret — 32 bytes of hex, never checked into the
+repo, never logged); reading a row out of `hmrc_connections` gets you
+ciphertext, not a working HMRC bearer token, without that key. No HMRC client
+secret, no `TOKEN_KEY`, no user's access/refresh token ever appears in code,
+in a commit, or in a log line — `api/src/hmrc-fail.ts` scrubs HMRC's own
+error bodies from production responses precisely so a support screenshot or
+an error log can never carry a taxpayer-identifying fragment either.
+
+**Support never needs raw tokens.** There is no support tooling in this repo
+today, and none is planned that reads the vault directly — the honest answer
+to "can we see a user's HMRC token to debug their connection" is no; the
+debugging path is the server log (scrubbed, as above) and, if that's not
+enough, disconnecting and reconnecting the rail (`DELETE
+/v1/hmrc/connection/<entityId>`, then the connect dance again) — the same
+door the person themselves has.
 
 ## Supply-chain: the passkey libraries (G7)
 
