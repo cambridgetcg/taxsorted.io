@@ -280,7 +280,7 @@ export default function WhatWeSendHmrcPage() {
         </div>
       </section>
 
-      {/* 3. The cannot-collect trio */}
+      {/* 3. The cannot-collect duo */}
       <section
         data-section="cannot-collect"
         className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6"

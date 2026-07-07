@@ -432,6 +432,17 @@ calculation, or where it broke):
   single factor authentication"), `gov-vendor-license-ids` (warning).
   **All 13 headers we actually send passed with zero format errors.**
   Next step: send the three SDSTeam drafts (M3 pre-application).
+- **2026-07-07, later the same day — the run above superseded by M2-accounts
+  (Task 11):** it was true when run, but describes the pre-accounts world.
+  `Gov-Client-Multi-Factor` now ships for passkey sessions, so the current
+  state is **14 headers wired, two documented cannot-collect omissions**
+  (`gov-client-public-port`, `gov-vendor-license-ids`), and the SDSTeam
+  items are now **two notes**: the remaining cannot-collect duo's
+  notifications, plus the Multi-Factor `type=OTHER` confirmation question
+  (which carries the Gov-Client-User-IDs no-PII rider) — see "Now shipping:
+  Gov-Client-Multi-Factor" above. The next fresh sandbox run should show
+  `gov-client-multi-factor` passing format validation rather than
+  warned-missing; log that run here when it happens.
 
 ## Supply-chain: the passkey libraries (G7)
 
