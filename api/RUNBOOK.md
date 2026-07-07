@@ -264,6 +264,10 @@ every session that passkey ever opened first (`mfa_factor_ref` join), then
 removes it — revocation is real, not cosmetic. Production `connect`/`file`
 doors already answer `403 account_needed` for any session without a
 passkey-asserted account; sandbox stays fully anonymous-capable, by design.
+The ceremony's `expectedOrigin` accepts both doors the app is served from —
+`https://taxsorted.io` and `https://www.taxsorted.io` — so a passkey
+registered or signed in from either address verifies the same; `rpID` stays
+`taxsorted.io` for both, already covered by the registrable-suffix rule.
 The other two items in this line are also done: `api/src/hmrc-fail.ts` scrubs
 every HMRC error body from production responses (sandbox alone sees the raw
 `detail`; production gets a generic message and the detail only ever reaches

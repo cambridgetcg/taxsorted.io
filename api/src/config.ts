@@ -27,11 +27,18 @@ export const config = {
       : ["https://taxsorted.io", "https://www.taxsorted.io", "http://localhost:3000"],
   // WebAuthn ceremonies run on the page origin, fixed on purpose — kept
   // separate from corsOrigins (which can widen independently of rpID/origin).
+  // The app is served from both the apex and www — a passkey ceremony can
+  // start on either, so expectedOrigin must accept both, never derived from
+  // corsOrigins (that stays its own security decision).
   webauthn: {
     rpId: env.WEBAUTHN_RP_ID || (env.NODE_ENV === "production" ? "taxsorted.io" : "localhost"),
-    origin:
-      env.WEBAUTHN_ORIGIN ||
-      (env.NODE_ENV === "production" ? "https://taxsorted.io" : "http://localhost:3000"),
+    origins: env.WEBAUTHN_ORIGIN
+      ? env.WEBAUTHN_ORIGIN.split(",")
+          .map((o) => o.trim())
+          .filter(Boolean)
+      : env.NODE_ENV === "production"
+        ? ["https://taxsorted.io", "https://www.taxsorted.io"]
+        : ["http://localhost:3000"],
   },
 };
 

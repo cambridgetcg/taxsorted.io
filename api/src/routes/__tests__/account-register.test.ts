@@ -28,6 +28,7 @@ const CODE_RE = /^[a-z2-7]{4}(-[a-z2-7]{4})*(-[a-z2-7]{1,4})?$/;
 afterEach(() => {
   vi.resetModules();
   vi.doUnmock("../../db.js");
+  vi.unstubAllEnvs();
 });
 
 type ChallengeRow = {
@@ -610,5 +611,61 @@ describe("register — ceremony negatives", () => {
     const finRes = await finish(app, response);
     expect(finRes.status).toBe(422);
     expect((await finRes.json()).error).toBe("challenge_expired");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The app is served from both the apex and www — config.webauthn.origins
+// carries both under prod defaults, so a ceremony minted on either door must
+// verify. These tests stub NODE_ENV=production (clearing the RP_ID/ORIGIN
+// overrides) to exercise the real prod defaults, then reset via the shared
+// afterEach above (resetModules + unstubAllEnvs) so later files see fresh env.
+describe("register — apex + www origin acceptance (prod-config defaults)", () => {
+  function prodAnonApp() {
+    return makeDb({
+      sessions: [{ id: SID, user_id: null, signed_in_at: null, mfa_at: null, mfa_factor_ref: null }],
+      entities: [],
+    });
+  }
+
+  const WWW = "https://www.taxsorted.io";
+
+  it("a ceremony minted at https://www.taxsorted.io verifies (both doors accepted)", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("WEBAUTHN_RP_ID", "");
+    vi.stubEnv("WEBAUTHN_ORIGIN", "");
+    const { sql, db } = prodAnonApp();
+    const app = await mount(sql, { sessionId: SID });
+
+    const startRes = await start(app, { name: "Ada" }, WWW);
+    expect(startRes.status).toBe(200);
+    const options = (await startRes.json()) as { challenge: string; rp: { id: string } };
+    expect(options.rp.id).toBe("taxsorted.io");
+
+    const { response } = await ceremony(options, { origin: WWW });
+    const finRes = await finish(app, response, { origin: WWW });
+
+    expect(finRes.status).toBe(200);
+    expect(db.users).toHaveLength(1);
+    expect(db.passkeys).toHaveLength(1);
+  });
+
+  it("widening to two doors is not widening to any door — a ceremony minted elsewhere still 422s", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("WEBAUTHN_RP_ID", "");
+    vi.stubEnv("WEBAUTHN_ORIGIN", "");
+    const { sql, db } = prodAnonApp();
+    const app = await mount(sql, { sessionId: SID });
+
+    const startRes = await start(app, {}, WWW);
+    const options = (await startRes.json()) as { challenge: string; rp: { id: string } };
+    // The HTTP Origin header (guard) says www — a recognised door — but the
+    // ceremony itself was minted on a foreign origin baked into clientDataJSON.
+    const { response } = await ceremony(options, { origin: "https://evil.example.com" });
+    const finRes = await finish(app, response, { origin: WWW });
+
+    expect(finRes.status).toBe(422);
+    expect((await finRes.json()).error).toBe("ceremony_failed");
+    expect(db.users).toHaveLength(0);
   });
 });

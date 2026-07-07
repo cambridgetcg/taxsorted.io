@@ -254,7 +254,7 @@ account.post("/passkey/register/finish", async (c) => {
     verification = await verifyRegistrationResponse({
       response: parsed.data.response as unknown as RegistrationResponseJSON,
       expectedChallenge: challengeRow.challenge,
-      expectedOrigin: config.webauthn.origin,
+      expectedOrigin: config.webauthn.origins,
       expectedRPID: config.webauthn.rpId,
       requireUserVerification: true,
     });
@@ -391,7 +391,7 @@ account.post("/login/finish", async (c) => {
     verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge: challengeRow.challenge,
-      expectedOrigin: config.webauthn.origin,
+      expectedOrigin: config.webauthn.origins,
       expectedRPID: config.webauthn.rpId,
       requireUserVerification: true,
       credential: {

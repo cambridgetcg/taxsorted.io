@@ -17,18 +17,18 @@ describe("config.webauthn — defaults", () => {
     const { config } = await import("../config.js");
     expect(config.webauthn).toEqual({
       rpId: "localhost",
-      origin: "http://localhost:3000",
+      origins: ["http://localhost:3000"],
     });
   });
 
-  it("defaults to taxsorted.io/https://taxsorted.io in production", async () => {
+  it("defaults to taxsorted.io / both the apex and www origins in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("WEBAUTHN_RP_ID", "");
     vi.stubEnv("WEBAUTHN_ORIGIN", "");
     const { config } = await import("../config.js");
     expect(config.webauthn).toEqual({
       rpId: "taxsorted.io",
-      origin: "https://taxsorted.io",
+      origins: ["https://taxsorted.io", "https://www.taxsorted.io"],
     });
   });
 });
@@ -41,7 +41,7 @@ describe("config.webauthn — env override", () => {
     const { config } = await import("../config.js");
     expect(config.webauthn).toEqual({
       rpId: "staging.taxsorted.io",
-      origin: "https://staging.taxsorted.io",
+      origins: ["https://staging.taxsorted.io"],
     });
   });
 
@@ -52,8 +52,22 @@ describe("config.webauthn — env override", () => {
     const { config } = await import("../config.js");
     expect(config.webauthn).toEqual({
       rpId: "dev.example",
-      origin: "http://dev.example:3000",
+      origins: ["http://dev.example:3000"],
     });
+  });
+
+  it("splits a comma-separated WEBAUTHN_ORIGIN into multiple origins", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("WEBAUTHN_RP_ID", "");
+    vi.stubEnv(
+      "WEBAUTHN_ORIGIN",
+      "https://staging.taxsorted.io, https://staging-2.taxsorted.io"
+    );
+    const { config } = await import("../config.js");
+    expect(config.webauthn.origins).toEqual([
+      "https://staging.taxsorted.io",
+      "https://staging-2.taxsorted.io",
+    ]);
   });
 });
 
