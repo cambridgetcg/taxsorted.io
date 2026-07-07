@@ -16,6 +16,7 @@
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@simplewebauthn/browser": "13.3.0",
     "@taxsorted/engine": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

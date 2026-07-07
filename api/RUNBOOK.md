@@ -406,3 +406,39 @@ calculation, or where it broke):
   single factor authentication"), `gov-vendor-license-ids` (warning).
   **All 13 headers we actually send passed with zero format errors.**
   Next step: send the three SDSTeam drafts (M3 pre-application).
+
+## Supply-chain: the passkey libraries (G7)
+
+M2-accounts adds passkeys, and passkeys need real WebAuthn ceremony code —
+nothing Hono or Next.js ship on their own. That means two new third-party
+packages entered the dependency tree, so this is the first entry in what
+G7 (security assurance, spec §9) calls the "supply-chain policy for an
+AI-authored codebase": every new dependency gets looked at and the decision
+written down here, not just `npm install`ed and forgotten.
+
+**What was pinned (2026-07-07):**
+
+- `@simplewebauthn/server` — `13.3.2` (api)
+- `@simplewebauthn/browser` — `13.3.0` (frontend)
+
+Both are **exact-pinned** (no `^`, no `~`) in `api/package.json` and
+`frontend/package.json`. These were the newest published patch on major
+13 for each package at the time (`npm view @simplewebauthn/<name> versions
+--json` — no 14.x existed yet), and both sides deliberately share the same
+major version: server and browser are a matched pair for one WebAuthn
+ceremony, so they should only ever move together, on purpose.
+
+**Why exact, not a range:** this codebase is AI-authored and handles real
+financial credentials and HMRC OAuth tokens — a passkey library silently
+bumping under a caret range on some future `npm install` could change how
+a registration or authentication ceremony is verified without a human ever
+reading the diff. Exact-pinning means a version change only happens as its
+own reviewed commit, never as a side effect of installing something else.
+
+**How updates happen:** manually, and reviewed — never automatic. There is
+no Dependabot/Renovate config in this repo, so nothing auto-bumps these two
+packages. Bumping either is its own small PR: read the release notes,
+re-pin exact, run all three suites (`engine`, `api`, `frontend`) plus
+typecheck, and only then commit. If a 14.x major ever appears, that is a
+deliberate upgrade decision (breaking-change review), not a routine patch
+bump.
