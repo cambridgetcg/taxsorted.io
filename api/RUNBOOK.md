@@ -395,3 +395,14 @@ calculation, or where it broke):
 | Date | Who | Result |
 |------|-----|--------|
 | last human-verified: ____ | | |
+
+### Validation log
+
+- **2026-07-07** (run on the Fly machine via `fly ssh console`, real sandbox
+  credentials): `specVersion 3.3`, code `INVALID_HEADERS` driven solely by
+  the three documented cannot-collect headers — `gov-client-public-port`
+  (error: HMRC's own message names the private-network case and says to
+  contact them), `gov-client-multi-factor` (warning: "may be correct for
+  single factor authentication"), `gov-vendor-license-ids` (warning).
+  **All 13 headers we actually send passed with zero format errors.**
+  Next step: send the three SDSTeam drafts (M3 pre-application).
