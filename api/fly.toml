@@ -19,7 +19,8 @@ primary_region = "lhr"
   # this file is not the right place for a value that might need rotating.
   # Set it as a secret instead — see RUNBOOK.md "Fraud-prevention headers"
   # for how to fetch it (`fly ips list`) and apply it
-  # (`fly secrets set -a taxsorted-api GOV_VENDOR_PUBLIC_IP=<ip>`). Until
+  # (`fly secrets set -a taxsorted-api GOV_VENDOR_PUBLIC_IP=<ip>`); current
+  # status lives in RUNBOOK.md §Fraud-prevention headers. Until
   # it's set, Gov-Vendor-Public-IP and Gov-Vendor-Forwarded are both omitted
   # (never sent malformed) — see api/src/fraud.ts.
 

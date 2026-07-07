@@ -35,10 +35,13 @@ interface HeaderRow {
   reason?: string;
 }
 
-// Every row's "why" cites the same source: the WEB_APP_VIA_SERVER header
-// spec, the one page that lists all 16 required headers for our connection
-// method (regs/research/fraud-headers.md §1, §2.2). Order matches the
-// spec's own numbering (research lines 56-71).
+// Every row's "what it contains" cites the same source: the WEB_APP_VIA_SERVER
+// header spec, the one page that lists all 16 required headers for our
+// connection method (regs/research/fraud-headers.md §1, §2.2). The "why HMRC
+// wants it" column is our own plain-words reading, not a spec quote — HMRC's
+// spec page documents header format, not per-header rationale, so that column
+// is deliberately left uncited. Order matches the spec's own numbering
+// (research lines 56-71).
 const HEADER_ROWS: HeaderRow[] = [
   {
     name: "Gov-Client-Connection-Method",
@@ -222,7 +225,10 @@ export default function WhatWeSendHmrcPage() {
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-ink">The 16 headers, one by one</h2>
         <p className="mt-2 text-sm text-ink-soft">
-          Every row cites the same HMRC spec page — click the ⓘ to see it. Rows tagged{" "}
+          The &ldquo;what it contains&rdquo; column is HMRC&apos;s specification, cited — click
+          the ⓘ to see it. The &ldquo;why HMRC wants it&rdquo; column is our plain-words reading
+          of what such data can be used for — HMRC doesn&apos;t publish per-header rationale, so
+          that column isn&apos;t cited. Rows tagged{" "}
           <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
             cannot collect yet
           </span>{" "}
@@ -250,12 +256,12 @@ export default function WhatWeSendHmrcPage() {
                     {h.name}
                     {h.cannotCollect ? <CannotCollectBadge /> : null}
                   </td>
-                  <td className="p-3 text-ink-soft">{h.what}</td>
                   <td className="p-3 text-ink-soft">
                     <Cited cite={{ source: WEBAPP_SPEC_URL, effectiveFrom: VERIFIED_ON }}>
-                      {h.why}
+                      {h.what}
                     </Cited>
                   </td>
+                  <td className="p-3 text-ink-soft">{h.why}</td>
                 </tr>
               ))}
             </tbody>
@@ -313,8 +319,8 @@ export default function WhatWeSendHmrcPage() {
         </p>
         <p className="mt-3 text-sm text-ink-soft">
           <Cited cite={{ source: DPIA_URL, effectiveFrom: VERIFIED_ON }}>
-            It is kept for &ldquo;6 years + current year, in accordance with the HMRC records
-            management and retention and disposal policy&rdquo;, and &ldquo;may share TxM data
+            It is kept for &ldquo;6 years + current year&rdquo; — HMRC says this follows its own
+            records management and retention and disposal policy — and &ldquo;may share TxM data
             with other government departments, the Police and the National Cyber Security
             Centre for the purposes of prevention and detection of crime.&rdquo;
           </Cited>

@@ -79,11 +79,16 @@ fly ips list -a taxsorted-api
 fly secrets set -a taxsorted-api GOV_VENDOR_PUBLIC_IP=<that ip>
 ```
 
-Until this secret is set, `api/src/fraud.ts` omits `Gov-Vendor-Public-IP`
+If this secret is ever unset, `api/src/fraud.ts` omits `Gov-Vendor-Public-IP`
 **and** `Gov-Vendor-Forwarded` entirely (never a malformed `by=&for=<ip>` —
 `buildVendorForwarded` only emits the header when both the vendor and client
 IP are known). Re-run this after any Fly IP change (e.g. switching from
 shared to dedicated IPv4).
+
+**Status: SET on 2026-07-07** (value `66.241.125.70`, the shared v4 ingress
+from `fly ips list`) on both Fly (`fly secrets set`, triggers a redeploy) and
+GitHub Actions (feeds the validate-headers CI job). Both vendor headers flow
+on real requests from that deploy onward.
 
 ### Cannot-collect case 1: Gov-Client-Multi-Factor
 
