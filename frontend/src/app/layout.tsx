@@ -37,7 +37,7 @@ export default function RootLayout({
               attribution statement wherever that material is republished. Site-wide
               footer keeps every page covered. */}
           <footer className="mt-12 border-t border-line">
-            <div className="mx-auto max-w-4xl px-4 py-6 text-xs text-ink-soft sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs text-ink-soft sm:px-6 lg:px-8">
               <p>
                 Contains public sector information licensed under the{" "}
                 <a
@@ -49,6 +49,14 @@ export default function RootLayout({
                   Open Government Licence v3.0
                 </a>
                 .
+              </p>
+              {/* Non-association note (naming-clearance mitigation, G1 decision
+                  2026-07-07): other businesses trade under near-identical names in
+                  the same market — say plainly that we are not them. */}
+              <p>
+                TaxSorted.io is a free, open-source software project. It is not
+                connected to taxsorted.co.uk (a tax-refund service) or to
+                Tax-Sorted Ltd.
               </p>
             </div>
           </footer>
