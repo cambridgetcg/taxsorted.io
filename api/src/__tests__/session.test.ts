@@ -239,6 +239,91 @@ describe("session middleware — signed-in surface", () => {
   });
 });
 
+describe("ownedEntity — dual predicate (session OR account), exactly one owner", () => {
+  type EntityRow = { id: string; session_id: string | null; user_id: string | null };
+  const SESSION_OWNED: EntityRow = { id: "e-session", session_id: SID, user_id: null };
+  const ACCOUNT_OWNED: EntityRow = { id: "e-account", session_id: null, user_id: UID };
+  const OTHER_SID = "dddddddd-dddd-dddd-dddd-dddddddddddd";
+
+  /** Fake postgres for ownedEntity: string-matches the exact select and
+      re-implements Postgres NULL semantics for the equality checks (null
+      never equals anything, including another null) — the whole point being
+      tested here. Rejects on a bare JS `undefined` in the values, exactly as
+      postgres.js does, so the predicate is forced to pass null explicitly
+      rather than leaking the anonymous/recovery path into a false match. */
+  function fakeEntitiesDb(rows: EntityRow[]) {
+    function sql(strings: TemplateStringsArray, ...values: unknown[]) {
+      const text = strings.join("?").toLowerCase();
+      if (values.some((v) => v === undefined)) {
+        throw new Error("Undefined values are not allowed");
+      }
+      if (text.includes("select * from entities") && text.includes("session_id")) {
+        const [id, sessionId, userId] = values as (string | null)[];
+        const row = rows.find(
+          (r) =>
+            r.id === id &&
+            ((sessionId !== null && r.session_id === sessionId) ||
+              (userId !== null && r.user_id === userId))
+        );
+        return Promise.resolve(row ? [row] : []);
+      }
+      throw new Error(`fakeEntitiesDb: unrecognized query — ${text}`);
+    }
+    return sql;
+  }
+
+  /** Mount ownedEntity behind a probe route carrying the given identity. */
+  async function mountOwned(
+    rows: EntityRow[],
+    ctx: { sessionId: string; userId?: string }
+  ) {
+    vi.doMock("../db.js", () => ({ sql: fakeEntitiesDb(rows) }));
+    const { Hono } = await import("hono");
+    const { ownedEntity } = await import("../session.js");
+    const app = new Hono();
+    app.get("/probe/:id", async (c) => {
+      c.set("sessionId", ctx.sessionId);
+      c.set("userId", ctx.userId);
+      const entity = await ownedEntity(c, c.req.param("id"));
+      return c.json({ entity });
+    });
+    return app;
+  }
+
+  it("anonymous caller sees their own session-owned entity (byte-identical behaviour)", async () => {
+    const app = await mountOwned([SESSION_OWNED], { sessionId: SID });
+    const res = await app.request("/probe/e-session");
+    expect((await res.json()).entity).toEqual(SESSION_OWNED);
+  });
+
+  it("passkey caller sees their account-owned entity, from a different session", async () => {
+    const app = await mountOwned([ACCOUNT_OWNED], { sessionId: OTHER_SID, userId: UID });
+    const res = await app.request("/probe/e-account");
+    expect((await res.json()).entity).toEqual(ACCOUNT_OWNED);
+  });
+
+  it("passkey caller also sees their own session-owned entity (dual predicate)", async () => {
+    const app = await mountOwned([SESSION_OWNED], { sessionId: SID, userId: UID });
+    const res = await app.request("/probe/e-session");
+    expect((await res.json()).entity).toEqual(SESSION_OWNED);
+  });
+
+  it("non-owner (different session, no userId) sees nothing", async () => {
+    const app = await mountOwned([SESSION_OWNED], { sessionId: OTHER_SID });
+    const res = await app.request("/probe/e-session");
+    expect((await res.json()).entity).toBeNull();
+  });
+
+  it("recovery caller (userId undefined, even though an account is in play) does not see account entities", async () => {
+    // Simulates the recovery sign-in: accountId is set elsewhere but userId
+    // stays undefined, exactly like session.ts leaves it. ownedEntity must
+    // pass null (never the bare undefined) so this never matches by luck.
+    const app = await mountOwned([ACCOUNT_OWNED], { sessionId: OTHER_SID });
+    const res = await app.request("/probe/e-account");
+    expect((await res.json()).entity).toBeNull();
+  });
+});
+
 describe("session middleware — device cookie stays pinned", () => {
   it("7a. absent ts_device → a uuid is minted and set", async () => {
     const { sql } = fakeSessionDb();

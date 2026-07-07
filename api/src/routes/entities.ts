@@ -40,7 +40,7 @@ entities.get("/", async (c) => {
            bool_or(hc.rail = 'itsa') as itsa_connected
     from entities e
     left join hmrc_connections hc on hc.entity_id = e.id
-    where e.session_id = ${c.get("sessionId")}
+    where e.session_id = ${c.get("sessionId")} or e.user_id = ${c.get("userId") ?? null}
     group by e.id
     order by e.created_at
   `;
@@ -68,11 +68,22 @@ entities.post("/", async (c) => {
     );
   }
   const { name, kind, vrn, nino } = parsed.data;
-  const [row] = await sql`
-    insert into entities (session_id, name, kind, vrn, nino)
-    values (${c.get("sessionId")}, ${name}, ${kind}, ${vrn ?? null}, ${nino ?? null})
-    returning id, name, kind, vrn, nino, created_at
-  `;
+  const userId = c.get("userId");
+  // A passkey-backed caller gets an account-owned entity from birth (no
+  // claiming step later); everyone else gets exactly today's session-owned
+  // insert. Exactly one owner, always — the CHECK in migration 005 enforces
+  // it, this just picks the right one up front.
+  const [row] = userId
+    ? await sql`
+        insert into entities (user_id, session_id, name, kind, vrn, nino)
+        values (${userId}, ${null}, ${name}, ${kind}, ${vrn ?? null}, ${nino ?? null})
+        returning id, name, kind, vrn, nino, created_at
+      `
+    : await sql`
+        insert into entities (session_id, name, kind, vrn, nino)
+        values (${c.get("sessionId")}, ${name}, ${kind}, ${vrn ?? null}, ${nino ?? null})
+        returning id, name, kind, vrn, nino, created_at
+      `;
   return c.json(
     { entity: { ...row, connected: false, connections: { vat: false, itsa: false } } },
     201

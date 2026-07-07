@@ -99,11 +99,16 @@ export async function session(c: Context, next: Next) {
   await next();
 }
 
-/** Load an entity only if this session owns it. */
+/** Load an entity only if this session or this account owns it — an entity
+    has exactly one owner, so either half of the predicate is sufficient.
+    userId is undefined for anonymous and recovery callers; it must be
+    coerced to null explicitly (never left as bare undefined) so the query
+    reads `user_id = null`, which — per SQL's three-valued logic — never
+    matches, including against a row whose own user_id is null. */
 export async function ownedEntity(c: Context, entityId: string) {
   const [entity] = await sql`
     select * from entities
-    where id = ${entityId} and session_id = ${c.get("sessionId")}
+    where id = ${entityId} and (session_id = ${c.get("sessionId")} or user_id = ${c.get("userId") ?? null})
   `.catch(() => []);
   return entity ?? null;
 }
