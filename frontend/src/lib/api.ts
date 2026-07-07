@@ -3,6 +3,12 @@
 import { collectFraudPreventionHeaders, headersToRecord } from "@taxsorted/engine/uk/hmrc";
 import type { VATObligationsResponse, VATReturnData } from "@taxsorted/engine/uk/vat";
 import type { SourceType } from "@taxsorted/engine/uk/itsa";
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+} from "@simplewebauthn/browser";
 
 export function apiBase(): string {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -117,6 +123,82 @@ export interface RailStatus {
   env: "sandbox" | "production";
 }
 
+// ---- Account doors (M2) — plan's "## Endpoints", shapes verbatim ---------
+// Ceremony option/response JSON (ArrayBuffers already base64url-encoded) come
+// from @simplewebauthn/browser's own types, imported above — never
+// redeclared here, so a library bump can't silently drift out of sync.
+
+export interface AccountPasskey {
+  id: string;
+  nickname: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface AccountSummary {
+  id: string;
+  name: string;
+  createdAt?: string;
+}
+
+/** GET /v1/account — anonymous OK. `mfa` is false on a recovery session (an
+    account is visible, just not MFA-asserted); `claimableEntities` counts
+    only this browser's still-anonymous entities. */
+export type GetAccountResponse =
+  | { signedIn: false }
+  | {
+      signedIn: true;
+      account: AccountSummary;
+      mfa: boolean;
+      passkeys: AccountPasskey[];
+      recoveryCodesLeft: number;
+      claimableEntities: number;
+    };
+
+/** POST /passkey/register/finish's three moods, keyed off which fields ride
+    along — new-account carries `adoptedEntities` + `recoveryCodes`;
+    add-passkey/recovery-upgrade carry `passkey` (recovery-upgrade adds
+    `mfa:true`, since the ceremony itself is a fresh UV assertion). */
+export type RegisterFinishResponse =
+  | { signedIn: true; account: AccountSummary; adoptedEntities: number; recoveryCodes: string[] }
+  | { signedIn: true; passkey: { id: string; nickname: string | null } }
+  | { signedIn: true; passkey: { id: string; nickname: string | null }; mfa: true };
+
+/** POST /login/finish — never adopts; anonymous entities merely follow the
+    rotated session, still claimable via the explicit adopt door. */
+export interface LoginFinishResponse {
+  signedIn: true;
+  account: AccountSummary;
+  claimableEntities: number;
+}
+
+export interface AdoptResponse {
+  adopted: number;
+}
+
+/** POST /recover — success always lands a RESTRICTED session: `mfa:false`,
+    `addPasskeyNow:true` is the UI's cue to walk straight into a register
+    ceremony (the only way back to a full session from here). */
+export interface RecoverResponse {
+  signedIn: true;
+  mfa: false;
+  addPasskeyNow: true;
+  recoveryCodesLeft: number;
+}
+
+export interface LogoutResponse {
+  signedOut: "this-browser" | "everywhere";
+}
+
+export interface DeletePasskeyResponse {
+  ok: true;
+  sessionsSignedOut: number;
+}
+
+export interface RegenerateCodesResponse {
+  recoveryCodes: string[];
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -125,6 +207,25 @@ export class ApiError extends Error {
     public detail?: unknown
   ) {
     super(message);
+  }
+}
+
+/**
+ * Thrown instead of the plain ApiError when the api answers 401 `signed_out`
+ * — a door that needs a signed-in session was reached (the api IS reachable)
+ * but this session isn't signed in. `instanceof SignedOutError` lets a
+ * caller tell "not signed in" apart from every other reachable-but-refused
+ * answer (still `instanceof ApiError`, so existing generic checks are
+ * untouched) and from a raw network/api-unreachable failure (fetch itself
+ * throws below and is never wrapped into an ApiError at all). Deliberately
+ * NOT wired to any global redirect here — anonymous tools (VAT/ITSA panels,
+ * sandbox connect) call doors that never require a session, and must keep
+ * working exactly as before; each caller that touches a signed-in-only door
+ * decides what "not signed in" means for it.
+ */
+export class SignedOutError extends ApiError {
+  constructor(message: string, detail?: unknown) {
+    super(401, "signed_out", message, detail);
   }
 }
 
@@ -162,7 +263,11 @@ async function call<T>(path: string, init?: RequestInit & { fraud?: boolean }): 
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     const b = body as { error?: string; message?: string; detail?: unknown };
-    throw new ApiError(res.status, b.error || `http_${res.status}`, b.message || `Request failed (${res.status})`, b.detail);
+    const message = b.message || `Request failed (${res.status})`;
+    if (b.error === "signed_out") {
+      throw new SignedOutError(message, b.detail);
+    }
+    throw new ApiError(res.status, b.error || `http_${res.status}`, message, b.detail);
   }
   return body as T;
 }
@@ -269,4 +374,69 @@ export const api = {
     rail === "itsa"
       ? `${apiBase()}/v1/hmrc/start/${id}?rail=itsa`
       : `${apiBase()}/v1/hmrc/start/${id}`,
+
+  // ---- Account doors (M2) — the ten doors under /v1/account, in the plan's
+  // numbered order. ----
+
+  /** Anonymous OK — the one door that answers strangers instead of turning
+      them away. */
+  getAccount: () => call<GetAccountResponse>("/v1/account"),
+
+  registerStart: (input?: { name?: string }) =>
+    call<PublicKeyCredentialCreationOptionsJSON>("/v1/account/passkey/register/start", {
+      method: "POST",
+      body: JSON.stringify(input ?? {}),
+    }),
+
+  registerFinish: (input: { response: RegistrationResponseJSON; nickname?: string }) =>
+    call<RegisterFinishResponse>("/v1/account/passkey/register/finish", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  /** Usernameless — no credential ids go up; the authenticator's own picker
+      decides which resident passkey answers. */
+  loginStart: () =>
+    call<PublicKeyCredentialRequestOptionsJSON>("/v1/account/login/start", {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
+
+  loginFinish: (input: { response: AuthenticationResponseJSON }) =>
+    call<LoginFinishResponse>("/v1/account/login/finish", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  /** [passkey]. Claims this browser's still-anonymous entities into the
+      account — idempotent, no body. */
+  adopt: () => call<AdoptResponse>("/v1/account/adopt", { method: "POST" }),
+
+  /** Redeems one single-use recovery code; normalising (spaces/dashes/case)
+      happens server-side, so the raw input travels as typed. */
+  recover: (code: string) =>
+    call<RecoverResponse>("/v1/account/recover", {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }),
+
+  /** [signed-in], recovery included. Idempotent both flavours — a repeat
+      call on an already-signed-out session still answers 200. */
+  logout: (input?: { everywhere?: boolean }) =>
+    call<LogoutResponse>("/v1/account/logout", {
+      method: "POST",
+      body: JSON.stringify(input ?? {}),
+    }),
+
+  /** [passkey]. Same 404 whether the credential is unknown or belongs to
+      someone else's account — the api never lets a caller enumerate. */
+  deletePasskey: (credentialId: string) =>
+    call<DeletePasskeyResponse>(`/v1/account/passkey/${encodeURIComponent(credentialId)}`, {
+      method: "DELETE",
+    }),
+
+  /** [passkey]. Regenerate: every unused code is discarded, ten fresh ones
+      take their place — no body. */
+  regenerateCodes: () =>
+    call<RegenerateCodesResponse>("/v1/account/recovery-codes", { method: "POST" }),
 };
