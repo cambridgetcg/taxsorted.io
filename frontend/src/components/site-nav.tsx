@@ -30,6 +30,10 @@ export function SiteNav() {
           <Link href="/itsa" className="text-ink-soft hover:text-ink">
             Income Tax (MTD)
           </Link>
+          {/* i18n: deferred to M2 — plain English for launch */}
+          <Link href="/account" className="text-ink-soft hover:text-ink">
+            Account
+          </Link>
           <LanguageSwitcher />
         </div>
       </nav>
