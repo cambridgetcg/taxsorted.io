@@ -93,9 +93,17 @@ describe("buildRepresentativeHeaders", () => {
     expect("Gov-Vendor-Forwarded" in headers).toBe(false);
   });
 
-  it("never sends the three documented cannot-collect headers", () => {
+  it("includes a syntactically-valid Gov-Client-Multi-Factor (type=OTHER, fresh timestamp, hashed reference) so HMRC's validator sees the header it now ships", () => {
     const headers = buildRepresentativeHeaders({});
-    expect("Gov-Client-Multi-Factor" in headers).toBe(false);
+    const mf = headers["Gov-Client-Multi-Factor"];
+    expect(mf).toBeTruthy();
+    expect(mf).toContain("type=OTHER");
+    expect(mf).toMatch(/(^|&)timestamp=/);
+    expect(mf).toMatch(/(^|&)unique-reference=/);
+  });
+
+  it("still omits the two documented cannot-collect headers (License-IDs + Public-Port)", () => {
+    const headers = buildRepresentativeHeaders({});
     expect("Gov-Vendor-License-IDs" in headers).toBe(false);
     expect("Gov-Client-Public-Port" in headers).toBe(false);
   });
@@ -157,12 +165,58 @@ describe("decideExitCode", () => {
     expect(decideExitCode({ code: "POTENTIALLY_INVALID_HEADERS" })).toBe(0);
   });
 
-  it("is non-zero for INVALID_HEADERS", () => {
+  it("is non-zero for INVALID_HEADERS with no error detail (fail closed)", () => {
     expect(decideExitCode({ code: "INVALID_HEADERS" })).toBe(1);
   });
 
   it("is non-zero when the response shape is unrecognised (fail closed, not open)", () => {
     expect(decideExitCode({})).toBe(1);
     expect(decideExitCode(undefined)).toBe(1);
+  });
+
+  it("tolerates INVALID_HEADERS whose only errors are the documented cannot-collect duo (Public-Port + License-IDs) missing", () => {
+    expect(
+      decideExitCode({
+        code: "INVALID_HEADERS",
+        errors: [
+          { code: "MISSING_HEADER", message: "Header required", headers: ["Gov-Client-Public-Port"] },
+          { code: "MISSING_HEADER", message: "Header required", headers: ["Gov-Vendor-License-IDs"] },
+        ],
+      })
+    ).toBe(0);
+  });
+
+  it("no longer tolerates a MISSING Gov-Client-Multi-Factor — it ships now, so its absence is a real failure (the tolerance shrank from the trio to the duo)", () => {
+    expect(
+      decideExitCode({
+        code: "INVALID_HEADERS",
+        errors: [
+          { code: "MISSING_HEADER", message: "Header required", headers: ["Gov-Client-Multi-Factor"] },
+        ],
+      })
+    ).toBe(1);
+  });
+
+  it("fails on any error outside the tolerated duo, even mixed alongside a tolerated one", () => {
+    expect(
+      decideExitCode({
+        code: "INVALID_HEADERS",
+        errors: [
+          { code: "MISSING_HEADER", message: "Header required", headers: ["Gov-Client-Public-Port"] },
+          { code: "MISSING_HEADER", message: "Header required", headers: ["Gov-Vendor-Version"] },
+        ],
+      })
+    ).toBe(1);
+  });
+
+  it("fails when a tolerated header is INVALID (a format error), not merely MISSING — tolerance is for absence only", () => {
+    expect(
+      decideExitCode({
+        code: "INVALID_HEADERS",
+        errors: [
+          { code: "INVALID_HEADER", message: "bad format", headers: ["Gov-Client-Public-Port"] },
+        ],
+      })
+    ).toBe(1);
   });
 });

@@ -27,7 +27,7 @@
 // treat them as findings per the HMRC guide ("you still need to fix any
 // issues we find when we test it manually").
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { HMRC_CONFIG, buildScreens, buildWindowSize, encodeAsciiPassthrough } from "@taxsorted/engine/uk/hmrc";
 import { assembleFraudHeaders } from "../src/fraud.js";
 import { config } from "../src/config.js";
@@ -91,7 +91,23 @@ export function buildRepresentativeHeaders(
       ),
     },
     sessionId: randomUUID(),
+    accountId: randomUUID(),
     deviceId: randomUUID(),
+    // A representative passkey assertion so HMRC's validator sees the
+    // Gov-Client-Multi-Factor a real signed-in request now carries: type=OTHER
+    // (user-verifying passkey), captured just now, and a sha256-hex reference
+    // shaped exactly like production's precomputed mfa_factor_ref (never a raw
+    // credential id). Not a live sign-in — a stand-in for one, same as the
+    // browser-collected fields above.
+    mfaFactors: [
+      {
+        type: "OTHER",
+        timestamp: new Date(),
+        uniqueReference: createHash("sha256")
+          .update("taxsorted-mfa-v1:representative-passkey-credential")
+          .digest("hex"),
+      },
+    ],
     clientIp,
     vendorIp,
   });
@@ -143,12 +159,52 @@ export async function getValidationFeedback(
   return { status: res.status, body };
 }
 
+/** The two headers TaxSorted documents as spec-recognised cannot-collect
+    cases (RUNBOOK.md "Fraud-prevention headers", the missing-data protocol):
+    no licensed software on the device, and no client source port behind Fly's
+    proxy. HMRC's validator may report either as a MISSING_HEADER — a
+    considered, SDSTeam-notified omission, not a bug. Gov-Client-Multi-Factor
+    used to be a third here; it ships now (this task), so its absence is once
+    again a real failure. Lowercased to compare case-insensitively. */
+const TOLERATED_MISSING_HEADERS = new Set([
+  "gov-vendor-license-ids",
+  "gov-client-public-port",
+]);
+
+/** One entry in an INVALID_HEADERS `errors[]` (research §3.1): each carries a
+    `code` (INVALID_HEADER | MISSING_HEADER | cross-header INVALID_HEADERS), a
+    human `message`, and the `headers[]` it concerns. */
+interface ValidationError {
+  code?: string;
+  message?: string;
+  headers?: string[];
+}
+
 /** Non-zero on INVALID_HEADERS, and fail closed (non-zero) on any shape we
     don't recognise — VALID_HEADERS and POTENTIALLY_INVALID_HEADERS (warnings
-    only) are the only codes that exit clean. */
-export function decideExitCode(body: { code?: string } | undefined): number {
+    only) exit clean. One narrow exception: an INVALID_HEADERS response whose
+    errors are ALL MISSING_HEADER for exactly the documented cannot-collect duo
+    (and nothing else) also exits clean — those omissions are intentional and
+    notified. A missing header outside the duo, a format (INVALID_HEADER)
+    error, or an INVALID_HEADERS with no error detail all still fail closed. */
+export function decideExitCode(
+  body: { code?: string; errors?: ValidationError[] } | undefined
+): number {
   const code = body?.code;
-  return code === "VALID_HEADERS" || code === "POTENTIALLY_INVALID_HEADERS" ? 0 : 1;
+  if (code === "VALID_HEADERS" || code === "POTENTIALLY_INVALID_HEADERS") return 0;
+  if (code === "INVALID_HEADERS") {
+    const errors = body?.errors;
+    if (!errors || errors.length === 0) return 1; // INVALID with no detail → fail closed
+    const everyErrorIsAToleratedMissingHeader = errors.every(
+      (e) =>
+        e.code === "MISSING_HEADER" &&
+        Array.isArray(e.headers) &&
+        e.headers.length > 0 &&
+        e.headers.every((h) => TOLERATED_MISSING_HEADERS.has(h.toLowerCase()))
+    );
+    return everyErrorIsAToleratedMissingHeader ? 0 : 1;
+  }
+  return 1;
 }
 
 async function main() {

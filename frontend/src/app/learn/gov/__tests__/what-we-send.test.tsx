@@ -86,14 +86,36 @@ describe("what we send to HMRC", () => {
     expect(screen.getByText(/£3,000/)).toBeInTheDocument();
   });
 
-  it("lists the cannot-collect trio honestly, in a dedicated section", () => {
+  it("lists the cannot-collect duo honestly, in a dedicated section — Multi-Factor no longer among them", () => {
     const { container } = render(<WhatWeSendHmrc />);
     const section = container.querySelector('[data-section="cannot-collect"]');
     expect(section).not.toBeNull();
     const text = section!.textContent ?? "";
-    expect(text).toMatch(/Gov-Client-Multi-Factor/);
     expect(text).toMatch(/Gov-Vendor-License-IDs/);
     expect(text).toMatch(/Gov-Client-Public-Port/);
+    // Multi-Factor now ships for passkey sessions — it must have left the
+    // cannot-collect section entirely (the lockstep this task enforces).
+    expect(text).not.toMatch(/Gov-Client-Multi-Factor/);
+  });
+
+  it("Multi-Factor now ships for passkey sessions — its row carries the sending copy and no cannot-collect badge", () => {
+    const { container } = render(<WhatWeSendHmrc />);
+    const row = container.querySelector('[data-header="Gov-Client-Multi-Factor"]');
+    expect(row).not.toBeNull();
+    const text = row!.textContent ?? "";
+    expect(text).toMatch(/signed in with a passkey this session/i);
+    expect(text).toMatch(/omitted for anonymous use/i);
+    // No "cannot collect yet" badge on this row any more.
+    expect(text).not.toMatch(/cannot collect yet/i);
+  });
+
+  it("Gov-Client-User-IDs row says the account id is sent when signed in, the session id otherwise", () => {
+    const { container } = render(<WhatWeSendHmrc />);
+    const row = container.querySelector('[data-header="Gov-Client-User-IDs"]');
+    expect(row).not.toBeNull();
+    const text = row!.textContent ?? "";
+    expect(text).toMatch(/account/i);
+    expect(text).toMatch(/session id/i);
   });
 
   it("never fabricates — states the missing-data policy plainly", () => {

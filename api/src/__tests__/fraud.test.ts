@@ -6,23 +6,31 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import type { Context } from "hono";
 import { fraudHeaders } from "../fraud.js";
-import { VENDOR_VERSION } from "@taxsorted/engine/uk/hmrc";
+import { VENDOR_VERSION, buildMultiFactor } from "@taxsorted/engine/uk/hmrc";
 
 afterEach(() => {
   vi.unstubAllEnvs();
 });
 
 /** A minimal stand-in for Hono's Context — fraudHeaders only ever calls
-    `c.req.header(name)` and `c.get(key)`. */
+    `c.req.header(name)` and `c.get(key)`. The signed-in context (accountId,
+    mfaAt, mfaFactorRef) is what the session middleware sets after Task 4;
+    left unset it reads undefined, exactly like an anonymous session. */
 function fakeContext(opts: {
   headers?: Record<string, string>;
   sessionId?: string;
   deviceId?: string;
+  accountId?: string;
+  mfaAt?: Date;
+  mfaFactorRef?: string;
 }): Context {
   const headers = opts.headers ?? {};
-  const vars: Record<string, string> = {
+  const vars: Record<string, unknown> = {
     sessionId: opts.sessionId ?? "session-abc",
     deviceId: opts.deviceId ?? "11111111-1111-4111-8111-111111111111",
+    accountId: opts.accountId,
+    mfaAt: opts.mfaAt,
+    mfaFactorRef: opts.mfaFactorRef,
   };
   return {
     req: {
@@ -43,9 +51,23 @@ describe("fraudHeaders — always-present headers", () => {
     expect(headers["Gov-Client-Device-ID"]).toBe("d-123");
   });
 
-  it("builds Gov-Client-User-IDs from the taxsorted realm + session id", () => {
+  it("builds Gov-Client-User-IDs from the taxsorted realm + session id when anonymous (no accountId)", () => {
     const headers = fraudHeaders(fakeContext({ sessionId: "sess-xyz" }));
     expect(headers["Gov-Client-User-IDs"]).toBe("taxsorted=sess-xyz");
+  });
+
+  it("uses the account id (not the session id) in Gov-Client-User-IDs once signed in", () => {
+    const headers = fraudHeaders(
+      fakeContext({ accountId: "acc-uuid-123", sessionId: "sess-xyz" })
+    );
+    expect(headers["Gov-Client-User-IDs"]).toBe("taxsorted=acc-uuid-123");
+  });
+
+  it("uses the account id even for a recovery session (accountId set, no mfaAt) — User-IDs follows the account, not MFA", () => {
+    const headers = fraudHeaders(
+      fakeContext({ accountId: "acc-uuid-123", sessionId: "sess-xyz" })
+    );
+    expect(headers["Gov-Client-User-IDs"]).toBe("taxsorted=acc-uuid-123");
   });
 
   it("percent-encodes the session id inside Gov-Client-User-IDs when it has special characters", () => {
@@ -187,12 +209,46 @@ describe("fraudHeaders — browser-collected subset (CLIENT_ALLOWLIST)", () => {
   });
 });
 
-describe("fraudHeaders — the cannot-collect trio: never sent, never empty, never fabricated", () => {
-  it("never sends Gov-Client-Multi-Factor (no MFA exists yet)", () => {
+describe("fraudHeaders — Gov-Client-Multi-Factor: sent iff passkey-authed, honestly absent otherwise", () => {
+  const mfaAt = new Date("2026-07-07T10:20:30.000Z");
+
+  it("sends the header via the engine builder (type=OTHER, mfa_at timestamp, precomputed mfa_factor_ref) for a passkey session", () => {
+    const headers = fraudHeaders(
+      fakeContext({ accountId: "acc-1", mfaAt, mfaFactorRef: "abc123ref" })
+    );
+    // Byte-for-byte the engine builder's output — fraud.ts must route through
+    // buildMultiFactor, never hand-format the value (the brief's "correct
+    // format via the engine builder").
+    expect(headers["Gov-Client-Multi-Factor"]).toBe(
+      buildMultiFactor([{ type: "OTHER", timestamp: mfaAt, uniqueReference: "abc123ref" }])
+    );
+    expect(headers["Gov-Client-Multi-Factor"]).toContain("type=OTHER");
+  });
+
+  it("uses the precomputed session mfa_factor_ref verbatim — never recomputes a reference in fraud.ts", () => {
+    const headers = fraudHeaders(
+      fakeContext({ accountId: "acc-1", mfaAt, mfaFactorRef: "precomputed-sha256-ref" })
+    );
+    expect(headers["Gov-Client-Multi-Factor"]).toContain("unique-reference=precomputed-sha256-ref");
+  });
+
+  it("is absent for an anonymous session (no mfaAt)", () => {
     const headers = fraudHeaders(fakeContext({}));
     expect("Gov-Client-Multi-Factor" in headers).toBe(false);
   });
 
+  it("is absent for a recovery session (accountId set, but mfaAt never set by a recovery sign-in)", () => {
+    const headers = fraudHeaders(fakeContext({ accountId: "acc-1" }));
+    expect("Gov-Client-Multi-Factor" in headers).toBe(false);
+  });
+
+  it("stays absent (never fabricated) when mfaAt is set but the precomputed reference is missing", () => {
+    const headers = fraudHeaders(fakeContext({ accountId: "acc-1", mfaAt }));
+    expect("Gov-Client-Multi-Factor" in headers).toBe(false);
+  });
+});
+
+describe("fraudHeaders — the cannot-collect duo: never sent, never empty, never fabricated", () => {
   it("never sends Gov-Vendor-License-IDs (no licensed software)", () => {
     const headers = fraudHeaders(fakeContext({}));
     expect("Gov-Vendor-License-IDs" in headers).toBe(false);
@@ -203,7 +259,7 @@ describe("fraudHeaders — the cannot-collect trio: never sent, never empty, nev
     expect("Gov-Client-Public-Port" in headers).toBe(false);
   });
 
-  it("never sends any of the three with an empty-string placeholder value", () => {
+  it("never sends the duo — nor an anonymous-session Multi-Factor — with an empty-string placeholder", () => {
     const headers = fraudHeaders(fakeContext({})) as Record<string, unknown>;
     expect(headers["Gov-Client-Multi-Factor"]).not.toBe("");
     expect(headers["Gov-Vendor-License-IDs"]).not.toBe("");

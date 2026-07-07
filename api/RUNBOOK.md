@@ -59,12 +59,15 @@ That receipt is the milestone: the full rail, walked end to end.
 
 Ground truth: `regs/research/fraud-headers.md` (spec v3.3). WEB_APP_VIA_SERVER
 requires all 16 headers by law (SI 2019/360 + the Commissioners' Directions);
-13 are wired end to end (`engine/jurisdictions/uk/hmrc/fraud-headers.ts` +
-`api/src/fraud.ts`). Three are spec-recognised "cannot-collect" cases
-(research §2.3, the missing-data protocol) — HMRC requires contacting
-**SDSTeam@hmrc.gov.uk** to explain the restriction *before* the header may be
-omitted or sent empty. The drafts below are that explanation; sending them is
-a human action (M3), not something CI or an agent should do unprompted.
+14 are wired end to end (`engine/jurisdictions/uk/hmrc/fraud-headers.ts` +
+`api/src/fraud.ts`) — the 13 that always flowed, plus `Gov-Client-Multi-Factor`
+for passkey sessions (M2-accounts, plan C: see below). Two are spec-recognised
+"cannot-collect" cases (research §2.3, the missing-data protocol) — HMRC
+requires contacting **SDSTeam@hmrc.gov.uk** to explain the restriction *before*
+the header may be omitted or sent empty. The drafts below are that explanation;
+sending them is a human action (M3), not something CI or an agent should do
+unprompted. `Gov-Client-Multi-Factor` also has a draft below — not to ask
+permission to omit (it ships now), but to confirm our type=OTHER classification.
 
 ### GOV_VENDOR_PUBLIC_IP — how to fetch and apply it
 
@@ -90,30 +93,50 @@ from `fly ips list`) on both Fly (`fly secrets set`, triggers a redeploy) and
 GitHub Actions (feeds the validate-headers CI job). Both vendor headers flow
 on real requests from that deploy onward.
 
-### Cannot-collect case 1: Gov-Client-Multi-Factor
+### Now shipping: Gov-Client-Multi-Factor (was cannot-collect case 1)
 
-**Status:** not sent (omitted, not empty). **Why:** TaxSorted's v1 auth is
-anonymous device sessions (a cookie) — there is no sign-in, therefore no MFA
-event to report. Ships once real accounts + MFA exist (see plan C).
-`buildMultiFactor()` in the engine is already implemented and tested against
-the spec's exact format so wiring it in later is a call-site change, not a
-new format to get right under deadline.
+**Status: SENT for passkey sessions** (M2-accounts / plan C landed). A passkey
+sign-in — registration or login — is a genuine user-verifying authentication
+event, so `api/src/fraud.ts` now emits `Gov-Client-Multi-Factor` via the
+engine's `buildMultiFactor()`:
 
-> **Draft — SDSTeam@hmrc.gov.uk notification (send at M3 alongside the
-> production application, not before):**
-> Subject: Fraud prevention headers — Gov-Client-Multi-Factor — TaxSorted
+- **Sent iff** the session is signed in within the 30-day window AND a passkey
+  asserted (`mfa_at` set → `userId` present). Registration and login ceremonies
+  both count.
+- **`type=OTHER`** — a user-verifying passkey (something you have + a local
+  gesture) doesn't fit HMRC's `TOTP`/`AUTH_CODE` enum; `OTHER` is the honest
+  fit. **`timestamp` = `mfa_at`** (the last time the passkey prompt was passed
+  on this session, capped ≤30 days by the window). **`unique-reference` =
+  `mfa_factor_ref`** — `sha256hex('taxsorted-mfa-v1:'+credentialId)`, precomputed
+  at sign-in, never the raw credential id and never recomputed in `fraud.ts`.
+- **Recovery-code sign-ins and anonymous sessions omit it honestly** — a
+  recovery sign-in sets `accountId` but never `mfa_at`, so there is no passkey
+  event to report and the header stays absent (never empty, never fabricated).
+
+There is nothing to notify SDSTeam about to *omit* this header any more — it
+ships. The one open item is a courtesy confirmation of the `type` value:
+
+> **Draft — SDSTeam@hmrc.gov.uk (send at M3 alongside the production
+> application) — a confirmation question, NOT a request to omit:**
+> Subject: Fraud prevention headers — Gov-Client-Multi-Factor type=OTHER — TaxSorted
 >
-> TaxSorted (MTD VAT + MTD ITSA, WEB_APP_VIA_SERVER) currently authenticates
-> end users via anonymous per-device sessions only — there is no account
-> sign-in and therefore no multi-factor authentication event to report. We
-> omit `Gov-Client-Multi-Factor` entirely per the missing-data protocol
-> (fraud prevention "Getting it right" guide) rather than send a placeholder
-> or fabricated value. We are building real user accounts with MFA (targeted
-> for [plan C milestone]); once live, every request will include a truthful
-> `Gov-Client-Multi-Factor` value. Please confirm this omission is
-> acceptable in the interim.
+> TaxSorted (MTD VAT + MTD ITSA, WEB_APP_VIA_SERVER) authenticates end users
+> with WebAuthn passkeys requiring user verification. We report each sign-in as
+> a single `Gov-Client-Multi-Factor` factor with `type=OTHER`, `timestamp` =
+> the moment the passkey prompt was passed, and `unique-reference` = a salted
+> SHA-256 of the credential id (never the raw credential). We chose `OTHER`
+> because a user-verifying passkey is neither a `TOTP` nor an emailed/SMS
+> `AUTH_CODE`. Please confirm `OTHER` is the classification you expect for a
+> WebAuthn passkey, or advise the value you would prefer.
+>
+> **On Gov-Client-User-IDs:** our accounts carry no PII — no email, no name,
+> no password — so the sign-in identifier we send in `Gov-Client-User-IDs`
+> (`taxsorted=<value>`) is the account's own UUID once signed in, and the
+> anonymous session UUID before sign-in. There is no more identifying value to
+> supply; the UUID *is* the identifier. Flagging it here so it isn't read as a
+> missing or placeholder value.
 
-### Cannot-collect case 2: Gov-Vendor-License-IDs
+### Cannot-collect case 1: Gov-Vendor-License-IDs
 
 **Status:** not sent (omitted, not empty). **Why:** TaxSorted is a free,
 open-source commons — there is no licensed software on the originating
@@ -128,7 +151,7 @@ is implemented and tested; it will be used if that ever changes.
 > `Gov-Vendor-License-IDs` entirely per the missing-data protocol rather than
 > send a placeholder value. Please confirm this omission is acceptable.
 
-### Cannot-collect case 3: Gov-Client-Public-Port
+### Cannot-collect case 2: Gov-Client-Public-Port
 
 **Status:** not sent (omitted, not empty). **Why:** researched directly
 against Fly.io's proxy documentation (https://fly.io/docs/networking/request-headers/):
@@ -201,17 +224,20 @@ Actions secret (same value as the Fly secret above) if you want CI to
 validate the vendor-IP-present path — the job passes it through when set,
 and otherwise validates the vendor-IP-omitted path CI runs today.
 
-**Open question, to resolve on the first real run:** HMRC's validator may
-classify the two documented cannot-collect omissions
-(`Gov-Client-Multi-Factor`, `Gov-Vendor-License-IDs`) as `MISSING_HEADER`
-errors, which would make the overall response `INVALID_HEADERS` even though
-the omission is a considered, documented decision (see the cannot-collect
-sections above) rather than a bug. If the first real sandbox run confirms
-that, the fix is *not* to fabricate values — it's either (a) get SDSTeam's
-sign-off on the omission per the missing-data protocol and note that here, or
-(b) if the validator output makes the distinction, adjust `decideExitCode` in
-the script to tolerate exactly those two documented `MISSING_HEADER` entries
-and no others. Don't pre-guess this — read the real output first.
+**Resolved (M2-accounts):** `decideExitCode` now tolerates an
+`INVALID_HEADERS` response whose errors are ALL `MISSING_HEADER` for exactly
+the documented cannot-collect duo — `Gov-Vendor-License-IDs` and
+`Gov-Client-Public-Port` — and nothing else. Any missing header outside that
+set, any format (`INVALID_HEADER`) error, or an `INVALID_HEADERS` with no
+error detail still fails closed (non-zero). This is option (b) from the
+original open question, now that the real sandbox run (validation log below)
+confirmed the validator does surface these as per-header entries. The tolerated
+set is deliberately just the duo: `Gov-Client-Multi-Factor` left it when
+passkey sessions started sending a real value, so a *missing* Multi-Factor is
+now a genuine failure, not a documented omission. Fabricating a value for
+either remaining header is still never the fix — a real omission of anything
+outside the duo means a bug to fix or a fresh SDSTeam conversation, per the
+missing-data protocol.
 
 ## Production (later, not now)
 

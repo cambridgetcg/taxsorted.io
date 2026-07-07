@@ -29,10 +29,16 @@ interface HeaderRow {
   what: string;
   why: string;
   cannotCollect?: true;
-  /** Only set for the cannotCollect trio: the specific reason TaxSorted
+  /** Only set for the cannotCollect duo: the specific reason TaxSorted
       can't honestly send this one today (research §2.3's missing-data
       protocol requires a documented reason, not a bare omission). */
   reason?: string;
+  /** TaxSorted's own sending behaviour for this header, in plain words —
+      NOT a spec fact, so it renders outside the spec citation (the `what`
+      column is HMRC's spec, cited; this is us, uncited). Used where when-we-
+      send-it is TaxSorted-specific rather than universal (Gov-Client-Multi-
+      Factor: only for passkey sessions). */
+  sending?: string;
 }
 
 // Every row's "what it contains" cites the same source: the WEB_APP_VIA_SERVER
@@ -60,11 +66,10 @@ const HEADER_ROWS: HeaderRow[] = [
   },
   {
     name: "Gov-Client-Multi-Factor",
-    what: "One entry per multi-factor login step you completed, with a hashed reference to the factor — never the raw code, secret or phone number.",
+    what: "One entry per authentication factor you cleared when signing in — its type, the time you passed it, and a hashed reference to the factor, never the raw code, secret or phone number.",
     why: "Signals how strongly your sign-in to our software was verified.",
-    cannotCollect: true,
-    reason:
-      "TaxSorted's current sign-in is an anonymous device session, not an account with multi-factor authentication, so there is no MFA event to report. This ships the moment real accounts with MFA exist.",
+    sending:
+      "Sent when you signed in with a passkey this session: the time you last passed the passkey prompt and a hashed reference to which passkey — never the key itself. Omitted for anonymous use — we don't invent it.",
   },
   {
     name: "Gov-Client-Public-IP",
@@ -96,7 +101,7 @@ const HEADER_ROWS: HeaderRow[] = [
   },
   {
     name: "Gov-Client-User-IDs",
-    what: "The identifier you're signed in with inside our software — today, an anonymous session ID, not your real name or your HMRC login.",
+    what: "The identifier you're signed in with inside our software — your account's ID once you're signed in, otherwise the anonymous session ID. Never your real name or your HMRC login.",
     why: "Links this request to one account inside our software, so HMRC can build a picture across every API call from the same user.",
   },
   {
@@ -171,7 +176,7 @@ export default function WhatWeSendHmrcPage() {
         <p>
           <strong>Never a fabricated value.</strong> Where we honestly can&apos;t collect a
           header today, we say so and omit it — we never send a placeholder or an invented
-          number just to fill a gap. That policy, and the three headers it currently applies to,
+          number just to fill a gap. That policy, and the two headers it currently applies to,
           are covered below.
         </p>
       </div>
@@ -260,6 +265,12 @@ export default function WhatWeSendHmrcPage() {
                     <Cited cite={{ source: WEBAPP_SPEC_URL, effectiveFrom: VERIFIED_ON }}>
                       {h.what}
                     </Cited>
+                    {h.sending ? (
+                      // TaxSorted's own sending behaviour — not a spec fact, so
+                      // it sits outside the citation above (we never cite our
+                      // own conduct to HMRC's specification).
+                      <p className="mt-2 text-xs text-ink-soft">{h.sending}</p>
+                    ) : null}
                   </td>
                   <td className="p-3 text-ink-soft">{h.why}</td>
                 </tr>
@@ -275,7 +286,7 @@ export default function WhatWeSendHmrcPage() {
         className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6"
       >
         <h2 className="text-lg font-semibold text-ink">
-          Three headers we honestly can&apos;t send yet
+          Two headers we honestly can&apos;t send yet
         </h2>
         <p className="mt-2 text-sm text-ink-soft">
           <Cited cite={{ source: GETTING_IT_RIGHT_URL, effectiveFrom: VERIFIED_ON }}>
@@ -284,7 +295,7 @@ export default function WhatWeSendHmrcPage() {
             omit the header or submit it with an empty value. You must not include a placeholder
             value, for example null or undefined.&rdquo;
           </Cited>{" "}
-          We follow that route for three headers today — each will be raised with HMRC&apos;s
+          We follow that route for two headers today — each will be raised with HMRC&apos;s
           SDSTeam@hmrc.gov.uk before we apply for production access (the drafts are written,
           not yet sent), and none is ever guessed at or filled in with a fake number.
         </p>

@@ -7,19 +7,19 @@
 // imports the pure builders below for the headers only the server can know.
 //
 // Every builder function cites the research-file section it implements.
-// Three of the 16 headers are spec-recognised "cannot-collect" cases for
-// TaxSorted today (research §2.3, the missing-data protocol) — they are
-// documented in api/RUNBOOK.md with SDSTeam-notification drafts, never sent
-// empty and never fabricated:
-//   - Gov-Client-Multi-Factor: no MFA exists yet (anonymous device sessions).
+// Gov-Client-Multi-Factor now ships for passkey sessions (M2-accounts / plan
+// C): buildMultiFactor() below feeds api/src/fraud.ts, which emits it as a
+// type=OTHER factor for any signed-in passkey session. Two of the 16 headers
+// remain spec-recognised "cannot-collect" cases for TaxSorted (research §2.3,
+// the missing-data protocol) — documented in api/RUNBOOK.md with SDSTeam-
+// notification drafts, never sent empty and never fabricated:
 //   - Gov-Vendor-License-IDs: no licensed software in this free/open commons.
 //   - Gov-Client-Public-Port: Fly's proxy exposes Fly-Forwarded-Port (the
 //     SERVER port the client connected to) and X-Forwarded-Port (client-
 //     intended port), never the client's ephemeral TCP source port.
-// The builders for the first two are implemented and tested below so they
-// are ready the moment they become collectible (Multi-Factor: plan C,
-// accounts + real MFA; License-IDs: if TaxSorted ever bundles licensed
-// software). Public-Port has no builder — there is nothing to build.
+// buildLicenseIds() is implemented and tested below so it is ready the moment
+// it becomes collectible (if TaxSorted ever bundles licensed software).
+// Public-Port has no builder — there is nothing to build.
 
 import { getHMRCConfig, VENDOR_VERSION } from "./config";
 import type { FraudPreventionHeaders } from "../vat/types";
