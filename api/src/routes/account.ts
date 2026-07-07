@@ -506,3 +506,117 @@ account.post("/logout", async (c) => {
   `;
   return c.json({ signedOut: "this-browser" });
 });
+
+// ---- GET / (mounted as GET /v1/account) ------------------------------------
+// Anonymous OK — the one door on this router that answers strangers instead
+// of turning them away. Three shapes ride on the accountId/userId pair the
+// middleware already computed:
+//   • anonymous (no accountId)                 → {signedIn:false}
+//   • full passkey session (userId present)    → mfa:true, every field below
+//   • recovery session (accountId, no userId)  → mfa:false, same shape — a
+//     recovery caller can see their own account, just not sign it as
+//     MFA-asserted.
+account.get("/", async (c) => {
+  const accountId = c.get("accountId");
+  if (!accountId) return c.json({ signedIn: false });
+
+  const [user] = await sql`select id, name, created_at from users where id = ${accountId}`;
+  const passkeys = await sql`
+    select id, nickname, created_at, last_used_at from passkeys
+    where user_id = ${accountId}
+    order by created_at
+  `;
+  const [{ n: recoveryCodesLeft }] = await sql`
+    select count(*)::int as n from recovery_codes where user_id = ${accountId} and used_at is null
+  `;
+  const [{ n: claimableEntities }] = await sql`
+    select count(*)::int as n from entities
+    where session_id = ${c.get("sessionId")} and user_id is null
+  `;
+
+  return c.json({
+    signedIn: true,
+    account: { id: user.id as string, name: user.name as string, createdAt: user.created_at },
+    mfa: Boolean(c.get("userId")),
+    passkeys: passkeys.map((p) => ({
+      id: p.id as string,
+      nickname: p.nickname as string | null,
+      createdAt: p.created_at,
+      lastUsedAt: p.last_used_at,
+    })),
+    recoveryCodesLeft,
+    claimableEntities,
+  });
+});
+
+// ---- POST /adopt ------------------------------------------------------------
+// [passkey]. Claims this browser's still-anonymous entities into the account
+// — the explicit door login never walks through on its own (see login/finish's
+// comment). Idempotent: a second call simply finds nothing left to claim.
+account.post("/adopt", async (c) => {
+  const gate = requirePasskey(c);
+  if (gate) return gate;
+  const userId = c.get("userId") ?? null;
+  const adopted = await sql`
+    update entities set user_id = ${userId}, session_id = null
+    where session_id = ${c.get("sessionId")} and user_id is null
+    returning id
+  `;
+  return c.json({ adopted: adopted.length });
+});
+
+// ---- DELETE /passkey/:credentialId ------------------------------------------
+// [passkey]. Same 404 whether the credential is unknown or belongs to someone
+// else's account — no enumeration. Refuses to remove the account's last
+// passkey (zero passkeys would mean never signing back in to add another).
+// Otherwise signs out every session that credential opened — found by
+// re-deriving its mfa_factor_ref, the same join key sign-in stamps — THEN
+// deletes the row. That can end the caller's OWN current session if they
+// delete the passkey they used to get in; that is correct, not a bug.
+account.delete("/passkey/:credentialId", async (c) => {
+  const gate = requirePasskey(c);
+  if (gate) return gate;
+  const userId = c.get("userId") ?? null;
+  const credentialId = c.req.param("credentialId");
+
+  const [passkey] = await sql`select id, user_id from passkeys where id = ${credentialId}`;
+  if (!passkey || passkey.user_id !== userId) {
+    return c.json({ error: "no_such_door" }, 404);
+  }
+
+  const [{ n: passkeyCount }] = await sql`
+    select count(*)::int as n from passkeys where user_id = ${userId}
+  `;
+  if (passkeyCount <= 1) {
+    return c.json(
+      { error: "last_passkey", message: "This is your only passkey. Add another before removing it." },
+      422
+    );
+  }
+
+  const signedOut = await sql`
+    update sessions set user_id = null, signed_in_at = null, mfa_at = null, mfa_factor_ref = null
+    where mfa_factor_ref = ${mfaFactorRef(credentialId)}
+    returning id
+  `;
+  await sql`delete from passkeys where id = ${credentialId}`;
+
+  return c.json({ ok: true, sessionsSignedOut: signedOut.length });
+});
+
+// ---- POST /recovery-codes ----------------------------------------------------
+// [passkey]. Regenerate: every UNUSED code this account holds is discarded
+// (used ones keep their row — the audit trail of what has already been
+// redeemed stays put) and ten fresh ones take their place.
+account.post("/recovery-codes", async (c) => {
+  const gate = requirePasskey(c);
+  if (gate) return gate;
+  const userId = c.get("userId") ?? null;
+
+  await sql`delete from recovery_codes where user_id = ${userId} and used_at is null`;
+  const { codes, hashes } = mintRecoveryCodes(10);
+  for (const hash of hashes) {
+    await sql`insert into recovery_codes (code_hash, user_id) values (${hash}, ${userId})`;
+  }
+  return c.json({ recoveryCodes: codes });
+});

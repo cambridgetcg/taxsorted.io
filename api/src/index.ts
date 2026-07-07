@@ -11,6 +11,7 @@ import { connect } from "./routes/connect.js";
 import { vat } from "./routes/vat.js";
 import { itsa } from "./routes/itsa.js";
 import { itsaSubmit } from "./routes/itsa-submit.js";
+import { account } from "./routes/account.js";
 
 const app = new Hono();
 
@@ -44,6 +45,7 @@ app.route("/v1/entities", vat);
 app.route("/v1/hmrc", connect);
 app.route("/v1/itsa", itsa);
 app.route("/v1/itsa", itsaSubmit);
+app.route("/v1/account", account);
 
 app.notFound((c) => c.json({ error: "no_such_door" }, 404));
 app.onError((err, c) => {
