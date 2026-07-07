@@ -25,6 +25,14 @@ export const config = {
     env.NODE_ENV === "production"
       ? ["https://taxsorted.io", "https://www.taxsorted.io"]
       : ["https://taxsorted.io", "https://www.taxsorted.io", "http://localhost:3000"],
+  // WebAuthn ceremonies run on the page origin, fixed on purpose — kept
+  // separate from corsOrigins (which can widen independently of rpID/origin).
+  webauthn: {
+    rpId: env.WEBAUTHN_RP_ID || (env.NODE_ENV === "production" ? "taxsorted.io" : "localhost"),
+    origin:
+      env.WEBAUTHN_ORIGIN ||
+      (env.NODE_ENV === "production" ? "https://taxsorted.io" : "http://localhost:3000"),
+  },
 };
 
 export function assertBootConfig() {
