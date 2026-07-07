@@ -35,6 +35,12 @@ const { mockApi, MockApiError } = vi.hoisted(() => {
           ? `https://api.taxsorted.io/v1/hmrc/start/${id}?rail=itsa`
           : `https://api.taxsorted.io/v1/hmrc/start/${id}`
       ),
+      // Untyped like every other mock here — the default resolved value
+      // (anonymous, the common case in every state test below) is set in
+      // beforeEach so `vi.clearAllMocks()` never has to fight the initial
+      // implementation's inferred type. A rejection here must never fail
+      // the panel — it's a secondary, non-blocking signal.
+      getAccount: vi.fn(),
     },
   };
 });
@@ -62,6 +68,7 @@ function connectedEntity() {
 describe("HmrcPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockApi.getAccount.mockResolvedValue({ signedIn: false });
   });
 
   afterEach(() => {
@@ -296,5 +303,62 @@ describe("HmrcPanel", () => {
     expect(await screen.findByText(/hmrc revoke failed/i)).toBeInTheDocument();
     // …and the truth is still "connected", so disconnect stays offered.
     expect(await screen.findByRole("button", { name: /disconnect/i })).toBeInTheDocument();
+  });
+
+  it("account truth (anonymous): tells the reader this entity is tied to this browser, with a door to /account", async () => {
+    // getAccount defaults to signedIn:false above — no override needed.
+    mockApi.listEntities.mockResolvedValue({
+      entities: [
+        {
+          id: "e1",
+          name: "Self Assessment",
+          kind: "person",
+          vrn: null,
+          nino: "AA123456A",
+          created_at: "2026-01-01T00:00:00.000Z",
+          connected: false,
+          connections: { vat: false, itsa: false },
+        },
+      ],
+    });
+
+    render(<HmrcPanel taxYear="2026-27" />);
+
+    await screen.findByRole("link", { name: /connect to hmrc/i });
+    expect(screen.getByText(/tied to this browser/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /create an account/i })).toHaveAttribute(
+      "href",
+      "/account"
+    );
+    // Never the claim door when there's no account at all yet.
+    expect(screen.queryByText(/keep this browser's entities/i)).toBeNull();
+  });
+
+  it("account truth (signed in, claimable): surfaces the claim door to /account instead of the tied-to-browser line", async () => {
+    mockApi.getAccount.mockResolvedValueOnce({
+      signedIn: true,
+      account: { id: "u1", name: "Taxpayer" },
+      mfa: true,
+      passkeys: [],
+      recoveryCodesLeft: 10,
+      claimableEntities: 2,
+    });
+    mockApi.listEntities.mockResolvedValue({ entities: [connectedEntity()] });
+    mockApi.itsaStatus.mockResolvedValue({
+      taxYear: "2026-27",
+      status: "MTD Mandated",
+      source: "hmrc-sandbox",
+    });
+    mockApi.itsaObligations.mockResolvedValue({ obligations: [], source: "hmrc-sandbox" });
+
+    render(<HmrcPanel taxYear="2026-27" />);
+
+    await screen.findByText(/mtd mandated/i);
+    expect(
+      screen.getByText(/keep this browser's entities in your account/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
+    // Never the anonymous line once signed in.
+    expect(screen.queryByText(/tied to this browser/i)).toBeNull();
   });
 });

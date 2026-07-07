@@ -18,6 +18,7 @@ import {
   api,
   ApiError,
   type ApiEntity,
+  type GetAccountResponse,
   type ItsaObligation,
   type ItsaStatusResponse,
 } from "@/lib/api";
@@ -51,11 +52,14 @@ const RECOGNITION_LINE =
 function PanelShell({
   title,
   notice,
+  accountNote,
   children,
 }: {
   title: string;
   /** One-shot OAuth outcome line (from ?hmrc=), shown above everything. */
   notice?: React.ReactNode;
+  /** The account-truth line — see AccountNote below. */
+  accountNote?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -78,10 +82,44 @@ function PanelShell({
       </CardHeader>
       <CardContent className="space-y-3">
         {notice}
+        {accountNote}
         {children}
       </CardContent>
     </Card>
   );
+}
+
+/** The account-truth line under the header — silent until getAccount answers
+    (never a flash of the wrong claim), then one of two honest states: an
+    anonymous browser is told plainly its entity is tied to this browser (not
+    lost, just local) with a door to create an account; a signed-in browser
+    that still has unclaimed entities is pointed at the claim door on
+    /account. A signed-in browser with nothing left to claim says nothing
+    further here — the account page itself is where that detail lives. */
+function AccountNote({ account }: { account: GetAccountResponse | null }) {
+  if (!account) return null;
+  if (!account.signedIn) {
+    return (
+      <p className="text-xs text-ink-soft">
+        Tied to this browser — no account needed yet.{" "}
+        <Link href="/account" className="underline hover:text-ink">
+          Create an account
+        </Link>{" "}
+        to keep it if you switch devices.
+      </p>
+    );
+  }
+  if (account.claimableEntities > 0) {
+    return (
+      <p className="text-xs text-ink-soft">
+        Keep this browser&apos;s entities in your account →{" "}
+        <Link href="/account" className="underline hover:text-ink">
+          Account
+        </Link>
+      </p>
+    );
+  }
+  return null;
 }
 
 /** Honest phrasing for each ?hmrc= outcome the api's OAuth callback lands
@@ -109,6 +147,7 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [entity, setEntity] = useState<ApiEntity | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [account, setAccount] = useState<GetAccountResponse | null>(null);
   // The api's OAuth callback lands on /dashboard?hmrc=<outcome> for the
   // ITSA rail. Read it exactly once (lazy initializer; null during the
   // build-time prerender where no URL exists — harmless, since no state
@@ -220,6 +259,26 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
     };
   }, [reloadToken, loadConnected]);
 
+  // Account awareness is a secondary, non-blocking signal — whether this
+  // browser's entities are anonymous or already tied to a signed-in
+  // account. Unlike the bootstrap above, a failure here stays silent: the
+  // connect/status rail works identically either way, this only decides
+  // whether AccountNote has anything honest to say.
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getAccount()
+      .then((res) => {
+        if (!cancelled) setAccount(res);
+      })
+      .catch(() => {
+        // Silent by design — see comment above.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const saveNino = async () => {
     if (!entity) return;
     setNinoSaving(true);
@@ -309,7 +368,11 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
 
   if (status === "need-nino" && entity) {
     return (
-      <PanelShell title="Connect to HMRC" notice={notice}>
+      <PanelShell
+        title="Connect to HMRC"
+        notice={notice}
+        accountNote={<AccountNote account={account} />}
+      >
         <p className="text-sm text-ink-soft">
           First, this entity&apos;s National Insurance number — ITSA identifies a taxpayer by
           NINO, not VRN.
@@ -340,7 +403,11 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
 
   if (status === "not-connected" && entity) {
     return (
-      <PanelShell title="Connect to HMRC" notice={notice}>
+      <PanelShell
+        title="Connect to HMRC"
+        notice={notice}
+        accountNote={<AccountNote account={account} />}
+      >
         <a href={api.connectUrl(entity.id, "itsa")} className={buttonVariants({})}>
           Connect to HMRC (sandbox demo)
         </a>
@@ -350,7 +417,11 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
 
   if (status === "connected" && entity) {
     return (
-      <PanelShell title="Connected to HMRC" notice={notice}>
+      <PanelShell
+        title="Connected to HMRC"
+        notice={notice}
+        accountNote={<AccountNote account={account} />}
+      >
         {itsaStatusError ? (
           <Alert>
             <AlertTitle>HMRC didn&apos;t answer</AlertTitle>

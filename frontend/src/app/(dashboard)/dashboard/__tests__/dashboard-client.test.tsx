@@ -9,7 +9,14 @@ import DashboardClient from "../dashboard-client";
 // the honest "api unreachable" case, exercised on its own in
 // hmrc-panel.test.tsx; this file only needs the dashboard shell to render.
 vi.mock("@/lib/api", () => ({
-  api: { listEntities: vi.fn().mockRejectedValue(new Error("no network in tests")) },
+  api: {
+    listEntities: vi.fn().mockRejectedValue(new Error("no network in tests")),
+    // HmrcPanel's account-truth note (Task 14) makes its own getAccount call —
+    // reject it the same honest way; the panel treats this signal as
+    // secondary and non-blocking (silent catch), so this suite still only
+    // needs the dashboard shell to render.
+    getAccount: vi.fn().mockRejectedValue(new Error("no network in tests")),
+  },
   ApiError: class ApiError extends Error {},
 }));
 
