@@ -487,6 +487,16 @@ calculation, or where it broke):
   Gov-Client-Multi-Factor" above. The next fresh sandbox run should show
   `gov-client-multi-factor` passing format validation rather than
   warned-missing; log that run here when it happens.
+- **2026-07-07 evening — that fresh run happened (CI run 28865508952,
+  `validate-headers` job, real sandbox credentials via GitHub secrets —
+  now set, so the CI job no longer skips):** exactly as predicted.
+  `Gov-Client-Multi-Factor` sent (representative OTHER factor) and drew
+  **zero flags** — no MISSING, no INVALID. HMRC's only complaints were the
+  documented duo: `gov-client-public-port` (MISSING error, HMRC's message
+  again names the contact-us route) and `gov-vendor-license-ids` (MISSING
+  warning). **All 14 headers we send passed with zero format errors.**
+  Exit 0 under the duo-only tolerance; job green. Remaining human step
+  stays M3: the two SDSTeam notes above.
 
 ## Least-privilege operator access (G7)
 
