@@ -68,9 +68,9 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 ## Tech Stack
 
 - **Frontend**: Next.js 16 (App Router, static export), React 19, TypeScript, Tailwind CSS 4
-- **Deployment**: Cloudflare Pages. CI runs test → build on every push (verified green
-  2026-06-12); the deploy step switches on once the `CLOUDFLARE_API_TOKEN` secret is
-  added — until then, deploys are manual via `npm run deploy`
+- **Deployment**: Fly API first, then Cloudflare Pages. CI runs tests, typechecks, data
+  validators, a high-severity production dependency audit and the static build on every push;
+  frontend deployment proceeds only after the API deploy succeeds.
 - **Backend**: `api/` — Hono + Postgres on Fly.io (London): anonymous device
   sessions, server-side HMRC OAuth with an encrypted token vault, engine-validated
   submission, immutable receipts. One typed API for humans and agents alike.

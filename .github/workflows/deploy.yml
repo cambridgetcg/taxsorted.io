@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  test-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -27,26 +27,21 @@ jobs:
       # Quality gate — every workspace's tests must pass before anything ships.
       - run: npm test
 
+      - run: npm run typecheck
+
+      - run: npm run validate:learn
+
+      - run: npm audit --omit=dev --audit-level=high
+
       - run: npm run build
 
-      # Deploy only when the token secret is set (keeps CI green until then).
-      - name: Check for deploy token
-        id: token
-        run: echo "present=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy to Cloudflare Pages
-        if: steps.token.outputs.present == 'true'
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: cf4198e651bf3009877d49f688c9d88e
-          workingDirectory: frontend
-          command: pages deploy out --project-name=taxsorted --branch=main
-
-  # The api ships only after the same tests pass, and only when its token exists.
+  # The API ships first. A failed or skipped API deploy must never leave a new
+  # frontend pointing at an older API contract.
   deploy-api:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: test-build
+    outputs:
+      deployed: ${{ steps.fly.outputs.present }}
     steps:
       - uses: actions/checkout@v5
 
@@ -63,6 +58,36 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy-api
+    if: needs.deploy-api.outputs.deployed == 'true'
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Check for deploy token
+        id: token
+        run: echo "present=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.token.outputs.present == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: cf4198e651bf3009877d49f688c9d88e
+          workingDirectory: frontend
+          command: pages deploy out --project-name=taxsorted --branch=main
+
   # HMRC's own Test Fraud Prevention Headers API, sandbox only, checking the
   # exact header-assembly code path production uses (api/src/fraud.ts's
   # assembleFraudHeaders via api/scripts/validate-fraud-headers.ts). Runs
@@ -70,7 +95,7 @@ jobs:
   # deploy jobs, keeps CI green until they're added to this environment.
   validate-headers:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: deploy-api
     steps:
       - uses: actions/checkout@v5
 

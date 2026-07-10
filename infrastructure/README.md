@@ -6,9 +6,10 @@ The truth, plainly:
 
 - **Frontend** — Next.js static export on **Cloudflare Pages** (project `taxsorted`),
   deployed manually via `npm run deploy` for now.
-- **CI** — `.github/workflows/deploy.yml` runs `npm test` → `npm run build` on every
-  push to `main`; its deploy step switches on once the `CLOUDFLARE_API_TOKEN` secret
-  is added to the repo. (Its first three runs, 2026-06-06, ended in `startup_failure`
+- **CI** — `.github/workflows/deploy.yml` runs tests, typechecks, data validators, a
+  high-severity production dependency audit and the static build on every push to `main`.
+  It deploys the Fly API first, then Cloudflare Pages only after Fly succeeds, when both
+  deployment tokens are present. (Its first three runs, 2026-06-06, ended in `startup_failure`
   — a GitHub-side validation hiccup; re-verified green by manual dispatch 2026-06-12.)
 - **Domain** — Cloudflare.
 
