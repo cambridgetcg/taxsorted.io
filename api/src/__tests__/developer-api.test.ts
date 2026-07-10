@@ -165,6 +165,54 @@ describe("developer API boundary", () => {
       document.paths["/v1/charities/uk/exports/{collection}/{format}"].head
         .responses[200].headers
     ).toHaveProperty("Content-Disposition");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/{collection}");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/{collection}/{id}");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/graph");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/manifest");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/schema");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/dictionary");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/exports");
+    expect(document.paths).toHaveProperty(
+      "/v1/public-funding/uk/exports/{collection}/{format}"
+    );
+    expect(document.paths["/v1/public-funding/uk"].get.security).toEqual([]);
+    expect(document.paths["/v1/public-funding/uk"].head.security).toEqual([]);
+    const publicFundingQueryParameters =
+      document.paths["/v1/public-funding/uk/{collection}"].get.parameters;
+    expect(publicFundingQueryParameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "financialYear", in: "query" }),
+        expect.objectContaining({ name: "beneficiaryTag", in: "query" }),
+      ])
+    );
+    expect(publicFundingQueryParameters).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "holderName", in: "query" }),
+      ])
+    );
+    expect(
+      document.paths["/v1/public-funding/uk/exports/{collection}/{format}"].head
+        .responses[200].headers
+    ).toHaveProperty("Content-Disposition");
+    expect(
+      document.paths["/v1/public-funding/uk/{collection}"].get.responses[200]
+        .content["application/json"].schema.$ref
+    ).toBe("#/components/schemas/UkPublicFundingList");
+    expect(
+      document.paths["/v1/public-funding/uk/{collection}/{id}"].get.responses[200]
+        .content["application/json"].schema.$ref
+    ).toBe("#/components/schemas/UkPublicFundingDetail");
+    expect(
+      document.paths["/v1/public-funding/uk/exports/{collection}/{format}"].get
+        .responses[503].content["application/json"].schema.$ref
+    ).toBe("#/components/schemas/UkPublicFundingUnavailable");
+    expect(
+      document.components.schemas.UkPublicFundingUnavailable.properties.error.enum
+    ).toEqual([
+      "publication_review_pending",
+      "publication_emergency_stopped",
+    ]);
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/politics/uk");
     expect(document.paths).toHaveProperty("/v1/politics/uk/datasets");

@@ -10,6 +10,7 @@ import {
 import { ukTaxIndustry } from "../uk-tax-industry.js";
 import { ukTaxSystem } from "../uk-tax-system.js";
 import { ukCharities } from "../uk-charities.js";
+import { ukPublicFunding } from "../uk-public-funding.js";
 import {
   isPoliticsBulkPublicationApproval,
   politicsDatasetAdmissionDigest,
@@ -29,6 +30,8 @@ export type OpenDataRouteOptions = {
   taxIndustryPublic?: boolean;
   charitiesPublic?: boolean;
   charitiesEmergencyStop?: boolean;
+  publicFundingPublic?: boolean;
+  publicFundingEmergencyStop?: boolean;
   politicsBulkDataAvailable?: boolean;
   politicsBulkDataEmergencyStop?: boolean;
   politicsBulkDataApproval?: PoliticsBulkPublicationApproval | null;
@@ -60,12 +63,14 @@ function dataset(
   id:
     | "uk-tax-system"
     | "uk-tax-industry"
-    | "uk-charities-sector",
+    | "uk-charities-sector"
+    | "uk-public-funding",
   root: string,
   corpus:
     | typeof ukTaxSystem
     | typeof ukTaxIndustry
-    | typeof ukCharities,
+    | typeof ukCharities
+    | typeof ukPublicFunding,
   published: boolean,
   humanGuide: string | null,
   options: {
@@ -135,6 +140,10 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
   const charitiesEmergencyStop = options.charitiesEmergencyStop ?? false;
   const charitiesPublic =
     (options.charitiesPublic ?? false) && !charitiesEmergencyStop;
+  const publicFundingEmergencyStop =
+    options.publicFundingEmergencyStop ?? false;
+  const publicFundingPublic =
+    (options.publicFundingPublic ?? false) && !publicFundingEmergencyStop;
   const politicsBulkDataAvailable = options.politicsBulkDataAvailable ?? true;
   const politicsBulkDataEmergencyStop =
     options.politicsBulkDataEmergencyStop ?? false;
@@ -197,6 +206,20 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
             "The source ledger, official register doors, known gaps, manifest, schema, dictionary and export index remain readable while the full sector map is closed.",
           scopeBoundary:
             "This release explains the UK charity sector. It contains no mirrored charity-by-charity records, named people, personal contacts, donor or beneficiary data, or inferred religious beliefs.",
+        }
+      ),
+      dataset(
+        "uk-public-funding",
+        "/v1/public-funding/uk",
+        ukPublicFunding,
+        publicFundingPublic,
+        "https://taxsorted.io/uk/public-funding",
+        {
+          emergencyStopped: publicFundingEmergencyStop,
+          reviewBoundary:
+            "The source ledger, known gaps, manifest, schema, dictionary and export index remain readable while the full public-funding graph is closed.",
+          scopeBoundary:
+            "This release maps institutions, formal offices, aggregate allocations, governance and functional contacts. It contains no copied holder names, personal contacts, inferred ties or individual spending records.",
         }
       ),
       {
@@ -298,6 +321,7 @@ export function buildOpenDataRights() {
       taxSystem: "/v1/tax-system/uk/sources",
       taxIndustry: "/v1/tax-industry/uk/sources",
       charities: "/v1/charities/uk/sources",
+      publicFunding: "/v1/public-funding/uk/sources",
       politics: "/v1/politics/uk/datasets/rights",
     },
     publicIssueTracker: "https://github.com/cambridgetcg/taxsorted.io/issues",

@@ -19,6 +19,7 @@ research/
     ├── technical/     # HMRC integration landscape (OAuth, fraud headers, APIs)
     ├── politics/      # Elections, offices, finance evidence and public accountability
     ├── charities/     # Relief conditions, regulators, money, control, duties and safe help routes
+    ├── public-funding/ # Tax pools, authority, health, education, delivery and audit
     ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
     └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
 ```
@@ -45,6 +46,7 @@ honest, and marked so — guides first, rails later.
 | `uk/tax-system/` | Deep — 4 collection lanes, permissions, infrastructure, collaborators, cases and gaps |
 | `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
 | `uk/charities/` | Deep sector map — conditional reliefs, registers, legal forms, funding, finance, control, duties and privacy boundaries |
+| `uk/public-funding/` | Coverage-first graph — pooled tax, parliamentary authority, health and education allocations, governance, delivery and audit |
 | `uk/politics/` | Growing — Westminster directory plus finance, election, enforcement and formal-power methods |
 | `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level |
 | `uk/competitive/`, `uk/technical/` | Scaffolds |

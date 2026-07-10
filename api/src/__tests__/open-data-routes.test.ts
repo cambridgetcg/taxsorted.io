@@ -14,6 +14,7 @@ function mount() {
       taxSystemPublic: true,
       taxIndustryPublic: false,
       charitiesPublic: true,
+      publicFundingPublic: true,
     })
   );
   app.use("/v1/*", async (c, next) => {
@@ -31,6 +32,8 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/openapi.json")).toBe(true);
     expect(isPublicCivicPath("/v1/charities/uk")).toBe(true);
     expect(isPublicCivicPath("/v1/charities/uk-evil")).toBe(false);
+    expect(isPublicCivicPath("/v1/public-funding/uk")).toBe(true);
+    expect(isPublicCivicPath("/v1/public-funding/uk-evil")).toBe(false);
 
     const { app, sessionCalls } = mount();
     const response = await app.request("/v1/open-data", {
@@ -48,7 +51,7 @@ describe("open-data catalog", () => {
     expect(response.headers.get("etag")).toMatch(/^"sha256-/);
     expect(sessionCalls()).toBe(0);
     expect(body.access).toMatchObject({ authentication: "none", price: "free" });
-    expect(body.datasets).toHaveLength(4);
+    expect(body.datasets).toHaveLength(5);
     expect(body.datasets[0].publication.fullDatasetAvailable).toBe(true);
     expect(body.datasets[1].publication.fullDatasetAvailable).toBe(false);
     expect(body.datasets[1].resources.exports).toBe(
@@ -76,6 +79,18 @@ describe("open-data catalog", () => {
       },
     });
     expect(body.datasets[3]).toMatchObject({
+      id: "uk-public-funding",
+      publication: {
+        status: "open",
+        fullDatasetAvailable: true,
+        scopeBoundary: expect.stringMatching(/no copied holder names/i),
+      },
+      resources: {
+        overview: "/v1/public-funding/uk",
+        humanGuide: "https://taxsorted.io/uk/public-funding",
+      },
+    });
+    expect(body.datasets[4]).toMatchObject({
       id: "uk-politics-public-integrity",
       datasetCount: expect.any(Number),
       publication: { status: "development-preview" },
@@ -121,6 +136,9 @@ describe("open-data catalog", () => {
     expect(body.datasetRights.charities).toBe(
       "/v1/charities/uk/sources"
     );
+    expect(body.datasetRights.publicFunding).toBe(
+      "/v1/public-funding/uk/sources"
+    );
     expect(body.automationRule).toMatch(/not.*blanket licence/i);
     expect(body.correctionChannel).toMatchObject({
       accountRequired: true,
@@ -142,8 +160,8 @@ describe("open-data catalog", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.datasets[3].publication.fullDatasetAvailable).toBe(false);
-    expect(body.datasets[3].publication.status).toBe("publication-review");
+    expect(body.datasets[4].publication.fullDatasetAvailable).toBe(false);
+    expect(body.datasets[4].publication.status).toBe("publication-review");
   });
 
   it("reports an approved politics release with the same digest and intake", async () => {
@@ -162,7 +180,7 @@ describe("open-data catalog", () => {
     );
 
     const body = await (await app.request("/v1/open-data")).json();
-    expect(body.datasets[3]).toMatchObject({
+    expect(body.datasets[4]).toMatchObject({
       admissionDigest: politicsDatasetAdmissionDigest,
       humanApproval: {
         status: "approved",
@@ -203,7 +221,7 @@ describe("open-data catalog", () => {
     );
 
     const body = await (await app.request("/v1/open-data")).json();
-    expect(body.datasets[3].publication).toMatchObject({
+    expect(body.datasets[4].publication).toMatchObject({
       status: "emergency-stopped",
       fullDatasetAvailable: false,
       humanApproval: { status: "approved" },
@@ -228,6 +246,27 @@ describe("open-data catalog", () => {
         status: "emergency-stopped",
         fullDatasetAvailable: false,
         reviewBoundary: expect.stringMatching(/official register doors/i),
+      },
+    });
+  });
+
+  it("shows the public-funding stop without hiding sources and known gaps", async () => {
+    const app = new Hono();
+    app.route(
+      "/v1/open-data",
+      createOpenDataRoutes({
+        publicFundingPublic: true,
+        publicFundingEmergencyStop: true,
+      })
+    );
+
+    const body = await (await app.request("/v1/open-data")).json();
+    expect(body.datasets[3]).toMatchObject({
+      id: "uk-public-funding",
+      publication: {
+        status: "emergency-stopped",
+        fullDatasetAvailable: false,
+        reviewBoundary: expect.stringMatching(/source ledger, known gaps/i),
       },
     });
   });

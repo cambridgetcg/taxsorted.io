@@ -354,3 +354,35 @@ describe("config.charities — publication gate and stop", () => {
     });
   });
 });
+
+describe("config.publicFunding — publication gate and stop", () => {
+  it("opens locally, requires the exact production switch and lets the stop win", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED", "");
+    vi.stubEnv("UK_PUBLIC_FUNDING_EMERGENCY_STOP", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.publicFunding).toEqual({
+      emergencyStop: false,
+      publicDataEnabled: true,
+    });
+
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED", "TRUE");
+    loaded = await import("../config.js");
+    expect(loaded.config.publicFunding.publicDataEnabled).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.publicFunding.publicDataEnabled).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("UK_PUBLIC_FUNDING_EMERGENCY_STOP", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.publicFunding).toEqual({
+      emergencyStop: true,
+      publicDataEnabled: false,
+    });
+  });
+});

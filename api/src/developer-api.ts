@@ -5,6 +5,7 @@ import { sdltRoutes } from "./routes/sdlt.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
 import { ukCharitiesSchema } from "./uk-charities.js";
+import { ukPublicFundingSchema } from "./uk-public-funding.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 
@@ -105,6 +106,91 @@ const CharitiesQuery = z.object({
   offset: z.coerce.number().int().nonnegative().optional(),
 });
 const CharitiesPublicJson = z.object({}).passthrough().openapi("UkCharitiesResponse");
+
+const PublicFundingCollection = z.enum([
+  "sources",
+  "institutions",
+  "governance",
+  "offices",
+  "relationships",
+  "funds",
+  "programmes",
+  "mechanisms",
+  "allocations",
+  "contacts",
+  "locations",
+  "pipeline",
+  "gaps",
+]);
+const PublicFundingQuery = z.object({
+  q: z.string().max(100).optional(),
+  kind: z.string().optional(),
+  sector: z.string().optional(),
+  jurisdiction: z.string().optional(),
+  status: z.string().optional(),
+  fundingRole: z.string().optional(),
+  beneficiaryTag: z.string().optional(),
+  type: z.string().optional(),
+  institutionId: z.string().optional(),
+  governanceUnitId: z.string().optional(),
+  officeId: z.string().optional(),
+  fundId: z.string().optional(),
+  programmeId: z.string().optional(),
+  mechanismId: z.string().optional(),
+  financialYear: z.string().optional(),
+  budgetBoundary: z.string().optional(),
+  accountingBasis: z.string().optional(),
+  grossOrNet: z.string().optional(),
+  priceBasis: z.string().optional(),
+  lane: z.string().optional(),
+  sourceId: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().nonnegative().optional(),
+});
+const PublicFundingPublicJson = z
+  .object({})
+  .passthrough()
+  .openapi("UkPublicFundingResponse");
+const PublicFundingRecord = z
+  .object({ id: z.string().describe("Stable, dataset-wide record identifier.") })
+  .passthrough()
+  .openapi("UkPublicFundingRecord");
+const PublicFundingList = z
+  .object({
+    data: z.array(PublicFundingRecord),
+    page: z.object({
+      total: z.number().int().nonnegative(),
+      returned: z.number().int().nonnegative(),
+      limit: z.number().int().min(1).max(100),
+      offset: z.number().int().nonnegative(),
+    }),
+    filters: z.record(z.string(), z.string()),
+    provenance: z.object({
+      corpusVersion: z.string(),
+      reviewedOn: z.string(),
+      sourceLedger: z.string(),
+      gaps: z.string(),
+    }),
+  })
+  .openapi("UkPublicFundingList");
+const PublicFundingDetail = z
+  .object({
+    data: PublicFundingRecord,
+    evidence: z.array(PublicFundingRecord).optional(),
+  })
+  .passthrough()
+  .openapi("UkPublicFundingDetail");
+const PublicFundingUnavailable = z
+  .object({
+    error: z.enum([
+      "publication_review_pending",
+      "publication_emergency_stopped",
+    ]),
+    message: z.string(),
+    sources: z.string(),
+    gaps: z.string(),
+  })
+  .openapi("UkPublicFundingUnavailable");
 
 const ContentLicence = z
   .object({ name: z.string(), url: z.string().url() })
@@ -437,7 +523,7 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
     operationId: "listOpenDataDatasets",
     summary: "Discover TaxSorted public datasets",
     description:
-      "Public, sessionless catalog of tax-system, tax-industry, charity-sector and politics/public-integrity datasets, licences, review dates, schemas, dictionaries and bulk exports. No API key is read or required.",
+      "Public, sessionless catalog of tax-system, tax-industry, charity-sector, public-funding and politics/public-integrity datasets, licences, review dates, schemas, dictionaries and bulk exports. No API key is read or required.",
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
@@ -1376,6 +1462,283 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
   });
 }
 
+function registerPublicFundingOpenApi(app: OpenAPIHono) {
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/public-funding/uk/{collection}",
+    operationId: "queryUkPublicFundingCollection",
+    summary: "Query a UK public-funding collection",
+    description:
+      "Queries the reviewed public-funding map. Filters are collection-specific; unsupported, repeated or invalid filters return 400. Sources and gaps remain readable while the full release is closed.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection }),
+      query: PublicFundingQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Filtered records with paging and provenance metadata.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: PublicFundingList } },
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Unknown, repeated, irrelevant or invalid filter." },
+      503: {
+        description:
+          "The full release is pending review or emergency-stopped; sources and gaps remain readable.",
+        content: { "application/json": { schema: PublicFundingUnavailable } },
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/public-funding/uk/{collection}/{id}",
+    operationId: "getUkPublicFundingRecord",
+    summary: "Read one evidence-backed UK public-funding record",
+    description:
+      "Returns the record. Non-source records also include resolved source evidence and any relevant joined graph records.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection, id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "One public-funding record with provenance and relevant joins.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: PublicFundingDetail } },
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No record with that ID in the collection." },
+      503: {
+        description: "The collection is pending review or emergency-stopped.",
+        content: { "application/json": { schema: PublicFundingUnavailable } },
+      },
+    },
+  });
+
+  const staticRoutes = [
+    {
+      path: "/v1/public-funding/uk",
+      operationId: "getUkPublicFundingOverview",
+      summary: "Understand how UK public funding moves",
+      description:
+        "Public, sessionless coverage-first map of tax pooling, Parliamentary authority, departmental controls, devolved funding, allocation, commissioning, payment, delivery, accounts and audit. It contains aggregate public records, formal offices and functional contacts, never personal beneficiary records.",
+      schema: PublicFundingPublicJson,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/public-funding/uk/graph",
+      operationId: "downloadUkPublicFundingGraph",
+      summary: "Download the complete reviewed UK public-funding graph",
+      description:
+        "Complete provenance-first corpus, including funding dimensions, negative inference boundaries, source limitations and known transparency gaps.",
+      schema: ukPublicFundingSchema,
+      mediaType: "application/json",
+      mayBeClosed: true,
+    },
+    {
+      path: "/v1/public-funding/uk/manifest",
+      operationId: "getUkPublicFundingManifest",
+      summary: "Read the UK public-funding release manifest",
+      description:
+        "Version, review date, exact graph hash, collection counts, publication state, licence and distribution links.",
+      schema: PublicFundingPublicJson,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/public-funding/uk/schema",
+      operationId: "getUkPublicFundingSchema",
+      summary: "Read the structural UK public-funding JSON Schema",
+      description:
+        "Strict record shapes; the dictionary adds graph, evidence, money-comparison and safety invariants checked at boot.",
+      schema: PublicFundingPublicJson,
+      mediaType: "application/schema+json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/public-funding/uk/dictionary",
+      operationId: "getUkPublicFundingDictionary",
+      summary: "Read the plain-language UK public-funding data dictionary",
+      description:
+        "Collection aliases, field meanings, filters, references, money conventions, formats and missing-value rules.",
+      schema: DataDictionary,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/public-funding/uk/exports",
+      operationId: "listUkPublicFundingExports",
+      summary: "List complete UK public-funding collection exports",
+      description: "Format links, filenames, byte sizes, availability and exact-representation ETags.",
+      schema: DatasetExportIndex,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+  ] as const;
+
+  for (const route of staticRoutes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current reviewed static representation.",
+          headers: publicResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static routes do not accept query parameters." },
+        ...(route.mayBeClosed
+          ? {
+              503: {
+                description: "The graph is pending review or emergency-stopped.",
+                content: { "application/json": { schema: PublicFundingUnavailable } },
+              },
+            }
+          : {}),
+      },
+    });
+
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: route.operationId.replace(/^get|^download|^list/, "head"),
+      summary: `Check: ${route.summary}`,
+      description: "Returns the same validators and links as GET without a response body.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: { description: "Current representation metadata.", headers: publicResponseHeaders },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static routes do not accept query parameters." },
+        ...(route.mayBeClosed
+          ? {
+              503: {
+                description: "The graph is pending review or emergency-stopped.",
+              },
+            }
+          : {}),
+      },
+    });
+  }
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/public-funding/uk/exports/{collection}/{format}",
+    operationId: "downloadUkPublicFundingCollection",
+    summary: "Download one complete UK public-funding collection",
+    description:
+      "JSON and NDJSON are lossless deterministic TaxSorted encodings. CSV is a spreadsheet convenience copy and keeps nested values as deterministic JSON.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection, format: ExportFormat }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Complete, unpaginated collection attachment.",
+        headers: taxExportResponseHeaders,
+        content: {
+          "application/json": { schema: z.array(OpenDataRecord) },
+          "application/x-ndjson": { schema: z.string() },
+          "text/csv": { schema: z.string() },
+        },
+      },
+      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
+      400: { description: "Static export routes do not accept query parameters." },
+      404: { description: "Unknown collection or format." },
+      503: {
+        description: "This collection is pending review or emergency-stopped.",
+        content: { "application/json": { schema: PublicFundingUnavailable } },
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/public-funding/uk/{collection}",
+    operationId: "headUkPublicFundingCollectionQuery",
+    summary: "Check a UK public-funding collection query",
+    description: "Returns the GET query's validators and links without its response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection }),
+      query: PublicFundingQuery,
+    },
+    security: [],
+    responses: {
+      200: { description: "Current query metadata.", headers: publicResponseHeaders },
+      304: { description: "This exact query is unchanged.", headers: publicResponseHeaders },
+      400: { description: "Unknown, repeated, irrelevant or invalid filter." },
+      503: {
+        description:
+          "The full public-funding release is pending review or emergency-stopped; sources and gaps remain readable.",
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/public-funding/uk/{collection}/{id}",
+    operationId: "headUkPublicFundingRecord",
+    summary: "Check one UK public-funding record",
+    description: "Returns the record's validators and links without its response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection, id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: { description: "Current record metadata.", headers: publicResponseHeaders },
+      304: { description: "This exact record is unchanged.", headers: publicResponseHeaders },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No record with that ID in the collection." },
+      503: { description: "The collection is pending review or emergency-stopped." },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/public-funding/uk/exports/{collection}/{format}",
+    operationId: "headUkPublicFundingCollectionExport",
+    summary: "Check one UK public-funding collection export",
+    description: "Returns download validators, links and filename without the export body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: PublicFundingCollection, format: ExportFormat }),
+    },
+    security: [],
+    responses: {
+      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
+      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
+      400: { description: "Static export routes do not accept query parameters." },
+      404: { description: "Unknown collection or format." },
+      503: { description: "This collection is pending review or emergency-stopped." },
+    },
+  });
+}
+
 function registerPoliticsOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -1838,6 +2201,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerTaxSystemOpenApi(app);
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
+  registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);
 
   app.use(

@@ -90,6 +90,10 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   registers, legal forms, conditional tax treatments, obligations, funding, finance and pay
   disclosures, control structures and safe help routes. The first release deliberately has no
   mirrored charity-by-charity records, people directory, personal contacts or inferred beliefs.
+- **Public-funding graph**: sessionless `GET /v1/public-funding/uk` routes map the pooled-tax
+  fiscal spine, health and education funding, all four UK nations, formal offices, boards,
+  aggregate allocations, functional contacts, delivery stages, audit and known gaps. It does
+  not pretend an ordinary tax pound can be traced to one school or hospital.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Self-hosting & HMRC credentials
@@ -111,10 +115,13 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   enter the industry, what each credential or licence really does, who controls it and pays
 - [`research/uk/charities/README.md`](research/uk/charities/README.md) — how the UK charity
   sector works: relief conditions, registers, money, stewardship, duties and safe reuse
+- [`research/uk/public-funding/README.md`](research/uk/public-funding/README.md) — how pooled
+  public money becomes authority, allocations, health and education delivery, accounts and audit
 - [`docs/PUBLIC-DATA-CHARTER.md`](docs/PUBLIC-DATA-CHARTER.md) — the agent-authored draft
   explaining the public API's distribution, safety and rights choices; awaiting Yu's adoption
 - `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers
 - `/uk/charities` — public page: conditional reliefs, regulators, money, control and help routes
+- `/uk/public-funding` — public page: where tax joins public funds and how health and education money moves
 - `/uk/personal-tax` — public page: 7 UK plays, official receipts, ordinary counter-moves
 - `regs/research/` — the MTD Income Tax regulatory corpus: mandate, API surface,
   recognition process, fraud-prevention headers, 2026-27 tax substance — every claim cited

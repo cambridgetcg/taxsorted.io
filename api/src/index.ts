@@ -20,6 +20,7 @@ import { createOpenDataRoutes } from "./routes/open-data.js";
 import { createUkTaxIndustryRoutes } from "./routes/uk-tax-industry.js";
 import { createUkTaxSystemRoutes } from "./routes/uk-tax-system.js";
 import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
+import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
 
 const app = new OpenAPIHono();
 
@@ -39,6 +40,8 @@ app.route(
     taxIndustryPublic: config.taxIndustry.publicDataEnabled,
     charitiesPublic: config.charities.publicDataEnabled,
     charitiesEmergencyStop: config.charities.emergencyStop,
+    publicFundingPublic: config.publicFunding.publicDataEnabled,
+    publicFundingEmergencyStop: config.publicFunding.emergencyStop,
     politicsBulkDataAvailable: config.politics.bulkDataEnabled,
     politicsBulkDataEmergencyStop: config.politics.bulkDataEmergencyStop,
     politicsBulkDataApproval: config.politics.bulkDataApproval,
@@ -72,6 +75,13 @@ app.route(
   createUkCharitiesRoutes({
     publicDataEnabled: config.charities.publicDataEnabled,
     emergencyStop: config.charities.emergencyStop,
+  })
+);
+app.route(
+  "/v1/public-funding/uk",
+  createUkPublicFundingRoutes({
+    publicDataEnabled: config.publicFunding.publicDataEnabled,
+    emergencyStop: config.publicFunding.emergencyStop,
   })
 );
 

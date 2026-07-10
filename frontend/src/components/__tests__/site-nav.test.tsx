@@ -26,4 +26,12 @@ describe("SiteNav", () => {
       "/uk/charities",
     );
   });
+
+  it("offers the public money map", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Public money" })).toHaveAttribute(
+      "href",
+      "/uk/public-funding",
+    );
+  });
 });

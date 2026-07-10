@@ -210,6 +210,25 @@
       "licence": null
     },
     {
+      "id": "src-nao-executive-team",
+      "title": "Executive Team",
+      "publisher": "National Audit Office",
+      "url": "https://www.nao.org.uk/about-us/governance/executive-team/",
+      "authorityLevel": "official-register",
+      "reviewedOn": "2026-07-10",
+      "reviewAfter": "2026-10-10",
+      "status": "current",
+      "reuseStatus": "unknown",
+      "publicationMode": "normalised-summary",
+      "supports": [
+        "The current Comptroller and Auditor General's name and official leadership biography."
+      ],
+      "doesNotProve": [
+        "Private contact details, personal relationships or authority beyond the statutory office."
+      ],
+      "licence": null
+    },
+    {
       "id": "src-parliament-pac-role",
       "title": "Our role: Public Accounts Committee",
       "publisher": "UK Parliament",
@@ -2958,7 +2977,7 @@
       ],
       "purpose": "Deliver regional health and social-care services through five geographic trusts and the ambulance service under departmental commissioning and assurance.",
       "legalBasis": "Health and Personal Social Services legislation, trust establishment orders and departmental partnership agreements.",
-      "website": "https://www.health-ni.gov.uk/topics/health-policy/health-and-social-care-trusts",
+      "website": "https://www.health-ni.gov.uk/topics/governance-health-and-social-care-introduction",
       "taxSystemRefs": [],
       "transparencyNotes": [
         "A trust is not the Department, regulator or former HSC Board; delivery and commissioning roles remain distinct."
@@ -3169,7 +3188,7 @@
       ],
       "purpose": "Deliver tertiary education through the five higher-education institutions and six further-education colleges in the reviewed structure.",
       "legalBasis": "Provider-specific statutory, charter, company or college form plus Department for the Economy funding and accountability arrangements.",
-      "website": "https://www.economy-ni.gov.uk/topics/further-education-and-training",
+      "website": "https://www.economy-ni.gov.uk/articles/higher-education-finance-and-governance",
       "taxSystemRefs": [],
       "transparencyNotes": [
         "This class does not imply identical legal forms, grants, tuition income or reporting duties."
@@ -4458,13 +4477,14 @@
       "governanceUnitIds": [],
       "currentHolderPublication": {
         "mode": "official-source-link-only",
-        "url": "https://www.nao.org.uk/about-us/our-leadership/",
+        "url": "https://www.nao.org.uk/about-us/governance/executive-team/",
         "asOf": "2026-07-10",
-        "reason": "The NAO leadership page is the authoritative current holder and biography source."
+        "reason": "The NAO Executive Team page is the authoritative current holder and biography source."
       },
       "transparencyNotes": [],
       "sourceIds": [
-        "src-nao-role"
+        "src-nao-role",
+        "src-nao-executive-team"
       ],
       "evidence": [
         {
@@ -4477,10 +4497,18 @@
             "/decisionScope",
             "/constraints",
             "/appointment",
-            "/accountability",
-            "/currentHolderPublication"
+            "/accountability"
           ],
           "locator": "Statutory C&AG role and independence",
+          "observedOn": "2026-07-10",
+          "method": "manual-review"
+        },
+        {
+          "sourceId": "src-nao-executive-team",
+          "fields": [
+            "/currentHolderPublication"
+          ],
+          "locator": "Executive Team: Comptroller and Auditor General biography",
           "observedOn": "2026-07-10",
           "method": "manual-review"
         }

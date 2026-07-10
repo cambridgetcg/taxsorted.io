@@ -18,6 +18,9 @@ primary_region = "lhr"
   # conditions, disclosure rules and help routes. It contains no mirrored
   # organisations, named people, personal contacts or inferred beliefs.
   UK_CHARITIES_PUBLIC_DATA_ENABLED = "true"
+  # Public-funding bodies remain closed until the reviewed corpus passes the
+  # release checks and a human explicitly enables the Fly secret. Sources,
+  # gaps and release metadata remain readable while closed.
   # GOV_VENDOR_PUBLIC_IP is deliberately NOT set here: it's the app's real
   # egress IP, not a build-time constant we'd know without asking Fly, and
   # this file is not the right place for a value that might need rotating.

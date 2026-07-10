@@ -37,6 +37,12 @@ const charitiesPublicDataEnabled =
   !charitiesEmergencyStop &&
   (env.NODE_ENV !== "production" ||
     env.UK_CHARITIES_PUBLIC_DATA_ENABLED === "true");
+const publicFundingEmergencyStop =
+  env.UK_PUBLIC_FUNDING_EMERGENCY_STOP === "true";
+const publicFundingPublicDataEnabled =
+  !publicFundingEmergencyStop &&
+  (env.NODE_ENV !== "production" ||
+    env.UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED === "true");
 
 export const config = {
   port: Number(env.PORT || 8787),
@@ -115,6 +121,14 @@ export const config = {
   charities: {
     emergencyStop: charitiesEmergencyStop,
     publicDataEnabled: charitiesPublicDataEnabled,
+  },
+  // This corpus contains institutional structures, formal offices, aggregate
+  // allocations and generic public contact routes. It deliberately keeps
+  // people and personal contact details out. Production publication is still
+  // explicit, with an independent stop that leaves sources and gaps readable.
+  publicFunding: {
+    emergencyStop: publicFundingEmergencyStop,
+    publicDataEnabled: publicFundingPublicDataEnabled,
   },
   corsOrigins:
     env.NODE_ENV === "production"

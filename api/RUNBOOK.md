@@ -197,6 +197,39 @@ recall a downloaded or public-repository copy. Correct and re-review the source 
 the stop; never re-enable on a timer. This switch does not affect calculations, accounts, HMRC
 filing, the tax-system graph or the tax-industry graph.
 
+## Public-funding graph
+
+This release contains public institutions, formal offices, governance bodies, aggregate money
+figures, functional institutional contacts and published non-residential offices. It contains no
+copied office-holder names, private contacts, inferred personal ties or individual service records.
+Validate the evidence graph and read the complete corpus diff before enabling it:
+
+```bash
+npm run validate:uk-public-funding
+fly secrets set -a taxsorted-api UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED=true
+```
+
+With publication closed, the overview, source ledger, known gaps, manifest, schema, dictionary
+and export index remain readable. Protected collection bodies, their downloads and the full graph
+return `503` with `Cache-Control: no-store`. The checked-in Fly configuration deliberately leaves
+the release closed; the secret above records the separate publication decision after review.
+
+If a source-rights, accuracy or safety issue is found, use its independent stop:
+
+```bash
+fly secrets set -a taxsorted-api UK_PUBLIC_FUNDING_EMERGENCY_STOP=true
+```
+
+Verify the origin, purge controllable caches, record the correction, and re-run validation before
+explicitly removing the stop. It cannot recall copies already downloaded or committed publicly.
+It does not affect calculations, accounts, HMRC filing or the other public data families.
+
+The public page is a separately deployed static projection of reviewed programmes, sources and
+gaps. The API stop cannot remove those already-built bytes. If the incident affects that projection,
+roll the Cloudflare Pages deployment back to the last safe build and purge its cache as part of the
+same response. Record both the API and frontend versions; do not describe the incident as contained
+until every operator-controlled copy in scope has been checked.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register

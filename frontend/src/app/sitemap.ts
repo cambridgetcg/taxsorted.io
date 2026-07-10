@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/personal-tax", 0.9],
     ["/uk/tax-industry", 0.9],
     ["/uk/charities", 0.9],
+    ["/uk/public-funding", 0.9],
     ["/uk/politics", 0.9],
     ["/uk/politics/system", 0.9],
     ["/uk/politics/integrity", 0.9],

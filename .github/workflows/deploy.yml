@@ -58,7 +58,7 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Smoke-test the deployed charity contract
+      - name: Smoke-test the deployed public contracts
         if: steps.fly.outputs.present == 'true'
         run: |
           set -euo pipefail
@@ -69,7 +69,10 @@ jobs:
             /v1/charities/uk \
             /v1/charities/uk/manifest \
             /v1/charities/uk/sources \
-            /v1/charities/uk/registers
+            /v1/charities/uk/registers \
+            /v1/public-funding/uk \
+            /v1/public-funding/uk/manifest \
+            /v1/public-funding/uk/sources
           do
             curl --fail --silent --show-error \
               --connect-timeout 10 --max-time 30 --retry-max-time 120 \
@@ -89,6 +92,22 @@ jobs:
             open:200|publication-review:503|emergency-stopped:503) ;;
             *)
               echo "Charity publication and graph disagree: ${publication_status}:${graph_status}" >&2
+              exit 1
+              ;;
+          esac
+
+          public_funding_status=$(curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/public-funding/uk | \
+            jq --raw-output '.manifest.publicationStatus')
+          public_funding_graph_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --output /dev/null --write-out '%{http_code}' \
+            https://api.taxsorted.io/v1/public-funding/uk/graph)
+          case "${public_funding_status}:${public_funding_graph_status}" in
+            open:200|publication-review:503|emergency-stopped:503) ;;
+            *)
+              echo "Public-funding publication and graph disagree: ${public_funding_status}:${public_funding_graph_status}" >&2
               exit 1
               ;;
           esac

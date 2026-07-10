@@ -6,7 +6,7 @@ The first developer surface is a deterministic SDLT calculator for one ordinary 
 purchase in England or Northern Ireland. It is a bounded calculation service, not a generic
 tax-advice chatbot and not yet a filing rail.
 
-Alongside calculations, four UK maps explain the systems around the answer. The
+Alongside calculations, five UK maps explain the systems around the answer. The
 tax-system graph covers authority, accounts, permissions, collection and challenge. The
 tax-industry graph covers roles, qualifications, legal and market gates, lawful entry paths,
 pay evidence and barriers. The politics catalogue covers elections, public funding, formal
@@ -16,6 +16,10 @@ structures and safe help routes. Their public metadata needs no API key or
 taxpayer session; protected record bodies still require their explicit production-publication
 switch. Static downloads make no upstream network call; clearly labelled live query services
 may read their named official source.
+
+The public-funding graph follows the pooled-tax fiscal spine into health and education across
+all four nations. It separates plans, parliamentary authority, allocations and outturn; maps
+formal offices, boards and functional contacts; and keeps non-comparable money visibly apart.
 
 This guide describes the implementation in this workspace, not proof that the public host has
 been deployed. After an authorised deploy, verify `/v1/health`, `/openapi.json` and the relevant
@@ -42,7 +46,7 @@ GET https://api.taxsorted.io/v1/open-data/rights
 GET https://api.taxsorted.io/openapi.json
 ```
 
-The tax-system, tax-industry and charity-sector datasets have the same prepared distribution shape. The
+The tax-system, tax-industry, charity-sector and public-funding datasets have the same prepared distribution shape. The
 metadata routes remain readable when deployed; protected collection and full-graph bodies return
 `503` until that family's catalogue says it is available. Source and gap collections stay readable:
 
@@ -55,7 +59,7 @@ GET /v1/tax-industry/uk/exports/roles/ndjson
 GET /v1/tax-industry/uk/exports/roles/csv
 ```
 
-Replace `tax-industry` with `tax-system` or `charities`, and `roles` with any collection named
+Replace `tax-industry` with `tax-system`, `charities` or `public-funding`, and `roles` with any collection named
 by that dataset's export index. When the publication switch is open, downloads are complete and unpaginated.
 Query routes remain the place for search and filtering.
 
@@ -118,12 +122,12 @@ curl --fail --header 'If-None-Match: "sha256-…"' \
 HTTP 304 means the validator supplied for that requested resource still matches its exact
 response bytes. Keep validators per URL and format; two requests may legitimately have the
 same ETag when their bytes are identical. Cache policy is stated on each response:
-tax-system, tax-industry and charity-sector release routes
+tax-system, tax-industry, charity-sector and public-funding release routes
 revalidate within five minutes, while the deployed politics bulk catalogue revalidates
 within one hour.
 
 The catalogue also states each dataset family's current update policy and whether its correction
-channel accepts private or sensitive material. The tax-system, tax-industry and charity-sector
+channel accepts private or sensitive material. The tax-system, tax-industry, charity-sector and public-funding
 maps are updated irregularly when evidence changes, a correction is accepted or a new review pass
 completes; there is no promised next release date. The current GitHub correction route requires an
 account and is public, so it must not receive private, personal or safety-sensitive information. A
@@ -425,6 +429,44 @@ cannot recall copies already downloaded or committed publicly.
 
 The method, publication assessment and reading guide live in
 [`research/uk/charities/`](../research/uk/charities/).
+
+## Public UK funding graph
+
+The funding graph answers a deliberately narrower and more honest question than “where did my
+tax pound go?” Most UK tax receipts enter pooled public funds, so an ordinary receipt cannot be
+traced to one school, hospital or programme. The API instead maps the evidenced chain from
+collection, parliamentary authority and Treasury control to departmental allocations, delivery,
+accounts, audit and scrutiny.
+
+```text
+GET /v1/public-funding/uk
+GET /v1/public-funding/uk/graph
+GET /v1/public-funding/uk/{sources|institutions|governance|offices}
+GET /v1/public-funding/uk/{relationships|funds|programmes|mechanisms|allocations}
+GET /v1/public-funding/uk/{contacts|locations|pipeline|gaps}
+GET /v1/public-funding/uk/{collection}/{id}
+GET /v1/public-funding/uk/manifest
+GET /v1/public-funding/uk/schema
+GET /v1/public-funding/uk/dictionary
+GET /v1/public-funding/uk/exports
+GET /v1/public-funding/uk/exports/{collection}/{json|ndjson|csv}
+```
+
+All money is integer pence. Read `financialYear`, `status`, `budgetBoundary`,
+`accountingBasis`, `grossOrNet`, `priceBasis`, `containedInAllocationId`,
+`notComparableToIds` and `traceabilityWarning` before combining figures. Programme
+`beneficiaryTags` make children, young people, learners and future workforce investment
+findable; they are overlapping labels, not additive spending totals.
+
+The corpus contains public-body classes and formal offices, not copied current-holder names.
+Each office links to the dated official holder publication. Contacts are generic functional
+routes and locations are published non-residential institutional addresses. Source and gap
+records remain readable while production publication is closed. Production serving uses
+`UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED=true`; the independent
+`UK_PUBLIC_FUNDING_EMERGENCY_STOP=true` wins.
+
+The plain-language guide and method live in
+[`research/uk/public-funding/`](../research/uk/public-funding/).
 
 ## Public UK politics and integrity API
 

@@ -13,6 +13,7 @@
     "validate:tax-system": "tsx scripts/validate-tax-system.ts",
     "validate:tax-industry": "tsx scripts/validate-tax-industry.ts",
     "validate:charities": "tsx ../scripts/validate-uk-charities.mjs",
+    "validate:public-funding": "tsx scripts/validate-public-funding.ts",
     "create:api-key": "tsx scripts/create-api-key.ts"
   },
   "dependencies": {
