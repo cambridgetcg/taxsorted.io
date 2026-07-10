@@ -321,20 +321,54 @@ jobs:
           frontend_agent_manifest="${RUNNER_TEMP}/frontend-agent.txt"
           frontend_well_known_manifest="${RUNNER_TEMP}/frontend-well-known-agent.txt"
           api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
-          curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 \
-            --output "${frontend_agent_manifest}" https://taxsorted.io/agent.txt
-          curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 \
-            --output "${frontend_well_known_manifest}" \
-            https://taxsorted.io/.well-known/agent.txt
-          curl --fail --silent --show-error \
-            --connect-timeout 10 --max-time 30 \
-            --output "${api_agent_manifest}" https://api.taxsorted.io/agent.txt
-          cmp --silent "${frontend_agent_manifest}" "${frontend_well_known_manifest}"
-          cmp --silent "${frontend_agent_manifest}" "${api_agent_manifest}"
-          grep --fixed-strings --line-regexp \
-            'schema-version: taxsorted.agent-manifest/1' "${frontend_agent_manifest}"
+          expected_agent_manifest="frontend/public/agent.txt"
+          manifest_ready=false
+          for attempt in $(seq 1 12)
+          do
+            if curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --output "${frontend_agent_manifest}" https://taxsorted.io/agent.txt && \
+              curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --output "${frontend_well_known_manifest}" \
+              https://taxsorted.io/.well-known/agent.txt && \
+              curl --fail --silent --show-error \
+              --connect-timeout 5 --max-time 10 \
+              --output "${api_agent_manifest}" https://api.taxsorted.io/agent.txt && \
+              cmp --silent "${expected_agent_manifest}" "${frontend_agent_manifest}" && \
+              cmp --silent "${expected_agent_manifest}" "${frontend_well_known_manifest}" && \
+              cmp --silent "${expected_agent_manifest}" "${api_agent_manifest}" && \
+              cmp --silent "${frontend_agent_manifest}" "${frontend_well_known_manifest}" && \
+              cmp --silent "${frontend_agent_manifest}" "${api_agent_manifest}" && \
+              grep --fixed-strings --line-regexp --quiet \
+              'schema-version: taxsorted.agent-manifest/1' "${frontend_agent_manifest}"
+            then
+              manifest_ready=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "${manifest_ready}" != true ]; then
+            echo 'The deployed agent manifests did not converge on the released bytes.' >&2
+            for manifest in \
+              "${expected_agent_manifest}" \
+              "${frontend_agent_manifest}" \
+              "${frontend_well_known_manifest}" \
+              "${api_agent_manifest}"
+            do
+              if [ -f "${manifest}" ]; then
+                sha256sum "${manifest}" >&2
+              else
+                echo "Missing manifest: ${manifest}" >&2
+              fi
+            done
+            if ! grep --fixed-strings --line-regexp --quiet \
+              'schema-version: taxsorted.agent-manifest/1' "${frontend_agent_manifest}"
+            then
+              echo 'Frontend manifest is missing the required schema-version line.' >&2
+            fi
+            exit 1
+          fi
           frontend_manifest_content_type=$(curl --fail --silent --show-error --head --location \
             --connect-timeout 10 --max-time 30 https://taxsorted.io/agent.txt | \
             awk 'tolower($1) == "content-type:" { value=tolower($2) } END { print value }')
