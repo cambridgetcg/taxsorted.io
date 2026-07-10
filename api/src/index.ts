@@ -43,7 +43,6 @@ const openDataRouteOptions = {
 // A machine can orient itself without opening a taxpayer/browser session.
 // The wake response is a projection of the same catalog mounted below.
 app.route("/", createAgentInterfaceRoutes(openDataRouteOptions));
-
 app.get("/v1/health", (c) =>
   c.json({ ok: true, hmrc: { configured: config.hmrc.configured, env: config.hmrc.env } })
 );

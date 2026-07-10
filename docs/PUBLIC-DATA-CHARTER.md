@@ -79,6 +79,15 @@ layer is separately reviewed and closed until its checks are approved.
   positively present.
 - **Base dataset bytes** means the unenhanced public download itself, as distinct from support,
   uptime commitments or a genuinely new analysis built from it.
+- **Words-and-actions ledger** means dated source records that keep a legal object, plan or
+  self-report separate from a filing, award, payment, output, outcome or evaluation. It is an
+  evidence structure, not a verdict about an organisation or person.
+- **Source voice** means who made the statement: for example a regulator, funder,
+  organisation, auditor or evaluator. Preserving it stops a self-report from being presented
+  as an independent finding.
+- **Asset-level admission** means reviewing the exact upstream table, field, document or file
+  that would be collected. Approval of a publisher or website as a whole is not approval of
+  every asset it exposes.
 
 ## Admission test for public distribution
 
@@ -192,6 +201,110 @@ payment or outturn; a missing vote is unknown, not an inferred abstention. Full 
 embeddings, rhetoric scores, personality labels and inferred motives do not belong in the
 public API.
 
+### Words and actions stay comparable without becoming a score
+
+TaxSorted's charity accountability contract is published before its data. The planned ledger
+keeps legal objects, plans, self-reports, filings, awards, payments, outputs, outcomes and
+evaluations as different evidence kinds. Each record type must carry the source use, attribution
+and context it actually needs. A comparison must expose the applicable entity, dates, scope,
+period, metric definition, method and known limitations instead of stripping them into a score.
+A display name, address, shared domain or person is not an organisation join.
+
+Multiple official identifiers for one organisation require a separate human-reviewed bridge
+whose admitted source locator explicitly publishes both identifiers. The validator can check the
+bridge structure, source permission and locator equality; it cannot mechanically prove what the
+publisher's words mean. Mapping membership must point both ways between the mapping and exact
+organisation. Uppercase-alphanumeric canonicalisation accepts only ASCII letters, digits, spaces
+and hyphens; punctuation and Unicode lookalikes fail. Source permanence is explicit: a record
+says whether only the current
+publisher URL, a publisher version/digest or a lawfully archived link is known. Exact words mean
+the words available at review time, not a promise that TaxSorted has archived the source.
+
+Comparison is an evidenced relation between exact record IDs. It must name its rule and expose
+the records a reader needs to reproduce the result. Missing evidence is a visible gap, not a
+negative finding. Only a human-reviewed pair of logically incompatible records concerning the
+same exact organisation identifier, period, scope key and definition, and metric key and
+definition may be described as inconsistent. Different source voices, dates or methods remain
+differences, not contradictions.
+
+This design must not collapse the ledger into an honesty, trust, faith, efficiency, impact or
+value-for-money score. Ordering by such a score would hide judgment, encourage false precision
+and turn incomplete evidence into a character claim. Builders can publish their own analysis,
+but TaxSorted's base contract should keep the source records, comparison rule and uncertainty
+available so that analysis can be challenged.
+
+The current endpoints publish only the index and structural JSON Schema at
+`/v1/charities/uk/accountability` and `/v1/charities/uk/accountability/schema`. Their status is
+`schema-only-not-admitted`; they contain no charity evidence rows. Collection remains blocked
+by `confidential-correction-safety-intake`, requiring tested identity-safe triage, urgent
+suppression and auditable resolution, and `asset-level-rights-admission-digest`, requiring a
+reviewed link decision and locator-specific derived-use decision for every source asset. Its
+content digest detects mutation of the declared review bytes; it does not prove legality or
+reviewer identity. Those are the two immediate missing systems, not an exhaustive publication
+test. The framework exposes nine `admissionConditions`, including controller/lawful-basis and
+retention records, a formal DPIA decision, narrow field review, rollback exercises, reviewer
+calibration, clear public explanation and a monitored stop. Version 1 validates candidate shapes
+only and cannot authorise publication.
+
+A checked-in zero-row example and bounded local runtime-validator command let builders exercise
+the graph rules without sending data to TaxSorted. There is no accountability ingestion route;
+passing either validator still means `candidate-not-admitted`.
+
+Every public document and source-review field—not only title and URL—is covered by a human
+no-person/no-sensitive-data/no-source-excerpt review. Permanence text, review IDs, attribution,
+terms URLs, limitations, locators and bounded notes are in scope; locators must be pointers rather
+than quotations. The assertion is explicit but is not automated semantic proof.
+
+TaxSorted editorial derivation is restricted to structured exact-arithmetic
+financial facts and labelled TaxSorted source-comparison evaluations. Reported,
+audited and restated finance, programmes, funding, assets, control,
+observations and outcomes stay externally attributed.
+
+Unsafe small aggregates never remain beside a “suppressed” flag: the value-bearing record is
+omitted and a privacy-reviewed `suppressed-for-disclosure-risk` coverage gap uses fixed safe
+wording and no source-document pointer. It records the boundary without repeating the omitted
+amount, sensitive context or a direct route back to either.
+Every financial fact, aggregate or anonymous funding event, programme, observation, outcome and
+evaluation carries the applicable publishable disclosure review.
+Staff/pay metrics and aggregate public donations are always treated as people-derived with a
+stated smallest cell; unknown or unsafe populations are omitted to a gap. Money differences remain safe integer minor units; ratios
+store an exact numerator and non-zero denominator rather than a rounded float. Derived facts are
+acyclic, recomputed signed sums of compatible input facts. Every derivation and numeric comparison
+has a fresh disclosure review; a people-derived input keeps the result people-derived. Periods may
+differ only for an explicit `change-over-time` comparison with every other dimension aligned.
+Candidate assembly, evidence, reviews,
+tombstones and a single predecessor chain have explicit time order. Normalisation waits for source
+readiness; disclosure review waits for the record it approves; final privacy review waits for any
+applicable normalisation and disclosure review; comparison waits for
+both records and their required reviews. A derived financial fact waits for its inputs, then its
+disclosure review follows; a numeric-result disclosure review follows the human comparison
+review. IDs and release summaries
+receive privacy review so a correction does not repeat removed content in metadata.
+Each tombstone names the first candidate that carries it, and cannot take effect after that
+candidate was assembled. It remains in every later candidate; each release's tombstone count
+equals the cumulative retained ledger through that release.
+
+Two money records cannot be labelled `inconsistent-with` unless their money
+basis, measurement stage and amount date match as well as their organisation,
+period, scope and metric. A changed stage stays a difference, not an accusation.
+
+### Agent discovery should orient, not enlarge authority
+
+The workspace implements `/agent.txt` and `/.well-known/agent.txt` as equivalent, small
+machine-addressed discovery files. They point to the catalogue-derived JSON orientation at
+`/v1/wake`; the API root returns the same bytes only when the caller asks for
+`application/json`. The wake document points to OpenAPI, release history and the bounded
+charity accountability shape. Charity-route errors state their reason and give safe
+`next_actions`; they do not silently loosen a filter or safety wall to make a request succeed.
+
+This narrow design was inspired by
+[XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), an agent-interaction and
+agent-experience framework published under CC BY-SA 4.0. The attribution is part of honest
+provenance. TaxSorted does not thereby adopt XENIA as a whole or claim conformance: it does not
+adopt ratings, decentralised identifiers, agent identity or continuity claims, wallets, tokens
+or covenants. A discovery manifest grants no identity, permission or authority, and the
+declared walls are not a cryptographic or service-wide compliance proof.
+
 ### Safety follows amplification and foreseeable harm
 
 The bulk catalogue contains institutions, methods, aggregates and screened organisation-only
@@ -244,16 +357,21 @@ currently a bounded query service rather than an ever-growing static archive.
 ## What is true now
 
 - `/agent.txt`, `/.well-known/agent.txt` and `/v1/wake` provide a stateless machine doorway
-  derived from the same open-data catalogue. This is XENIA-inspired and makes no conformance,
-  identity or trust-score claim.
-
-- The tax-system, tax-industry, organisation-free charity-sector and public-funding graphs implement a discovery catalogue, structural schema,
+  derived from the same open-data catalogue. The API root is a negotiated JSON alias, not a
+  replacement for its default 404. This is XENIA-inspired and makes no conformance, identity or
+  trust-score claim.
+- The tax-system, tax-industry, charity-sector and public-funding graphs implement a discovery catalogue, structural schema,
   recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
   mixed-rights statement without requiring a caller account. Their protected collection and
   full-graph bodies remain behind separate production-publication switches.
 - The charity-sector boundary publishes legal and institutional explanations, official register
   doors and aggregate disclosure definitions. It does not publish charity-by-charity rows, named
   trustees, personal contacts, work histories, named pay or any inferred religious belief.
+- The charity accountability index and JSON Schema publish an organisation-only words-and-actions
+  model with source-backed identifier bridges, link-only source bodies, human-reviewed
+  inconsistency rules, stable candidate chains and safe tombstones. Their status is
+  `schema-only-not-admitted`; no data collection is populated or admitted. Two immediate blockers
+  and all nine wider admission conditions remain unresolved.
 - The public-funding boundary publishes institutions, formal offices, governance units,
   aggregate allocations and functional contacts. It keeps office-holder names at dated official
   links and does not claim that pooled tax receipts trace to a specific provider or beneficiary.
@@ -324,6 +442,16 @@ These are gaps, not footnotes:
   safety-sensitive details; a private correction route is still missing.
 - The missing confidential route is a production blocker for bulk publication because urgent
   evidence of a personal leak must not be posted publicly.
+- The charity accountability model also lacks a tested confidential correction and safety
+  intake with identity-safe triage, urgent suppression and auditable resolution. Its public
+  schema must not be mistaken for permission to collect organisation records.
+- No proposed charity source asset yet has the asset-level link and locator-specific derived-use
+  decisions required by the accountability contract. A publisher-level or site-level decision
+  is not enough; a review digest would detect mutation of its declaration, not certify it. The
+  locator is a human assertion and TaxSorted v1 keeps no general source archive or content proof.
+- The accountability controller/lawful-basis record, formal DPIA, narrow field review, end-to-end
+  correction and rollback exercise, comparison calibration and monitored emergency stop also do
+  not exist. Resolving the two immediate blockers alone cannot admit organisation rows.
 - The source ledger does not yet state exact reuse terms for every source; some entries point
   to the publisher and leave the rights decision open.
 - No numeric capacity limit or uptime service level is promised; the current service is best

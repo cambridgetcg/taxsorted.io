@@ -91,6 +91,18 @@ describe("developer API boundary", () => {
         .schema.$ref,
     ).toBe("#/components/schemas/AgentWake");
     expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .charityAccountability.properties.recordsAvailable.enum
+    ).toEqual([false]);
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .corrections.properties.accountRequired.enum
+    ).toEqual([true]);
+    expect(
+      document.components.schemas.AgentWake.properties.evidenceLanes.items
+        .properties.resources.items.properties
+    ).toHaveProperty("href");
+    expect(
       document.paths["/agent.txt"].get.responses[200].content,
     ).toHaveProperty("text/plain");
     expect(document.paths["/"].get.responses).toHaveProperty("404");
@@ -166,6 +178,38 @@ describe("developer API boundary", () => {
     expect(
       document.paths["/v1/charities/uk/map"].head.responses,
     ).toHaveProperty("400");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/accountability");
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/accountability/schema"
+    );
+    expect(
+      document.paths["/v1/charities/uk/accountability"].get.responses[200]
+        .content["application/json"].schema.$ref
+    ).toBe("#/components/schemas/UkCharityAccountabilityFramework");
+    expect(
+      document.paths["/v1/charities/uk/accountability/schema"].get.responses[200]
+        .content["application/schema+json"].schema.$ref
+    ).toBe("#/components/schemas/UkCharityAccountabilityJsonSchema");
+    expect(
+      document.components.schemas.UkCharityAccountabilityFramework.properties
+        .publicationAdmission.properties.datasetStatus.enum
+    ).toEqual(["candidate-not-admitted"]);
+    expect(
+      document.components.schemas.UkCharityAccountabilityFramework.properties
+        .publicationAdmission.properties.externalEnvelopeRequired.enum
+    ).toEqual([true]);
+    expect(
+      document.components.schemas.UkCharityAccountabilityFramework.properties
+        .admissionConditions.items.properties.status.enum
+    ).toEqual(["required-not-satisfied"]);
+    expect(
+      document.components.schemas.UkCharityAccountabilityFramework.properties
+    ).toHaveProperty("collectionGuide");
+    expect(
+      document.components.schemas.UkCharityAccountabilityFramework.properties
+    ).toHaveProperty("comparableMoney");
+    expect(document.paths["/v1/charities/uk/accountability"].get.security).toEqual([]);
+    expect(document.paths["/v1/charities/uk/accountability"].head.security).toEqual([]);
     expect(document.paths).toHaveProperty("/v1/charities/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/charities/uk/schema");
     expect(document.paths).toHaveProperty("/v1/charities/uk/dictionary");
@@ -197,6 +241,18 @@ describe("developer API boundary", () => {
       document.paths["/v1/charities/uk/exports/{collection}/{format}"].head
         .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
+    expect(
+      document.paths["/v1/charities/uk/{collection}"].get.responses[400]
+        .content["application/json"].schema.$ref
+    ).toBe("#/components/schemas/UkCharityInstructionalError");
+    expect(
+      document.components.schemas.UkCharityInstructionalError.properties
+        .next_actions
+    ).toMatchObject({ type: "array" });
+    expect(
+      document.components.schemas.UkCharityInstructionalError.properties.schema
+        .enum
+    ).toEqual(["taxsorted.charity-error/1"]);
     expect(document.paths).toHaveProperty("/v1/public-funding/uk");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/{collection}");
     expect(document.paths).toHaveProperty(

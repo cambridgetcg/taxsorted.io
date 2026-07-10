@@ -54,6 +54,7 @@ function catalogHeaders(
       `<${licenseLocation}>; rel="license"`,
       `<${correctionsUrl}>; rel="help"`,
       `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</agent.txt>; rel="related"; type="text/plain"; title="Agent discovery"`,
     ].join(", ")
   );
   c.header("X-Content-Type-Options", "nosniff");
@@ -125,7 +126,11 @@ function dataset(
       exports: `${root}/exports`,
       sources: `${root}/sources`,
       ...(id === "uk-charities-sector"
-        ? { registers: `${root}/registers` }
+        ? {
+            registers: `${root}/registers`,
+            accountability: `${root}/accountability`,
+            accountabilitySchema: `${root}/accountability/schema`,
+          }
         : {}),
       ...(id === "uk-public-funding"
         ? {
@@ -170,6 +175,7 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
       cors: "*",
       formats: ["json", "ndjson", "csv"],
       openApi: "/openapi.json",
+      agentDiscovery: "/agent.txt",
       rateLimits:
         "No application-level rate limit is currently applied to these static public routes. Hosting and network abuse protections may still act. Prefer one bulk export over many item requests.",
       availability:

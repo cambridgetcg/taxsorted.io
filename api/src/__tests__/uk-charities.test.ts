@@ -33,7 +33,7 @@ function mount(
 }
 
 describe("public UK charity-sector API", () => {
-  it("has an exact public, sessionless and organisation-free boundary", async () => {
+  it("has an exact public, sessionless boundary without charity-by-charity subject rows", async () => {
     expect(isPublicCivicPath("/v1/charities/uk")).toBe(true);
     expect(isPublicCivicPath("/v1/charities/uk/regulators")).toBe(true);
     expect(isPublicCivicPath("/v1/charities/uk-evil")).toBe(false);
@@ -62,6 +62,7 @@ describe("public UK charity-sector API", () => {
       authentication: "none",
       methods: ["GET", "HEAD"],
       writeMethods: false,
+      agentDiscovery: "/agent.txt",
     });
     expect(body.scope).toMatchObject({
       kind: "sector-system-map",
@@ -69,6 +70,11 @@ describe("public UK charity-sector API", () => {
       peopleRecords: false,
       personalReligionOrBeliefData: false,
       namedPay: false,
+      automatedWordsActionsVerdict: false,
+    });
+    expect(body.routes).toMatchObject({
+      accountability: "/v1/charities/uk/accountability",
+      accountabilitySchema: "/v1/charities/uk/accountability/schema",
     });
     expect(body.counts).not.toHaveProperty("organisations");
     expect(body.counts).not.toHaveProperty("people");
@@ -106,6 +112,109 @@ describe("public UK charity-sector API", () => {
         .replace(/^"sha256-/, "sha256:")
         .replace(/"$/, "")
     );
+  });
+
+  it("publishes a schema-only words-and-actions contract without organisation rows", async () => {
+    for (const { app } of [mount(), mount(false), mount(true, true)]) {
+      const index = await app.request("/v1/charities/uk/accountability");
+      const body = await index.json();
+      expect(index.status).toBe(200);
+      expect(index.headers.get("cache-control")).toBe(
+        "public, max-age=300, must-revalidate"
+      );
+      expect(index.headers.get("set-cookie")).toBeNull();
+      expect(index.headers.get("link")).toContain(
+        '</v1/charities/uk/accountability/schema>; rel="related"; type="application/schema+json"; title="Candidate dataset schema"'
+      );
+      expect(index.headers.get("link")).not.toContain(
+        '</v1/charities/uk/schema>; rel="describedby"'
+      );
+      expect(body).toMatchObject({
+        id: "uk-charity-accountability",
+        status: "schema-only-not-admitted",
+        publicationBlockers: [
+          { id: "confidential-correction-safety-intake", status: "blocking" },
+          { id: "asset-level-rights-admission-digest", status: "blocking" },
+        ],
+        inconsistencyRule: {
+          relation: "inconsistent-with",
+          requirements: expect.arrayContaining([
+            "human-approved review",
+            "exact published organisation identifier",
+            "same organisation",
+            "same period",
+            "same scope key and scope definition",
+            "same metric key and metric definition",
+          ]),
+        },
+      });
+      expect(body.admissionConditions).toHaveLength(9);
+      expect(body.admissionConditions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: "formal-dpia-decision" }),
+          expect.objectContaining({ id: "monitored-emergency-stop" }),
+        ])
+      );
+      expect(body.hardBoundaries).toEqual(
+        expect.arrayContaining([
+          "no natural-person records or identifiers",
+          "no personal belief data and no belief inference",
+          "no fuzzy, probabilistic or name-only joins",
+        ])
+      );
+      expect(body).not.toHaveProperty("organisations");
+
+      const schema = await app.request(
+        "/v1/charities/uk/accountability/schema"
+      );
+      const schemaBody = await schema.json();
+      expect(schema.status).toBe(200);
+      expect(schema.headers.get("content-type")).toContain(
+        "application/schema+json"
+      );
+      expect(schema.headers.get("link")).toContain(
+        '</v1/charities/uk/accountability>; rel="related"; type="application/json"; title="Accountability framework"'
+      );
+      expect(schema.headers.get("link")).not.toContain(
+        '</v1/charities/uk/schema>; rel="describedby"'
+      );
+      expect(schemaBody.$id).toBe(
+        "https://api.taxsorted.io/v1/charities/uk/accountability/schema"
+      );
+      expect(schemaBody.properties).toHaveProperty("organisations");
+      expect(schemaBody.properties).toHaveProperty("claims");
+      expect(schemaBody.properties).toHaveProperty("observations");
+      expect(schemaBody.properties).toHaveProperty("comparisons");
+      expect(schemaBody.properties).not.toHaveProperty("people");
+      expect(schemaBody.properties).not.toHaveProperty("contacts");
+
+      const etag = schema.headers.get("etag")!;
+      const head = await app.request(
+        "/v1/charities/uk/accountability/schema",
+        { method: "HEAD" }
+      );
+      expect(head.status).toBe(200);
+      expect(await head.text()).toBe("");
+      expect(head.headers.get("etag")).toBe(etag);
+      const unchanged = await app.request(
+        "/v1/charities/uk/accountability/schema",
+        { headers: { "If-None-Match": etag } }
+      );
+      expect(unchanged.status).toBe(304);
+    }
+
+    const invalid = await mount().app.request(
+      "/v1/charities/uk/accountability?organisationId=anything"
+    );
+    expect(invalid.status).toBe(400);
+    expect(await invalid.json()).toMatchObject({
+      schema: "taxsorted.charity-error/1",
+      error: "unknown_query_parameter",
+      method: "GET",
+      path: "/v1/charities/uk/accountability",
+      walls_intact: true,
+      next_actions: expect.any(Array),
+    });
   });
 
   it("applies only meaningful exact filters and bounded paging", async () => {
@@ -193,18 +302,24 @@ describe("public UK charity-sector API", () => {
       "/v1/charities/uk/legal-forms?taxType=corporation-tax"
     );
     expect(irrelevant.status).toBe(400);
-    expect(await irrelevant.json()).toEqual({
+    expect(await irrelevant.json()).toMatchObject({
       error: "unknown_filter",
       filters: ["taxType"],
+      collection: "legal-forms",
+      walls_intact: true,
+      next_actions: expect.any(Array),
     });
 
     const repeated = await app.request(
       "/v1/charities/uk/regulators?kind=charity-regulator&kind=tax-authority"
     );
     expect(repeated.status).toBe(400);
-    expect(await repeated.json()).toEqual({
+    expect(await repeated.json()).toMatchObject({
       error: "repeated_filter",
       filters: ["kind"],
+      collection: "regulators",
+      walls_intact: true,
+      next_actions: expect.any(Array),
     });
 
     const badSource = await app.request(
@@ -233,9 +348,12 @@ describe("public UK charity-sector API", () => {
       `/v1/charities/uk/sources?q=${"x".repeat(101)}`
     );
     expect(longQuery.status).toBe(400);
-    expect(await longQuery.json()).toEqual({
+    expect(await longQuery.json()).toMatchObject({
       error: "query_too_long",
       maximum: 100,
+      collection: "sources",
+      walls_intact: true,
+      next_actions: expect.any(Array),
     });
   });
 
@@ -495,10 +613,12 @@ describe("public UK charity-sector API", () => {
     );
     expect(missing.status).toBe(404);
     expect(missing.headers.get("cache-control")).toBe("no-store");
-    expect(await missing.json()).toEqual({
+    expect(await missing.json()).toMatchObject({
       error: "not_found",
       collection: "help",
       id: "help-route-not-real",
+      walls_intact: true,
+      next_actions: expect.any(Array),
     });
 
     for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
@@ -516,7 +636,12 @@ describe("public UK charity-sector API", () => {
       );
       expect(response.status).toBe(404);
       expect(response.headers.get("cache-control")).toBe("no-store");
-      expect(await response.json()).toEqual({ error: "not_found" });
+      expect(await response.json()).toMatchObject({
+        error: "not_found",
+        method: "POST",
+        walls_intact: true,
+        next_actions: expect.any(Array),
+      });
       expect(stopped.sessionCalls()).toBe(0);
     }
   });

@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "datasetId": "uk-charity-accountability",
+    "title": "UK charity organisation accountability",
+    "schemaId": "taxsorted.uk.charity-accountability/1",
+    "currentReleaseId": "candidate-zero-row-2026-07-10",
+    "jurisdiction": "United Kingdom",
+    "publicationStatus": "candidate-not-admitted",
+    "generatedAt": "2026-07-10T12:00:00.000Z",
+    "recordIdentifierPolicy": "opaque-or-non-personal-identifiers-human-reviewed-before-candidate",
+    "exclusions": [
+      "no natural-person records",
+      "no contact details",
+      "no addresses",
+      "no named pay",
+      "no personal belief data or belief inference",
+      "no fuzzy or probabilistic joins"
+    ]
+  },
+  "organisations": [],
+  "identifierMappings": [],
+  "documents": [],
+  "voices": [],
+  "claims": [],
+  "programmes": [],
+  "fundingEvents": [],
+  "financialFacts": [],
+  "assetAggregates": [],
+  "controlRelations": [],
+  "observations": [],
+  "outcomes": [],
+  "evaluations": [],
+  "comparisons": [],
+  "coverageGaps": [],
+  "tombstones": [],
+  "releases": [
+    {
+      "id": "candidate-zero-row-2026-07-10",
+      "version": "0.0.1",
+      "status": "candidate",
+      "candidateAssembledAt": "2026-07-10T12:00:00.000Z",
+      "previousReleaseId": null,
+      "schemaId": "taxsorted.uk.charity-accountability/1",
+      "datasetDigest": "sha256:71a02d44dd088c627c46798ae4eb473981766f231dcdead1a732691d17c42c14",
+      "digestAlgorithm": "sha256",
+      "digestPreimage": "canonical-utf8-dataset-with-current-release-datasetDigest-omitted-v1",
+      "recordCounts": {
+        "organisations": 0,
+        "identifierMappings": 0,
+        "documents": 0,
+        "voices": 0,
+        "claims": 0,
+        "programmes": 0,
+        "fundingEvents": 0,
+        "financialFacts": 0,
+        "assetAggregates": 0,
+        "controlRelations": 0,
+        "observations": 0,
+        "outcomes": 0,
+        "evaluations": 0,
+        "comparisons": 0,
+        "coverageGaps": 0,
+        "tombstones": 0
+      },
+      "changeSummary": [
+        "Zero-row structural example; no organisation evidence records."
+      ],
+      "changeSummaryPrivacyReview": {
+        "scope": "processed-record",
+        "naturalPersonDataPresent": false,
+        "contactDataPresent": false,
+        "addressDataPresent": false,
+        "namedPayDataPresent": false,
+        "personalBeliefDataPresent": false,
+        "beliefInferencePerformed": false,
+        "joinMethod": "exact-published-identifier-only",
+        "humanReviewStatus": "approved",
+        "freeTextReviewed": true,
+        "assessmentNature": "human-assertion-not-automated-semantic-proof",
+        "reviewedAt": "2026-07-10T12:00:00.000Z",
+        "reviewerRole": "TaxSorted accountability editor"
+      },
+      "removedOrSensitiveContentRepeated": false,
+      "stableSort": "collection-order-then-ascii-id-ascending",
+      "cursorVersion": "taxsorted.cursor/1"
+    }
+  ]
+}

@@ -44,22 +44,23 @@ jobs:
   deploy-api:
     runs-on: ubuntu-latest
     needs: test-build
-    outputs:
-      deployed: ${{ steps.fly.outputs.present }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 2
 
-      - name: Check for Fly token
-        id: fly
-        run: echo "present=${{ secrets.FLY_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+      - name: Require Fly token
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "${FLY_API_TOKEN}" ]; then
+            echo 'FLY_API_TOKEN is required for a main-branch release.' >&2
+            exit 1
+          fi
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
-        if: steps.fly.outputs.present == 'true'
 
       - name: Capture the published public-funding change prefix
-        if: steps.fly.outputs.present == 'true'
         run: |
           set -euo pipefail
           response="${RUNNER_TEMP}/public-funding-changes-before.json"
@@ -101,13 +102,11 @@ jobs:
           ' "${candidate}" >/dev/null
 
       - name: Deploy api to Fly.io
-        if: steps.fly.outputs.present == 'true'
         run: flyctl deploy -c api/fly.toml --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Smoke-test the deployed public contracts
-        if: steps.fly.outputs.present == 'true'
         run: |
           set -euo pipefail
           for path in \
@@ -120,6 +119,9 @@ jobs:
             /v1/charities/uk \
             /v1/charities/uk/manifest \
             /v1/charities/uk/sources \
+            /v1/charities/uk/registers \
+            /v1/charities/uk/accountability \
+            /v1/charities/uk/accountability/schema \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
             /v1/public-funding/uk/sources \
@@ -132,15 +134,26 @@ jobs:
               --output /dev/null "https://api.taxsorted.io${path}"
           done
 
-          api_agent_manifest=$(curl --fail --silent --show-error \
+          api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
+          api_well_known_manifest="${RUNNER_TEMP}/api-well-known-agent.txt"
+          curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            https://api.taxsorted.io/agent.txt)
-          api_well_known_manifest=$(curl --fail --silent --show-error \
+            --output "${api_agent_manifest}" \
+            https://api.taxsorted.io/agent.txt
+          curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            https://api.taxsorted.io/.well-known/agent.txt)
-          test "${api_agent_manifest}" = "${api_well_known_manifest}"
-          printf '%s\n' "${api_agent_manifest}" | \
-            grep --fixed-strings --line-regexp 'schema-version: taxsorted.agent-manifest/1'
+            --output "${api_well_known_manifest}" \
+            https://api.taxsorted.io/.well-known/agent.txt
+          cmp --silent "${api_agent_manifest}" "${api_well_known_manifest}"
+          grep --fixed-strings --line-regexp \
+            'schema-version: taxsorted.agent-manifest/1' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'charity-accountability-status: schema-only-not-admitted' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'charity-accountability-records: none' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'corrections-account: a GitHub account is required to submit a public correction' \
+            "${api_agent_manifest}"
           api_manifest_content_type=$(curl --fail --silent --show-error --head \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/agent.txt | \
@@ -168,6 +181,32 @@ jobs:
               (.data[0:($old | length)] == $old)
             ' "${current_changes}" >/dev/null
 
+          curl --fail --silent --show-error \
+            https://api.taxsorted.io/v1/charities/uk/accountability | \
+            jq --exit-status \
+              '.status == "schema-only-not-admitted" and
+               (.publicationBlockers | length) == 2 and
+               ([.publicationBlockers[].status] | all(. == "blocking")) and
+               (.publicationBlockerScope | contains("not the complete publication test")) and
+               (.admissionConditions | length) == 9 and
+               ([.admissionConditions[].status] | all(. == "required-not-satisfied")) and
+               (.collectionGuide | length) == 17 and
+               (.hardBoundaries | any(contains("every financial fact has a disclosure review"))) and
+               (.hardBoundaries | any(contains("every public document and source-review field"))) and
+               .publicationAdmission.currentSchema == "candidate-shape-only" and
+               .publicationAdmission.externalEnvelopeRequired == true' >/dev/null
+
+          curl --fail --silent --show-error \
+            https://api.taxsorted.io/v1/charities/uk/accountability/schema | \
+            jq --exit-status \
+              '.["$id"] == "https://api.taxsorted.io/v1/charities/uk/accountability/schema" and
+               .additionalProperties == false and
+               .properties.meta.properties.publicationStatus.const == "candidate-not-admitted" and
+               ((.properties.financialFacts.items.required | index("statisticalDisclosureReview")) != null) and
+               ((.properties.comparisons.items.required | index("statisticalDisclosureReview")) != null) and
+               .properties.documents.items.properties.sourceReview.properties.publicDocumentAndReviewFieldsReview.properties.sourceBodyOrExcerptPresent.const == false and
+               .properties.documents.items.properties.sourceReview.properties.publicDocumentAndReviewFieldsReview.properties.locatorsContainPointersOnly.const == true and
+               .properties.documents.items.properties.sourceReview.properties.notes.maxItems == 5' >/dev/null
           publication_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/charities/uk | \
@@ -184,11 +223,39 @@ jobs:
               ;;
           esac
 
-          negotiated_wake_schema=$(curl --fail --silent --show-error \
+          wake_body="${RUNNER_TEMP}/wake.json"
+          wake_headers="${RUNNER_TEMP}/wake.headers"
+          root_body="${RUNNER_TEMP}/root-wake.json"
+          root_headers="${RUNNER_TEMP}/root-wake.headers"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --dump-header "${wake_headers}" --output "${wake_body}" \
+            https://api.taxsorted.io/v1/wake
+          curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             --header 'Accept: application/json' \
-            https://api.taxsorted.io/ | jq --raw-output '.schema')
-          test "${negotiated_wake_schema}" = 'taxsorted.agent-wake/1'
+            --dump-header "${root_headers}" --output "${root_body}" \
+            https://api.taxsorted.io/
+          cmp --silent "${wake_body}" "${root_body}"
+          jq --exit-status '
+            .schema == "taxsorted.agent-wake/1" and
+            .resources.charityAccountability.status == "schema-only-not-admitted" and
+            .resources.charityAccountability.recordsAvailable == false and
+            .resources.corrections.accountRequired == true and
+            .resources.corrections.privateOrSensitiveIntakeAvailable == false and
+            .attribution.conformanceClaim == "none"
+          ' "${wake_body}" >/dev/null
+          wake_etag=$(awk 'tolower($1) == "etag:" { gsub("\\r", "", $2); print $2; exit }' "${wake_headers}")
+          root_etag=$(awk 'tolower($1) == "etag:" { gsub("\\r", "", $2); print $2; exit }' "${root_headers}")
+          test -n "${wake_etag}"
+          test "${wake_etag}" = "${root_etag}"
+          awk 'tolower($1) == "content-location:" { gsub("\\r", "", $2); found = ($2 == "/v1/wake") } END { exit !found }' \
+            "${root_headers}"
+          bare_root_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --output /dev/null --write-out '%{http_code}' \
+            https://api.taxsorted.io/)
+          test "${bare_root_status}" = '404'
 
           public_funding_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -209,7 +276,6 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     needs: deploy-api
-    if: needs.deploy-api.outputs.deployed == 'true'
     steps:
       - uses: actions/checkout@v5
 
@@ -223,12 +289,16 @@ jobs:
 
       - run: npm run build
 
-      - name: Check for deploy token
-        id: token
-        run: echo "present=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+      - name: Require Cloudflare deploy token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo 'CLOUDFLARE_API_TOKEN is required for a main-branch release.' >&2
+            exit 1
+          fi
 
       - name: Deploy to Cloudflare Pages
-        if: steps.token.outputs.present == 'true'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -237,7 +307,6 @@ jobs:
           command: pages deploy out --project-name=taxsorted --branch=main
 
       - name: Smoke-test the deployed human and machine doors
-        if: steps.token.outputs.present == 'true'
         run: |
           set -euo pipefail
           for path in /uk/public-funding /agent.txt /.well-known/agent.txt
@@ -249,16 +318,23 @@ jobs:
               --output /dev/null "https://taxsorted.io${path}"
           done
 
-          frontend_agent_manifest=$(curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 https://taxsorted.io/agent.txt)
-          frontend_well_known_manifest=$(curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 https://taxsorted.io/.well-known/agent.txt)
-          api_agent_manifest=$(curl --fail --silent --show-error \
-            --connect-timeout 10 --max-time 30 https://api.taxsorted.io/agent.txt)
-          test "${frontend_agent_manifest}" = "${frontend_well_known_manifest}"
-          test "${frontend_agent_manifest}" = "${api_agent_manifest}"
-          printf '%s\n' "${frontend_agent_manifest}" | \
-            grep --fixed-strings --line-regexp 'schema-version: taxsorted.agent-manifest/1'
+          frontend_agent_manifest="${RUNNER_TEMP}/frontend-agent.txt"
+          frontend_well_known_manifest="${RUNNER_TEMP}/frontend-well-known-agent.txt"
+          api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --output "${frontend_agent_manifest}" https://taxsorted.io/agent.txt
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --output "${frontend_well_known_manifest}" \
+            https://taxsorted.io/.well-known/agent.txt
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --output "${api_agent_manifest}" https://api.taxsorted.io/agent.txt
+          cmp --silent "${frontend_agent_manifest}" "${frontend_well_known_manifest}"
+          cmp --silent "${frontend_agent_manifest}" "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'schema-version: taxsorted.agent-manifest/1' "${frontend_agent_manifest}"
           frontend_manifest_content_type=$(curl --fail --silent --show-error --head --location \
             --connect-timeout 10 --max-time 30 https://taxsorted.io/agent.txt | \
             awk 'tolower($1) == "content-type:" { value=tolower($2) } END { print value }')
@@ -270,6 +346,21 @@ jobs:
               ;;
           esac
 
+          body=$(mktemp)
+          trap 'rm -f "$body"' EXIT
+          for attempt in $(seq 1 12)
+          do
+            if curl --fail --silent --show-error --location --output "$body" \
+              --connect-timeout 10 --max-time 30 \
+              https://taxsorted.io/uk/charities && \
+              grep --fixed-strings --quiet 'Words beside actions' "$body"
+            then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "The deployed charity guide did not expose the accountability section." >&2
+          exit 1
   # HMRC's own Test Fraud Prevention Headers API, sandbox only, checking the
   # exact header-assembly code path production uses (api/src/fraud.ts's
   # assembleFraudHeaders via api/scripts/validate-fraud-headers.ts). Runs

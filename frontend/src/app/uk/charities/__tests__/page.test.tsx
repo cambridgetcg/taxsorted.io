@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import CharitiesPage from "../page";
+import CharitiesPage, { metadata } from "../page";
 
 describe("UK charities page", () => {
-  it("leads with the organisation-first publication boundary", () => {
+  it("leads with the sector-first publication boundary", () => {
     render(<CharitiesPage />);
 
+    expect(metadata.description).toMatch(/^A sector-first guide/);
     expect(
       screen.getByRole("heading", {
         level: 1,
@@ -56,6 +57,56 @@ describe("UK charities page", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/staff cost and published bands must not become/i)).toBeInTheDocument();
     expect(screen.getByText(/award, payment, donation and delivered result are different/i)).toBeInTheDocument();
+  });
+
+  it("places sourced words beside recorded actions without inventing verdicts", () => {
+    render(<CharitiesPage />);
+
+    expect(
+      screen.getByRole("heading", { name: /compare public claims and records without inventing/i }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByTestId("accountability-evidence-type")).toHaveLength(10);
+    expect(screen.getByText(/^source voice$/i)).toBeInTheDocument();
+    expect(screen.getByText(/event, publication and retrieval dates/i)).toBeInTheDocument();
+    expect(screen.getByText(/human editorial assertion, not a mechanically proven anchor/i)).toBeInTheDocument();
+    expect(screen.getByText(/public review notes, IDs, attribution, terms.*screened too/i)).toBeInTheDocument();
+    expect(screen.getByText(/no copied source excerpt or personal detail/i)).toBeInTheDocument();
+    expect(screen.getByText(/TaxSorted editorial number cannot call itself reported/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /missing evidence is not contradiction/i })).toBeInTheDocument();
+    expect(screen.getByText(/missing, unavailable, unsafe, conflicting or deliberately excluded/i)).toBeInTheDocument();
+    expect(screen.getByText(/award is not a payment, delivery or impact result/i)).toBeInTheDocument();
+    expect(screen.getByText(/aggregate would need suppression.*value is omitted/i)).toBeInTheDocument();
+    expect(screen.getByText(/fixed wording cannot.*repeat the amount or sensitive context/i)).toBeInTheDocument();
+    expect(screen.getByText(/every financial fact receives a disclosure review/i)).toBeInTheDocument();
+    expect(screen.getByText(/every derived financial fact.*numeric comparison.*fresh result review/i)).toBeInTheDocument();
+    expect(screen.getByText(/staff costs, remuneration bands and trustee remuneration.*always.*people-derived/i)).toBeInTheDocument();
+    expect(screen.getByText(/final privacy review follows disclosure/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/only human-reviewed, logically incompatible records or statements/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/two money records must also match.*measurement stage/i)).toBeInTheDocument();
+    expect(screen.getByText(/no honesty, trust, faith or impact leaderboard/i)).toBeInTheDocument();
+  });
+
+  it("opens the schema to builders while withholding organisation rows", () => {
+    render(<CharitiesPage />);
+
+    expect(
+      screen.getByText(/no route accepts candidate documents/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/all nine admission conditions must pass/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /accountability index/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/charities/uk/accountability",
+    );
+    expect(screen.getByRole("link", { name: /accountability schema/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/charities/uk/accountability/schema",
+    );
+    expect(screen.getByRole("link", { name: /zero-row example/i })).toHaveAttribute(
+      "href",
+      "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/charity-accountability/examples/zero-row-candidate.json",
+    );
   });
 
   it("gives a minimum-information route to ask for help", () => {

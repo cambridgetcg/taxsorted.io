@@ -167,6 +167,52 @@ uncertain terms explicit. The API links to source material; it does not relicens
 server source code remains AGPL-3.0. Catalogues, manifests, dictionaries and export indexes
 link the public GitHub issue tracker for corrections.
 
+## Agent orientation — one honest front door
+
+An agent can start at either of these equivalent, ordered plain-text discovery files:
+
+```text
+GET /agent.txt
+GET /.well-known/agent.txt
+```
+
+`GET` and `HEAD` are supported. Both files point to the canonical `GET /v1/wake` response,
+whose schema is `taxsorted.agent-wake/1`. The API root returns the exact same wake bytes only
+when `Accept` includes `application/json`; an ordinary request to `/` still gets the closed-door
+`404`. The wake response states its scoped access boundary, current dataset publication states,
+resource handles, evidence lanes, seven typed walls and bounded next actions. It grants no extra
+access, identity or authority and does not change any publication switch. Its no-account,
+no-session and no-cookie statement applies only to the doorway and listed public read routes,
+not to filing or authenticated calculation services.
+
+The charity route family also treats an error as an instruction. Its versioned
+`taxsorted.charity-error/1` envelope keeps the established charity casing—`walls_intact` and
+`next_actions`—while naming the request method/path. Agent-door errors use the separate
+`taxsorted.agent-error/1` envelope and camel-case `nextActions`; the schema field lets a client
+choose the right parser without guessing. Bounded `400`, `404` and publication-state `503`
+responses state the reason and repeat the relevant safety walls. A client can
+recover from a bad filter, missing ID or closed collection without silently broadening the
+query. The field is a machine-readable statement about the response path; it is not a
+cryptographic attestation or proof that every possible implementation defect is absent.
+
+The doorway itself needs no account. The external GitHub correction tracker does require a
+GitHub account to submit and is not a private or sensitive intake; the wake resource states both
+facts explicitly.
+
+This interaction shape was inspired by
+[XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), a CC BY-SA 4.0
+agent-interaction and agent-experience framework. TaxSorted adapts only the useful ideas named
+here: a small machine-addressed discovery file, immediate orientation and refusals that explain
+the next safe action. It does **not** adopt XENIA's ratings, decentralised identifiers, agent
+identity or continuity model, tokens, wallets, covenants or broader claims about machine minds.
+The wake response expressly claims no full-framework conformance.
+Its CC BY-SA link applies to the adapted manifest and wake representation; TaxSorted's server source
+code remains under the repository's AGPL-3.0 licence.
+
+These are implementation facts in this workspace, not a deployment claim. After an
+authorised release, retrieve both manifest paths and follow every advertised URL on the
+public host before calling the door live.
+
 ## Calculation service — workspace key
 
 ```text
@@ -397,6 +443,8 @@ GET /v1/charities/uk/{collection}/{id}
 GET /v1/charities/uk/manifest
 GET /v1/charities/uk/schema
 GET /v1/charities/uk/dictionary
+GET /v1/charities/uk/accountability
+GET /v1/charities/uk/accountability/schema
 GET /v1/charities/uk/exports
 GET /v1/charities/uk/exports/{collection}/{json|ndjson|csv}
 ```
@@ -439,10 +487,144 @@ is delegated to the official register doors in the `registers` collection. A lat
 organisation layer needs an explicit inclusion rule, source-by-source rights checks, exact-ID
 joins, a private safety/correction route and a fresh privacy assessment before publication.
 
+### Accountability shape: open contract, empty ledger
+
+The two accountability routes publish a design contract only. They are useful now because a
+builder can prepare structurally compatible records and challenge the comparison method before
+TaxSorted collects an organisation row:
+
+```text
+GET /v1/charities/uk/accountability
+GET /v1/charities/uk/accountability/schema
+```
+
+`accountability` is not one of the current charity-sector collections and has no data export,
+item or ingestion route. The index describes the future dataset, its 17-entry `collectionGuide`
+and the complete admission boundary; the second response is structural JSON Schema. JSON Schema
+does not perform graph, digest, chronology, source-bridge, disclosure, arithmetic or release-chain
+refinements. Run the checked-in zero-row example through the runtime validator:
+
+```sh
+npm run validate:charity-accountability-candidate --workspace api -- \
+  research/uk/charity-accountability/examples/zero-row-candidate.json
+```
+
+The command reads one local file, makes no network request and writes nothing. A successful result
+still says `candidate-not-admitted`; it is neither submission nor publication approval.
+
+The framework status is exactly `schema-only-not-admitted`. Its stable collection order is
+`organisations`, `identifierMappings`, `documents`, `voices`, `claims`, `programmes`,
+`fundingEvents`, `financialFacts`, `assetAggregates`, `controlRelations`, `observations`,
+`outcomes`, `evaluations`, `comparisons`, `coverageGaps`, `tombstones`, `releases`. Within an
+immutable candidate assembly, records sort by a 1–100 character lowercase ASCII `id`; syntax
+alone is not safety,
+so IDs must also be opaque or non-personal and human-reviewed. A cursor is tied to that candidate
+and cannot silently continue into another one. Candidate history is one acyclic predecessor chain;
+every predecessor must have been assembled no later than its child, and every active evidence or
+review timestamp must be no later than the current `candidateAssembledAt`.
+A tombstone's `releaseId` names the first candidate that carries it, so its effective time cannot
+be later than that candidate's assembly. It remains in every later candidate, and each release's
+tombstone count equals the cumulative retained ledger through that release.
+
+The planned ledger puts attributed public claims beside records of action while keeping the
+evidence kind visible. A voice identifies the speaking organisation and its capacity. A claim
+stores a human-reviewed TaxSorted paraphrase, its modality and a reviewed locator back to the
+publisher's wording; it does not present the paraphrase as a quotation. Locator equality is
+checked, but its exactness and resolvability are editorial assertions, not mechanical proof.
+Exact words mean what was available at review time. A document states whether TaxSorted knows
+only the publisher's current URL, a publisher version/digest or a lawfully archived link.
+Documents,
+programmes, funding events, finance facts, asset aggregates, observations, outcomes and
+evaluations remain separate records. None silently stands in for another: an award is not a
+payment; payment is not delivery; delivery is not an outcome; and a self-reported outcome is
+not an independent evaluation. Documents may keep reviewed metadata plus bounded public
+source-review declarations and notes; source bodies, excerpts, images and attachments remain
+external and are not admitted or stored by the contract.
+`publicDocumentAndReviewFieldsReview` covers every public document/source-review field, including
+permanence text, review IDs, attribution, terms URLs, limitations, locators and notes. It asserts
+that none contains
+a person, contact, address, named pay, personal belief detail or belief inference about a person,
+or a copied source body/excerpt; locators are pointers only, review notes are capped at five and
+limitations at ten. This remains a human
+assertion, not automated semantic proof.
+
+`taxsorted-derived` is reserved for a structured
+`derived-exact-arithmetic` financial fact and a labelled
+`taxsorted-source-comparison` evaluation. A TaxSorted editorial number cannot
+masquerade as reported, audited or restated; programmes, funding, assets,
+control, observations and outcomes remain externally attributed.
+
+Identity and context travel with the claim. A future subject-organisation join must use an exact
+published register identifier. Regulators and public funders may instead use an exact canonical
+official-institution URI that is explicitly not called a legal-entity ID. An award or transaction
+identifier is separately namespaced when its source supplies one and can never serve as an
+organisation join. Programmes and filings retain their admitted source locator; item-level asset
+identity is outside this version.
+`exact-published-identifier` is the mapping method and privacy review requires
+`exact-published-identifier-only`; display names, similar addresses, domains and people are
+never join keys. If one internal organisation carries multiple official identifiers, a separate
+human-reviewed bridge must point to an admitted source locator that explicitly publishes both;
+the privacy flag by itself cannot bridge registers. Every mapping must be listed by the exact
+organisation it references, and every listed mapping must point back. The uppercase-alphanumeric
+rule accepts only ASCII letters, digits, ordinary spaces and hyphens before canonicalisation;
+punctuation and Unicode lookalikes fail. Each processed record carries its admitted source use and review;
+where the record type needs them, it also carries observation time, source voice, period, defined
+scope, defined metric, units, money basis, method and limitations. A comparison names the exact
+records and rule used; it does not hide its reasoning in a score.
+
+Value-bearing records cannot claim that a still-present value was “suppressed.” If a small or
+unknown-population aggregate cannot be published safely, the value is omitted and a
+`suppressed-for-disclosure-risk` coverage gap records the boundary with the fixed public text
+“A value was omitted after disclosure-risk review.” and “No inference should be made from its
+absence.” It carries no source-document pointer, so the gap cannot repeat the omitted value or
+lead directly back to it. Publishable disclosure review
+is required for every financial fact, anonymous or aggregate funding, programmes, observations,
+outcomes and evaluations. Staff-cost and remuneration metrics,
+and aggregate public donations, are always reviewed as people-derived aggregates with a stated
+smallest cell; an unknown or unsafe population is omitted to a gap. A structured derived financial fact is an acyclic signed sum of at least two
+distinct compatible minor-unit inputs and is recomputed by the runtime validator. Differences
+must remain safe integer minor units. Ratios store the exact source numerator and non-zero
+denominator; no rounded floating-point quotient is part of the base contract. A derived
+financial fact follows its inputs and their reviews, then receives its own disclosure review. A
+numeric comparison's disclosure review follows both records and the human comparison review. A
+people-derived input forces either result to remain people-derived with its own reviewed-safe cell.
+Periods must match except for an explicit `change-over-time` relation; all other context and money
+basis fields must still align.
+
+Review time has meaning. Source review follows retrieval; normalisation follows source readiness;
+disclosure review follows the record it approves; final privacy review follows any applicable
+normalisation and disclosure review so it sees their public text; and a comparison waits until
+both referenced records and their required reviews are ready. Derived facts wait for their input
+reviews; numeric-comparison disclosure review follows the comparison's editorial review.
+
+Missing evidence is a gap, not a contradiction and not proof that an event did not happen. A
+future `inconsistent-with` relation may be emitted only after human review finds logically
+incompatible statements about the same exact organisation identifier, period, scope key and
+definition, and metric key and definition. Two money records must also match on money basis,
+measurement stage and amount date before they can carry that relation. Different dates, stages,
+scopes, methods or source voices remain visible as differences. TaxSorted does not
+produce an honesty, trust, faith, efficiency, value-for-money or impact ranking.
+
+Neither route returns organisation evidence records in this release. The two named gates are the
+immediate missing systems, not a complete publication checklist. `confidential-correction-safety-intake` requires a tested confidential
+intake with identity-safe triage, urgent suppression and an auditable resolution path.
+`asset-level-rights-admission-digest` requires every exact source asset to receive a reviewed
+link decision and locator-specific derived-use decision. Its content digest detects mutation of
+the declared review record; it proves neither legality nor reviewer identity. An
+organisation-level publisher decision is too broad. Version 1 describes and validates only
+`candidate-not-admitted` documents; no API route accepts or publishes them. All nine exposed
+`admissionConditions` must also pass: controller/lawful-basis, retention and rights records; a
+formal DPIA decision; expiring asset review; a deliberately small territorial field set;
+end-to-end correction, suppression and rollback exercises; reviewer calibration; clear public
+meaning; and a monitored emergency stop. Tombstone identifiers and release summaries receive
+privacy review so correction metadata cannot repeat removed content. A future operational
+publication envelope must resolve real check IDs against an audit store before any row is distributed.
+
 Production serving uses `UK_CHARITIES_PUBLIC_DATA_ENABLED=true`; the independent
 `UK_CHARITIES_EMERGENCY_STOP=true` wins. While the release is closed, the overview, sources,
-register doors, gaps, manifest, schema, dictionary and export index remain readable. The stop
-cannot recall copies already downloaded or committed publicly.
+register doors, gaps, manifest, schema, dictionary, export index and schema-only accountability
+contract remain readable. That contract contains no organisation evidence rows for the stop to
+expose. The stop cannot recall copies already downloaded or committed publicly.
 
 The method, publication assessment and reading guide live in
 [`research/uk/charities/`](../research/uk/charities/).

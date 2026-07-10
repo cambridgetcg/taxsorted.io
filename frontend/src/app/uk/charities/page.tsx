@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "How UK charities work — TaxSorted",
   description:
-    "An organisation-first guide to UK charity registers, conditional tax relief, obligations, finance, assets, control and safe routes to ask for help.",
+    "A sector-first guide to UK charity registers, conditional tax relief, obligations, finance, assets, control and safe routes to ask for help.",
 };
 
 const registers = [
@@ -39,6 +39,53 @@ const financeMeasures = [
   ["Reserves", "A policy and accounting measure; not simply a spare bank balance."],
   ["Pay", "Staff cost and published bands must not become an invented named salary."],
   ["Funding", "An award, payment, donation and delivered result are different events."],
+] as const;
+
+const accountabilityEvidence = [
+  {
+    title: "Formal objects and attributed claims",
+    description:
+      "These establish an object or preserve a reviewed TaxSorted normalisation of what a linked source says. They do not, by themselves, prove delivery or effect.",
+    items: [
+      [
+        "Organisation identity",
+        "An exact registered organisation or official institution, kept separate from its source document and attributed claims.",
+      ],
+      [
+        "Source document",
+        "Reviewed metadata plus bounded public review declarations and notes; source bodies, excerpts, images and attachments stay external.",
+      ],
+      ["Plan", "A stated intention, target, budget or future programme."],
+      ["Self-report", "An organisation’s own account of its work, performance or results."],
+    ],
+  },
+  {
+    title: "Records, transactions and assessment",
+    description:
+      "These preserve disclosures, decisions, transfers, reported delivery, reported change or independent analysis as separate evidence.",
+    items: [
+      ["Filing", "A submitted account, return, trustee report or other formal disclosure."],
+      ["Award", "A decision to allocate money; not proof of payment, delivery or impact."],
+      ["Payment", "A recorded transfer; not proof that a service was delivered or worked."],
+      ["Output", "A sourced record of an activity, service or thing produced."],
+      ["Outcome", "A sourced claim or measurement of change, with its method and limits."],
+      ["Evaluation", "A review whose author, method, independence and conclusions remain visible."],
+    ],
+  },
+] as const;
+
+const evidenceContext = [
+  [
+    "Source voice",
+    "Who is speaking: the subject organisation, regulator, funder, auditor, delivery partner, evaluator or TaxSorted editorial analysis.",
+  ],
+  ["Date", "The event, publication and retrieval dates where each is available."],
+  [
+    "Scope",
+    "The exact organisation, programme or aggregate population described; item-level assets and locations are excluded.",
+  ],
+  ["Period", "The time covered by the evidence, not merely the webpage date."],
+  ["Metric", "The exact scope and metric definitions, method, units and accounting boundary."],
 ] as const;
 
 const obligations = [
@@ -138,6 +185,7 @@ export default function CharitiesPage() {
             ["#tax", "The tax bargain"],
             ["#control", "Control and ownership"],
             ["#finance", "Finance and assets"],
+            ["#accountability", "Words and actions"],
             ["#help", "Ask for help"],
             ["#boundary", "People and religion boundary"],
             ["#api", "API"],
@@ -280,6 +328,175 @@ export default function CharitiesPage() {
             </div>
           ))}
         </dl>
+      </section>
+
+      <section
+        id="accountability"
+        className="mt-16 scroll-mt-6"
+        aria-labelledby="accountability-title"
+      >
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          Words beside actions, not verdicts
+        </p>
+        <h2
+          id="accountability-title"
+          className="mt-2 max-w-4xl text-3xl font-semibold tracking-tight text-ink"
+        >
+          Compare public claims and records without inventing a character score.
+        </h2>
+        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
+          This is the published model for a future ledger, not a populated organisation
+          directory. It keeps each evidence kind distinct, attributes the source voice and
+          links back to the original wording. A legal object, a normalised claim and a reported
+          result are not interchangeable just because they concern the same charity.
+        </p>
+        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
+          The API stores a human-reviewed paraphrase, not a quotation. Its locator is a human
+          editorial assertion, not a mechanically proven anchor. Follow it to the publisher&apos;s
+          words as available at review time; the permanence field says whether a publisher
+          version or lawful archive is known. Public review notes, IDs, attribution, terms,
+          limitations and locators are screened too: no copied source excerpt or personal detail,
+          and locators remain pointers rather than quotations.
+        </p>
+        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
+          A TaxSorted editorial number cannot call itself reported. TaxSorted-derived finance must
+          show its exact arithmetic, while programmes, funding, assets, control, observations and
+          outcomes stay attributed to an external institutional source.
+        </p>
+
+        <div className="mt-7 grid gap-5 lg:grid-cols-2">
+          {accountabilityEvidence.map((group, index) => (
+            <article
+              key={group.title}
+              className={
+                index === 0
+                  ? "rounded-[2rem] border border-ink bg-ink p-6 text-white shadow-sm sm:p-8"
+                  : "rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8"
+              }
+            >
+              <h3 className={`text-xl font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
+                {group.title}
+              </h3>
+              <p
+                className={`mt-3 text-sm leading-6 ${index === 0 ? "text-white/70" : "text-ink-soft"}`}
+              >
+                {group.description}
+              </p>
+              <dl className="mt-6 space-y-4">
+                {group.items.map(([term, meaning]) => (
+                  <div
+                    key={term}
+                    data-testid="accountability-evidence-type"
+                    className={
+                      index === 0
+                        ? "rounded-2xl border border-white/15 bg-white/5 p-4"
+                        : "rounded-2xl border border-line bg-paper p-4"
+                    }
+                  >
+                    <dt className={`font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
+                      {term}
+                    </dt>
+                    <dd
+                      className={`mt-1 text-sm leading-6 ${index === 0 ? "text-white/70" : "text-ink-soft"}`}
+                    >
+                      {meaning}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-3xl border border-line bg-accent-soft p-6 sm:p-8">
+          <h3 className="text-xl font-semibold text-ink">
+            Keep the relevant context attached when records are compared
+          </h3>
+          <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {evidenceContext.map(([term, meaning]) => (
+              <div key={term} className="rounded-2xl bg-white/75 p-4">
+                <dt className="text-sm font-semibold text-accent-deep">{term}</dt>
+                <dd className="mt-2 text-sm leading-6 text-ink-soft">{meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+          <aside className="rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8" aria-labelledby="comparison-rules-title">
+            <h3 id="comparison-rules-title" className="text-xl font-semibold text-ink">
+              Missing evidence is not contradiction.
+            </h3>
+            <div className="mt-4 space-y-3 text-sm leading-6 text-amber-950">
+              <p>
+                A gap records evidence that is missing, unavailable, unsafe, conflicting or
+                deliberately excluded. It does not make a claim false. An award is not a
+                payment, delivery or impact result, and those stages must never be silently
+                filled in.
+              </p>
+              <p>
+                If an aggregate would need suppression, its value is omitted and a reviewed
+                coverage gap records only that an omission happened. Its fixed wording cannot
+                repeat the amount or sensitive context, and it cannot point back to the source.
+              </p>
+              <p>
+                Every financial fact receives a disclosure review. Every derived financial fact
+                and numeric comparison receives a fresh result review. If an input is
+                people-derived, the result stays people-derived and needs its own reviewed-safe
+                smallest cell. Staff costs, remuneration bands and trustee remuneration are
+                always treated as people-derived. The final privacy review follows disclosure, so
+                it also checks the disclosure reviewer&apos;s public limitations text.
+              </p>
+              <p>
+                Only human-reviewed, logically incompatible records or statements about the
+                same exact organisation identifier, period, scope key and definition, and metric
+                key and definition may be labelled inconsistent. Two money records must also match
+                basis, measurement stage and amount date. Differences in voice, timing or method
+                stay visible as differences.
+              </p>
+              <p className="font-semibold">
+                No honesty, trust, faith or impact leaderboard is produced from this evidence.
+              </p>
+            </div>
+          </aside>
+
+          <aside className="rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8" aria-labelledby="accountability-api-title">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+              Open shape, guarded publication
+            </p>
+            <h3 id="accountability-api-title" className="mt-2 text-xl font-semibold text-ink">
+              Builders can use the accountability schema.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">
+              The evidence types, provenance fields, collection guide and comparison rules are
+              open for structural reuse. No route accepts candidate documents. The two named
+              blockers—confidential correction intake and asset-level rights review—are immediate,
+              not exhaustive: all nine admission conditions must pass before any organisation row
+              is published. Use the zero-row example and runtime validator; JSON Schema alone does
+              not perform the graph, arithmetic or history checks.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a
+                href="https://api.taxsorted.io/v1/charities/uk/accountability"
+                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-deep"
+              >
+                Accountability index ↗
+              </a>
+              <a
+                href="https://api.taxsorted.io/v1/charities/uk/accountability/schema"
+                className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
+              >
+                Accountability schema ↗
+              </a>
+              <a
+                href="https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/charity-accountability/examples/zero-row-candidate.json"
+                className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
+              >
+                Zero-row example ↗
+              </a>
+            </div>
+          </aside>
+        </div>
       </section>
 
       <section id="help" className="mt-16 scroll-mt-6" aria-labelledby="help-title">

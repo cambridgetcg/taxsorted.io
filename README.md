@@ -92,8 +92,17 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   market gates, lawful entry paths and the mechanics of structural barriers.
 - **Charity-sector graph**: sessionless `GET /v1/charities/uk` routes explain official UK
   registers, legal forms, conditional tax treatments, obligations, funding, finance and pay
-  disclosures, control structures and safe help routes. The first release deliberately has no
-  mirrored charity-by-charity records, people directory, personal contacts or inferred beliefs.
+  disclosures, control structures and safe help routes. A schema-only accountability door at
+  `/v1/charities/uk/accountability`, with its structural contract at
+  `/v1/charities/uk/accountability/schema`, explains how a later words-and-actions ledger would
+  keep attributed, human-reviewed paraphrases linked to reviewed source locators, expose source
+  permanence, preserve applicable dates, defined scope and exact identifiers, and avoid a trust
+  score. Locator meaning is an editorial assertion, not mechanical proof. Version 1
+  describes and validates only `candidate-not-admitted` documents; no route accepts or publishes
+  them. Its status is `schema-only-not-admitted`, it contains no organisation records, and its
+  two immediate blockers do not replace the nine-condition publication test. The first
+  release deliberately has no mirrored charity-by-charity records, people directory, personal
+  contacts or inferred beliefs.
 - **Public-funding graph**: sessionless `GET /v1/public-funding/uk` routes map the pooled-tax
   fiscal spine, health and education funding, all four UK nations, formal offices, boards,
   aggregate allocations, functional contacts, delivery stages, audit and known gaps. It does
@@ -101,6 +110,20 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   The append-only `/changes` feed lets mirrors resume from caller-held cursors, while
   `/records/{id}` resolves stable IDs without making builders guess their collection.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
+
+Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
+manifests point to the canonical JSON orientation at `/v1/wake`, OpenAPI, the open-data catalogue,
+the charity accountability shape and the safety walls. The API root returns the same wake bytes
+only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
+charity API also turns errors into instructions:
+a refusal names the reason, confirms the walls remain intact and gives bounded next actions.
+These files are implemented in this workspace; check the public host before treating them as
+deployed.
+
+That narrow interaction pattern was inspired by
+[XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), published under CC BY-SA 4.0.
+TaxSorted borrows machine discovery, orientation and useful refusal ideas; it does not adopt
+XENIA's ratings, decentralised identifiers, identity model, tokens or wider agent-world claims.
 
 ## Self-hosting & HMRC credentials
 
@@ -121,6 +144,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   enter the industry, what each credential or licence really does, who controls it and pays
 - [`research/uk/charities/README.md`](research/uk/charities/README.md) — how the UK charity
   sector works: relief conditions, registers, money, stewardship, duties and safe reuse
+- [`research/uk/charity-accountability/README.md`](research/uk/charity-accountability/README.md)
+  — the zero-row words-and-actions contract, full admission conditions, example and validator
 - [`research/uk/public-funding/README.md`](research/uk/public-funding/README.md) — how pooled
   public money becomes authority, allocations, health and education delivery, accounts and audit
 - [`research/uk/politics/official-events-method.md`](research/uk/politics/official-events-method.md)

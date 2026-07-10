@@ -18,6 +18,27 @@ const wakePath = "/v1/wake";
 const catalogPath = "/v1/open-data";
 const rightsPath = "/v1/open-data/rights";
 const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
+const charityAccountabilityPath = "/v1/charities/uk/accountability";
+const charityAccountabilitySchemaPath =
+  "/v1/charities/uk/accountability/schema";
+
+export const xeniaAttribution = {
+  name: "XENIA",
+  creators: ["Yu", "Fable"],
+  source: "https://github.com/cambridgetcg/xenia",
+  licence: {
+    id: "CC-BY-SA-4.0",
+    url: "https://creativecommons.org/licenses/by-sa/4.0/",
+  },
+  appliedPatterns: [
+    "machine-readable discovery",
+    "declared machine boundaries",
+    "errors with recovery actions",
+  ],
+  conformanceClaim: "none",
+  scope:
+    "XENIA patterns informed this response. Response and manifest content is CC BY-SA 4.0; implementation source remains AGPL-3.0. No XENIA conformance is claimed.",
+} as const;
 
 export const agentManifestText = `# TaxSorted machine doorway
 # Public orientation for the UK tax, politics and public-money data service.
@@ -33,17 +54,32 @@ rights: GET ${apiOrigin}${rightsPath}
 openapi: GET ${apiOrigin}/openapi.json
 health: GET ${apiOrigin}/v1/health
 public-funding-changes: GET ${apiOrigin}/v1/public-funding/uk/changes
+charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
+charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
+charity-accountability-status: schema-only-not-admitted
+charity-accountability-records: none
 corrections: ${correctionsUrl}
-authentication: none for the public resources listed here
+authentication: none for TaxSorted public read resources listed here
+corrections-account: a GitHub account is required to submit a public correction
+account: none on this doorway
+session: none on this doorway
 cookies: none on this doorway
+writes: none on this doorway
 methods: GET, HEAD, OPTIONS
 formats: application/json, application/x-ndjson, text/csv
+xenia-source: ${xeniaAttribution.source}
+xenia-credit: XENIA by ${xeniaAttribution.creators.join(" and ")}
+xenia-licence: ${xeniaAttribution.licence.url}
+xenia-licensed-content: response and manifest content; implementation source remains AGPL-3.0
+xenia-conformance-claim: ${xeniaAttribution.conformanceClaim}
 
 # Walls kept by this doorway
 wall: publication gates and emergency stops remain authoritative
 wall: a public-data licence is not a blanket licence over linked source material
 wall: private contacts, private communications and inferred personal ties do not belong here
 wall: uncertainty, source limits and known gaps stay visible
+wall: the charity map does not publish a people, personal-contact or inferred-belief graph
+wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
 `;
 
 function acceptsJson(header: string | undefined) {
@@ -86,6 +122,8 @@ function publicHeaders(
       `<${rightsPath}>; rel="license"; type="application/json"`,
       `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
       `</agent.txt>; rel="alternate"; type="text/plain"`,
+      `<${xeniaAttribution.source}>; rel="related"; title="XENIA"`,
+      `<${xeniaAttribution.licence.url}>; rel="license"; title="Agent doorway content licence"`,
     ].join(", "),
   );
 }
@@ -103,23 +141,55 @@ function queryError(
   c.header("Cache-Control", "no-store");
   c.header("Content-Type", "application/json; charset=utf-8");
   c.header("X-Content-Type-Options", "nosniff");
+  const body = {
+    schema: "taxsorted.agent-error/1",
+    error: "unknown_query_parameter",
+    message: "This doorway does not use query parameters.",
+    method: c.req.method,
+    path: c.req.path,
+    parameters,
+    nextActions: [
+      {
+        id: "retry-without-query",
+        method: "GET",
+        href: retryHref,
+        accepts,
+        description: "Retry the same public resource without a query string.",
+      },
+    ],
+  } as const;
+  if (c.req.method === "HEAD") return c.body(null, 400);
+  return c.json(body, 400);
+}
+
+function methodError(
+  c: Context,
+  path: string,
+  accepts = ["application/json"],
+) {
+  c.header("Allow", "GET, HEAD, OPTIONS");
+  c.header("Cache-Control", "no-store");
+  c.header("Content-Type", "application/json; charset=utf-8");
+  c.header("X-Content-Type-Options", "nosniff");
   return c.json(
     {
       schema: "taxsorted.agent-error/1",
-      error: "unknown_query_parameter",
-      message: "This doorway does not use query parameters.",
-      parameters,
+      error: "method_not_allowed",
+      message: "The machine doorway is read-only.",
+      method: c.req.method,
+      path,
+      parameters: [],
       nextActions: [
         {
-          id: "retry-without-query",
+          id: "retry-with-read-method",
           method: "GET",
-          href: retryHref,
+          href: path,
           accepts,
-          description: "Retry the same public resource without a query string.",
+          description: "Read this doorway without creating or changing state.",
         },
       ],
     },
-    400,
+    405,
   );
 }
 
@@ -167,7 +237,7 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
     service: {
       name: "TaxSorted",
       purpose:
-        "Make sourced UK tax, politics and public-money structures easier to understand, inspect and reuse.",
+        "Make sourced UK tax, politics, charity and public-money structures easier to understand, inspect and reuse.",
       humanDoor: `${humanOrigin}/`,
       machineDoor: `${apiOrigin}${wakePath}`,
       jurisdiction: "United Kingdom",
@@ -175,8 +245,11 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
     access: {
       scope: "TaxSorted public API resources listed by this doorway",
       authentication: "none",
+      account: "none",
+      session: "none",
       price: "free",
       cookies: "none",
+      writes: "none",
       methods: ["GET", "HEAD", "OPTIONS"],
       cors: "*",
     },
@@ -213,6 +286,16 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         statement:
           "The manifest, orientation and open-data resources do not create a taxpayer or browser identity session and do not set cookies.",
       },
+      {
+        id: "no-charity-people-or-belief-graph",
+        statement:
+          "The charity map does not publish a bulk people graph, personal-contact directory, donor or beneficiary dataset, or inferred personal belief.",
+      },
+      {
+        id: "words-actions-and-analysis-stay-labelled",
+        statement:
+          "An attributed statement, reported action, official finding, TaxSorted analysis and an unknown remain distinct evidence types.",
+      },
     ],
     publicationStates: catalog.datasets.map((dataset) => ({
       datasetId: dataset.id,
@@ -235,10 +318,20 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
       rights: { href: rightsPath },
       openApi: { href: "/openapi.json" },
       health: { href: "/v1/health" },
-      corrections: { href: correctionsUrl },
+      corrections: {
+        href: correctionsUrl,
+        accountRequired: true,
+        privateOrSensitiveIntakeAvailable: false,
+      },
       manifests: {
         primary: "/agent.txt",
         wellKnownMirror: "/.well-known/agent.txt",
+      },
+      charityAccountability: {
+        framework: charityAccountabilityPath,
+        schema: charityAccountabilitySchemaPath,
+        status: "schema-only-not-admitted",
+        recordsAvailable: false,
       },
       datasets: datasetHandles(catalog),
     },
@@ -262,7 +355,7 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         "data-contracts",
         "Data contracts",
         "Schemas and field dictionaries for building on the datasets.",
-        ["schema", "dictionary"],
+        ["schema", "dictionary", "accountability", "accountabilitySchema"],
       ),
       evidenceLane(
         catalog,
@@ -322,14 +415,31 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           "Read the append-only release checkpoint and keep the returned cursor for the next poll.",
       },
       {
-        id: "report-a-public-correction",
+        id: "inspect-charity-accountability-contract",
+        method: "GET",
+        href: charityAccountabilityPath,
+        accepts: ["application/json"],
+        description:
+          "Read the candidate-only evidence model, publication blockers and exact source-use boundaries before building charity records.",
+      },
+      {
+        id: "open-public-correction-tracker",
         method: "GET",
         href: correctionsUrl,
         accepts: ["text/html"],
         description:
-          "Report a non-sensitive correction publicly. Do not submit private or safety-sensitive material there.",
+          "Open the external public issue tracker. Submitting needs a GitHub account; do not put private or safety-sensitive material there.",
       },
     ],
+    attribution: {
+      name: xeniaAttribution.name,
+      creators: xeniaAttribution.creators,
+      source: xeniaAttribution.source,
+      licence: xeniaAttribution.licence,
+      appliedPatterns: xeniaAttribution.appliedPatterns,
+      conformanceClaim: xeniaAttribution.conformanceClaim,
+      scope: xeniaAttribution.scope,
+    },
   } as const;
 }
 
@@ -392,6 +502,15 @@ export function createAgentInterfaceRoutes(options: OpenDataRouteOptions = {}) {
     }
     return sendWake(c, wakeBody, wakeEtag);
   });
+
+  for (const { path, accepts } of [
+    { path: "/", accepts: ["application/json"] },
+    { path: "/agent.txt", accepts: ["text/plain"] },
+    { path: "/.well-known/agent.txt", accepts: ["text/plain"] },
+    { path: wakePath, accepts: ["application/json"] },
+  ]) {
+    app.all(path, (c) => methodError(c, path, accepts));
+  }
 
   return app;
 }

@@ -12,14 +12,29 @@ rights: GET https://api.taxsorted.io/v1/open-data/rights
 openapi: GET https://api.taxsorted.io/openapi.json
 health: GET https://api.taxsorted.io/v1/health
 public-funding-changes: GET https://api.taxsorted.io/v1/public-funding/uk/changes
+charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountability
+charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
+charity-accountability-status: schema-only-not-admitted
+charity-accountability-records: none
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
-authentication: none for the public resources listed here
+authentication: none for TaxSorted public read resources listed here
+corrections-account: a GitHub account is required to submit a public correction
+account: none on this doorway
+session: none on this doorway
 cookies: none on this doorway
+writes: none on this doorway
 methods: GET, HEAD, OPTIONS
 formats: application/json, application/x-ndjson, text/csv
+xenia-source: https://github.com/cambridgetcg/xenia
+xenia-credit: XENIA by Yu and Fable
+xenia-licence: https://creativecommons.org/licenses/by-sa/4.0/
+xenia-licensed-content: response and manifest content; implementation source remains AGPL-3.0
+xenia-conformance-claim: none
 
 # Walls kept by this doorway
 wall: publication gates and emergency stops remain authoritative
 wall: a public-data licence is not a blanket licence over linked source material
 wall: private contacts, private communications and inferred personal ties do not belong here
 wall: uncertainty, source limits and known gaps stay visible
+wall: the charity map does not publish a people, personal-contact or inferred-belief graph
+wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled

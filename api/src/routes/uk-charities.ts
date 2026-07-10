@@ -22,6 +22,10 @@ import {
   ukCharitiesSchema,
   type UkCharities,
 } from "../uk-charities.js";
+import {
+  ukCharityAccountabilityFramework,
+  ukCharityAccountabilitySchemaDocument,
+} from "../uk-charity-accountability.js";
 
 const basePath = "/v1/charities/uk";
 const datasetId = "uk-charities-sector";
@@ -29,6 +33,14 @@ const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
 const correctionSafety =
   "The public issue tracker is only for non-personal factual corrections. " +
   "Do not post personal contact details, belief data, home addresses or safeguarding information; this release has no confidential intake.";
+const charitySafetyWalls = [
+  "No charity-by-charity, trustee or people directory is published in this sector corpus.",
+  "No personal religion or belief is inferred from an organisation-level charitable purpose.",
+  "No fuzzy name, address, domain or person join creates an organisation relationship.",
+  "No trust, honesty, faith, efficiency or impact leaderboard is emitted.",
+  "Missing evidence is not treated as proof that a statement is false.",
+] as const;
+const agentDiscoveryUrl = "/agent.txt";
 const rightsUrl = "/v1/open-data/rights";
 const exportFormats = ["json", "ndjson", "csv"] as const;
 type ExportFormat = (typeof exportFormats)[number];
@@ -294,6 +306,16 @@ function dictionary(corpus: UkCharities) {
     structuralSchema: `https://api.taxsorted.io${basePath}/schema`,
     corrections: correctionsUrl,
     correctionSafety,
+    accountability: {
+      status: ukCharityAccountabilityFramework.status,
+      recordsAvailable: false,
+      index: `${basePath}/accountability`,
+      schema: `${basePath}/accountability/schema`,
+      purpose: ukCharityAccountabilityFramework.purpose,
+      publicationBlockers: ukCharityAccountabilityFramework.publicationBlockers,
+      comparisonRule:
+        "Words and recorded actions remain separate. Missing evidence is not contradiction; inconsistent-with requires exact alignment and human approval.",
+    },
     scope: {
       organisationDirectory: false,
       peopleRecords: false,
@@ -436,8 +458,14 @@ function cacheHeaders(
   etag: string,
   canonicalPath: string,
   alternates: Array<{ href: string; type: string }> = [],
-  linkCanonicalPath = canonicalPath
+  linkCanonicalPath = canonicalPath,
+  linkOptions: {
+    includeSectorDescriptions?: boolean;
+    related?: Array<{ href: string; type: string; title: string }>;
+  } = {}
 ) {
+  const includeSectorDescriptions =
+    linkOptions.includeSectorDescriptions ?? true;
   c.header("Cache-Control", "public, max-age=300, must-revalidate");
   c.header("X-Corpus-Version", corpus.meta.version);
   c.header("X-Corpus-Reviewed-On", corpus.meta.reviewedOn);
@@ -451,9 +479,18 @@ function cacheHeaders(
       `<${linkCanonicalPath}>; rel="canonical"`,
       `<${rightsUrl}>; rel="license"`,
       `<${correctionsUrl}>; rel="help"`,
-      `<${basePath}/dictionary>; rel="describedby"; type="application/json"`,
-      `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
+      ...(includeSectorDescriptions
+        ? [
+            `<${basePath}/dictionary>; rel="describedby"; type="application/json"`,
+            `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
+          ]
+        : []),
       `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `<${agentDiscoveryUrl}>; rel="related"; type="text/plain"; title="Agent discovery"`,
+      ...(linkOptions.related ?? []).map(
+        (related) =>
+          `<${related.href}>; rel="related"; type="${related.type}"; title="${related.title}"`
+      ),
       ...alternates.map(
         (alternate) =>
           `<${alternate.href}>; rel="alternate"; type="${alternate.type}"`
@@ -472,10 +509,15 @@ function cacheableRepresentation(
     disposition?: string;
     alternates?: Array<{ href: string; type: string }>;
     etag?: string;
+    includeSectorDescriptions?: boolean;
+    related?: Array<{ href: string; type: string; title: string }>;
   } = {}
 ) {
   const etag = options.etag ?? representationEtag(body);
-  cacheHeaders(c, corpus, etag, canonicalPath, options.alternates);
+  cacheHeaders(c, corpus, etag, canonicalPath, options.alternates, canonicalPath, {
+    includeSectorDescriptions: options.includeSectorDescriptions,
+    related: options.related,
+  });
   if (options.disposition) c.header("Content-Disposition", options.disposition);
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
     return c.body(null, 304);
@@ -497,16 +539,79 @@ function noStore(c: Context) {
   c.header("Cache-Control", "no-store");
 }
 
-function rejectStaticQuery(c: Context) {
-  const parameters = [...new URL(c.req.url).searchParams.keys()];
-  if (parameters.length === 0) return undefined;
+type NextAction = {
+  action: string;
+  method: "GET" | "HEAD";
+  href: string;
+  description: string;
+};
+
+function instructionalError(
+  c: Context,
+  status: 400 | 404 | 503,
+  error: string,
+  reason: string,
+  details: Record<string, unknown> = {},
+  nextActions: NextAction[] = [
+    {
+      action: "orient",
+      method: "GET",
+      href: basePath,
+      description: "Read the dataset scope, publication state and available routes.",
+    },
+    {
+      action: "inspect-contract",
+      method: "GET",
+      href: `${basePath}/dictionary`,
+      description: "Read collection names, fields, filters and evidence rules.",
+    },
+  ]
+) {
   noStore(c);
   return c.json(
     {
-      error: "unknown_query_parameter",
-      parameters: [...new Set(parameters)].sort(),
+      schema: "taxsorted.charity-error/1",
+      error,
+      method: c.req.method,
+      path: c.req.path,
+      ...details,
+      reason,
+      walls_intact: true,
+      walls: charitySafetyWalls,
+      next_actions: nextActions,
+      docs: {
+        openapi: "/openapi.json",
+        dictionary: `${basePath}/dictionary`,
+        agent_discovery: agentDiscoveryUrl,
+      },
     },
-    400
+    status
+  );
+}
+
+function rejectStaticQuery(c: Context) {
+  const parameters = [...new URL(c.req.url).searchParams.keys()];
+  if (parameters.length === 0) return undefined;
+  return instructionalError(
+    c,
+    400,
+    "unknown_query_parameter",
+    "This static representation does not accept query parameters; use a collection query for filtering.",
+    { parameters: [...new Set(parameters)].sort() },
+    [
+      {
+        action: "query-a-collection",
+        method: "GET",
+        href: `${basePath}/{collection}`,
+        description: "Choose a collection and use only the filters its dictionary entry allows.",
+      },
+      {
+        action: "inspect-filters",
+        method: "GET",
+        href: `${basePath}/dictionary`,
+        description: "Read the authoritative collection/filter mapping.",
+      },
+    ]
   );
 }
 
@@ -592,26 +697,40 @@ function validFilterValue(
 }
 
 function closedError(c: Context, emergencyStop: boolean) {
-  noStore(c);
-  return c.json(
-    emergencyStop
-      ? {
-          error: "publication_emergency_stop",
-          message:
-            "The emergency stop is active. Source, register and gap records remain available; wider sector-system bodies are paused.",
-          sources: `${basePath}/sources`,
-          registers: `${basePath}/registers`,
-          gaps: `${basePath}/gaps`,
-        }
-      : {
-          error: "publication_review_pending",
-          message:
-            "Source, register and gap records remain available while the wider sector-system corpus is closed.",
-          sources: `${basePath}/sources`,
-          registers: `${basePath}/registers`,
-          gaps: `${basePath}/gaps`,
-        },
-    503
+  const message = emergencyStop
+    ? "The emergency stop is active. Source, register and gap records remain available; wider sector-system bodies are paused."
+    : "Source, register and gap records remain available while the wider sector-system corpus is closed.";
+  return instructionalError(
+    c,
+    503,
+    emergencyStop ? "publication_emergency_stop" : "publication_review_pending",
+    message,
+    {
+      message,
+      sources: `${basePath}/sources`,
+      registers: `${basePath}/registers`,
+      gaps: `${basePath}/gaps`,
+    },
+    [
+      {
+        action: "inspect-sources",
+        method: "GET",
+        href: `${basePath}/sources`,
+        description: "Read the source ledger and its reuse limits.",
+      },
+      {
+        action: "use-official-registers",
+        method: "GET",
+        href: `${basePath}/registers`,
+        description: "Find official organisation lookup doors while wider bodies are paused.",
+      },
+      {
+        action: "inspect-gaps",
+        method: "GET",
+        href: `${basePath}/gaps`,
+        description: "Read what remains unavailable, uncertain or deliberately excluded.",
+      },
+    ]
   );
 }
 
@@ -640,10 +759,20 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
   const exportIndexRepresentation = canonicalJson(
     exportIndex(corpus, publicDataEnabled, emergencyStop)
   );
+  const accountabilityRepresentation = canonicalJson(
+    ukCharityAccountabilityFramework
+  );
+  const accountabilitySchemaRepresentation = canonicalJson(
+    ukCharityAccountabilitySchemaDocument
+  );
   const graphEtag = representationEtag(graphRepresentation);
   const schemaEtag = representationEtag(schemaRepresentation);
   const dictionaryEtag = representationEtag(dictionaryRepresentation);
   const exportIndexEtag = representationEtag(exportIndexRepresentation);
+  const accountabilityEtag = representationEtag(accountabilityRepresentation);
+  const accountabilitySchemaEtag = representationEtag(
+    accountabilitySchemaRepresentation
+  );
   const exportRepresentations = new Map<string, { body: string; etag: string }>();
 
   for (const [path, name] of Object.entries(paths)) {
@@ -703,6 +832,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         authentication: "none",
         methods: ["GET", "HEAD"],
         writeMethods: false,
+        agentDiscovery: agentDiscoveryUrl,
       },
       scope: {
         kind: "sector-system-map",
@@ -710,6 +840,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         peopleRecords: false,
         personalReligionOrBeliefData: false,
         namedPay: false,
+        automatedWordsActionsVerdict: false,
         statement:
           "This release explains the UK charity-sector machinery. It is not a charity, trustee or religion directory.",
       },
@@ -730,10 +861,13 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         manifest: `${basePath}/manifest`,
         exports: `${basePath}/exports`,
         export: `${basePath}/exports/{collection}/{json|ndjson|csv}`,
+        accountability: `${basePath}/accountability`,
+        accountabilitySchema: `${basePath}/accountability/schema`,
       },
       related: {
         openDataCatalog: "/v1/open-data",
         openApi: "/openapi.json",
+        agentDiscovery: agentDiscoveryUrl,
         taxSystem: "/v1/tax-system/uk",
       },
       startHere: [
@@ -741,6 +875,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         "Read legal-forms and control before using the word owner.",
         "Use registers to find the official organisation record at source.",
         "Use help for role-based public contact doors and honest request prompts.",
+        "Read accountability before comparing an organisation's words with recorded actions; the contract publishes no organisation rows or scores.",
         "Resolve sourceIds and read gaps before treating the map as complete.",
       ],
     });
@@ -780,6 +915,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         authentication: "none",
         methods: ["GET", "HEAD"],
         writeMethods: false,
+        agentDiscovery: agentDiscoveryUrl,
       },
       counts: Object.fromEntries(
         Object.entries(paths).map(([path, name]) => [path, itemsFor(corpus, name).length])
@@ -788,6 +924,13 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       schemaDocument: `${basePath}/schema`,
       dictionary: `${basePath}/dictionary`,
       exports: `${basePath}/exports`,
+      accountability: {
+        status: ukCharityAccountabilityFramework.status,
+        recordsAvailable: false,
+        index: `${basePath}/accountability`,
+        schema: `${basePath}/accountability/schema`,
+        blockers: ukCharityAccountabilityFramework.publicationBlockers,
+      },
       corrections: correctionsUrl,
       correctionSafety,
       idPolicy: {
@@ -807,6 +950,55 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       ],
       notComplete: true,
     });
+  });
+
+  // This is an admission contract, not an organisation dataset. Publishing
+  // the shape now lets builders align without pretending the two unresolved
+  // safety gates or any organisation rows already exist.
+  app.get("/accountability", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    return cacheableRepresentation(
+      c,
+      corpus,
+      accountabilityRepresentation,
+      `${basePath}/accountability`,
+      "application/json; charset=utf-8",
+      {
+        etag: accountabilityEtag,
+        includeSectorDescriptions: false,
+        related: [
+          {
+            href: `${basePath}/accountability/schema`,
+            type: "application/schema+json",
+            title: "Candidate dataset schema",
+          },
+        ],
+      }
+    );
+  });
+
+  app.get("/accountability/schema", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    return cacheableRepresentation(
+      c,
+      corpus,
+      accountabilitySchemaRepresentation,
+      `${basePath}/accountability/schema`,
+      "application/schema+json; charset=utf-8",
+      {
+        etag: accountabilitySchemaEtag,
+        includeSectorDescriptions: false,
+        related: [
+          {
+            href: `${basePath}/accountability`,
+            type: "application/json",
+            title: "Accountability framework",
+          },
+        ],
+      }
+    );
   });
 
   app.get("/graph", (c) => {
@@ -868,8 +1060,21 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
     const name = paths[path];
     const format = c.req.param("format") as ExportFormat;
     if (!name || !exportFormats.includes(format)) {
-      noStore(c);
-      return c.json({ error: "not_found" }, 404);
+      return instructionalError(
+        c,
+        404,
+        "not_found",
+        "The requested collection or export format is not part of this release.",
+        { collection: path, format },
+        [
+          {
+            action: "list-exports",
+            method: "GET",
+            href: `${basePath}/exports`,
+            description: "Read the exact available collections, formats and filenames.",
+          },
+        ]
+      );
     }
     const links = exportLinks(path);
     const prepared = exportRepresentations.get(`${path}/${format}`)!;
@@ -902,26 +1107,47 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         (key) => !allowedQueryKeys.has(key)
       );
       if (unknown.length) {
-        noStore(c);
-        return c.json(
-          { error: "unknown_filter", filters: [...new Set(unknown)].sort() },
-          400
+        return instructionalError(
+          c,
+          400,
+          "unknown_filter",
+          "One or more filters are not admitted for this collection.",
+          {
+            filters: [...new Set(unknown)].sort(),
+            collection: path,
+            allowed_filters: [...allowedQueryKeys].sort(),
+          },
+          [
+            {
+              action: "inspect-collection-filters",
+              method: "GET",
+              href: `${basePath}/dictionary`,
+              description: "Read the authoritative filter list for this collection.",
+            },
+          ]
         );
       }
       const repeated = [...new Set(searchParams.keys())].filter(
         (key) => searchParams.getAll(key).length > 1
       );
       if (repeated.length) {
-        noStore(c);
-        return c.json(
-          { error: "repeated_filter", filters: repeated.sort() },
-          400
+        return instructionalError(
+          c,
+          400,
+          "repeated_filter",
+          "Each admitted filter may appear only once in a collection query.",
+          { filters: repeated.sort(), collection: path }
         );
       }
       const q = c.req.query("q")?.trim();
       if (q && q.length > 100) {
-        noStore(c);
-        return c.json({ error: "query_too_long", maximum: 100 }, 400);
+        return instructionalError(
+          c,
+          400,
+          "query_too_long",
+          "The bounded text query exceeds the maximum length.",
+          { maximum: 100, collection: path }
+        );
       }
 
       const rawLimit = c.req.query("limit");
@@ -935,13 +1161,15 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         !Number.isInteger(offset) ||
         offset < 0
       ) {
-        noStore(c);
-        return c.json(
+        return instructionalError(
+          c,
+          400,
+          "invalid_page",
+          "Pagination must use integer values inside the documented bounds.",
           {
-            error: "invalid_page",
             limits: { limit: [1, 100], offset: "0 or greater" },
-          },
-          400
+            collection: path,
+          }
         );
       }
 
@@ -953,8 +1181,13 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       );
       for (const [key, value] of Object.entries(filters)) {
         if (!validFilterValue(corpus, name, key as ExactFilterKey, value)) {
-          noStore(c);
-          return c.json({ error: "invalid_filter", filter: key, value }, 400);
+          return instructionalError(
+            c,
+            400,
+            "invalid_filter",
+            "The filter is admitted for this collection, but its value is outside the declared vocabulary or source IDs.",
+            { filter: key, value, collection: path }
+          );
         }
       }
 
@@ -990,10 +1223,26 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         (candidate) => candidate.id === c.req.param("id")
       );
       if (!item) {
-        noStore(c);
-        return c.json(
-          { error: "not_found", collection: path, id: c.req.param("id") },
-          404
+        return instructionalError(
+          c,
+          404,
+          "not_found",
+          "No record with this exact dataset ID exists in the requested collection.",
+          { collection: path, id: c.req.param("id") },
+          [
+            {
+              action: "list-collection",
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Read or filter the collection using its stable record IDs.",
+            },
+            {
+              action: "inspect-identity-rules",
+              method: "GET",
+              href: `${basePath}/dictionary`,
+              description: "Read why names, addresses and people are not identity keys.",
+            },
+          ]
         );
       }
       if (name === "sources") return cacheableJson(c, corpus, { data: item });
@@ -1007,8 +1256,27 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
   // Keep supported and misspelled requests inside this public namespace away
   // from downstream taxpayer identity middleware. This route is read-only.
   app.all("*", (c) => {
-    noStore(c);
-    return c.json({ error: "not_found" }, 404);
+    return instructionalError(
+      c,
+      404,
+      "not_found",
+      "No read-only charity-sector route matches this path or method.",
+      { path: c.req.path, method: c.req.method },
+      [
+        {
+          action: "orient",
+          method: "GET",
+          href: basePath,
+          description: "Read the dataset boundary and route map.",
+        },
+        {
+          action: "discover-api",
+          method: "GET",
+          href: agentDiscoveryUrl,
+          description: "Read the machine-addressed API discovery document.",
+        },
+      ]
+    );
   });
 
   return app;

@@ -29,6 +29,7 @@ function mount() {
     c.header("Set-Cookie", "ts_session=should-not-exist; HttpOnly");
     await next();
   });
+  app.get("/v1/probe", (c) => c.json({ reachable: true }));
   app.notFound((c) => c.json({ error: "no_such_door" }, 404));
   return { app, sessionCalls: () => sessionCalls };
 }
@@ -72,10 +73,28 @@ describe("agent interface", () => {
     expect(primary.headers.get("link")).toContain(
       '</agent.txt>; rel="canonical"; type="text/plain"',
     );
+    expect(primary.headers.get("link")).toContain(
+      '<https://github.com/cambridgetcg/xenia>; rel="related"; title="XENIA"',
+    );
+    expect(primary.headers.get("link")).toContain(
+      '<https://creativecommons.org/licenses/by-sa/4.0/>; rel="license"; title="Agent doorway content licence"',
+    );
     expect(primary.headers.get("access-control-allow-origin")).toBe("*");
     expect(primary.headers.get("set-cookie")).toBeNull();
     expect(primary.headers.get("etag")).toMatch(/^"sha256-/);
     expect(body).toBe(agentManifestText);
+    expect(body).toContain(
+      "charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountability",
+    );
+    expect(body).toContain(
+      "charity-accountability-status: schema-only-not-admitted",
+    );
+    expect(body).toContain("charity-accountability-records: none");
+    expect(body).toContain("xenia-credit: XENIA by Yu and Fable");
+    expect(body).toContain("xenia-conformance-claim: none");
+    expect(body).toContain(
+      "corrections-account: a GitHub account is required to submit a public correction",
+    );
     expect(await mirror.text()).toBe(body);
     expect(mirror.headers.get("etag")).toBe(primary.headers.get("etag"));
     expect(mirror.headers.get("link")).toContain(
@@ -129,6 +148,8 @@ describe("agent interface", () => {
         expect.objectContaining({ id: "publication-controls-hold" }),
         expect.objectContaining({ id: "public-evidence-only" }),
         expect.objectContaining({ id: "no-session-on-doorway" }),
+        expect.objectContaining({ id: "no-charity-people-or-belief-graph" }),
+        expect.objectContaining({ id: "words-actions-and-analysis-stay-labelled" }),
       ]),
     );
     expect(body.publicationStates).toEqual(
@@ -155,6 +176,23 @@ describe("agent interface", () => {
       schema: catalog.schema,
       etag: expect.stringMatching(/^"sha256-/),
     });
+    expect(body.resources.charityAccountability).toEqual({
+      framework: "/v1/charities/uk/accountability",
+      schema: "/v1/charities/uk/accountability/schema",
+      status: "schema-only-not-admitted",
+      recordsAvailable: false,
+    });
+    expect(body.resources.corrections).toEqual({
+      href: "https://github.com/cambridgetcg/taxsorted.io/issues",
+      accountRequired: true,
+      privateOrSensitiveIntakeAvailable: false,
+    });
+    expect(body.access).toMatchObject({
+      account: "none",
+      session: "none",
+      cookies: "none",
+      writes: "none",
+    });
     expect(body.evidenceLanes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "official-sources" }),
@@ -170,9 +208,19 @@ describe("agent interface", () => {
           href: "/v1/open-data",
           accepts: ["application/json"],
         }),
+        expect.objectContaining({
+          id: "inspect-charity-accountability-contract",
+          href: "/v1/charities/uk/accountability",
+        }),
       ]),
     );
-    expect(JSON.stringify(body)).not.toMatch(/xenia/i);
+    expect(body.attribution).toMatchObject({
+      name: "XENIA",
+      creators: ["Yu", "Fable"],
+      source: "https://github.com/cambridgetcg/xenia",
+      licence: { id: "CC-BY-SA-4.0" },
+      conformanceClaim: "none",
+    });
   });
 
   it("negotiates the same wake bytes at the API root without replacing its default 404", async () => {
@@ -236,6 +284,8 @@ describe("agent interface", () => {
       schema: "taxsorted.agent-error/1",
       error: "unknown_query_parameter",
       message: "This doorway does not use query parameters.",
+      method: "GET",
+      path: "/v1/wake",
       parameters: ["a", "z"],
       nextActions: [
         {
@@ -253,6 +303,39 @@ describe("agent interface", () => {
     expect(manifestError.status).toBe(400);
     expect(manifestErrorBody.nextActions[0].href).toBe("/agent.txt");
     expect(manifestErrorBody.nextActions[0].accepts).toEqual(["text/plain"]);
+
+    const headError = await app.request("/v1/wake?bad=1", {
+      method: "HEAD",
+    });
+    expect(headError.status).toBe(400);
+    expect(await headError.text()).toBe("");
+  });
+
+  it("rejects writes with an instructional 405 and leaves downstream routes reachable", async () => {
+    const { app } = mount();
+    const rejected = await app.request("/v1/wake", { method: "POST" });
+    const body = await rejected.json();
+
+    expect(rejected.status).toBe(405);
+    expect(rejected.headers.get("allow")).toBe("GET, HEAD, OPTIONS");
+    expect(rejected.headers.get("cache-control")).toBe("no-store");
+    expect(body).toMatchObject({
+      schema: "taxsorted.agent-error/1",
+      error: "method_not_allowed",
+      method: "POST",
+      path: "/v1/wake",
+      nextActions: [
+        expect.objectContaining({
+          id: "retry-with-read-method",
+          method: "GET",
+          href: "/v1/wake",
+        }),
+      ],
+    });
+
+    const downstream = await app.request("/v1/probe");
+    expect(downstream.status).toBe(200);
+    expect(await downstream.json()).toEqual({ reachable: true });
   });
 
   it("answers public preflight without admitting near-match paths", async () => {

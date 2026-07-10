@@ -170,17 +170,89 @@ tax-system graph, calculations, accounts or HMRC filing routes.
 
 ## Public charity-sector graph
 
-The first charity release is an organisation-free sector map: regulators, official register
-doors, legal forms, conditional tax treatments, obligations, funding, finance disclosures,
+The first charity release is a sector map with public regulators and institutions but no
+charity-by-charity subject rows: official register doors, legal forms, conditional tax
+treatments, obligations, funding, finance disclosures,
 control models, generic help routes, collection stages and known gaps. It must contain no named
 people, personal contacts, organisation mirror, donor or beneficiary data, or inferred beliefs.
+
+The adjacent accountability surface is deliberately schema-only. It defines how a later
+organisation-level words-and-actions ledger would sort stable releases, join exact published
+identifiers, retain provenance and compare compatible records without producing an honesty,
+trust, faith, efficiency or impact score. Its framework status must remain
+`schema-only-not-admitted`. The two named blockers are the immediate missing systems, not the
+complete publication test: every item in `admissionConditions` must be evidenced before a
+separate external publication envelope may admit records.
 
 Validate and review the complete diff before enabling it:
 
 ```bash
 npm run validate:uk-charities
+npm run validate:charity-accountability-candidate --workspace api -- \
+  research/uk/charity-accountability/examples/zero-row-candidate.json
 fly secrets set -a taxsorted-api UK_CHARITIES_PUBLIC_DATA_ENABLED=true
 ```
+
+The serving switch opens only the existing bounded sector corpus. It does **not** admit an
+organisation, document, claim, funding, finance, asset, action, outcome, evaluation or
+comparison row into the accountability ledger. The example and validator are local structural
+tools, not an ingestion route or publication approval. Before any later collection, these two
+immediate gates must be implemented and tested:
+
+1. `confidential-correction-safety-intake` — confidential correction and safety intake with
+   identity-safe triage, urgent suppression and an auditable resolution path;
+2. `asset-level-rights-admission-digest` — a reviewed rights and safety decision, represented
+   by a content-addressed mutation-integrity digest, with separate link and locator-specific
+   derived-use decisions for every source asset before it may support a candidate record.
+
+A publisher-wide or website-wide approval is not enough. Review each register field, filing,
+account, award, payment record, evaluation or other proposed asset and set a review-expiry date.
+Reviewed document metadata plus bounded public source-review declarations and notes may be
+stored; source bodies, excerpts, images and attachments remain external. A source locator is
+human-reviewed and equality-checked, not mechanically
+resolved. Record whether only the publisher's current URL, a publisher version/digest or a lawful
+archive is known. A matching review digest proves only that declared bytes did not change, not
+that the reviewer or legal conclusion is correct. The public-field review must cover the whole
+document/source-review record: permanence text, review IDs, attribution, terms URLs, limitations,
+locators and notes as well as title/URL. It must reject people, contacts, addresses, named pay,
+personal belief detail or belief inference about a person, source bodies/excerpts and
+quotation-shaped locators. Notes and limitations are
+bounded. This is a human assertion and still needs operational sampling.
+
+The runtime validator must also reject unbridged multiple identifiers, cross-organisation
+programme references, future or post-assembly evidence, unsafe aggregate values, rounded ratio
+floats, arithmetic cycles and unsafe retained identifiers or release summaries. A suppressed
+value is omitted and represented by a `suppressed-for-disclosure-risk` coverage gap with fixed
+safe wording and no source-document pointer. Source review follows retrieval; normalisation,
+disclosure and comparison reviews must follow the evidence they approve, and final privacy review
+must follow any applicable normalisation and disclosure review. Differences
+remain safe integer minor units; ratios remain an exact source numerator and denominator. Every
+financial fact needs a disclosure review; every derived fact and numeric comparison needs a fresh
+result review, and people-derived status
+propagates from inputs. Staff costs, remuneration bands and trustee remuneration are always
+people-derived. Period arithmetic is allowed only for explicit `change-over-time`; all
+other comparison and money dimensions still align. All
+nine `admissionConditions`—including controller/lawful-basis records, formal DPIA, narrow field
+review, rollback exercises, reviewer calibration, public explanation and monitored stop—remain
+required outside structural validation.
+
+Identifier membership is bidirectional: every mapping must be listed by its
+referenced organisation and every listed mapping must point back. The
+uppercase-alphanumeric canonicalisation rule accepts only ASCII letters,
+digits, ordinary spaces and hyphens before removing spaces/hyphens and
+uppercasing; punctuation and Unicode lookalikes must fail.
+
+For `inconsistent-with`, two money records must additionally match money basis,
+measurement stage and amount date. A forecast, commitment, payment and outturn
+must not become a contradiction merely because their amounts differ.
+A tombstone's `releaseId` must name the first candidate that carries it, and
+its effective time must be no later than that candidate's assembly. Retain it
+in every later candidate and make each release's tombstone count equal the
+cumulative retained ledger through that release.
+`taxsorted-derived` is reserved for structured exact-arithmetic financial facts
+and labelled TaxSorted source-comparison evaluations. Reject it on reported,
+audited or restated finance and on programme, funding, asset, control,
+observation or outcome records.
 
 The repository's Fly configuration currently enables this bounded sector corpus. Sources,
 register doors, gaps and release metadata remain readable if the full map is disabled. If a
@@ -196,6 +268,66 @@ remain available. Purge any controllable external cache and record the issue. Th
 recall a downloaded or public-repository copy. Correct and re-review the source before removing
 the stop; never re-enable on a timer. This switch does not affect calculations, accounts, HMRC
 filing, the tax-system graph or the tax-industry graph.
+
+### Charity accountability and agent-door release check
+
+After an authorised deployment, verify the two schema-only routes independently of the sector
+publication switch:
+
+```bash
+API=https://api.taxsorted.io
+
+curl --fail "$API/v1/charities/uk/accountability" | jq \
+  '{status, publicationBlockers, publicationBlockerScope, admissionConditions, hardBoundaries, collectionOrder, collectionGuide}'
+curl --fail "$API/v1/charities/uk/accountability/schema" | jq \
+  '{"$id": .["$id"], title, description}'
+curl --fail --head "$API/v1/charities/uk/accountability"
+curl --fail --head "$API/v1/charities/uk/accountability/schema"
+```
+
+The first response must say `schema-only-not-admitted`, name two immediate blockers, expose nine
+unsatisfied `admissionConditions` plus the 17-entry `collectionGuide`, and contain no organisation
+evidence rows. The schema must keep natural-person records, contacts, addresses,
+named pay, personal belief data, fuzzy joins, copied source bodies or excerpts,
+quotation-shaped locators, images and attachments, item-level assets and asset locations outside
+the admitted shape. Reviewed document metadata plus bounded public source-review declarations and
+notes may remain. `inconsistent-with` must require human approval plus the same
+exactly identified organisation, period, scope key and definition, and metric key and definition.
+When both records carry money, basis, measurement stage and amount date must also match.
+Run the zero-row example through the runtime validator because JSON Schema cannot check graph,
+digest, chronology, bridge, disclosure, arithmetic and release-chain refinements.
+
+Then verify machine discovery and root orientation:
+
+```bash
+curl --fail "$API/v1/wake" | jq \
+  '{schema, access, wallScope, walls, publicationStates, resources, nextActions, attribution}'
+curl --fail --header 'Accept: application/json' "$API/" | jq \
+  '{schema, access, wallScope, walls, nextActions, attribution}'
+curl --fail "$API/.well-known/agent.txt"
+curl --fail "$API/agent.txt"
+curl --fail --head "$API/v1/wake"
+curl --fail --head "$API/.well-known/agent.txt"
+curl --fail --head "$API/agent.txt"
+```
+
+Both text manifests must be byte-identical and point to `/v1/wake`, `/v1/health`,
+`/v1/open-data`, the charity accountability contract and `/openapi.json`. The canonical wake and
+the JSON-negotiated root must have identical bodies and ETags; a browser-shaped root request must
+remain `404`. The wake access statement covers only the doorway and listed TaxSorted public read
+routes: no account, authentication, session, cookie or write. The external GitHub correction
+tracker needs an account and is not a private intake. Confirm the
+XENIA credit reads “XENIA by Yu and Fable”, links
+<https://github.com/cambridgetcg/xenia>, names CC BY-SA 4.0 and claims no full-framework
+conformance. TaxSorted adapts machine discovery, declared boundaries and useful recovery
+actions; it does not adopt XENIA ratings, decentralised identifiers, tokens, wallets or
+identity model.
+
+For an error check, request an inadmissible charity filter and a missing exact ID. Each response
+must identify schema `taxsorted.charity-error/1`, name its method/path, keep
+`Cache-Control: no-store`, state `walls_intact: true` and return bounded
+`next_actions`; it must not silently discard the filter or guess a nearby record. Record the
+deployed commit and the response checks before describing this surface as live.
 
 ## Public-funding graph
 

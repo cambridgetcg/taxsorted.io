@@ -2828,7 +2828,7 @@
       "accountability": [
         "Use the company number, snapshot date and source caveats.",
         "Keep charity governance, company control and asset ownership as separate concepts.",
-        "Do not republish PSC people in this organisation-free v1 corpus."
+        "Do not republish PSC people in this sector-map v1 corpus, which has no charity-by-charity subject rows."
       ],
       "misleadingLabel": "Calling every PSC an 'owner of the charity' is legally and conceptually unsafe."
     }
@@ -4058,7 +4058,7 @@
       ],
       "title": "The Northern Ireland register is not the full sector and lacks a confirmed unattended feed",
       "detail": "CCNI explains that current registration and Expression of Intent context limits completeness; the reviewed guide documents browser CSV export but not a stable supported bulk endpoint or update service level.",
-      "consequence": "TaxSorted remains manual-only and organisation-free for Northern Ireland. It will not scrape around the official export or treat absence as proof of status.",
+      "consequence": "TaxSorted remains manual-only and has no Northern Ireland charity-by-charity subject rows. It will not scrape around the official export or treat absence as proof of status.",
       "status": "open",
       "affectedIds": ["register-ni-charities", "help-find-ni-charity", "pipeline-fetch-official-snapshot"]
     },

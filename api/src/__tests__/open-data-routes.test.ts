@@ -30,6 +30,10 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/v1/open-data")).toBe(true);
     expect(isPublicCivicPath("/v1/open-data-evil")).toBe(false);
     expect(isPublicCivicPath("/openapi.json")).toBe(true);
+    expect(isPublicCivicPath("/agent.txt")).toBe(true);
+    expect(isPublicCivicPath("/.well-known/agent.txt")).toBe(true);
+    expect(isPublicCivicPath("/agent.txt-evil")).toBe(false);
+    expect(isPublicCivicPath("/.well-known/agent.txt/evil")).toBe(false);
     expect(isPublicCivicPath("/v1/charities/uk")).toBe(true);
     expect(isPublicCivicPath("/v1/charities/uk-evil")).toBe(false);
     expect(isPublicCivicPath("/v1/public-funding/uk")).toBe(true);
@@ -48,9 +52,16 @@ describe("open-data catalog", () => {
     expect(response.headers.get("link")).toContain(
       '</v1/open-data/rights>; rel="license"'
     );
+    expect(response.headers.get("link")).toContain(
+      '</agent.txt>; rel="related"; type="text/plain"; title="Agent discovery"'
+    );
     expect(response.headers.get("etag")).toMatch(/^"sha256-/);
     expect(sessionCalls()).toBe(0);
-    expect(body.access).toMatchObject({ authentication: "none", price: "free" });
+    expect(body.access).toMatchObject({
+      authentication: "none",
+      price: "free",
+      agentDiscovery: "/agent.txt",
+    });
     expect(body.datasets).toHaveLength(5);
     expect(body.datasets[0].publication.fullDatasetAvailable).toBe(true);
     expect(body.datasets[1].publication.fullDatasetAvailable).toBe(false);
@@ -75,6 +86,8 @@ describe("open-data catalog", () => {
       resources: {
         overview: "/v1/charities/uk",
         registers: "/v1/charities/uk/registers",
+        accountability: "/v1/charities/uk/accountability",
+        accountabilitySchema: "/v1/charities/uk/accountability/schema",
         humanGuide: "https://taxsorted.io/uk/charities",
       },
     });

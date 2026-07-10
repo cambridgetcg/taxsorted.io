@@ -112,6 +112,134 @@ const CharitiesPublicJson = z
   .object({})
   .passthrough()
   .openapi("UkCharitiesResponse");
+const CharityAccountabilityFrameworkJson = z
+  .object({
+    id: z.literal("uk-charity-accountability"),
+    schemaId: z.literal("taxsorted.uk.charity-accountability/1"),
+    status: z.literal("schema-only-not-admitted"),
+    purpose: z.string(),
+    publicationBlockers: z.array(
+      z.object({
+        id: z.enum([
+          "confidential-correction-safety-intake",
+          "asset-level-rights-admission-digest",
+        ]),
+        status: z.literal("blocking"),
+        requirement: z.string(),
+      })
+    ),
+    publicationBlockerScope: z.string(),
+    admissionConditions: z.array(
+      z.object({
+        id: z.string(),
+        status: z.literal("required-not-satisfied"),
+        requirement: z.string(),
+      })
+    ),
+    orientation: z.object({
+      startHere: z.array(z.string()),
+      readingPath: z.array(z.string()),
+      safeNextActions: z.array(z.string()),
+    }),
+    publicationAdmission: z.object({
+      currentSchema: z.literal("candidate-shape-only"),
+      datasetStatus: z.literal("candidate-not-admitted"),
+      externalEnvelopeRequired: z.literal(true),
+      requirement: z.string(),
+      digestMeaning: z.string(),
+    }),
+    hardBoundaries: z.array(z.string()),
+    validationLayers: z.object({
+      jsonSchema: z.string(),
+      runtimeZod: z.string(),
+      requirement: z.string(),
+    }),
+    collectionOrder: z.array(z.string()),
+    collectionGuide: z.array(
+      z.object({
+        collection: z.string(),
+        question: z.string(),
+        boundary: z.string(),
+      })
+    ),
+    stableSort: z.object({
+      rule: z.string(),
+      reason: z.string(),
+      ties: z.string(),
+    }),
+    cursor: z.object({
+      version: z.string(),
+      encoding: z.string(),
+      payloadFieldsInOrder: z.array(z.string()),
+      stability: z.string(),
+      invalidCursor: z.string(),
+    }),
+    releaseIntegrity: z.object({
+      digestAlgorithm: z.string(),
+      digestPreimage: z.string(),
+      verification: z.string(),
+      predecessorRule: z.string(),
+    }),
+    comparableMoney: z.object({
+      storage: z.string(),
+      exactContextFields: z.array(z.string()),
+      exactBasisFields: z.array(z.string()),
+      stageRule: z.string(),
+      mismatchRule: z.string(),
+      calculationRule: z.string(),
+    }),
+    comparisonContract: z.object({
+      contextAnchor: z.string(),
+      dimensions: z.string(),
+      exactContextRelations: z.array(z.string()),
+      notComparable: z.string(),
+      changeOverTime: z.string(),
+    }),
+    inconsistencyRule: z.object({
+      relation: z.literal("inconsistent-with"),
+      requirements: z.array(z.string()),
+      warning: z.string(),
+    }),
+  })
+  .passthrough()
+  .openapi("UkCharityAccountabilityFramework");
+const CharityAccountabilitySchemaJson = z
+  .object({
+    $schema: z.string().optional(),
+    $id: z.string(),
+    title: z.string(),
+    description: z.string(),
+  })
+  .passthrough()
+  .openapi("UkCharityAccountabilityJsonSchema");
+const CharityInstructionalError = z
+  .object({
+    schema: z.literal("taxsorted.charity-error/1"),
+    error: z.string(),
+    method: z.string(),
+    path: z.string(),
+    reason: z.string(),
+    walls_intact: z.literal(true),
+    walls: z.array(z.string()),
+    next_actions: z.array(
+      z.object({
+        action: z.string(),
+        method: z.enum(["GET", "HEAD"]),
+        href: z.string(),
+        description: z.string(),
+      })
+    ),
+    docs: z.object({
+      openapi: z.string(),
+      dictionary: z.string(),
+      agent_discovery: z.string(),
+    }),
+  })
+  .passthrough()
+  .openapi("UkCharityInstructionalError");
+const charityErrorContent = {
+  "application/json": { schema: CharityInstructionalError },
+};
 
 const PublicFundingCollection = z.enum([
   "sources",
@@ -304,8 +432,11 @@ const AgentWake = z
     access: z.object({
       scope: z.string(),
       authentication: z.literal("none"),
+      account: z.literal("none"),
+      session: z.literal("none"),
       price: z.literal("free"),
       cookies: z.literal("none"),
+      writes: z.literal("none"),
       methods: z.array(z.enum(["GET", "HEAD", "OPTIONS"])),
       cors: z.literal("*"),
     }),
@@ -326,9 +457,65 @@ const AgentWake = z
         scopeBoundary: z.string().nullable().optional(),
       }),
     ),
-    resources: z.object({}).passthrough(),
-    evidenceLanes: z.array(z.object({}).passthrough()),
+    resources: z.object({
+      catalog: z.object({
+        href: z.string(),
+        schema: z.string(),
+        etag: z.string(),
+      }),
+      rights: z.object({ href: z.string() }),
+      openApi: z.object({ href: z.string() }),
+      health: z.object({ href: z.string() }),
+      corrections: z.object({
+        href: z.string().url(),
+        accountRequired: z.literal(true),
+        privateOrSensitiveIntakeAvailable: z.literal(false),
+      }),
+      manifests: z.object({
+        primary: z.string(),
+        wellKnownMirror: z.string(),
+      }),
+      charityAccountability: z.object({
+        framework: z.string(),
+        schema: z.string(),
+        status: z.literal("schema-only-not-admitted"),
+        recordsAvailable: z.literal(false),
+      }),
+      datasets: z.array(
+        z.object({
+          datasetId: z.string(),
+          title: z.string(),
+          handles: z.record(z.string(), z.string()),
+        })
+      ),
+    }),
+    evidenceLanes: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        description: z.string(),
+        resources: z.array(
+          z.object({
+            datasetId: z.string().optional(),
+            resource: z.string(),
+            href: z.string(),
+          })
+        ),
+      })
+    ),
     nextActions: z.array(AgentNextAction),
+    attribution: z.object({
+      name: z.literal("XENIA"),
+      creators: z.tuple([z.literal("Yu"), z.literal("Fable")]),
+      source: z.string().url(),
+      licence: z.object({
+        id: z.literal("CC-BY-SA-4.0"),
+        url: z.string().url(),
+      }),
+      appliedPatterns: z.array(z.string()),
+      conformanceClaim: z.literal("none"),
+      scope: z.string(),
+    }),
   })
   .openapi("AgentWake");
 const AgentDoorError = z
@@ -336,6 +523,8 @@ const AgentDoorError = z
     schema: z.literal("taxsorted.agent-error/1"),
     error: z.string(),
     message: z.string(),
+    method: z.string(),
+    path: z.string(),
     parameters: z.array(z.string()),
     nextActions: z.array(AgentNextAction),
   })
@@ -828,7 +1017,6 @@ function registerAgentInterfaceOpenApi(app: OpenAPIHono) {
     });
   }
 }
-
 function registerOpenDataOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -1797,7 +1985,10 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
         description: "The redirect representation is unchanged.",
         headers: publicResponseHeaders,
       },
-      400: { description: "Static routes do not accept query parameters." },
+      400: {
+        description: "Static routes do not accept query parameters.",
+        content: charityErrorContent,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1844,10 +2035,14 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
         description: "This exact query representation is unchanged.",
         headers: publicResponseHeaders,
       },
-      400: { description: "Unknown, repeated, irrelevant or invalid filter." },
+      400: {
+        description: "Unknown, repeated, irrelevant or invalid filter, with recovery actions.",
+        content: charityErrorContent,
+      },
       503: {
         description:
           "The full sector release is disabled or emergency-stopped; sources, register doors and gaps remain readable.",
+        content: charityErrorContent,
       },
     },
   });
@@ -1872,9 +2067,18 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
         description: "This exact record representation is unchanged.",
         headers: publicResponseHeaders,
       },
-      400: { description: "Detail routes do not accept query parameters." },
-      404: { description: "No record with that ID in the collection." },
-      503: { description: "The collection is disabled or emergency-stopped." },
+      400: {
+        description: "Detail routes do not accept query parameters.",
+        content: charityErrorContent,
+      },
+      404: {
+        description: "No record with that ID in the collection.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "The collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
     },
   });
 
@@ -1890,11 +2094,31 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       mayBeClosed: false,
     },
     {
+      path: "/v1/charities/uk/accountability",
+      operationId: "getUkCharityAccountabilityFramework",
+      summary: "Read the UK charity words-and-actions admission contract",
+      description:
+        "Schema-only, organisation-level evidence model for exact identifiers, source voices, claims, recorded actions, funding, finance, outcomes, evaluations and human-reviewed comparisons. It publishes no organisation rows, people records or rankings. The two named blockers are immediate and non-exhaustive; all nine admission conditions remain unsatisfied.",
+      schema: CharityAccountabilityFrameworkJson,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/charities/uk/accountability/schema",
+      operationId: "getUkCharityAccountabilitySchema",
+      summary: "Read the future UK charity accountability dataset schema",
+      description:
+        "Strict JSON Schema for candidate organisation-level accountability releases. A schema is not publication approval; confidential correction intake and asset-level rights admission are two immediate blockers, not the complete test, and all nine framework admission conditions remain unsatisfied.",
+      schema: CharityAccountabilitySchemaJson,
+      mediaType: "application/schema+json",
+      mayBeClosed: false,
+    },
+    {
       path: "/v1/charities/uk/graph",
       operationId: "downloadUkCharitiesGraph",
       summary: "Download the complete reviewed UK charity-sector graph",
       description:
-        "Complete organisation-free sector corpus, including source limitations and known transparency gaps.",
+        "Complete sector corpus with reviewed public regulator and institution records, source limitations and known transparency gaps, but no charity-by-charity subject rows.",
       schema: ukCharitiesSchema,
       mediaType: "application/json",
       mayBeClosed: true,
@@ -1961,12 +2185,16 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
             "The supplied ETag still identifies this representation.",
           headers: publicResponseHeaders,
         },
-        400: { description: "Static routes do not accept query parameters." },
+        400: {
+          description: "Static routes do not accept query parameters.",
+          content: charityErrorContent,
+        },
         ...(route.mayBeClosed
           ? {
               503: {
                 description:
                   "The full sector release is disabled or emergency-stopped.",
+                content: charityErrorContent,
               },
             }
           : {}),
@@ -2036,9 +2264,16 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       },
       400: {
         description: "Static export routes do not accept query parameters.",
+        content: charityErrorContent,
       },
-      404: { description: "Unknown collection or format." },
-      503: { description: "This collection is disabled or emergency-stopped." },
+      404: {
+        description: "Unknown collection or format.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "This collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
     },
   });
 
