@@ -32,6 +32,15 @@ lobbying, grants, subsidies, company roles and further declarations expose their
 source and publication state before any record feed opens. The full contract is
 in `public-integrity-method.md`.
 
+## Proposed official words and actions layer
+
+The proposed [official-events method](official-events-method.md) defines three
+evidence collections: institutional official events, separately gated named
+attributions and append-only corrections. It keeps source text link-only,
+requires exact official identifiers and forbids inferred vote choices,
+personality, rhetoric, motive or influence. It is a method proposal only; no
+official-events dataset or endpoint is implemented or released.
+
 ## Non-personal system layer
 
 The political-system endpoints stay readable while the people gate is closed.
@@ -117,12 +126,14 @@ in production, record and approve:
 
 ICO references:
 
+- Legitimate interests:
+  <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/legitimate-interests/>
 - Conditions for special-category data:
   <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/special-category-data/what-are-the-conditions-for-processing/>
 - Data-protection impact assessments:
   <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/accountability-and-governance/guide-to-accountability-and-governance/data-protection-impact-assessments/>
-- Joint statement on data scraping and public personal information:
-  <https://ico.org.uk/media/about-the-ico/documents/4026232/joint-statement-data-scraping-202308.pdf>
+- The right to be informed:
+  <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-be-informed/>
 
 ## API rules
 

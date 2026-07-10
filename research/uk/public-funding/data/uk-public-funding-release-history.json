@@ -1,0 +1,37 @@
+[
+  {
+    "id": "change-000001-public-funding-snapshot-established",
+    "sequence": 1,
+    "cursor": "pf-1",
+    "operation": "snapshot-established",
+    "dataset": "uk-public-funding",
+    "version": "2026-07-10.1",
+    "reviewedOn": "2026-07-10",
+    "publishedOn": "2026-07-10",
+    "releaseCommit": "96e202b491b6272ccdf7d83930fca0712861cf25",
+    "previousEventHash": null,
+    "eventHash": "sha256:59b2defae109c5911367be244b4ce34e3a6922f9dcc3755e2cc4c1c90be23c4e",
+    "datasetHash": "sha256:8100d03e8d1d095ea2d3eea1cd237424d3b0bf11e13901018fdd52f55ec0d801",
+    "counts": {
+      "sources": 52,
+      "institutions": 36,
+      "governance": 22,
+      "offices": 36,
+      "relationships": 35,
+      "funds": 7,
+      "programmes": 17,
+      "mechanisms": 22,
+      "allocations": 25,
+      "contacts": 9,
+      "locations": 2,
+      "pipeline": 20,
+      "gaps": 14
+    },
+    "explanation": "This first append-only checkpoint establishes the complete reviewed snapshot as the change-feed baseline.",
+    "doesNotClaim": [
+      "It does not claim that every record was individually added on the review date.",
+      "It does not reconstruct changes that may have happened before this feed began.",
+      "The review date is not represented as an exact deployment timestamp."
+    ]
+  }
+]

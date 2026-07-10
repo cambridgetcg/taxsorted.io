@@ -183,10 +183,22 @@ describe("UK public-funding page", () => {
       "href",
       "https://api.taxsorted.io/openapi.json",
     );
-    expect(screen.getByLabelText("Public-funding API curl example")).toHaveTextContent(
-      "manifest.publicDataEnabled",
+    expect(screen.getByRole("link", { name: /agent wake/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/wake",
     );
-    expect(screen.getByText(/protected graph and collection bodies return/i)).toHaveTextContent("503");
+    expect(screen.getByRole("link", { name: /release changes/i })).toHaveAttribute(
+      "href",
+      `${apiBase}/changes`,
+    );
+    expect(screen.getByRole("link", { name: /resolve a stable id/i })).toHaveAttribute(
+      "href",
+      `${apiBase}/records/${corpus.institutions[0].id}`,
+    );
+    expect(screen.getByLabelText("Public-funding API curl example")).toHaveTextContent(
+      "manifest.publicationStatus",
+    );
+    expect(screen.getByText(/while protected bodies are paused they return/i)).toHaveTextContent("503");
     expect(
       screen.getByText(
         (_content, element) =>
@@ -196,6 +208,12 @@ describe("UK public-funding page", () => {
     ).toBeInTheDocument();
     expect(screen.queryAllByTestId("gap-card")).toHaveLength(
       Math.min(6, corpus.transparencyGaps.length),
+    );
+    expect(screen.getByText(/statement, vote, decision, allocation and outturn are different records/i)).toBeInTheDocument();
+    expect(screen.getByText(/not copy speeches, infer missing votes, score rhetoric/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /official-events method/i })).toHaveAttribute(
+      "href",
+      "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/politics/official-events-method.md",
     );
   });
 });

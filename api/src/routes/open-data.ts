@@ -127,6 +127,12 @@ function dataset(
       ...(id === "uk-charities-sector"
         ? { registers: `${root}/registers` }
         : {}),
+      ...(id === "uk-public-funding"
+        ? {
+            changes: `${root}/changes`,
+            recordResolver: `${root}/records/{id}`,
+          }
+        : {}),
       gaps: `${root}/gaps`,
       humanGuide,
       corrections: correctionsUrl,

@@ -214,6 +214,22 @@ and export index remain readable. Protected collection bodies, their downloads a
 return `503` with `Cache-Control: no-store`. The checked-in Fly configuration deliberately leaves
 the release closed; the secret above records the separate publication decision after review.
 
+The append-only `/changes` feed and source/gap IDs resolved through `/records/{id}` also remain
+readable. A corpus version, count or hash change makes API construction fail until a reviewed
+checkpoint is appended; never rewrite the old checkpoint or manufacture retrospective record
+events. Each event's checked hash includes its content and previous event hash; cursor, ID,
+sequence and publication-date integrity also fail closed at boot. The deployment workflow
+captures the complete live event prefix, requires the candidate JSON artifact to retain it before
+deploying, and repeats the check against a cache-revalidated post-deploy response. Production
+workflows are serialised so two releases cannot race against the same prefix. A missing live feed
+is accepted only on the first commit whose parent did not contain the feed contract. After deployment, verify `/agent.txt`,
+`/.well-known/agent.txt`, `/v1/wake`, `/changes` and one source resolver response before opening
+protected bodies.
+
+The release gate currently requires the complete history to fit in one 100-event page and fails
+closed when `page.hasMore` is true. Add bounded pagination to the gate before event 101; do not
+raise the API page limit or skip the prefix check.
+
 If a source-rights, accuracy or safety issue is found, use its independent stop:
 
 ```bash
@@ -279,7 +295,7 @@ most often it means the **Create Test User** API isn't subscribed yet (step 1.3)
 
 That receipt is the milestone: the full rail, walked end to end.
 
-## Fraud-prevention headers (Gov-Client-*/Gov-Vendor-*)
+## Fraud-prevention headers (Gov-Client-_/Gov-Vendor-_)
 
 Ground truth: `regs/research/fraud-headers.md` (spec v3.3). WEB_APP_VIA_SERVER
 requires all 16 headers by law (SI 2019/360 + the Commissioners' Directions);
@@ -287,7 +303,7 @@ requires all 16 headers by law (SI 2019/360 + the Commissioners' Directions);
 `api/src/fraud.ts`) — the 13 that always flowed, plus `Gov-Client-Multi-Factor`
 for passkey sessions (M2-accounts, plan C: see below). Two are spec-recognised
 "cannot-collect" cases (research §2.3, the missing-data protocol) — HMRC
-requires contacting **SDSTeam@hmrc.gov.uk** to explain the restriction *before*
+requires contacting **SDSTeam@hmrc.gov.uk** to explain the restriction _before_
 the header may be omitted or sent empty. The drafts below are that explanation;
 sending them is a human action (M3), not something CI or an agent should do
 unprompted. `Gov-Client-Multi-Factor` also has a draft below — not to ask
@@ -337,7 +353,7 @@ engine's `buildMultiFactor()`:
   recovery sign-in sets `accountId` but never `mfa_at`, so there is no passkey
   event to report and the header stays absent (never empty, never fabricated).
 
-There is nothing to notify SDSTeam about to *omit* this header any more — it
+There is nothing to notify SDSTeam about to _omit_ this header any more — it
 ships. The one open item is a courtesy confirmation of the `type` value:
 
 > **Draft — SDSTeam@hmrc.gov.uk (send at M3 alongside the production
@@ -357,7 +373,7 @@ ships. The one open item is a courtesy confirmation of the `type` value:
 > no password — so the sign-in identifier we send in `Gov-Client-User-IDs`
 > (`taxsorted=<value>`) is the account's own UUID once signed in, and the
 > anonymous session UUID before sign-in. There is no more identifying value to
-> supply; the UUID *is* the identifier. Flagging it here so it isn't read as a
+> supply; the UUID _is_ the identifier. Flagging it here so it isn't read as a
 > missing or placeholder value.
 
 ### Cannot-collect case 1: Gov-Vendor-License-IDs
@@ -382,7 +398,7 @@ against Fly.io's proxy documentation (https://fly.io/docs/networking/request-hea
 Fly's proxy exposes `Fly-Forwarded-Port` (the **server** port the client
 connected to, e.g. 443 — explicitly disallowed by the spec, which says this
 header "must not be a server port") and `X-Forwarded-Port` (the port the
-client *set out* to connect to, again not a source port). Neither header
+client _set out_ to connect to, again not a source port). Neither header
 carries the client's ephemeral TCP source port. This matches the spec's own
 list of cannot-collect causes almost verbatim: "some popular load balancers
 do not" support collecting it (research line 62, 425-427).
@@ -432,7 +448,7 @@ There is no local-secrets convention in this repo (`api/src/config.ts` boots
 unconfigured when the env vars are absent) — the credentials above are the
 same `HMRC_CLIENT_ID`/`HMRC_CLIENT_SECRET` values already living in Fly
 secrets (`fly secrets list -a taxsorted-api` shows they're set; Fly never
-prints secret *values* back out, so fetch them from wherever they were
+prints secret _values_ back out, so fetch them from wherever they were
 originally generated — the HMRC Developer Hub application — if you don't
 have them to hand).
 
@@ -457,7 +473,7 @@ error detail still fails closed (non-zero). This is option (b) from the
 original open question, now that the real sandbox run (validation log below)
 confirmed the validator does surface these as per-header entries. The tolerated
 set is deliberately just the duo: `Gov-Client-Multi-Factor` left it when
-passkey sessions started sending a real value, so a *missing* Multi-Factor is
+passkey sessions started sending a real value, so a _missing_ Multi-Factor is
 now a genuine failure, not a documented omission. Fabricating a value for
 either remaining header is still never the fix — a real omission of anything
 outside the duo means a bug to fix or a fresh SDSTeam conversation, per the
@@ -533,7 +549,7 @@ not VRN — the entity needs one before it can connect.
 > `write:self-assessment` was added keep their old read-only grant forever —
 > a token refresh never upgrades scope — so any pre-existing sandbox ITSA
 > connection must **disconnect and reconnect** (`DELETE
-> /v1/hmrc/connection/<entityId>`, then the connect dance again) before it
+/v1/hmrc/connection/<entityId>`, then the connect dance again) before it
 > can submit. Until it does, submissions fail with HMRC's insufficient-scope
 > 403, passed through verbatim in the sandbox error `detail`.
 
@@ -612,7 +628,7 @@ exact outbound wire payload at the end).
 runbook does. HMRC's OAuth dance is an interactive Government Gateway sign-in
 — a browser, a redirect, a human typing a test user's password. CI has no
 browser and no human, so it can never exercise the one step that makes every
-downstream step possible: *getting connected*. This runbook — walked by a
+downstream step possible: _getting connected_. This runbook — walked by a
 human, in a real browser, against the real sandbox — **is** the end-to-end
 verification the automated suite structurally cannot provide. Run it after
 any change that touches the OAuth flow, the connect/callback routes, or the
@@ -686,9 +702,9 @@ a human can complete step 3.
 Record every human walk-through here — date, who, and the outcome (receipt +
 calculation, or where it broke):
 
-| Date | Who | Result |
-|------|-----|--------|
-| last human-verified: ____ | | |
+| Date                      | Who | Result |
+| ------------------------- | --- | ------ |
+| last human-verified: ____ |     |        |
 
 ### Validation log
 

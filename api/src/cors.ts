@@ -35,9 +35,22 @@ const publicCivicBases = [
   "/v1/public-funding/uk",
 ];
 
+const publicAgentPaths = new Set([
+  "/",
+  "/agent.txt",
+  "/.well-known/agent.txt",
+  "/v1/wake",
+  "/v1/health",
+]);
+
 export function isPublicCivicPath(path: string) {
-  return path === "/openapi.json" ||
-    publicCivicBases.some((base) => path === base || path.startsWith(`${base}/`));
+  return (
+    publicAgentPaths.has(path) ||
+    path === "/openapi.json" ||
+    publicCivicBases.some(
+      (base) => path === base || path.startsWith(`${base}/`),
+    )
+  );
 }
 
 const taxCors = cors({

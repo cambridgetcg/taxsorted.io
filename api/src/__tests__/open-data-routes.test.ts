@@ -88,6 +88,8 @@ describe("open-data catalog", () => {
       resources: {
         overview: "/v1/public-funding/uk",
         humanGuide: "https://taxsorted.io/uk/public-funding",
+        changes: "/v1/public-funding/uk/changes",
+        recordResolver: "/v1/public-funding/uk/records/{id}",
       },
     });
     expect(body.datasets[4]).toMatchObject({

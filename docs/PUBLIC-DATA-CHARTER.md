@@ -131,6 +131,10 @@ An open endpoint can still be difficult to reuse. A distributable dataset theref
 - source identifiers, direct source links, or an explicit TaxSorted-authored designation;
   licence notes; and a published correction method whose operational status is explicit;
 - an OpenAPI description that matches the routes people can actually call.
+- a machine doorway and one-call orientation response so an agent can discover publication
+  states, rights, evidence lanes and safe next actions without scraping the human site;
+- caller-held continuation links and append-only release history where consumers need to
+  resume a mirror without TaxSorted storing their identity or session.
 
 These are not decorations. They let another person mirror the data, detect change, validate a
 copy and build without depending on TaxSorted's frontend.
@@ -158,8 +162,14 @@ forward-compatible reader should tolerate a new optional field. Removing a field
 required or nullable, or changing its type, meaning, primary key or money unit is a breaking
 change. The politics schema-shape checksum in the tests turns accidental top-level drift into a
 visible review decision; the tax graphs do not yet have the equivalent frozen version guard.
-The commitment not to recycle removed IDs still needs a published release and tombstone ledger
-before an outsider can audit it across time.
+The public-funding family now begins that audit trail with a hash-pinned
+`snapshot-established` checkpoint. It deliberately does not invent retrospective record
+changes. Its checked event-hash chain, unique cursor and ordered-sequence rules make a rewritten
+checkpoint fail closed at boot. Later releases must append additions, updates, retirements and
+tombstones. The deployment gate anchors that promise to the previously published live prefix,
+checks the candidate before deployment, revalidates the live result afterward and serialises
+releases. The promise therefore does not rest only on mutable source code. The other families
+still need equivalent public histories.
 
 ### Provenance travels with the meaning
 
@@ -174,6 +184,13 @@ what it does not prove. A donation does not prove influence. A meeting does not 
 agreement. A contract does not prove favouritism. A company role does not prove control of
 every company action. An allegation, investigation, finding, sanction and appeal are different
 states.
+
+Official words and actions need the same discipline. A proposed event contract keeps an
+institutional event, a separately gated named attribution and an append-only correction as
+different records. A source-reported statement is not an outcome; a budget approval is not a
+payment or outturn; a missing vote is unknown, not an inferred abstention. Full speeches,
+embeddings, rhetoric scores, personality labels and inferred motives do not belong in the
+public API.
 
 ### Safety follows amplification and foreseeable harm
 
@@ -226,6 +243,10 @@ currently a bounded query service rather than an ever-growing static archive.
 
 ## What is true now
 
+- `/agent.txt`, `/.well-known/agent.txt` and `/v1/wake` provide a stateless machine doorway
+  derived from the same open-data catalogue. This is XENIA-inspired and makes no conformance,
+  identity or trust-score claim.
+
 - The tax-system, tax-industry, organisation-free charity-sector and public-funding graphs implement a discovery catalogue, structural schema,
   recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
   mixed-rights statement without requiring a caller account. Their protected collection and
@@ -236,6 +257,9 @@ currently a bounded query service rather than an ever-growing static archive.
 - The public-funding boundary publishes institutions, formal offices, governance units,
   aggregate allocations and functional contacts. It keeps office-holder names at dated official
   links and does not claim that pooled tax receipts trace to a specific provider or beneficiary.
+- Public-funding query pages expose continuation links; `/records/{id}` resolves a stable ID;
+  `/changes` exposes the honest release baseline. Government words-and-actions events remain a
+  proposed method, not a released dataset.
 - Tax graph, structural-schema, dictionary, export-index and collection-export bodies and
   validators are prepared when the route is created. Meaningless query parameters on tax
   static routes are rejected instead of creating silent cache variants.

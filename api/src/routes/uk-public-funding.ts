@@ -2,6 +2,8 @@
 // one immutable reviewed snapshot serves query, detail and bulk representations.
 
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import {
@@ -44,7 +46,8 @@ export const ukPublicFundingCollectionPaths = {
   gaps: "transparencyGaps",
 } as const;
 
-type CollectionName = (typeof ukPublicFundingCollectionPaths)[keyof typeof ukPublicFundingCollectionPaths];
+type CollectionName =
+  (typeof ukPublicFundingCollectionPaths)[keyof typeof ukPublicFundingCollectionPaths];
 const paths: Record<string, CollectionName> = ukPublicFundingCollectionPaths;
 const publicWhenClosed = new Set(["sources", "gaps"]);
 const commonQueryKeys = ["q", "limit", "offset"] as const;
@@ -70,9 +73,19 @@ type ExactFilterKey =
   | "lane"
   | "sourceId";
 
-const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> = {
+const filterKeysByCollection: Record<
+  CollectionName,
+  readonly ExactFilterKey[]
+> = {
   sources: ["status", "sourceId"],
-  institutions: ["kind", "sector", "jurisdiction", "status", "fundingRole", "sourceId"],
+  institutions: [
+    "kind",
+    "sector",
+    "jurisdiction",
+    "status",
+    "fundingRole",
+    "sourceId",
+  ],
   governanceUnits: ["kind", "institutionId", "officeId", "sourceId"],
   offices: ["kind", "institutionId", "governanceUnitId", "sourceId"],
   relationships: [
@@ -118,8 +131,20 @@ const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> 
     "priceBasis",
     "sourceId",
   ],
-  contacts: ["kind", "institutionId", "governanceUnitId", "officeId", "sourceId"],
-  officeLocations: ["kind", "institutionId", "governanceUnitId", "officeId", "sourceId"],
+  contacts: [
+    "kind",
+    "institutionId",
+    "governanceUnitId",
+    "officeId",
+    "sourceId",
+  ],
+  officeLocations: [
+    "kind",
+    "institutionId",
+    "governanceUnitId",
+    "officeId",
+    "sourceId",
+  ],
   pipelineStages: [
     "lane",
     "institutionId",
@@ -141,19 +166,32 @@ const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> 
 };
 
 const collectionDescriptions: Record<CollectionName, string> = {
-  sources: "Reviewed public sources, their authority, freshness, reuse position and limits.",
-  institutions: "Public institutions and delivery-body classes, with jurisdiction, purpose and funding role kept explicit.",
-  governanceUnits: "Boards, committees, panels and directorates, including their authority, membership structure, powers and limits.",
-  offices: "Formal public offices and responsibilities. Holder names are deliberately left at the linked official source.",
-  relationships: "Directed institutional, accountability and money-governance relationships, each with a negative inference boundary.",
-  funds: "Legally or administratively distinct public funds, including permitted inflows, outflows and restrictions.",
-  programmes: "The public purpose and aggregate population scope for health, education and cross-government spending.",
-  fundingMechanisms: "Formulae, grants, mandates, commissions and other mechanisms that determine how money may move.",
-  allocations: "Dated GBP amounts with complete budget, accounting, gross/net, price and comparison dimensions.",
-  contacts: "Generic functional public contact routes only; never private or personal channels.",
-  officeLocations: "Published non-residential institutional offices and correspondence locations.",
-  pipelineStages: "Possible stages from tax collection and Parliamentary authority to allocation, delivery, accounts and audit.",
-  transparencyGaps: "Known missing, conflicting, time-sensitive or deliberately bounded evidence.",
+  sources:
+    "Reviewed public sources, their authority, freshness, reuse position and limits.",
+  institutions:
+    "Public institutions and delivery-body classes, with jurisdiction, purpose and funding role kept explicit.",
+  governanceUnits:
+    "Boards, committees, panels and directorates, including their authority, membership structure, powers and limits.",
+  offices:
+    "Formal public offices and responsibilities. Holder names are deliberately left at the linked official source.",
+  relationships:
+    "Directed institutional, accountability and money-governance relationships, each with a negative inference boundary.",
+  funds:
+    "Legally or administratively distinct public funds, including permitted inflows, outflows and restrictions.",
+  programmes:
+    "The public purpose and aggregate population scope for health, education and cross-government spending.",
+  fundingMechanisms:
+    "Formulae, grants, mandates, commissions and other mechanisms that determine how money may move.",
+  allocations:
+    "Dated GBP amounts with complete budget, accounting, gross/net, price and comparison dimensions.",
+  contacts:
+    "Generic functional public contact routes only; never private or personal channels.",
+  officeLocations:
+    "Published non-residential institutional offices and correspondence locations.",
+  pipelineStages:
+    "Possible stages from tax collection and Parliamentary authority to allocation, delivery, accounts and audit.",
+  transparencyGaps:
+    "Known missing, conflicting, time-sensitive or deliberately bounded evidence.",
 };
 
 const mixedGraphTargets = [
@@ -164,7 +202,10 @@ const mixedGraphTargets = [
   "programmes",
   "mechanisms",
 ];
-const referenceTargets: Record<CollectionName, Record<string, string | string[]>> = {
+const referenceTargets: Record<
+  CollectionName,
+  Record<string, string | string[]>
+> = {
   sources: {},
   institutions: {
     taxSystemRefs: "/v1/tax-system/uk (record ID may belong to any collection)",
@@ -181,7 +222,11 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
     governanceUnitIds: "governance",
     sourceIds: "sources",
   },
-  relationships: { fromId: mixedGraphTargets, toId: mixedGraphTargets, sourceIds: "sources" },
+  relationships: {
+    fromId: mixedGraphTargets,
+    toId: mixedGraphTargets,
+    sourceIds: "sources",
+  },
   funds: { operatorInstitutionIds: "institutions", sourceIds: "sources" },
   programmes: {
     leadInstitutionIds: "institutions",
@@ -231,22 +276,37 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
 };
 
 const fieldMeanings: Record<string, string> = {
-  amountMinor: "Integer pence. Divide by 100 only when presenting GBP; never treat it as whole pounds.",
-  negativeAmountExplanation: "Required when amountMinor is negative; states whether the source means income, repayment, transfer, netting or another signed measure.",
+  amountMinor:
+    "Integer pence. Divide by 100 only when presenting GBP; never treat it as whole pounds.",
+  negativeAmountExplanation:
+    "Required when amountMinor is negative; states whether the source means income, repayment, transfer, netting or another signed measure.",
   financialYear: "UK financial year in YYYY-YY form.",
-  budgetBoundary: "The spending-control or accounting boundary used by the source; unlike boundaries must not be silently combined.",
-  accountingBasis: "Whether the amount is reported on a cash, accrual, mixed or unstated basis.",
-  grossOrNet: "Whether the amount is before or after the source's stated income, receipts or recoveries.",
-  priceBasis: "Whether the amount uses nominal prices, real prices, or does not state a price basis.",
-  containedInAllocationId: "A larger allocation that already contains this amount; the two must not be added together.",
-  additiveGroup: "A curator-declared group within which amounts may be additive only when every other comparison dimension also matches.",
-  notComparableToIds: "Allocation IDs whose published measures must not be compared as like-for-like.",
-  traceabilityWarning: "Plain-language limit on tracing pooled tax receipts or interpreting this allocation as actual spending.",
-  currentHolderPublication: "A link to the official holder page and its observation date; TaxSorted does not copy the holder's name into this corpus.",
-  functionalOnly: "True confirms this is an institutional function channel, not a person's private contact.",
-  residential: "False confirms the published location is not represented as a residential address.",
-  populationScope: "Aggregate service or beneficiary scope; never an individual-level recipient record.",
-  beneficiaryTags: "Machine-readable aggregate beneficiary groups; never identities or individual recipient records.",
+  budgetBoundary:
+    "The spending-control or accounting boundary used by the source; unlike boundaries must not be silently combined.",
+  accountingBasis:
+    "Whether the amount is reported on a cash, accrual, mixed or unstated basis.",
+  grossOrNet:
+    "Whether the amount is before or after the source's stated income, receipts or recoveries.",
+  priceBasis:
+    "Whether the amount uses nominal prices, real prices, or does not state a price basis.",
+  containedInAllocationId:
+    "A larger allocation that already contains this amount; the two must not be added together.",
+  additiveGroup:
+    "A curator-declared group within which amounts may be additive only when every other comparison dimension also matches.",
+  notComparableToIds:
+    "Allocation IDs whose published measures must not be compared as like-for-like.",
+  traceabilityWarning:
+    "Plain-language limit on tracing pooled tax receipts or interpreting this allocation as actual spending.",
+  currentHolderPublication:
+    "A link to the official holder page and its observation date; TaxSorted does not copy the holder's name into this corpus.",
+  functionalOnly:
+    "True confirms this is an institutional function channel, not a person's private contact.",
+  residential:
+    "False confirms the published location is not represented as a residential address.",
+  populationScope:
+    "Aggregate service or beneficiary scope; never an individual-level recipient record.",
+  beneficiaryTags:
+    "Machine-readable aggregate beneficiary groups; never identities or individual recipient records.",
 };
 
 const schemaDocument = {
@@ -259,15 +319,145 @@ const mediaTypes: Record<ExportFormat, string> = {
   ndjson: "application/x-ndjson; charset=utf-8",
   csv: "text/csv; charset=utf-8",
 };
-type Identified = { id: string; sourceIds?: string[] } & Record<string, unknown>;
+type Identified = { id: string; sourceIds?: string[] } & Record<
+  string,
+  unknown
+>;
+type RecordLocation = {
+  path: string;
+  corpusKey: CollectionName;
+  data: Identified;
+};
+type ResponseLink = { href: string; rel: "next" | "prev" };
+
+const publicFundingChangeSchema = z
+  .object({
+    id: z.string().min(1),
+    sequence: z.number().int().positive(),
+    cursor: z.string().min(1),
+    operation: z.enum(["snapshot-established", "added", "updated", "retired"]),
+    dataset: z.literal("uk-public-funding"),
+    version: z.string().min(1),
+    reviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    publishedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    releaseCommit: z.string().regex(/^[0-9a-f]{40}$/),
+    previousEventHash: z
+      .string()
+      .regex(/^sha256:[0-9a-f]{64}$/)
+      .nullable(),
+    eventHash: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    datasetHash: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    counts: z.record(z.string(), z.number().int().nonnegative()),
+    collection: z.string().min(1).optional(),
+    recordId: z.string().min(1).optional(),
+    changedFields: z.array(z.string().min(1)).min(1).optional(),
+    beforeHash: z.string().nullable().optional(),
+    afterHash: z.string().nullable().optional(),
+    reason: z.string().min(1).optional(),
+    sourceIds: z.array(z.string().min(1)).min(1).optional(),
+    explanation: z.string().min(1),
+    doesNotClaim: z.array(z.string().min(1)).min(1),
+  })
+  .strict();
+
+// This reviewed artifact is a checkpoint, not a fabricated list of 297
+// "added" records. Runtime validation and the deployment prefix gate both read
+// the same file; future releases append events and never replace old ones.
+const publicFundingChanges = z
+  .array(publicFundingChangeSchema)
+  .min(1)
+  .parse(
+    JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../research/uk/public-funding/data/uk-public-funding-release-history.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ),
+  );
 
 function itemsFor(corpus: UkPublicFunding, name: CollectionName): Identified[] {
   return corpus[name] as unknown as Identified[];
 }
 
+function collectionCounts(corpus: UkPublicFunding) {
+  return Object.fromEntries(
+    Object.entries(paths).map(([path, name]) => [
+      path,
+      itemsFor(corpus, name).length,
+    ]),
+  );
+}
+
+function recordIndex(corpus: UkPublicFunding) {
+  const records = new Map<string, RecordLocation>();
+  for (const [path, corpusKey] of Object.entries(paths)) {
+    for (const data of itemsFor(corpus, corpusKey)) {
+      records.set(data.id, { path, corpusKey, data });
+    }
+  }
+  return records;
+}
+
+function assertCurrentChangeCheckpoint(
+  corpus: UkPublicFunding,
+  datasetHash: string,
+) {
+  const ids = new Set<string>();
+  const cursors = new Set<string>();
+  let previousEventHash: string | null = null;
+  let previousPublishedOn: string | null = null;
+  for (const [index, change] of publicFundingChanges.entries()) {
+    const { eventHash, ...hashBasis } = change;
+    const actualEventHash = `sha256:${createHash("sha256")
+      .update(canonicalJson(hashBasis))
+      .digest("hex")}`;
+    if (
+      change.sequence !== index + 1 ||
+      ids.has(change.id) ||
+      cursors.has(change.cursor) ||
+      change.previousEventHash !== previousEventHash ||
+      change.eventHash !== actualEventHash ||
+      (previousPublishedOn !== null && change.publishedOn < previousPublishedOn)
+    ) {
+      throw new Error(
+        `UK public-funding change feed integrity check failed at sequence ${change.sequence}; expected event hash ${actualEventHash}.`,
+      );
+    }
+    ids.add(change.id);
+    cursors.add(change.cursor);
+    previousEventHash = change.eventHash;
+    previousPublishedOn = change.publishedOn;
+  }
+
+  const latest = publicFundingChanges.at(-1)!;
+  const currentHash = `sha256:${datasetHash}`;
+  const currentCounts = collectionCounts(corpus);
+  if (
+    latest.version !== corpus.meta.version ||
+    latest.reviewedOn !== corpus.meta.reviewedOn ||
+    latest.datasetHash !== currentHash ||
+    canonicalJson(latest.counts) !== canonicalJson(currentCounts)
+  ) {
+    throw new Error(
+      "UK public-funding change feed is stale: append a reviewed snapshot checkpoint before serving this corpus version.",
+    );
+  }
+  return publicFundingChanges;
+}
+
 function columnsFor(rows: readonly Identified[], name: CollectionName) {
   const schemaProperties = (
-    schemaDocument as { properties?: Record<string, { items?: { properties?: Record<string, unknown> } }> }
+    schemaDocument as {
+      properties?: Record<
+        string,
+        { items?: { properties?: Record<string, unknown> } }
+      >;
+    }
   ).properties?.[name]?.items?.properties;
   return [
     ...new Set([
@@ -277,7 +467,11 @@ function columnsFor(rows: readonly Identified[], name: CollectionName) {
   ].sort();
 }
 
-function exportBody(rows: readonly Identified[], name: CollectionName, format: ExportFormat) {
+function exportBody(
+  rows: readonly Identified[],
+  name: CollectionName,
+  format: ExportFormat,
+) {
   if (format === "json") return canonicalJson(rows);
   if (format === "ndjson") return serializeNdjson(rows);
   return serializeCsv(rows, { columns: columnsFor(rows, name) });
@@ -292,8 +486,15 @@ function exportLinks(path: string) {
   return Object.fromEntries(
     exportFormats.map((format) => {
       const type = mediaTypes[format].split(";", 1)[0];
-      return [format, { href: `${basePath}/exports/${path}/${format}`, type, mediaType: type }];
-    })
+      return [
+        format,
+        {
+          href: `${basePath}/exports/${path}/${format}`,
+          type,
+          mediaType: type,
+        },
+      ];
+    }),
   );
 }
 
@@ -315,7 +516,7 @@ function collectionDictionary(corpus: UkPublicFunding) {
       name,
       path === "pipeline" ? "pipeline stage" : path.replace(/s$/, ""),
       referenceTargets[name],
-      fieldMeanings
+      fieldMeanings,
     ),
   }));
 }
@@ -343,8 +544,7 @@ function dictionary(corpus: UkPublicFunding) {
     },
     conventions: {
       ids: "Use the complete stable dataset ID, never array position or a rebuilt display name.",
-      idStability:
-        "A display label may change without changing its ID. A retired ID will not be reused for a different meaning; a public tombstone feed is not yet available.",
+      idStability: `A display label may change without changing its ID. A retired ID will not be reused for a different meaning. The append-only change feed at ${basePath}/changes begins with the current snapshot and does not invent earlier tombstones.`,
       references:
         "ID and IDs fields join to the collections named below. Mixed graph targets are explicitly listed.",
       evidence:
@@ -369,7 +569,8 @@ function dictionary(corpus: UkPublicFunding) {
     },
     formats: {
       json: "Lossless UTF-8 TaxSorted deterministic JSON; not RFC 8785/JCS.",
-      ndjson: "Lossless TaxSorted deterministic JSON, one complete record per line.",
+      ndjson:
+        "Lossless TaxSorted deterministic JSON, one complete record per line.",
       csv: "Spreadsheet convenience format. Nested values remain deterministic JSON and common formula prefixes are mitigated.",
     },
     collections: collectionDictionary(corpus),
@@ -384,12 +585,15 @@ function exportIndex(corpus: UkPublicFunding, publicDataEnabled: boolean) {
     reviewedOn: corpus.meta.reviewedOn,
     licence: corpus.meta.contentLicence,
     attribution: `TaxSorted (taxsorted.io), “${corpus.meta.title}”, version ${corpus.meta.version}, https://api.taxsorted.io${basePath}/graph, ${corpus.meta.contentLicence.name} (${corpus.meta.contentLicence.url}).`,
-    attributionInstructions: "Keep this attribution, stable IDs and source IDs with reused copies and state whether you changed the material.",
+    attributionInstructions:
+      "Keep this attribution, stable IDs and source IDs with reused copies and state whether you changed the material.",
     corrections: correctionsUrl,
     rules: {
-      completeness: "Each file contains the complete, unpaginated collection for this corpus version.",
+      completeness:
+        "Each file contains the complete, unpaginated collection for this corpus version.",
       json: "Lossless TaxSorted deterministic JSON; not RFC 8785/JCS.",
-      ndjson: "Lossless TaxSorted deterministic JSON, one record per line with a final newline.",
+      ndjson:
+        "Lossless TaxSorted deterministic JSON, one record per line with a final newline.",
       csv: "Spreadsheet convenience copy; nested values remain deterministic JSON inside cells.",
       etag: "Each ETag is a SHA-256 validator for the exact bytes of that format, not a signature.",
       closedMetadata:
@@ -416,7 +620,7 @@ function exportIndex(corpus: UkPublicFunding, publicDataEnabled: boolean) {
                 etag: representationEtag(body),
               },
             ];
-          })
+          }),
         ),
       };
     }),
@@ -428,12 +632,26 @@ function relativeUrl(c: Context) {
   return `${url.pathname}${url.search}`;
 }
 
+function offsetUrl(c: Context, offset: number) {
+  const url = new URL(c.req.url);
+  url.searchParams.set("offset", String(offset));
+  return `${url.pathname}${url.search}`;
+}
+
+function changeCursorUrl(c: Context, cursor: string) {
+  const url = new URL(c.req.url);
+  url.searchParams.set("after", cursor);
+  return `${url.pathname}${url.search}`;
+}
+
 function cacheHeaders(
   c: Context,
   corpus: UkPublicFunding,
   etag: string,
   canonicalPath: string,
-  alternates: Array<{ href: string; type: string }> = []
+  alternates: Array<{ href: string; type: string }> = [],
+  responseLinks: ResponseLink[] = [],
+  canonicalLocation = canonicalPath,
 ) {
   c.header("Cache-Control", "public, max-age=300, must-revalidate");
   c.header("X-Corpus-Version", corpus.meta.version);
@@ -445,16 +663,18 @@ function cacheHeaders(
   c.header(
     "Link",
     [
-      `<${canonicalPath}>; rel="canonical"`,
+      `<${canonicalLocation}>; rel="canonical"`,
       `<${rightsUrl}>; rel="license"`,
       `<${correctionsUrl}>; rel="help"`,
       `<${basePath}/dictionary>; rel="describedby"; type="application/json"`,
       `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
       `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
       ...alternates.map(
-        (alternate) => `<${alternate.href}>; rel="alternate"; type="${alternate.type}"`
+        (alternate) =>
+          `<${alternate.href}>; rel="alternate"; type="${alternate.type}"`,
       ),
-    ].join(", ")
+      ...responseLinks.map((link) => `<${link.href}>; rel="${link.rel}"`),
+    ].join(", "),
   );
 }
 
@@ -468,22 +688,42 @@ function cacheableRepresentation(
     disposition?: string;
     alternates?: Array<{ href: string; type: string }>;
     etag?: string;
-  } = {}
+    responseLinks?: ResponseLink[];
+    canonicalLocation?: string;
+  } = {},
 ) {
   const etag = options.etag ?? representationEtag(body);
-  cacheHeaders(c, corpus, etag, canonicalPath, options.alternates);
+  cacheHeaders(
+    c,
+    corpus,
+    etag,
+    canonicalPath,
+    options.alternates,
+    options.responseLinks,
+    options.canonicalLocation,
+  );
   if (options.disposition) c.header("Content-Disposition", options.disposition);
-  if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) return c.body(null, 304);
+  if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag))
+    return c.body(null, 304);
   return c.body(body, 200, { "Content-Type": contentType });
 }
 
-function cacheableJson(c: Context, corpus: UkPublicFunding, value: unknown) {
+function cacheableJson(
+  c: Context,
+  corpus: UkPublicFunding,
+  value: unknown,
+  options: {
+    responseLinks?: ResponseLink[];
+    canonicalLocation?: string;
+  } = {},
+) {
   return cacheableRepresentation(
     c,
     corpus,
     canonicalJson(value),
     relativeUrl(c),
-    "application/json; charset=utf-8"
+    "application/json; charset=utf-8",
+    options,
   );
 }
 
@@ -496,15 +736,29 @@ function rejectStaticQuery(c: Context) {
   if (parameters.length === 0) return undefined;
   noStore(c);
   return c.json(
-    { error: "unknown_query_parameter", parameters: [...new Set(parameters)].sort() },
-    400
+    {
+      error: "unknown_query_parameter",
+      message: "This static resource does not accept query parameters.",
+      parameters: [...new Set(parameters)].sort(),
+      nextActions: [
+        {
+          method: "GET",
+          href: new URL(c.req.url).pathname,
+          description: "Retry the same resource without query parameters.",
+        },
+      ],
+    },
+    400,
   );
 }
 
 function includesValue(item: Identified, fields: string[], value: string) {
   return fields.some((field) => {
     const candidate = item[field];
-    return candidate === value || (Array.isArray(candidate) && candidate.includes(value));
+    return (
+      candidate === value ||
+      (Array.isArray(candidate) && candidate.includes(value))
+    );
   });
 }
 
@@ -512,15 +766,21 @@ function exactFilter(
   collection: CollectionName,
   item: Identified,
   key: ExactFilterKey,
-  value: string
+  value: string,
 ) {
   if (key === "sourceId") {
-    return collection === "sources" ? item.id === value : includesValue(item, ["sourceIds"], value);
+    return collection === "sources"
+      ? item.id === value
+      : includesValue(item, ["sourceIds"], value);
   }
-  if (key === "sector") return includesValue(item, ["sector", "sectors"], value);
-  if (key === "jurisdiction") return includesValue(item, ["jurisdictions"], value);
-  if (key === "fundingRole") return includesValue(item, ["fundingRoles"], value);
-  if (key === "beneficiaryTag") return includesValue(item, ["beneficiaryTags"], value);
+  if (key === "sector")
+    return includesValue(item, ["sector", "sectors"], value);
+  if (key === "jurisdiction")
+    return includesValue(item, ["jurisdictions"], value);
+  if (key === "fundingRole")
+    return includesValue(item, ["fundingRoles"], value);
+  if (key === "beneficiaryTag")
+    return includesValue(item, ["beneficiaryTags"], value);
   if (key === "institutionId") {
     return includesValue(
       item,
@@ -534,10 +794,12 @@ function exactFilter(
         "payerInstitutionIds",
         "recipientInstitutionIds",
         "responsibleInstitutionIds",
-        ...(collection === "relationships" || collection === "allocations" ? ["fromId", "toId"] : []),
+        ...(collection === "relationships" || collection === "allocations"
+          ? ["fromId", "toId"]
+          : []),
         ...(collection === "transparencyGaps" ? ["affectedIds"] : []),
       ],
-      value
+      value,
     );
   }
   const fieldsByReference: Partial<Record<ExactFilterKey, string[]>> = {
@@ -555,7 +817,9 @@ function exactFilter(
     ],
     fundId: [
       "fundIds",
-      ...(collection === "relationships" || collection === "allocations" ? ["fromId", "toId"] : []),
+      ...(collection === "relationships" || collection === "allocations"
+        ? ["fromId", "toId"]
+        : []),
       ...(collection === "transparencyGaps" ? ["affectedIds"] : []),
     ],
     programmeId: [
@@ -570,7 +834,8 @@ function exactFilter(
       ...(collection === "transparencyGaps" ? ["affectedIds"] : []),
     ],
   };
-  if (fieldsByReference[key]) return includesValue(item, fieldsByReference[key]!, value);
+  if (fieldsByReference[key])
+    return includesValue(item, fieldsByReference[key]!, value);
   return includesValue(item, [key], value);
 }
 
@@ -578,7 +843,7 @@ function validFilterValue(
   corpus: UkPublicFunding,
   collection: CollectionName,
   key: ExactFilterKey,
-  value: string
+  value: string,
 ) {
   const idsByFilter: Partial<Record<ExactFilterKey, Set<string>>> = {
     institutionId: new Set(corpus.institutions.map((item) => item.id)),
@@ -588,16 +853,29 @@ function validFilterValue(
     programmeId: new Set(corpus.programmes.map((item) => item.id)),
     mechanismId: new Set(corpus.fundingMechanisms.map((item) => item.id)),
     sourceId: new Set(corpus.sources.map((item) => item.id)),
-    financialYear: new Set(corpus.allocations.map((item) => item.financialYear)),
+    financialYear: new Set(
+      corpus.allocations.map((item) => item.financialYear),
+    ),
   };
   const known = idsByFilter[key];
   if (known) return known.has(value);
   const schemaField =
-    key === "sector" ? (collection === "programmes" ? "sector" : "sectors") :
-    key === "jurisdiction" ? "jurisdictions" :
-    key === "fundingRole" ? "fundingRoles" :
-    key === "beneficiaryTag" ? "beneficiaryTags" : key;
-  const allowed = allowedValuesFromJsonSchema(schemaDocument, collection, schemaField);
+    key === "sector"
+      ? collection === "programmes"
+        ? "sector"
+        : "sectors"
+      : key === "jurisdiction"
+        ? "jurisdictions"
+        : key === "fundingRole"
+          ? "fundingRoles"
+          : key === "beneficiaryTag"
+            ? "beneficiaryTags"
+            : key;
+  const allowed = allowedValuesFromJsonSchema(
+    schemaDocument,
+    collection,
+    schemaField,
+  );
   return allowed ? allowed.includes(value) : true;
 }
 
@@ -606,70 +884,101 @@ function evidenceFor(corpus: UkPublicFunding, item: Identified) {
   return corpus.sources.filter((source) => sourceIds.has(source.id));
 }
 
-function joinsFor(corpus: UkPublicFunding, collection: CollectionName, item: Identified) {
+function joinsFor(
+  corpus: UkPublicFunding,
+  collection: CollectionName,
+  item: Identified,
+) {
   const itemId = item.id;
   const base = { data: item, evidence: evidenceFor(corpus, item) };
   const relationships = corpus.relationships.filter(
-    (relationship) => relationship.fromId === itemId || relationship.toId === itemId
+    (relationship) =>
+      relationship.fromId === itemId || relationship.toId === itemId,
   );
   const allocations = corpus.allocations.filter(
     (allocation) =>
       allocation.fromId === itemId ||
       allocation.toId === itemId ||
       allocation.containedInAllocationId === itemId ||
-      allocation.notComparableToIds?.includes(itemId)
+      allocation.notComparableToIds?.includes(itemId),
   );
   if (collection === "institutions") {
     return {
       ...base,
-      governanceUnits: corpus.governanceUnits.filter((unit) => unit.institutionId === itemId),
-      offices: corpus.offices.filter((office) => office.institutionId === itemId),
+      governanceUnits: corpus.governanceUnits.filter(
+        (unit) => unit.institutionId === itemId,
+      ),
+      offices: corpus.offices.filter(
+        (office) => office.institutionId === itemId,
+      ),
       relationships,
-      funds: corpus.funds.filter((fund) => fund.operatorInstitutionIds.includes(itemId)),
+      funds: corpus.funds.filter((fund) =>
+        fund.operatorInstitutionIds.includes(itemId),
+      ),
       programmes: corpus.programmes.filter(
         (programme) =>
           programme.leadInstitutionIds.includes(itemId) ||
-          programme.deliveryInstitutionIds.includes(itemId)
+          programme.deliveryInstitutionIds.includes(itemId),
       ),
       fundingMechanisms: corpus.fundingMechanisms.filter(
         (mechanism) =>
           mechanism.decisionInstitutionIds.includes(itemId) ||
           mechanism.payerInstitutionIds.includes(itemId) ||
-          mechanism.recipientInstitutionIds.includes(itemId)
+          mechanism.recipientInstitutionIds.includes(itemId),
       ),
       allocations,
-      contacts: corpus.contacts.filter((contact) => contact.institutionIds.includes(itemId)),
-      locations: corpus.officeLocations.filter((location) => location.institutionIds.includes(itemId)),
+      contacts: corpus.contacts.filter((contact) =>
+        contact.institutionIds.includes(itemId),
+      ),
+      locations: corpus.officeLocations.filter((location) =>
+        location.institutionIds.includes(itemId),
+      ),
     };
   }
   if (collection === "governanceUnits") {
     const unit = item as unknown as UkPublicFunding["governanceUnits"][number];
-    const officeIds = new Set([...(unit.chairOfficeId ? [unit.chairOfficeId] : []), ...unit.memberOfficeIds]);
+    const officeIds = new Set([
+      ...(unit.chairOfficeId ? [unit.chairOfficeId] : []),
+      ...unit.memberOfficeIds,
+    ]);
     return {
       ...base,
       offices: corpus.offices.filter(
-        (office) => officeIds.has(office.id) || office.governanceUnitIds.includes(itemId)
+        (office) =>
+          officeIds.has(office.id) || office.governanceUnitIds.includes(itemId),
       ),
       relationships,
-      contacts: corpus.contacts.filter((contact) => contact.governanceUnitIds.includes(itemId)),
-      locations: corpus.officeLocations.filter((location) => location.governanceUnitIds.includes(itemId)),
+      contacts: corpus.contacts.filter((contact) =>
+        contact.governanceUnitIds.includes(itemId),
+      ),
+      locations: corpus.officeLocations.filter((location) =>
+        location.governanceUnitIds.includes(itemId),
+      ),
     };
   }
   if (collection === "offices") {
     return {
       ...base,
       governanceUnits: corpus.governanceUnits.filter(
-        (unit) => unit.chairOfficeId === itemId || unit.memberOfficeIds.includes(itemId)
+        (unit) =>
+          unit.chairOfficeId === itemId ||
+          unit.memberOfficeIds.includes(itemId),
       ),
       relationships,
-      contacts: corpus.contacts.filter((contact) => contact.officeIds.includes(itemId)),
-      locations: corpus.officeLocations.filter((location) => location.officeIds.includes(itemId)),
+      contacts: corpus.contacts.filter((contact) =>
+        contact.officeIds.includes(itemId),
+      ),
+      locations: corpus.officeLocations.filter((location) =>
+        location.officeIds.includes(itemId),
+      ),
     };
   }
   if (collection === "funds") {
     return {
       ...base,
-      fundingMechanisms: corpus.fundingMechanisms.filter((mechanism) => mechanism.fundIds.includes(itemId)),
+      fundingMechanisms: corpus.fundingMechanisms.filter((mechanism) =>
+        mechanism.fundIds.includes(itemId),
+      ),
       relationships,
       allocations,
     };
@@ -677,35 +986,52 @@ function joinsFor(corpus: UkPublicFunding, collection: CollectionName, item: Ide
   if (collection === "programmes") {
     return {
       ...base,
-      fundingMechanisms: corpus.fundingMechanisms.filter(
-        (mechanism) => mechanism.programmeIds.includes(itemId)
+      fundingMechanisms: corpus.fundingMechanisms.filter((mechanism) =>
+        mechanism.programmeIds.includes(itemId),
       ),
       relationships,
-      allocations: corpus.allocations.filter((allocation) => allocation.programmeIds.includes(itemId)),
+      allocations: corpus.allocations.filter((allocation) =>
+        allocation.programmeIds.includes(itemId),
+      ),
     };
   }
   if (collection === "fundingMechanisms") {
     return {
       ...base,
-      programmes: corpus.programmes.filter((programme) => programme.fundingMechanismIds.includes(itemId)),
+      programmes: corpus.programmes.filter((programme) =>
+        programme.fundingMechanismIds.includes(itemId),
+      ),
       relationships,
-      allocations: corpus.allocations.filter((allocation) => allocation.fundingMechanismId === itemId),
+      allocations: corpus.allocations.filter(
+        (allocation) => allocation.fundingMechanismId === itemId,
+      ),
     };
   }
   if (collection === "allocations") {
     const reverseNotComparable = corpus.allocations.filter((allocation) =>
-      allocation.notComparableToIds?.includes(itemId)
+      allocation.notComparableToIds?.includes(itemId),
     );
     const outgoingNotComparable = corpus.allocations.filter((allocation) =>
-      ((item.notComparableToIds as string[] | undefined) ?? []).includes(allocation.id)
+      ((item.notComparableToIds as string[] | undefined) ?? []).includes(
+        allocation.id,
+      ),
     );
     return {
       ...base,
-      contained: corpus.allocations.filter((allocation) => allocation.containedInAllocationId === itemId),
-      container: corpus.allocations.find((allocation) => allocation.id === item.containedInAllocationId) ?? null,
-      notComparableTo: [...new Map(
-        [...outgoingNotComparable, ...reverseNotComparable].map((allocation) => [allocation.id, allocation])
-      ).values()],
+      contained: corpus.allocations.filter(
+        (allocation) => allocation.containedInAllocationId === itemId,
+      ),
+      container:
+        corpus.allocations.find(
+          (allocation) => allocation.id === item.containedInAllocationId,
+        ) ?? null,
+      notComparableTo: [
+        ...new Map(
+          [...outgoingNotComparable, ...reverseNotComparable].map(
+            (allocation) => [allocation.id, allocation],
+          ),
+        ).values(),
+      ],
     };
   }
   return collection === "sources" ? { data: item } : base;
@@ -717,16 +1043,25 @@ export type UkPublicFundingRouteOptions = {
   emergencyStop?: boolean;
 };
 
-export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions = {}) {
+export function createUkPublicFundingRoutes(
+  options: UkPublicFundingRouteOptions = {},
+) {
   const corpus = structuredClone(options.corpus ?? ukPublicFunding);
   const emergencyStop = options.emergencyStop ?? false;
-  const publicDataEnabled = (options.publicDataEnabled ?? false) && !emergencyStop;
+  const publicDataEnabled =
+    (options.publicDataEnabled ?? false) && !emergencyStop;
   const app = new Hono();
   const graphRepresentation = canonicalJson(corpus);
-  const datasetHash = createHash("sha256").update(graphRepresentation).digest("hex");
+  const datasetHash = createHash("sha256")
+    .update(graphRepresentation)
+    .digest("hex");
+  const changeLog = assertCurrentChangeCheckpoint(corpus, datasetHash);
+  const records = recordIndex(corpus);
   const schemaRepresentation = canonicalJson(schemaDocument);
   const dictionaryRepresentation = canonicalJson(dictionary(corpus));
-  const exportIndexRepresentation = canonicalJson(exportIndex(corpus, publicDataEnabled));
+  const exportIndexRepresentation = canonicalJson(
+    exportIndex(corpus, publicDataEnabled),
+  );
   const graphEtag = representationEtag(graphRepresentation);
   const schemaEtag = representationEtag(schemaRepresentation);
   const dictionaryEtag = representationEtag(dictionaryRepresentation);
@@ -735,7 +1070,10 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
   for (const [path, name] of Object.entries(paths)) {
     for (const format of exportFormats) {
       const body = exportBody(itemsFor(corpus, name), name, format);
-      preparedExports.set(`${path}/${format}`, { body, etag: representationEtag(body) });
+      preparedExports.set(`${path}/${format}`, {
+        body,
+        etag: representationEtag(body),
+      });
     }
   }
 
@@ -745,6 +1083,10 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       : c.req.path;
     const segments = relativePath.split("/").filter(Boolean);
     const collection = segments[0];
+    const resolverRequest = segments[0] === "records" && segments.length === 2;
+    const resolvedRecord = resolverRequest
+      ? records.get(segments[1])
+      : undefined;
     const protectedCollection =
       paths[collection] !== undefined &&
       (segments.length === 1 || segments.length === 2) &&
@@ -755,21 +1097,50 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       paths[segments[1]] !== undefined &&
       exportFormats.includes(segments[2] as ExportFormat) &&
       !publicWhenClosed.has(segments[1]);
-    if (!publicDataEnabled && (collection === "graph" || protectedCollection || protectedExport)) {
+    // An unknown resolver ID is also protected while closed so its status does
+    // not reveal which non-public IDs exist. Source and gap records keep the
+    // same public-while-closed rule as their canonical collection routes.
+    const protectedResolver =
+      resolverRequest &&
+      (!resolvedRecord || !publicWhenClosed.has(resolvedRecord.path));
+    if (
+      !publicDataEnabled &&
+      (collection === "graph" ||
+        protectedCollection ||
+        protectedExport ||
+        protectedResolver)
+    ) {
       noStore(c);
       return c.json(
         {
           error: emergencyStop
             ? "publication_emergency_stopped"
             : "publication_review_pending",
-          message:
-            emergencyStop
-              ? "The full public-funding graph is temporarily stopped while a publication issue is reviewed; sources and known gaps remain public."
-              : "The reviewed source ledger and gap register remain public while the full public-funding graph is closed.",
+          message: emergencyStop
+            ? "The full public-funding graph is temporarily stopped while a publication issue is reviewed; sources and known gaps remain public."
+            : "The reviewed source ledger and gap register remain public while the full public-funding graph is closed.",
           sources: `${basePath}/sources`,
           gaps: `${basePath}/gaps`,
+          nextActions: [
+            {
+              method: "GET",
+              href: `${basePath}/sources`,
+              description: "Read the reviewed public source ledger.",
+            },
+            {
+              method: "GET",
+              href: `${basePath}/gaps`,
+              description: "Read the public record of known evidence gaps.",
+            },
+            {
+              method: "GET",
+              href: `${basePath}/changes`,
+              description:
+                "Check the append-only release checkpoint and cursor.",
+            },
+          ],
         },
-        503
+        503,
       );
     }
     await next();
@@ -790,14 +1161,19 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
             ? "open"
             : "publication-review",
       },
-      counts: Object.fromEntries(
-        Object.entries(paths).map(([path, name]) => [path, itemsFor(corpus, name).length])
-      ),
+      counts: collectionCounts(corpus),
       routes: {
         fullGraph: `${basePath}/graph`,
         collections: Object.keys(paths).map((path) => `${basePath}/${path}`),
         item: `${basePath}/{collection}/{id}`,
-        filters: [...new Set([...commonQueryKeys, ...Object.values(filterKeysByCollection).flat()])],
+        record: `${basePath}/records/{id}`,
+        changes: `${basePath}/changes`,
+        filters: [
+          ...new Set([
+            ...commonQueryKeys,
+            ...Object.values(filterKeysByCollection).flat(),
+          ]),
+        ],
         manifest: `${basePath}/manifest`,
         schema: `${basePath}/schema`,
         dictionary: `${basePath}/dictionary`,
@@ -836,22 +1212,189 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
         : publicDataEnabled
           ? "open"
           : "publication-review",
-      counts: Object.fromEntries(
-        Object.entries(paths).map(([path, name]) => [path, itemsFor(corpus, name).length])
-      ),
+      counts: collectionCounts(corpus),
       contentLicence: corpus.meta.contentLicence,
       schemaDocument: `${basePath}/schema`,
       dictionary: `${basePath}/dictionary`,
       exports: `${basePath}/exports`,
+      changes: `${basePath}/changes`,
+      recordResolver: `${basePath}/records/{id}`,
       corrections: correctionsUrl,
       idPolicy: {
         scope: "dataset-wide",
         syntax: "lowercase kebab-case",
         reuse: "A retired ID is not reused for a different meaning.",
-        tombstones: "not yet published",
+        tombstones: `Future retirements will be append-only events at ${basePath}/changes; the feed begins at the current snapshot and does not reconstruct earlier tombstones.`,
       },
       notComplete: true,
     });
+  });
+
+  app.get("/changes", (c) => {
+    const searchParams = new URL(c.req.url).searchParams;
+    const allowed = new Set(["after", "limit"]);
+    const unknown = [...searchParams.keys()].filter((key) => !allowed.has(key));
+    if (unknown.length) {
+      noStore(c);
+      return c.json(
+        {
+          error: "unknown_query_parameter",
+          message: "The change feed accepts only after and limit.",
+          parameters: [...new Set(unknown)].sort(),
+          nextActions: [
+            {
+              method: "GET",
+              href: `${basePath}/changes`,
+              description: "Start at the first public change-feed checkpoint.",
+            },
+          ],
+        },
+        400,
+      );
+    }
+    const repeated = [...new Set(searchParams.keys())].filter(
+      (key) => searchParams.getAll(key).length > 1,
+    );
+    if (repeated.length) {
+      noStore(c);
+      return c.json(
+        {
+          error: "repeated_query_parameter",
+          message: "Supply at most one value for after and limit.",
+          parameters: repeated.sort(),
+          nextActions: [
+            {
+              method: "GET",
+              href: `${basePath}/changes`,
+              description:
+                "Restart with no cursor, or use one cursor returned by this feed.",
+            },
+          ],
+        },
+        400,
+      );
+    }
+
+    const rawLimit = c.req.query("limit");
+    const limit = rawLimit === undefined ? 100 : Number(rawLimit);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      noStore(c);
+      return c.json(
+        {
+          error: "invalid_page",
+          message: "Change-feed limit must be an integer from 1 to 100.",
+          limits: { limit: [1, 100] },
+          nextActions: [
+            {
+              method: "GET",
+              href: `${basePath}/changes?limit=100`,
+              description: "Retry with the largest valid page size.",
+            },
+          ],
+        },
+        400,
+      );
+    }
+
+    const after = c.req.query("after");
+    const afterIndex = after
+      ? changeLog.findIndex((change) => change.cursor === after)
+      : -1;
+    if (after !== undefined && (after.length === 0 || afterIndex === -1)) {
+      noStore(c);
+      return c.json(
+        {
+          error: "invalid_cursor",
+          message:
+            "The after cursor is unknown. Cursors are opaque and must be replayed unchanged from a prior response.",
+          cursor: after,
+          nextActions: [
+            {
+              method: "GET",
+              href: `${basePath}/changes`,
+              description: "Restart at the first public checkpoint.",
+            },
+          ],
+        },
+        400,
+      );
+    }
+
+    const start = after === undefined ? 0 : afterIndex + 1;
+    const data = changeLog.slice(start, start + limit);
+    const hasMore = start + data.length < changeLog.length;
+    const nextCursor = data.at(-1)?.cursor ?? after ?? null;
+    const continuation = nextCursor ? changeCursorUrl(c, nextCursor) : null;
+    const next = hasMore ? continuation : null;
+    const responseLinks: ResponseLink[] = next
+      ? [{ href: next, rel: "next" }]
+      : [];
+
+    return cacheableJson(
+      c,
+      corpus,
+      {
+        schema: "taxsorted.uk.public-funding.changes/1",
+        dataset: "uk-public-funding",
+        appendOnly: true,
+        cursorSemantics:
+          "Keep page.nextCursor and send it back unchanged as after. The server stores no caller session. A snapshot-established event is a baseline, not a claim that every record was newly added.",
+        data,
+        page: {
+          limit,
+          returned: data.length,
+          hasMore,
+          nextCursor,
+        },
+        links: {
+          self: relativeUrl(c),
+          next,
+          poll: continuation,
+        },
+      },
+      { responseLinks },
+    );
+  });
+
+  app.get("/records/:id", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    const id = c.req.param("id");
+    const resolved = records.get(id);
+    if (!resolved) {
+      noStore(c);
+      return c.json(
+        {
+          error: "not_found",
+          message: "No UK public-funding record has this stable dataset ID.",
+          id,
+          nextActions: [
+            {
+              method: "GET",
+              href: basePath,
+              description: "Discover collections, filters and bulk exports.",
+            },
+          ],
+        },
+        404,
+      );
+    }
+    const canonicalUrl = `${basePath}/${resolved.path}/${resolved.data.id}`;
+    return cacheableJson(
+      c,
+      corpus,
+      {
+        collection: resolved.path,
+        corpusKey: resolved.corpusKey,
+        canonicalUrl,
+        data: resolved.data,
+        links: {
+          self: `${basePath}/records/${resolved.data.id}`,
+          canonical: canonicalUrl,
+        },
+      },
+      { canonicalLocation: canonicalUrl },
+    );
   });
 
   app.get("/graph", (c) => {
@@ -863,7 +1406,7 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       graphRepresentation,
       `${basePath}/graph`,
       "application/json; charset=utf-8",
-      { etag: graphEtag }
+      { etag: graphEtag },
     );
   });
 
@@ -876,7 +1419,7 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       schemaRepresentation,
       `${basePath}/schema`,
       "application/schema+json; charset=utf-8",
-      { etag: schemaEtag }
+      { etag: schemaEtag },
     );
   });
 
@@ -889,7 +1432,7 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       dictionaryRepresentation,
       `${basePath}/dictionary`,
       "application/json; charset=utf-8",
-      { etag: dictionaryEtag }
+      { etag: dictionaryEtag },
     );
   });
 
@@ -902,7 +1445,7 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       exportIndexRepresentation,
       `${basePath}/exports`,
       "application/json; charset=utf-8",
-      { etag: exportIndexEtag }
+      { etag: exportIndexEtag },
     );
   });
 
@@ -926,31 +1469,42 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       mediaTypes[format],
       {
         disposition: attachmentContentDisposition(
-          exportFilename(path, corpus.meta.version, format)
+          exportFilename(path, corpus.meta.version, format),
         ),
         alternates: exportFormats
           .filter((candidate) => candidate !== format)
           .map((candidate) => links[candidate]),
         etag: prepared.etag,
-      }
+      },
     );
   });
 
   for (const [path, name] of Object.entries(paths)) {
     app.get(`/${path}`, (c) => {
       const searchParams = new URL(c.req.url).searchParams;
-      const allowed = new Set<string>([...commonQueryKeys, ...filterKeysByCollection[name]]);
-      const unknown = [...searchParams.keys()].filter((key) => !allowed.has(key));
+      const allowed = new Set<string>([
+        ...commonQueryKeys,
+        ...filterKeysByCollection[name],
+      ]);
+      const unknown = [...searchParams.keys()].filter(
+        (key) => !allowed.has(key),
+      );
       if (unknown.length) {
         noStore(c);
-        return c.json({ error: "unknown_filter", filters: [...new Set(unknown)].sort() }, 400);
+        return c.json(
+          { error: "unknown_filter", filters: [...new Set(unknown)].sort() },
+          400,
+        );
       }
       const repeated = [...new Set(searchParams.keys())].filter(
-        (key) => searchParams.getAll(key).length > 1
+        (key) => searchParams.getAll(key).length > 1,
       );
       if (repeated.length) {
         noStore(c);
-        return c.json({ error: "repeated_filter", filters: repeated.sort() }, 400);
+        return c.json(
+          { error: "repeated_filter", filters: repeated.sort() },
+          400,
+        );
       }
       const q = c.req.query("q")?.trim();
       if (q && q.length > 100) {
@@ -970,15 +1524,27 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       ) {
         noStore(c);
         return c.json(
-          { error: "invalid_page", limits: { limit: [1, 100], offset: "0 or greater" } },
-          400
+          {
+            error: "invalid_page",
+            message:
+              "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
+            limits: { limit: [1, 100], offset: "0 or greater" },
+            nextActions: [
+              {
+                method: "GET",
+                href: `${basePath}/${path}?limit=100&offset=0`,
+                description: "Restart this collection with a valid first page.",
+              },
+            ],
+          },
+          400,
         );
       }
       const filters = Object.fromEntries(
         filterKeysByCollection[name].flatMap((key) => {
           const value = c.req.query(key)?.trim();
           return value ? [[key, value]] : [];
-        })
+        }),
       );
       for (const [key, value] of Object.entries(filters)) {
         if (!validFilterValue(corpus, name, key as ExactFilterKey, value)) {
@@ -990,35 +1556,64 @@ export function createUkPublicFundingRoutes(options: UkPublicFundingRouteOptions
       if (q) {
         const needle = q.toLocaleLowerCase("en-GB");
         matches = matches.filter((item) =>
-          JSON.stringify(item).toLocaleLowerCase("en-GB").includes(needle)
+          JSON.stringify(item).toLocaleLowerCase("en-GB").includes(needle),
         );
       }
       for (const [key, value] of Object.entries(filters)) {
         matches = matches.filter((item) =>
-          exactFilter(name, item, key as ExactFilterKey, value)
+          exactFilter(name, item, key as ExactFilterKey, value),
         );
       }
       const data = matches.slice(offset, offset + limit);
-      return cacheableJson(c, corpus, {
-        data,
-        page: { total: matches.length, returned: data.length, limit, offset },
-        filters: { ...(q ? { q } : {}), ...filters },
-        provenance: {
-          corpusVersion: corpus.meta.version,
-          reviewedOn: corpus.meta.reviewedOn,
-          sourceLedger: `${basePath}/sources`,
-          gaps: `${basePath}/gaps`,
+      const hasMore = offset + data.length < matches.length;
+      const next = hasMore ? offsetUrl(c, offset + limit) : null;
+      const prev =
+        offset > 0 ? offsetUrl(c, Math.max(0, offset - limit)) : null;
+      const responseLinks: ResponseLink[] = [
+        ...(next ? [{ href: next, rel: "next" as const }] : []),
+        ...(prev ? [{ href: prev, rel: "prev" as const }] : []),
+      ];
+      return cacheableJson(
+        c,
+        corpus,
+        {
+          data,
+          page: {
+            total: matches.length,
+            returned: data.length,
+            limit,
+            offset,
+            hasMore,
+          },
+          links: {
+            self: relativeUrl(c),
+            next,
+            prev,
+          },
+          filters: { ...(q ? { q } : {}), ...filters },
+          provenance: {
+            corpusVersion: corpus.meta.version,
+            reviewedOn: corpus.meta.reviewedOn,
+            sourceLedger: `${basePath}/sources`,
+            gaps: `${basePath}/gaps`,
+          },
         },
-      });
+        { responseLinks },
+      );
     });
 
     app.get(`/${path}/:id`, (c) => {
       const invalidQuery = rejectStaticQuery(c);
       if (invalidQuery) return invalidQuery;
-      const item = itemsFor(corpus, name).find((candidate) => candidate.id === c.req.param("id"));
+      const item = itemsFor(corpus, name).find(
+        (candidate) => candidate.id === c.req.param("id"),
+      );
       if (!item) {
         noStore(c);
-        return c.json({ error: "not_found", collection: path, id: c.req.param("id") }, 404);
+        return c.json(
+          { error: "not_found", collection: path, id: c.req.param("id") },
+          404,
+        );
       }
       return cacheableJson(c, corpus, joinsFor(corpus, name, item));
     });

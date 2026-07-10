@@ -74,7 +74,10 @@ const TaxIndustryQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().nonnegative().optional(),
 });
-const TaxIndustryPublicJson = z.object({}).passthrough().openapi("UkTaxIndustryResponse");
+const TaxIndustryPublicJson = z
+  .object({})
+  .passthrough()
+  .openapi("UkTaxIndustryResponse");
 
 const CharitiesCollection = z.enum([
   "sources",
@@ -105,7 +108,10 @@ const CharitiesQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().nonnegative().optional(),
 });
-const CharitiesPublicJson = z.object({}).passthrough().openapi("UkCharitiesResponse");
+const CharitiesPublicJson = z
+  .object({})
+  .passthrough()
+  .openapi("UkCharitiesResponse");
 
 const PublicFundingCollection = z.enum([
   "sources",
@@ -147,12 +153,18 @@ const PublicFundingQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().nonnegative().optional(),
 });
+const PublicFundingChangeQuery = z.object({
+  after: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
 const PublicFundingPublicJson = z
   .object({})
   .passthrough()
   .openapi("UkPublicFundingResponse");
 const PublicFundingRecord = z
-  .object({ id: z.string().describe("Stable, dataset-wide record identifier.") })
+  .object({
+    id: z.string().describe("Stable, dataset-wide record identifier."),
+  })
   .passthrough()
   .openapi("UkPublicFundingRecord");
 const PublicFundingList = z
@@ -163,6 +175,12 @@ const PublicFundingList = z
       returned: z.number().int().nonnegative(),
       limit: z.number().int().min(1).max(100),
       offset: z.number().int().nonnegative(),
+      hasMore: z.boolean(),
+    }),
+    links: z.object({
+      self: z.string(),
+      next: z.string().nullable(),
+      prev: z.string().nullable(),
     }),
     filters: z.record(z.string(), z.string()),
     provenance: z.object({
@@ -180,6 +198,21 @@ const PublicFundingDetail = z
   })
   .passthrough()
   .openapi("UkPublicFundingDetail");
+const PublicFundingNextAction = z
+  .object({
+    method: z.literal("GET"),
+    href: z.string(),
+    description: z.string(),
+  })
+  .openapi("UkPublicFundingNextAction");
+const PublicFundingActionError = z
+  .object({
+    error: z.string(),
+    message: z.string(),
+    nextActions: z.array(PublicFundingNextAction).min(1),
+  })
+  .passthrough()
+  .openapi("UkPublicFundingActionError");
 const PublicFundingUnavailable = z
   .object({
     error: z.enum([
@@ -189,14 +222,132 @@ const PublicFundingUnavailable = z
     message: z.string(),
     sources: z.string(),
     gaps: z.string(),
+    nextActions: z.array(PublicFundingNextAction).min(1),
   })
+  .passthrough()
   .openapi("UkPublicFundingUnavailable");
+const PublicFundingChange = z
+  .object({
+    id: z.string(),
+    sequence: z.number().int().positive(),
+    cursor: z.string(),
+    operation: z.enum(["snapshot-established", "added", "updated", "retired"]),
+    dataset: z.literal("uk-public-funding"),
+    version: z.string(),
+    reviewedOn: z.string(),
+    publishedOn: z.string(),
+    releaseCommit: z.string().regex(/^[0-9a-f]{40}$/),
+    previousEventHash: z.string().nullable(),
+    eventHash: z.string(),
+    datasetHash: z.string(),
+    counts: z.record(z.string(), z.number().int().nonnegative()),
+    collection: z.string().optional(),
+    recordId: z.string().optional(),
+    changedFields: z.array(z.string()).optional(),
+    beforeHash: z.string().nullable().optional(),
+    afterHash: z.string().nullable().optional(),
+    reason: z.string().optional(),
+    sourceIds: z.array(z.string()).optional(),
+    explanation: z.string(),
+    doesNotClaim: z.array(z.string()),
+  })
+  .openapi("UkPublicFundingChange");
+const PublicFundingChangeFeed = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-funding.changes/1"),
+    dataset: z.literal("uk-public-funding"),
+    appendOnly: z.literal(true),
+    cursorSemantics: z.string(),
+    data: z.array(PublicFundingChange),
+    page: z.object({
+      limit: z.number().int().min(1).max(100),
+      returned: z.number().int().nonnegative(),
+      hasMore: z.boolean(),
+      nextCursor: z.string().nullable(),
+    }),
+    links: z.object({
+      self: z.string(),
+      next: z.string().nullable(),
+      poll: z.string().nullable(),
+    }),
+  })
+  .openapi("UkPublicFundingChangeFeed");
+const PublicFundingResolvedRecord = z
+  .object({
+    collection: PublicFundingCollection,
+    corpusKey: z.string(),
+    canonicalUrl: z.string(),
+    data: PublicFundingRecord,
+    links: z.object({ self: z.string(), canonical: z.string() }),
+  })
+  .openapi("UkPublicFundingResolvedRecord");
+
+const AgentNextAction = z
+  .object({
+    id: z.string(),
+    method: z.literal("GET"),
+    href: z.string(),
+    accepts: z.array(z.string()),
+    description: z.string(),
+  })
+  .openapi("AgentNextAction");
+const AgentWake = z
+  .object({
+    schema: z.literal("taxsorted.agent-wake/1"),
+    service: z.object({
+      name: z.literal("TaxSorted"),
+      purpose: z.string(),
+      humanDoor: z.string().url(),
+      machineDoor: z.string().url(),
+      jurisdiction: z.literal("United Kingdom"),
+    }),
+    access: z.object({
+      scope: z.string(),
+      authentication: z.literal("none"),
+      price: z.literal("free"),
+      cookies: z.literal("none"),
+      methods: z.array(z.enum(["GET", "HEAD", "OPTIONS"])),
+      cors: z.literal("*"),
+    }),
+    wallScope: z.object({
+      appliesTo: z.array(z.string()),
+      meaning: z.string(),
+      doesNotCertify: z.string(),
+    }),
+    walls: z.array(z.object({ id: z.string(), statement: z.string() })),
+    publicationStates: z.array(
+      z.object({
+        datasetId: z.string(),
+        version: z.string(),
+        reviewedOn: z.string().nullable(),
+        status: z.string(),
+        fullDatasetAvailable: z.boolean(),
+        reviewBoundary: z.string(),
+        scopeBoundary: z.string().nullable().optional(),
+      }),
+    ),
+    resources: z.object({}).passthrough(),
+    evidenceLanes: z.array(z.object({}).passthrough()),
+    nextActions: z.array(AgentNextAction),
+  })
+  .openapi("AgentWake");
+const AgentDoorError = z
+  .object({
+    schema: z.literal("taxsorted.agent-error/1"),
+    error: z.string(),
+    message: z.string(),
+    parameters: z.array(z.string()),
+    nextActions: z.array(AgentNextAction),
+  })
+  .openapi("AgentDoorError");
 
 const ContentLicence = z
   .object({ name: z.string(), url: z.string().url() })
   .openapi("ContentLicence");
 const OpenDataRecord = z
-  .object({ id: z.string().describe("Stable, dataset-wide record identifier.") })
+  .object({
+    id: z.string().describe("Stable, dataset-wide record identifier."),
+  })
   .passthrough()
   .openapi("OpenDataRecord");
 const DictionaryField = z
@@ -222,7 +373,10 @@ const DictionaryCollection = z
     queryUrl: z.string(),
     queryFilters: z.array(z.string()),
     schemaPointer: z.string().url(),
-    references: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
+    references: z.record(
+      z.string(),
+      z.union([z.string(), z.array(z.string())]),
+    ),
     csvColumns: z.array(z.string()),
     fields: z.array(DictionaryField),
   })
@@ -368,7 +522,17 @@ const ConditionalRequestHeaders = z.object({
   "If-None-Match": z
     .string()
     .optional()
-    .describe("Validator from a previous response for this same URL and format."),
+    .describe(
+      "Validator from a previous response for this same URL and format.",
+    ),
+});
+const AgentRequestHeaders = ConditionalRequestHeaders.extend({
+  Accept: z
+    .string()
+    .optional()
+    .describe(
+      "Request JSON at the API root; canonical wake and manifest routes have fixed representations.",
+    ),
 });
 
 const publicResponseHeaders = {
@@ -381,19 +545,23 @@ const publicResponseHeaders = {
     schema: { type: "string" as const },
   },
   Link: {
-    description: "Canonical, licence, schema and alternate representation links.",
+    description:
+      "Canonical, licence, schema and alternate representation links.",
     schema: { type: "string" as const },
   },
   "Content-Location": {
-    description: "Location of this representation; follow Link rel=canonical when it is an alias.",
+    description:
+      "Location of this representation; follow Link rel=canonical when it is an alias.",
     schema: { type: "string" as const },
   },
   "X-Corpus-Version": {
-    description: "Reviewed tax-corpus version when the response belongs to a tax graph.",
+    description:
+      "Reviewed tax-corpus version when the response belongs to a tax graph.",
     schema: { type: "string" as const },
   },
   "X-Corpus-Reviewed-On": {
-    description: "Tax-corpus review date when the response belongs to a tax graph.",
+    description:
+      "Tax-corpus review date when the response belongs to a tax graph.",
     schema: { type: "string" as const },
   },
 };
@@ -411,7 +579,10 @@ const redirectResponseHeaders = {
     schema: { type: "string" as const },
   },
 };
-const PoliticsPublicJson = z.object({}).passthrough().openapi("UkPoliticsOpenDataResponse");
+const PoliticsPublicJson = z
+  .object({})
+  .passthrough()
+  .openapi("UkPoliticsOpenDataResponse");
 const PoliticsDatasetField = z
   .object({
     name: z.string(),
@@ -516,6 +687,148 @@ const politicsDownloadHeaders = {
   },
 };
 
+function registerAgentInterfaceOpenApi(app: OpenAPIHono) {
+  for (const path of ["/agent.txt", "/.well-known/agent.txt"] as const) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path,
+      operationId:
+        path === "/agent.txt"
+          ? "getAgentManifest"
+          : "getWellKnownAgentManifest",
+      summary: "Read the TaxSorted machine doorway manifest",
+      description:
+        "Flat, ordered orientation for machine callers: public doors, formats, rights, corrections and hard safety walls. It is XENIA-inspired; no conformance claim is made.",
+      request: { headers: AgentRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current machine manifest.",
+          headers: publicResponseHeaders,
+          content: { "text/plain": { schema: z.string() } },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies these exact manifest bytes.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description:
+            "Machine manifest routes do not accept query parameters.",
+          content: { "application/json": { schema: AgentDoorError } },
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path,
+      operationId:
+        path === "/agent.txt"
+          ? "headAgentManifest"
+          : "headWellKnownAgentManifest",
+      summary: "Check the TaxSorted machine doorway manifest",
+      request: { headers: AgentRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current manifest metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "The manifest is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description:
+            "Machine manifest routes do not accept query parameters.",
+        },
+      },
+    });
+  }
+
+  for (const route of [
+    {
+      path: "/v1/wake" as const,
+      operationId: "wakeTaxSortedAgent",
+      headOperationId: "headTaxSortedAgentWake",
+      summary: "Arrive oriented at TaxSorted",
+      description:
+        "Deterministic, stateless projection of the open-data catalogue: publication states, resource handles, evidence lanes, safety walls and typed next actions. The caller keeps its own cursor and TaxSorted creates no identity session.",
+      hasDefault404: false,
+    },
+    {
+      path: "/" as const,
+      operationId: "negotiateTaxSortedAgentWake",
+      headOperationId: "headNegotiatedTaxSortedAgentWake",
+      summary: "Negotiate machine orientation at the API root",
+      description:
+        "Returns the exact /v1/wake JSON when Accept includes application/json with non-zero quality. Other media types retain the default 404.",
+      hasDefault404: true,
+    },
+  ]) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      request: { headers: AgentRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current stateless machine orientation.",
+          headers: publicResponseHeaders,
+          content: { "application/json": { schema: AgentWake } },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies these exact wake bytes.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Wake routes do not accept query parameters.",
+          content: { "application/json": { schema: AgentDoorError } },
+        },
+        ...(route.hasDefault404
+          ? {
+              404: {
+                description:
+                  "The API root remains a closed door unless JSON is requested.",
+              },
+            }
+          : {}),
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: route.headOperationId,
+      summary: `Check: ${route.summary}`,
+      request: { headers: AgentRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current wake metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "The wake representation is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Wake routes do not accept query parameters." },
+        ...(route.hasDefault404
+          ? {
+              404: {
+                description:
+                  "The API root remains a closed door unless JSON is requested.",
+              },
+            }
+          : {}),
+      },
+    });
+  }
+}
+
 function registerOpenDataOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -550,7 +863,8 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Mixed-rights statement and dataset-specific rights routes.",
+        description:
+          "Mixed-rights statement and dataset-specific rights routes.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: OpenDataRights } },
       },
@@ -569,12 +883,20 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
       method: "head",
       path: route[0],
       summary: route[1],
-      description: "Returns the same validators and links as GET without a response body.",
+      description:
+        "Returns the same validators and links as GET without a response body.",
       request: { headers: ConditionalRequestHeaders },
       security: [],
       responses: {
-        200: { description: "Current representation metadata.", headers: publicResponseHeaders },
-        304: { description: "The supplied ETag still identifies this representation.", headers: publicResponseHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
         400: { description: "Static routes do not accept query parameters." },
       },
     });
@@ -597,7 +919,10 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
         headers: publicResponseHeaders,
         content: { "application/json": { schema: PublicJson } },
       },
-      304: { description: "This exact overview is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact overview is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -610,8 +935,14 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
-      308: { description: "Permanent redirect to /v1/tax-system/uk.", headers: redirectResponseHeaders },
-      304: { description: "The redirect representation is unchanged.", headers: publicResponseHeaders },
+      308: {
+        description: "Permanent redirect to /v1/tax-system/uk.",
+        headers: redirectResponseHeaders,
+      },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -632,9 +963,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
         headers: publicResponseHeaders,
         content: { "application/json": { schema: PublicJson } },
       },
-      304: { description: "This exact query representation is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Unknown or invalid filter." },
-      503: { description: "Full graph publication remains closed; sources and gaps stay public." },
+      503: {
+        description:
+          "Full graph publication remains closed; sources and gaps stay public.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -649,12 +986,16 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "The record and its resolved sources; actor records include joined relations.",
+        description:
+          "The record and its resolved sources; actor records include joined relations.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: PublicJson } },
       },
       404: { description: "No record with that ID in the collection." },
-      304: { description: "This exact record representation is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       503: { description: "Full graph publication remains closed." },
     },
@@ -668,11 +1009,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "The complete static corpus, including source limitations and gaps.",
+        description:
+          "The complete static corpus, including source limitations and gaps.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: ukTaxSystemSchema } },
       },
-      304: { description: "The supplied ETag still identifies this exact graph.", headers: publicResponseHeaders },
+      304: {
+        description: "The supplied ETag still identifies this exact graph.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
       503: { description: "Full graph publication remains closed." },
     },
@@ -686,11 +1031,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Version, review date, deterministic graph-byte SHA-256, counts, licence and distribution links.",
+        description:
+          "Version, review date, deterministic graph-byte SHA-256, counts, licence and distribution links.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: PublicJson } },
       },
-      304: { description: "This exact manifest is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact manifest is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -703,11 +1052,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Structural JSON Schema generated from the Zod record shape; the dictionary lists boot-only graph invariants.",
+        description:
+          "Structural JSON Schema generated from the Zod record shape; the dictionary lists boot-only graph invariants.",
         headers: publicResponseHeaders,
         content: { "application/schema+json": { schema: PublicJson } },
       },
-      304: { description: "This exact schema is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact schema is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -720,11 +1073,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Collection aliases, meanings, filters, references, CSV columns and reuse conventions.",
+        description:
+          "Collection aliases, meanings, filters, references, CSV columns and reuse conventions.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: DataDictionary } },
       },
-      304: { description: "This exact dictionary is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact dictionary is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -737,11 +1094,15 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Format links, filenames, sizes and exact-byte ETags for every collection.",
+        description:
+          "Format links, filenames, sizes and exact-byte ETags for every collection.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: DatasetExportIndex } },
       },
-      304: { description: "This exact export index is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact export index is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -754,7 +1115,10 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
       "JSON and NDJSON use lossless TaxSorted deterministic JSON (not RFC 8785/JCS). CSV keeps nested values as deterministic JSON and mitigates common spreadsheet-formula prefixes.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: TaxSystemCollection, format: ExportFormat }),
+      params: z.object({
+        collection: TaxSystemCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
@@ -767,10 +1131,18 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
           "text/csv": { schema: z.string() },
         },
       },
-      304: { description: "This exact export format is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      304: {
+        description: "This exact export format is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
-      503: { description: "This collection is still inside the publication review boundary." },
+      503: {
+        description:
+          "This collection is still inside the publication review boundary.",
+      },
     },
   });
 
@@ -782,39 +1154,94 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
-      308: { description: "Permanent redirect metadata.", headers: redirectResponseHeaders },
-      304: { description: "The redirect representation is unchanged.", headers: publicResponseHeaders },
+      308: {
+        description: "Permanent redirect metadata.",
+        headers: redirectResponseHeaders,
+      },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
 
   for (const [path, operationId, summary, mayBeClosed] of [
-    ["/v1/tax-system/uk", "headUkTaxSystemOverview", "Check the UK tax-system overview", false],
-    ["/v1/tax-system/uk/graph", "headUkTaxSystemGraph", "Check the complete UK tax-system graph", true],
-    ["/v1/tax-system/uk/manifest", "headUkTaxSystemManifest", "Check the UK tax-system manifest", false],
-    ["/v1/tax-system/uk/schema", "headUkTaxSystemSchema", "Check the UK tax-system structural schema", false],
-    ["/v1/tax-system/uk/dictionary", "headUkTaxSystemDictionary", "Check the UK tax-system dictionary", false],
-    ["/v1/tax-system/uk/exports", "headUkTaxSystemExports", "Check the UK tax-system export index", false],
+    [
+      "/v1/tax-system/uk",
+      "headUkTaxSystemOverview",
+      "Check the UK tax-system overview",
+      false,
+    ],
+    [
+      "/v1/tax-system/uk/graph",
+      "headUkTaxSystemGraph",
+      "Check the complete UK tax-system graph",
+      true,
+    ],
+    [
+      "/v1/tax-system/uk/manifest",
+      "headUkTaxSystemManifest",
+      "Check the UK tax-system manifest",
+      false,
+    ],
+    [
+      "/v1/tax-system/uk/schema",
+      "headUkTaxSystemSchema",
+      "Check the UK tax-system structural schema",
+      false,
+    ],
+    [
+      "/v1/tax-system/uk/dictionary",
+      "headUkTaxSystemDictionary",
+      "Check the UK tax-system dictionary",
+      false,
+    ],
+    [
+      "/v1/tax-system/uk/exports",
+      "headUkTaxSystemExports",
+      "Check the UK tax-system export index",
+      false,
+    ],
   ] as const) {
     app.openAPIRegistry.registerPath({
       method: "head",
       path,
       operationId,
       summary,
-      description: "Returns the same validators and links as GET without a response body.",
+      description:
+        "Returns the same validators and links as GET without a response body.",
       request: { headers: ConditionalRequestHeaders },
       security: [],
       responses: mayBeClosed
         ? {
-            200: { description: "Current representation metadata.", headers: publicResponseHeaders },
-            304: { description: "The supplied ETag still identifies this representation.", headers: publicResponseHeaders },
-            400: { description: "Static routes do not accept query parameters." },
+            200: {
+              description: "Current representation metadata.",
+              headers: publicResponseHeaders,
+            },
+            304: {
+              description:
+                "The supplied ETag still identifies this representation.",
+              headers: publicResponseHeaders,
+            },
+            400: {
+              description: "Static routes do not accept query parameters.",
+            },
             503: { description: "Full graph publication remains closed." },
           }
         : {
-            200: { description: "Current representation metadata.", headers: publicResponseHeaders },
-            304: { description: "The supplied ETag still identifies this representation.", headers: publicResponseHeaders },
-            400: { description: "Static routes do not accept query parameters." },
+            200: {
+              description: "Current representation metadata.",
+              headers: publicResponseHeaders,
+            },
+            304: {
+              description:
+                "The supplied ETag still identifies this representation.",
+              headers: publicResponseHeaders,
+            },
+            400: {
+              description: "Static routes do not accept query parameters.",
+            },
           },
     });
   }
@@ -823,7 +1250,8 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-system/uk/{collection}",
     operationId: "headUkTaxSystemCollectionQuery",
     summary: "Check a UK tax-system collection query",
-    description: "Returns the GET query's validators and links without its response body.",
+    description:
+      "Returns the GET query's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: TaxSystemCollection }),
@@ -831,10 +1259,20 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     },
     security: [],
     responses: {
-      200: { description: "Current query metadata.", headers: publicResponseHeaders },
-      304: { description: "The supplied ETag still identifies this query representation.", headers: publicResponseHeaders },
+      200: {
+        description: "Current query metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this query representation.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Unknown or invalid filter." },
-      503: { description: "Full graph publication remains closed; sources and gaps stay public." },
+      503: {
+        description:
+          "Full graph publication remains closed; sources and gaps stay public.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -842,15 +1280,23 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-system/uk/{collection}/{id}",
     operationId: "headUkTaxSystemRecord",
     summary: "Check one UK tax-system record",
-    description: "Returns the record's validators and links without its response body.",
+    description:
+      "Returns the record's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: TaxSystemCollection, id: z.string() }),
     },
     security: [],
     responses: {
-      200: { description: "Current record metadata.", headers: publicResponseHeaders },
-      304: { description: "The supplied ETag still identifies this record representation.", headers: publicResponseHeaders },
+      200: {
+        description: "Current record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this record representation.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       404: { description: "No record with that ID in the collection." },
       503: { description: "Full graph publication remains closed." },
@@ -861,18 +1307,33 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-system/uk/exports/{collection}/{format}",
     operationId: "headUkTaxSystemCollectionExport",
     summary: "Check one UK tax-system collection export",
-    description: "Returns download validators, size-independent links and filename without the export body.",
+    description:
+      "Returns download validators, size-independent links and filename without the export body.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: TaxSystemCollection, format: ExportFormat }),
+      params: z.object({
+        collection: TaxSystemCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
-      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
-      304: { description: "The supplied ETag still identifies this export.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      200: {
+        description: "Current export metadata.",
+        headers: taxExportResponseHeaders,
+      },
+      304: {
+        description: "The supplied ETag still identifies this export.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
-      503: { description: "This collection is still inside the publication review boundary." },
+      503: {
+        description:
+          "This collection is still inside the publication review boundary.",
+      },
     },
   });
 }
@@ -893,7 +1354,10 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
         headers: publicResponseHeaders,
         content: { "application/json": { schema: TaxIndustryPublicJson } },
       },
-      304: { description: "This exact overview is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact overview is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -902,12 +1366,19 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-industry/uk/map",
     operationId: "redirectUkTaxIndustryMap",
     summary: "Follow the legacy UK tax-industry map route",
-    description: "Compatibility redirect to the canonical tax-industry overview.",
+    description:
+      "Compatibility redirect to the canonical tax-industry overview.",
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
-      308: { description: "Permanent redirect to /v1/tax-industry/uk.", headers: redirectResponseHeaders },
-      304: { description: "The redirect representation is unchanged.", headers: publicResponseHeaders },
+      308: {
+        description: "Permanent redirect to /v1/tax-industry/uk.",
+        headers: redirectResponseHeaders,
+      },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -931,8 +1402,14 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
         content: { "application/json": { schema: TaxIndustryPublicJson } },
       },
       400: { description: "Unknown or invalid filter." },
-      304: { description: "This exact query representation is unchanged.", headers: publicResponseHeaders },
-      503: { description: "Full map publication remains closed; sources and gaps stay public." },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      503: {
+        description:
+          "Full map publication remains closed; sources and gaps stay public.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -947,12 +1424,16 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "The record, resolved sources and relevant joined records.",
+        description:
+          "The record, resolved sources and relevant joined records.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: TaxIndustryPublicJson } },
       },
       404: { description: "No record with that ID in the collection." },
-      304: { description: "This exact record representation is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       503: { description: "Full map publication remains closed." },
     },
@@ -966,11 +1447,15 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "The complete static corpus, including source limitations and gaps.",
+        description:
+          "The complete static corpus, including source limitations and gaps.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: ukTaxIndustrySchema } },
       },
-      304: { description: "The supplied ETag still identifies this exact graph.", headers: publicResponseHeaders },
+      304: {
+        description: "The supplied ETag still identifies this exact graph.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
       503: { description: "Full map publication remains closed." },
     },
@@ -984,11 +1469,15 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Version, review date, deterministic graph-byte SHA-256, counts, licence and distribution links.",
+        description:
+          "Version, review date, deterministic graph-byte SHA-256, counts, licence and distribution links.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: TaxIndustryPublicJson } },
       },
-      304: { description: "This exact manifest is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact manifest is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -1001,11 +1490,17 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Structural JSON Schema generated from the Zod record shape; the dictionary lists boot-only graph and cross-field invariants.",
+        description:
+          "Structural JSON Schema generated from the Zod record shape; the dictionary lists boot-only graph and cross-field invariants.",
         headers: publicResponseHeaders,
-        content: { "application/schema+json": { schema: TaxIndustryPublicJson } },
+        content: {
+          "application/schema+json": { schema: TaxIndustryPublicJson },
+        },
       },
-      304: { description: "This exact schema is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact schema is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -1018,11 +1513,15 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Collection aliases, meanings, filters, references, CSV columns and reuse conventions.",
+        description:
+          "Collection aliases, meanings, filters, references, CSV columns and reuse conventions.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: DataDictionary } },
       },
-      304: { description: "This exact dictionary is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact dictionary is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -1035,11 +1534,15 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Format links, filenames, sizes and exact-byte ETags for every collection.",
+        description:
+          "Format links, filenames, sizes and exact-byte ETags for every collection.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: DatasetExportIndex } },
       },
-      304: { description: "This exact export index is unchanged.", headers: publicResponseHeaders },
+      304: {
+        description: "This exact export index is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
@@ -1052,7 +1555,10 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
       "JSON and NDJSON use lossless TaxSorted deterministic JSON (not RFC 8785/JCS). CSV keeps nested values as deterministic JSON and mitigates common spreadsheet-formula prefixes.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: TaxIndustryCollection, format: ExportFormat }),
+      params: z.object({
+        collection: TaxIndustryCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
@@ -1065,10 +1571,18 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
           "text/csv": { schema: z.string() },
         },
       },
-      304: { description: "This exact export format is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      304: {
+        description: "This exact export format is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
-      503: { description: "This collection is still inside the publication review boundary." },
+      503: {
+        description:
+          "This collection is still inside the publication review boundary.",
+      },
     },
   });
 
@@ -1080,39 +1594,94 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
-      308: { description: "Permanent redirect metadata.", headers: redirectResponseHeaders },
-      304: { description: "The redirect representation is unchanged.", headers: publicResponseHeaders },
+      308: {
+        description: "Permanent redirect metadata.",
+        headers: redirectResponseHeaders,
+      },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Static routes do not accept query parameters." },
     },
   });
 
   for (const [path, operationId, summary, mayBeClosed] of [
-    ["/v1/tax-industry/uk", "headUkTaxIndustryOverview", "Check the UK tax-industry overview", false],
-    ["/v1/tax-industry/uk/graph", "headUkTaxIndustryGraph", "Check the complete UK tax-industry graph", true],
-    ["/v1/tax-industry/uk/manifest", "headUkTaxIndustryManifest", "Check the UK tax-industry manifest", false],
-    ["/v1/tax-industry/uk/schema", "headUkTaxIndustrySchema", "Check the UK tax-industry structural schema", false],
-    ["/v1/tax-industry/uk/dictionary", "headUkTaxIndustryDictionary", "Check the UK tax-industry dictionary", false],
-    ["/v1/tax-industry/uk/exports", "headUkTaxIndustryExports", "Check the UK tax-industry export index", false],
+    [
+      "/v1/tax-industry/uk",
+      "headUkTaxIndustryOverview",
+      "Check the UK tax-industry overview",
+      false,
+    ],
+    [
+      "/v1/tax-industry/uk/graph",
+      "headUkTaxIndustryGraph",
+      "Check the complete UK tax-industry graph",
+      true,
+    ],
+    [
+      "/v1/tax-industry/uk/manifest",
+      "headUkTaxIndustryManifest",
+      "Check the UK tax-industry manifest",
+      false,
+    ],
+    [
+      "/v1/tax-industry/uk/schema",
+      "headUkTaxIndustrySchema",
+      "Check the UK tax-industry structural schema",
+      false,
+    ],
+    [
+      "/v1/tax-industry/uk/dictionary",
+      "headUkTaxIndustryDictionary",
+      "Check the UK tax-industry dictionary",
+      false,
+    ],
+    [
+      "/v1/tax-industry/uk/exports",
+      "headUkTaxIndustryExports",
+      "Check the UK tax-industry export index",
+      false,
+    ],
   ] as const) {
     app.openAPIRegistry.registerPath({
       method: "head",
       path,
       operationId,
       summary,
-      description: "Returns the same validators and links as GET without a response body.",
+      description:
+        "Returns the same validators and links as GET without a response body.",
       request: { headers: ConditionalRequestHeaders },
       security: [],
       responses: mayBeClosed
         ? {
-            200: { description: "Current representation metadata.", headers: publicResponseHeaders },
-            304: { description: "The supplied ETag still identifies this representation.", headers: publicResponseHeaders },
-            400: { description: "Static routes do not accept query parameters." },
+            200: {
+              description: "Current representation metadata.",
+              headers: publicResponseHeaders,
+            },
+            304: {
+              description:
+                "The supplied ETag still identifies this representation.",
+              headers: publicResponseHeaders,
+            },
+            400: {
+              description: "Static routes do not accept query parameters.",
+            },
             503: { description: "Full map publication remains closed." },
           }
         : {
-            200: { description: "Current representation metadata.", headers: publicResponseHeaders },
-            304: { description: "The supplied ETag still identifies this representation.", headers: publicResponseHeaders },
-            400: { description: "Static routes do not accept query parameters." },
+            200: {
+              description: "Current representation metadata.",
+              headers: publicResponseHeaders,
+            },
+            304: {
+              description:
+                "The supplied ETag still identifies this representation.",
+              headers: publicResponseHeaders,
+            },
+            400: {
+              description: "Static routes do not accept query parameters.",
+            },
           },
     });
   }
@@ -1121,7 +1690,8 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-industry/uk/{collection}",
     operationId: "headUkTaxIndustryCollectionQuery",
     summary: "Check a UK tax-industry collection query",
-    description: "Returns the GET query's validators and links without its response body.",
+    description:
+      "Returns the GET query's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: TaxIndustryCollection }),
@@ -1129,10 +1699,20 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     },
     security: [],
     responses: {
-      200: { description: "Current query metadata.", headers: publicResponseHeaders },
-      304: { description: "The supplied ETag still identifies this query representation.", headers: publicResponseHeaders },
+      200: {
+        description: "Current query metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this query representation.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Unknown or invalid filter." },
-      503: { description: "Full map publication remains closed; sources and gaps stay public." },
+      503: {
+        description:
+          "Full map publication remains closed; sources and gaps stay public.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1140,15 +1720,23 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-industry/uk/{collection}/{id}",
     operationId: "headUkTaxIndustryRecord",
     summary: "Check one UK tax-industry record",
-    description: "Returns the record's validators and links without its response body.",
+    description:
+      "Returns the record's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: TaxIndustryCollection, id: z.string() }),
     },
     security: [],
     responses: {
-      200: { description: "Current record metadata.", headers: publicResponseHeaders },
-      304: { description: "The supplied ETag still identifies this record representation.", headers: publicResponseHeaders },
+      200: {
+        description: "Current record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this record representation.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       404: { description: "No record with that ID in the collection." },
       503: { description: "Full map publication remains closed." },
@@ -1159,18 +1747,33 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
     path: "/v1/tax-industry/uk/exports/{collection}/{format}",
     operationId: "headUkTaxIndustryCollectionExport",
     summary: "Check one UK tax-industry collection export",
-    description: "Returns download validators, size-independent links and filename without the export body.",
+    description:
+      "Returns download validators, size-independent links and filename without the export body.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: TaxIndustryCollection, format: ExportFormat }),
+      params: z.object({
+        collection: TaxIndustryCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
-      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
-      304: { description: "The supplied ETag still identifies this export.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      200: {
+        description: "Current export metadata.",
+        headers: taxExportResponseHeaders,
+      },
+      304: {
+        description: "The supplied ETag still identifies this export.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
-      503: { description: "This collection is still inside the publication review boundary." },
+      503: {
+        description:
+          "This collection is still inside the publication review boundary.",
+      },
     },
   });
 }
@@ -1181,7 +1784,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     path: "/v1/charities/uk/map",
     operationId: "redirectUkCharitiesMap",
     summary: "Follow the UK charity-sector map alias",
-    description: "Compatibility redirect to the canonical charity-sector overview.",
+    description:
+      "Compatibility redirect to the canonical charity-sector overview.",
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
@@ -1204,7 +1808,10 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
-      308: { description: "Permanent redirect metadata.", headers: redirectResponseHeaders },
+      308: {
+        description: "Permanent redirect metadata.",
+        headers: redirectResponseHeaders,
+      },
       304: {
         description: "The redirect representation is unchanged.",
         headers: publicResponseHeaders,
@@ -1228,7 +1835,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Filtered sector records with paging and provenance metadata.",
+        description:
+          "Filtered sector records with paging and provenance metadata.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: CharitiesPublicJson } },
       },
@@ -1295,7 +1903,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       path: "/v1/charities/uk/manifest",
       operationId: "getUkCharitiesManifest",
       summary: "Read the UK charity-sector release manifest",
-      description: "Version, review date, exact graph hash, counts, licence and distribution links.",
+      description:
+        "Version, review date, exact graph hash, counts, licence and distribution links.",
       schema: CharitiesPublicJson,
       mediaType: "application/json",
       mayBeClosed: false,
@@ -1304,7 +1913,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       path: "/v1/charities/uk/schema",
       operationId: "getUkCharitiesSchema",
       summary: "Read the structural UK charity-sector JSON Schema",
-      description: "Strict record shapes; the dictionary lists boot-only reference and safety invariants.",
+      description:
+        "Strict record shapes; the dictionary lists boot-only reference and safety invariants.",
       schema: CharitiesPublicJson,
       mediaType: "application/schema+json",
       mayBeClosed: false,
@@ -1313,7 +1923,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       path: "/v1/charities/uk/dictionary",
       operationId: "getUkCharitiesDictionary",
       summary: "Read the plain-language UK charity-sector data dictionary",
-      description: "Collection aliases, field meanings, filters, references, formats and missing-value rules.",
+      description:
+        "Collection aliases, field meanings, filters, references, formats and missing-value rules.",
       schema: DataDictionary,
       mediaType: "application/json",
       mayBeClosed: false,
@@ -1322,7 +1933,8 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       path: "/v1/charities/uk/exports",
       operationId: "listUkCharitiesExports",
       summary: "List complete UK charity-sector collection exports",
-      description: "Format links, filenames, byte sizes and exact-representation ETags.",
+      description:
+        "Format links, filenames, byte sizes and exact-representation ETags.",
       schema: DatasetExportIndex,
       mediaType: "application/json",
       mayBeClosed: false,
@@ -1345,12 +1957,18 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
           content: { [route.mediaType]: { schema: route.schema } },
         },
         304: {
-          description: "The supplied ETag still identifies this representation.",
+          description:
+            "The supplied ETag still identifies this representation.",
           headers: publicResponseHeaders,
         },
         400: { description: "Static routes do not accept query parameters." },
         ...(route.mayBeClosed
-          ? { 503: { description: "The full sector release is disabled or emergency-stopped." } }
+          ? {
+              503: {
+                description:
+                  "The full sector release is disabled or emergency-stopped.",
+              },
+            }
           : {}),
       },
     });
@@ -1360,18 +1978,28 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       path: route.path,
       operationId: route.operationId.replace(/^get|^download|^list/, "head"),
       summary: `Check: ${route.summary}`,
-      description: "Returns the same validators and links as GET without a response body.",
+      description:
+        "Returns the same validators and links as GET without a response body.",
       request: { headers: ConditionalRequestHeaders },
       security: [],
       responses: {
-        200: { description: "Current representation metadata.", headers: publicResponseHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: publicResponseHeaders,
+        },
         304: {
-          description: "The supplied ETag still identifies this representation.",
+          description:
+            "The supplied ETag still identifies this representation.",
           headers: publicResponseHeaders,
         },
         400: { description: "Static routes do not accept query parameters." },
         ...(route.mayBeClosed
-          ? { 503: { description: "The full sector release is disabled or emergency-stopped." } }
+          ? {
+              503: {
+                description:
+                  "The full sector release is disabled or emergency-stopped.",
+              },
+            }
           : {}),
       },
     });
@@ -1386,7 +2014,10 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
       "JSON and NDJSON are lossless deterministic TaxSorted encodings. CSV is a spreadsheet convenience copy and keeps nested values as deterministic JSON.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: CharitiesCollection, format: ExportFormat }),
+      params: z.object({
+        collection: CharitiesCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
@@ -1399,8 +2030,13 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
           "text/csv": { schema: z.string() },
         },
       },
-      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      304: {
+        description: "This exact export is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
       503: { description: "This collection is disabled or emergency-stopped." },
     },
@@ -1418,8 +2054,14 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     },
     security: [],
     responses: {
-      200: { description: "Current query metadata.", headers: publicResponseHeaders },
-      304: { description: "This exact query is unchanged.", headers: publicResponseHeaders },
+      200: {
+        description: "Current query metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact query is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Unknown, repeated, irrelevant or invalid filter." },
       503: { description: "The collection is disabled or emergency-stopped." },
     },
@@ -1435,8 +2077,14 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     },
     security: [],
     responses: {
-      200: { description: "Current record metadata.", headers: publicResponseHeaders },
-      304: { description: "This exact record is unchanged.", headers: publicResponseHeaders },
+      200: {
+        description: "Current record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact record is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       404: { description: "No record with that ID in the collection." },
       503: { description: "The collection is disabled or emergency-stopped." },
@@ -1449,13 +2097,24 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     summary: "Check one UK charity-sector collection export",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: CharitiesCollection, format: ExportFormat }),
+      params: z.object({
+        collection: CharitiesCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
-      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
-      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      200: {
+        description: "Current export metadata.",
+        headers: taxExportResponseHeaders,
+      },
+      304: {
+        description: "This exact export is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
       503: { description: "This collection is disabled or emergency-stopped." },
     },
@@ -1509,7 +2168,8 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "One public-funding record with provenance and relevant joins.",
+        description:
+          "One public-funding record with provenance and relevant joins.",
         headers: publicResponseHeaders,
         content: { "application/json": { schema: PublicFundingDetail } },
       },
@@ -1522,6 +2182,126 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
       503: {
         description: "The collection is pending review or emergency-stopped.",
         content: { "application/json": { schema: PublicFundingUnavailable } },
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/public-funding/uk/changes",
+    operationId: "listUkPublicFundingChanges",
+    summary: "Resume an append-only UK public-funding release feed",
+    description:
+      "Caller-held cursor feed for dataset publication history. The first event honestly establishes the current snapshot; it does not fabricate retrospective per-record changes or government-domain events.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: PublicFundingChangeQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Release checkpoints after the supplied opaque cursor.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: PublicFundingChangeFeed } },
+      },
+      304: {
+        description: "This exact cursor page is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Unknown, repeated or invalid cursor/page parameter.",
+        content: { "application/json": { schema: PublicFundingActionError } },
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/public-funding/uk/changes",
+    operationId: "headUkPublicFundingChanges",
+    summary: "Check a UK public-funding release-feed page",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: PublicFundingChangeQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current release-feed page metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact cursor page is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Unknown, repeated or invalid cursor/page parameter.",
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/public-funding/uk/records/{id}",
+    operationId: "resolveUkPublicFundingRecord",
+    summary: "Resolve a stable UK public-funding ID",
+    description:
+      "Returns the record, its collection and canonical collection URL so callers do not need to guess a record's type. Publication controls follow the resolved collection.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Resolved collection and canonical record.",
+        headers: publicResponseHeaders,
+        content: {
+          "application/json": { schema: PublicFundingResolvedRecord },
+        },
+      },
+      304: {
+        description: "This exact resolved record is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "The resolver does not accept query parameters.",
+        content: { "application/json": { schema: PublicFundingActionError } },
+      },
+      404: {
+        description: "No record has this stable dataset ID.",
+        content: { "application/json": { schema: PublicFundingActionError } },
+      },
+      503: {
+        description:
+          "The resolved collection is pending review or emergency-stopped.",
+        content: { "application/json": { schema: PublicFundingUnavailable } },
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/public-funding/uk/records/{id}",
+    operationId: "headResolvedUkPublicFundingRecord",
+    summary: "Check one resolved UK public-funding ID",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current resolved-record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact resolved record is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "The resolver does not accept query parameters." },
+      404: { description: "No record has this stable dataset ID." },
+      503: {
+        description:
+          "The resolved collection is pending review or emergency-stopped.",
       },
     },
   });
@@ -1581,7 +2361,8 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
       path: "/v1/public-funding/uk/exports",
       operationId: "listUkPublicFundingExports",
       summary: "List complete UK public-funding collection exports",
-      description: "Format links, filenames, byte sizes, availability and exact-representation ETags.",
+      description:
+        "Format links, filenames, byte sizes, availability and exact-representation ETags.",
       schema: DatasetExportIndex,
       mediaType: "application/json",
       mayBeClosed: false,
@@ -1604,15 +2385,19 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
           content: { [route.mediaType]: { schema: route.schema } },
         },
         304: {
-          description: "The supplied ETag still identifies this representation.",
+          description:
+            "The supplied ETag still identifies this representation.",
           headers: publicResponseHeaders,
         },
         400: { description: "Static routes do not accept query parameters." },
         ...(route.mayBeClosed
           ? {
               503: {
-                description: "The graph is pending review or emergency-stopped.",
-                content: { "application/json": { schema: PublicFundingUnavailable } },
+                description:
+                  "The graph is pending review or emergency-stopped.",
+                content: {
+                  "application/json": { schema: PublicFundingUnavailable },
+                },
               },
             }
           : {}),
@@ -1624,20 +2409,26 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
       path: route.path,
       operationId: route.operationId.replace(/^get|^download|^list/, "head"),
       summary: `Check: ${route.summary}`,
-      description: "Returns the same validators and links as GET without a response body.",
+      description:
+        "Returns the same validators and links as GET without a response body.",
       request: { headers: ConditionalRequestHeaders },
       security: [],
       responses: {
-        200: { description: "Current representation metadata.", headers: publicResponseHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: publicResponseHeaders,
+        },
         304: {
-          description: "The supplied ETag still identifies this representation.",
+          description:
+            "The supplied ETag still identifies this representation.",
           headers: publicResponseHeaders,
         },
         400: { description: "Static routes do not accept query parameters." },
         ...(route.mayBeClosed
           ? {
               503: {
-                description: "The graph is pending review or emergency-stopped.",
+                description:
+                  "The graph is pending review or emergency-stopped.",
               },
             }
           : {}),
@@ -1654,7 +2445,10 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
       "JSON and NDJSON are lossless deterministic TaxSorted encodings. CSV is a spreadsheet convenience copy and keeps nested values as deterministic JSON.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: PublicFundingCollection, format: ExportFormat }),
+      params: z.object({
+        collection: PublicFundingCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
@@ -1667,8 +2461,13 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
           "text/csv": { schema: z.string() },
         },
       },
-      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      304: {
+        description: "This exact export is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
       503: {
         description: "This collection is pending review or emergency-stopped.",
@@ -1682,7 +2481,8 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
     path: "/v1/public-funding/uk/{collection}",
     operationId: "headUkPublicFundingCollectionQuery",
     summary: "Check a UK public-funding collection query",
-    description: "Returns the GET query's validators and links without its response body.",
+    description:
+      "Returns the GET query's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: PublicFundingCollection }),
@@ -1690,8 +2490,14 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
     },
     security: [],
     responses: {
-      200: { description: "Current query metadata.", headers: publicResponseHeaders },
-      304: { description: "This exact query is unchanged.", headers: publicResponseHeaders },
+      200: {
+        description: "Current query metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact query is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Unknown, repeated, irrelevant or invalid filter." },
       503: {
         description:
@@ -1704,18 +2510,27 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
     path: "/v1/public-funding/uk/{collection}/{id}",
     operationId: "headUkPublicFundingRecord",
     summary: "Check one UK public-funding record",
-    description: "Returns the record's validators and links without its response body.",
+    description:
+      "Returns the record's validators and links without its response body.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: PublicFundingCollection, id: z.string() }),
     },
     security: [],
     responses: {
-      200: { description: "Current record metadata.", headers: publicResponseHeaders },
-      304: { description: "This exact record is unchanged.", headers: publicResponseHeaders },
+      200: {
+        description: "Current record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact record is unchanged.",
+        headers: publicResponseHeaders,
+      },
       400: { description: "Detail routes do not accept query parameters." },
       404: { description: "No record with that ID in the collection." },
-      503: { description: "The collection is pending review or emergency-stopped." },
+      503: {
+        description: "The collection is pending review or emergency-stopped.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1723,18 +2538,32 @@ function registerPublicFundingOpenApi(app: OpenAPIHono) {
     path: "/v1/public-funding/uk/exports/{collection}/{format}",
     operationId: "headUkPublicFundingCollectionExport",
     summary: "Check one UK public-funding collection export",
-    description: "Returns download validators, links and filename without the export body.",
+    description:
+      "Returns download validators, links and filename without the export body.",
     request: {
       headers: ConditionalRequestHeaders,
-      params: z.object({ collection: PublicFundingCollection, format: ExportFormat }),
+      params: z.object({
+        collection: PublicFundingCollection,
+        format: ExportFormat,
+      }),
     },
     security: [],
     responses: {
-      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
-      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
-      400: { description: "Static export routes do not accept query parameters." },
+      200: {
+        description: "Current export metadata.",
+        headers: taxExportResponseHeaders,
+      },
+      304: {
+        description: "This exact export is unchanged.",
+        headers: taxExportResponseHeaders,
+      },
+      400: {
+        description: "Static export routes do not accept query parameters.",
+      },
       404: { description: "Unknown collection or format." },
-      503: { description: "This collection is pending review or emergency-stopped." },
+      503: {
+        description: "This collection is pending review or emergency-stopped.",
+      },
     },
   });
 }
@@ -1749,11 +2578,16 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Access policy and links to the dataset catalogue, manifest, sources and OpenAPI document.",
+        description:
+          "Access policy and links to the dataset catalogue, manifest, sources and OpenAPI document.",
         headers: politicsRepresentationHeaders,
         content: { "application/json": { schema: PoliticsPublicJson } },
       },
-      304: { description: "The supplied ETag still identifies the current representation.", headers: politicsRepresentationHeaders },
+      304: {
+        description:
+          "The supplied ETag still identifies the current representation.",
+        headers: politicsRepresentationHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1769,14 +2603,19 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
         headers: politicsDatasetHeaders,
         content: { "application/json": { schema: PoliticsDatasetCatalogue } },
       },
-      304: { description: "The supplied ETag still identifies the current catalogue.", headers: politicsDatasetHeaders },
+      304: {
+        description:
+          "The supplied ETag still identifies the current catalogue.",
+        headers: politicsDatasetHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
     method: "get",
     path: "/v1/politics/uk/manifest",
     summary: "Read the UK politics dataset manifest",
-    description: "Compatibility alias for the canonical /v1/politics/uk/datasets catalogue.",
+    description:
+      "Compatibility alias for the canonical /v1/politics/uk/datasets catalogue.",
     security: [],
     responses: {
       200: {
@@ -1784,7 +2623,11 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
         headers: politicsDatasetHeaders,
         content: { "application/json": { schema: PoliticsDatasetCatalogue } },
       },
-      304: { description: "The supplied ETag still identifies the current catalogue.", headers: politicsDatasetHeaders },
+      304: {
+        description:
+          "The supplied ETag still identifies the current catalogue.",
+        headers: politicsDatasetHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1794,11 +2637,15 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "JSON Schema for the catalogue and TaxSorted open-dataset envelope.",
+        description:
+          "JSON Schema for the catalogue and TaxSorted open-dataset envelope.",
         headers: politicsRepresentationHeaders,
         content: { "application/schema+json": { schema: PoliticsPublicJson } },
       },
-      304: { description: "The supplied ETag still identifies the schema.", headers: politicsRepresentationHeaders },
+      304: {
+        description: "The supplied ETag still identifies the schema.",
+        headers: politicsRepresentationHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1814,7 +2661,10 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
         headers: politicsRepresentationHeaders,
         content: { "application/json": { schema: PoliticsPublicJson } },
       },
-      304: { description: "The supplied ETag still identifies the rights statement.", headers: politicsRepresentationHeaders },
+      304: {
+        description: "The supplied ETag still identifies the rights statement.",
+        headers: politicsRepresentationHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1826,11 +2676,15 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     security: [],
     responses: {
       200: {
-        description: "Machine-readable admission ledger; human approval remains pending.",
+        description:
+          "Machine-readable admission ledger; human approval remains pending.",
         headers: politicsDatasetHeaders,
         content: { "application/json": { schema: PoliticsPublicJson } },
       },
-      304: { description: "The supplied ETag still identifies the admission ledger.", headers: politicsDatasetHeaders },
+      304: {
+        description: "The supplied ETag still identifies the admission ledger.",
+        headers: politicsDatasetHeaders,
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1841,13 +2695,20 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     request: { params: z.object({ datasetId: PoliticsDatasetId }) },
     responses: {
       200: {
-        description: "Dataset descriptor, stable records and distribution links.",
+        description:
+          "Dataset descriptor, stable records and distribution links.",
         headers: politicsDatasetHeaders,
         content: { "application/json": { schema: PoliticsDatasetEnvelope } },
       },
-      304: { description: "The supplied ETag still identifies this representation.", headers: politicsDatasetHeaders },
+      304: {
+        description: "The supplied ETag still identifies this representation.",
+        headers: politicsDatasetHeaders,
+      },
       404: { description: "No screened static dataset has that ID." },
-      503: { description: "Bulk publication is awaiting approval or has been emergency-stopped." },
+      503: {
+        description:
+          "Bulk publication is awaiting approval or has been emergency-stopped.",
+      },
     },
   });
   app.openAPIRegistry.registerPath({
@@ -1858,11 +2719,15 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     request: { params: z.object({ datasetId: PoliticsDatasetId }) },
     responses: {
       200: {
-        description: "JSON Schema and the stable field contract for one record.",
+        description:
+          "JSON Schema and the stable field contract for one record.",
         headers: politicsDatasetHeaders,
         content: { "application/schema+json": { schema: PoliticsPublicJson } },
       },
-      304: { description: "The supplied ETag still identifies the schema.", headers: politicsDatasetHeaders },
+      304: {
+        description: "The supplied ETag still identifies the schema.",
+        headers: politicsDatasetHeaders,
+      },
       404: { description: "No screened static dataset has that ID." },
     },
   });
@@ -1879,7 +2744,8 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     },
     responses: {
       200: {
-        description: "A deterministic attachment with representation-specific ETag and checksum headers.",
+        description:
+          "A deterministic attachment with representation-specific ETag and checksum headers.",
         headers: politicsDownloadHeaders,
         content: {
           "application/json": { schema: PoliticsDatasetEnvelope },
@@ -1887,63 +2753,117 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
           "application/x-ndjson": { schema: z.string() },
         },
       },
-      304: { description: "The supplied ETag still identifies the requested format.", headers: politicsDownloadHeaders },
+      304: {
+        description: "The supplied ETag still identifies the requested format.",
+        headers: politicsDownloadHeaders,
+      },
       400: { description: "Choose exactly one supported format." },
       404: { description: "No screened static dataset has that ID." },
-      503: { description: "Bulk publication is awaiting approval or has been emergency-stopped." },
+      503: {
+        description:
+          "Bulk publication is awaiting approval or has been emergency-stopped.",
+      },
     },
   });
 
   for (const route of [
-    { path: "/v1/politics/uk", summary: "Check UK politics API discovery metadata" },
-    { path: "/v1/politics/uk/datasets/schema", summary: "Check the shared open-data schema" },
-    { path: "/v1/politics/uk/datasets/rights", summary: "Check the mixed-rights statement" },
+    {
+      path: "/v1/politics/uk",
+      summary: "Check UK politics API discovery metadata",
+    },
+    {
+      path: "/v1/politics/uk/datasets/schema",
+      summary: "Check the shared open-data schema",
+    },
+    {
+      path: "/v1/politics/uk/datasets/rights",
+      summary: "Check the mixed-rights statement",
+    },
   ] as const) {
     app.openAPIRegistry.registerPath({
       method: "head",
       path: route.path,
       summary: route.summary,
-      description: "Returns the same validators and metadata as GET, without a response body.",
+      description:
+        "Returns the same validators and metadata as GET, without a response body.",
       security: [],
       responses: {
-        200: { description: "Current representation metadata.", headers: politicsRepresentationHeaders },
-        304: { description: "The supplied ETag still identifies this representation.", headers: politicsRepresentationHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: politicsRepresentationHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: politicsRepresentationHeaders,
+        },
       },
     });
   }
 
   for (const route of [
-    { path: "/v1/politics/uk/datasets", summary: "Check the UK politics dataset catalogue" },
-    { path: "/v1/politics/uk/manifest", summary: "Check the UK politics dataset manifest" },
-    { path: "/v1/politics/uk/datasets/admissions", summary: "Check the dataset admission ledger" },
+    {
+      path: "/v1/politics/uk/datasets",
+      summary: "Check the UK politics dataset catalogue",
+    },
+    {
+      path: "/v1/politics/uk/manifest",
+      summary: "Check the UK politics dataset manifest",
+    },
+    {
+      path: "/v1/politics/uk/datasets/admissions",
+      summary: "Check the dataset admission ledger",
+    },
   ] as const) {
     app.openAPIRegistry.registerPath({
       method: "head",
       path: route.path,
       summary: route.summary,
-      description: "Returns the same validators and metadata as GET, without a response body.",
+      description:
+        "Returns the same validators and metadata as GET, without a response body.",
       security: [],
       responses: {
-        200: { description: "Current representation metadata.", headers: politicsDatasetHeaders },
-        304: { description: "The supplied ETag still identifies this representation.", headers: politicsDatasetHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: politicsDatasetHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: politicsDatasetHeaders,
+        },
       },
     });
   }
 
   for (const route of [
-    { path: "/v1/politics/uk/datasets/{datasetId}", summary: "Check one UK politics dataset" },
-    { path: "/v1/politics/uk/datasets/{datasetId}/schema", summary: "Check one dataset record schema" },
+    {
+      path: "/v1/politics/uk/datasets/{datasetId}",
+      summary: "Check one UK politics dataset",
+    },
+    {
+      path: "/v1/politics/uk/datasets/{datasetId}/schema",
+      summary: "Check one dataset record schema",
+    },
   ] as const) {
     app.openAPIRegistry.registerPath({
       method: "head",
       path: route.path,
       summary: route.summary,
-      description: "Returns the same validators and metadata as GET, without a response body.",
+      description:
+        "Returns the same validators and metadata as GET, without a response body.",
       security: [],
       request: { params: z.object({ datasetId: PoliticsDatasetId }) },
       responses: {
-        200: { description: "Current representation metadata.", headers: politicsDatasetHeaders },
-        304: { description: "The supplied ETag still identifies this representation.", headers: politicsDatasetHeaders },
+        200: {
+          description: "Current representation metadata.",
+          headers: politicsDatasetHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: politicsDatasetHeaders,
+        },
         404: { description: "No screened static dataset has that ID." },
       },
     });
@@ -1953,18 +2873,28 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     method: "head",
     path: "/v1/politics/uk/datasets/{datasetId}/download",
     summary: "Check one downloadable UK politics representation",
-    description: "Returns the attachment metadata and exact-format validator without a response body.",
+    description:
+      "Returns the attachment metadata and exact-format validator without a response body.",
     security: [],
     request: {
       params: z.object({ datasetId: PoliticsDatasetId }),
       query: z.object({ format: PoliticsDownloadFormat }),
     },
     responses: {
-      200: { description: "Current attachment metadata.", headers: politicsDownloadHeaders },
-      304: { description: "The supplied ETag still identifies this format.", headers: politicsDownloadHeaders },
+      200: {
+        description: "Current attachment metadata.",
+        headers: politicsDownloadHeaders,
+      },
+      304: {
+        description: "The supplied ETag still identifies this format.",
+        headers: politicsDownloadHeaders,
+      },
       400: { description: "Choose exactly one supported format." },
       404: { description: "No screened static dataset has that ID." },
-      503: { description: "Bulk publication is awaiting approval or has been emergency-stopped." },
+      503: {
+        description:
+          "Bulk publication is awaiting approval or has been emergency-stopped.",
+      },
     },
   });
 
@@ -1985,11 +2915,14 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     },
     responses: {
       200: {
-        description: "A page of source-linked awards; supplier names require a verified public organisation identifier.",
+        description:
+          "A page of source-linked awards; supplier names require a verified public organisation identifier.",
         content: { "application/json": { schema: PoliticsPublicJson } },
       },
       422: { description: "Invalid dates, span, page size or cursor." },
-      502: { description: "The named official source failed or changed shape." },
+      502: {
+        description: "The named official source failed or changed shape.",
+      },
       504: { description: "The named official source timed out." },
     },
   });
@@ -1998,48 +2931,118 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     method: "get",
     path: "/v1/politics/uk/enforcement/forces",
     summary: "List police-force institutions from data.police.uk",
-    description: "Returns institutional force IDs and names, not an officer roster.",
+    description:
+      "Returns institutional force IDs and names, not an officer roster.",
     security: [],
     responses: {
       200: {
-        description: "The current institution directory and its stated territorial gaps.",
+        description:
+          "The current institution directory and its stated territorial gaps.",
         content: { "application/json": { schema: PoliticsPublicJson } },
       },
-      502: { description: "The named official source failed or changed shape." },
+      502: {
+        description: "The named official source failed or changed shape.",
+      },
       504: { description: "The named official source timed out." },
     },
   });
 
   const staticPoliticsRoutes = [
     ["/v1/politics/uk/system", "Read the non-personal UK political-system map"],
-    ["/v1/politics/uk/elections/process", "Read the UK Parliamentary election process"],
-    ["/v1/politics/uk/funding/rules", "Read effective-dated campaign-finance rules"],
+    [
+      "/v1/politics/uk/elections/process",
+      "Read the UK Parliamentary election process",
+    ],
+    [
+      "/v1/politics/uk/funding/rules",
+      "Read effective-dated campaign-finance rules",
+    ],
     ["/v1/politics/uk/funding/public", "Read public political-funding schemes"],
     ["/v1/politics/uk/power/method", "Read the political office-power method"],
     ["/v1/politics/uk/power/offices", "List political office-power cards"],
-    ["/v1/politics/uk/budgets/accountability", "Read public-money accountability lanes"],
-    ["/v1/politics/uk/relationships/method", "Read the relationship-evidence method"],
+    [
+      "/v1/politics/uk/budgets/accountability",
+      "Read public-money accountability lanes",
+    ],
+    [
+      "/v1/politics/uk/relationships/method",
+      "Read the relationship-evidence method",
+    ],
     ["/v1/politics/uk/relationships/schema", "Read the evidence-event schema"],
-    ["/v1/politics/uk/relationships/datasets", "Read finance-source publication states"],
-    ["/v1/politics/uk/enforcement/method", "Read the enforcement evidence method"],
-    ["/v1/politics/uk/enforcement/institutions", "List enforcement and oversight institutions"],
-    ["/v1/politics/uk/enforcement/governance", "Read enforcement governance relationships"],
+    [
+      "/v1/politics/uk/relationships/datasets",
+      "Read finance-source publication states",
+    ],
+    [
+      "/v1/politics/uk/enforcement/method",
+      "Read the enforcement evidence method",
+    ],
+    [
+      "/v1/politics/uk/enforcement/institutions",
+      "List enforcement and oversight institutions",
+    ],
+    [
+      "/v1/politics/uk/enforcement/governance",
+      "Read enforcement governance relationships",
+    ],
     ["/v1/politics/uk/enforcement/ranks", "Read generic police rank families"],
-    ["/v1/politics/uk/enforcement/pay-benefits", "Read police pay and benefit evidence"],
-    ["/v1/politics/uk/enforcement/workforce", "Read aggregate workforce source coverage"],
-    ["/v1/politics/uk/enforcement/funding", "Read enforcement funding source coverage"],
-    ["/v1/politics/uk/enforcement/vacancies", "Read official enforcement recruitment routes"],
-    ["/v1/politics/uk/enforcement/activities", "Read safe institutional activity coverage"],
-    ["/v1/politics/uk/enforcement/private-security", "Read the private-security boundary"],
-    ["/v1/politics/uk/enforcement/power/method", "Read the enforcement office-power method"],
-    ["/v1/politics/uk/enforcement/power/offices", "List enforcement office-power cards"],
-    ["/v1/politics/uk/enforcement/communication-method", "Read the official-language analysis method"],
-    ["/v1/politics/uk/integrity", "Read the public-integrity scope and publication state"],
-    ["/v1/politics/uk/integrity/sources", "Read the public-integrity source registry"],
-    ["/v1/politics/uk/integrity/corrections", "Read the correction and restriction method"],
-    ["/v1/politics/uk/history/method", "Read the effective-dated political-history method"],
+    [
+      "/v1/politics/uk/enforcement/pay-benefits",
+      "Read police pay and benefit evidence",
+    ],
+    [
+      "/v1/politics/uk/enforcement/workforce",
+      "Read aggregate workforce source coverage",
+    ],
+    [
+      "/v1/politics/uk/enforcement/funding",
+      "Read enforcement funding source coverage",
+    ],
+    [
+      "/v1/politics/uk/enforcement/vacancies",
+      "Read official enforcement recruitment routes",
+    ],
+    [
+      "/v1/politics/uk/enforcement/activities",
+      "Read safe institutional activity coverage",
+    ],
+    [
+      "/v1/politics/uk/enforcement/private-security",
+      "Read the private-security boundary",
+    ],
+    [
+      "/v1/politics/uk/enforcement/power/method",
+      "Read the enforcement office-power method",
+    ],
+    [
+      "/v1/politics/uk/enforcement/power/offices",
+      "List enforcement office-power cards",
+    ],
+    [
+      "/v1/politics/uk/enforcement/communication-method",
+      "Read the official-language analysis method",
+    ],
+    [
+      "/v1/politics/uk/integrity",
+      "Read the public-integrity scope and publication state",
+    ],
+    [
+      "/v1/politics/uk/integrity/sources",
+      "Read the public-integrity source registry",
+    ],
+    [
+      "/v1/politics/uk/integrity/corrections",
+      "Read the correction and restriction method",
+    ],
+    [
+      "/v1/politics/uk/history/method",
+      "Read the effective-dated political-history method",
+    ],
     ["/v1/politics/uk/law/watch", "Read proposed political-system legislation"],
-    ["/v1/politics/uk/sources", "Read politics coverage, sources, licences and gaps"],
+    [
+      "/v1/politics/uk/sources",
+      "Read politics coverage, sources, licences and gaps",
+    ],
   ] as const;
 
   for (const [path, summary] of staticPoliticsRoutes) {
@@ -2053,17 +3056,40 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
           description: "Source-linked public reference data.",
           content: { "application/json": { schema: PoliticsPublicJson } },
         },
-        503: { description: "Bulk publication is awaiting approval or has been emergency-stopped." },
+        503: {
+          description:
+            "Bulk publication is awaiting approval or has been emergency-stopped.",
+        },
       },
     });
   }
 
   const dynamicPoliticsRoutes = [
-    ["/v1/politics/uk/power/offices/{officeId}", "officeId", "Read one political office-power card"],
-    ["/v1/politics/uk/enforcement/institutions/{institutionId}", "institutionId", "Read one enforcement institution"],
-    ["/v1/politics/uk/enforcement/power/offices/{officeId}", "officeId", "Read one enforcement office-power card"],
-    ["/v1/politics/uk/enforcement/forces/{forceId}", "forceId", "Read one police-force institution"],
-    ["/v1/politics/uk/enforcement/forces/{forceId}/leaders", "forceId", "Read separately gated force-published senior officers"],
+    [
+      "/v1/politics/uk/power/offices/{officeId}",
+      "officeId",
+      "Read one political office-power card",
+    ],
+    [
+      "/v1/politics/uk/enforcement/institutions/{institutionId}",
+      "institutionId",
+      "Read one enforcement institution",
+    ],
+    [
+      "/v1/politics/uk/enforcement/power/offices/{officeId}",
+      "officeId",
+      "Read one enforcement office-power card",
+    ],
+    [
+      "/v1/politics/uk/enforcement/forces/{forceId}",
+      "forceId",
+      "Read one police-force institution",
+    ],
+    [
+      "/v1/politics/uk/enforcement/forces/{forceId}/leaders",
+      "forceId",
+      "Read separately gated force-published senior officers",
+    ],
   ] as const;
 
   for (const [path, parameter, summary] of dynamicPoliticsRoutes) {
@@ -2081,7 +3107,9 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
           content: { "application/json": { schema: PoliticsPublicJson } },
         },
         404: { description: "No matching public record." },
-        503: { description: "A named-data or bulk-data safety gate is closed." },
+        503: {
+          description: "A named-data or bulk-data safety gate is closed.",
+        },
       },
     });
   }
@@ -2089,7 +3117,8 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
     path: "/v1/politics/uk/people",
-    summary: "Search current Parliament people when the publication gate is open",
+    summary:
+      "Search current Parliament people when the publication gate is open",
     security: [],
     request: {
       query: z.object({
@@ -2101,7 +3130,10 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       }),
     },
     responses: {
-      200: { description: "A bounded page of current members.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description: "A bounded page of current members.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       422: { description: "Invalid query." },
       503: { description: "The current-person publication gate is closed." },
     },
@@ -2110,11 +3142,17 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
     path: "/v1/politics/uk/people/{id}",
-    summary: "Read one current Parliament person when the publication gate is open",
+    summary:
+      "Read one current Parliament person when the publication gate is open",
     security: [],
-    request: { params: z.object({ id: z.coerce.number().int().positive().max(100_000) }) },
+    request: {
+      params: z.object({ id: z.coerce.number().int().positive().max(100_000) }),
+    },
     responses: {
-      200: { description: "One current member and purpose-bound public records.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description: "One current member and purpose-bound public records.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       404: { description: "The person was not found or is not current." },
       503: { description: "The current-person publication gate is closed." },
     },
@@ -2125,9 +3163,16 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     path: "/v1/politics/uk/parties",
     summary: "List active Parliamentary parties",
     security: [],
-    request: { query: z.object({ house: z.enum(["all", "commons", "lords"]).optional() }) },
+    request: {
+      query: z.object({
+        house: z.enum(["all", "commons", "lords"]).optional(),
+      }),
+    },
     responses: {
-      200: { description: "Active parties by selected House.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description: "Active parties by selected House.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       422: { description: "Invalid House." },
       503: { description: "The current politics publication gate is closed." },
     },
@@ -2138,9 +3183,14 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     path: "/v1/politics/uk/roles",
     summary: "List current government or opposition posts",
     security: [],
-    request: { query: z.object({ kind: z.enum(["government", "opposition"]) }) },
+    request: {
+      query: z.object({ kind: z.enum(["government", "opposition"]) }),
+    },
     responses: {
-      200: { description: "Current posts and holders.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description: "Current posts and holders.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       422: { description: "Invalid role kind." },
       503: { description: "The current-person publication gate is closed." },
     },
@@ -2149,7 +3199,8 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
     path: "/v1/politics/uk/funding/donations",
-    summary: "Query verified-company political donations when both gates are open",
+    summary:
+      "Query verified-company political donations when both gates are open",
     security: [],
     request: {
       query: z.object({
@@ -2161,16 +3212,22 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       }),
     },
     responses: {
-      200: { description: "A bounded company-only donation page.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description: "A bounded company-only donation page.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       422: { description: "Invalid dates or pagination." },
-      503: { description: "Reuse confirmation or privacy review is not complete." },
+      503: {
+        description: "Reuse confirmation or privacy review is not complete.",
+      },
     },
   });
 
   app.openAPIRegistry.registerPath({
     method: "get",
     path: "/v1/politics/uk/relationships/ministerial-benefits",
-    summary: "Query monthly ministerial gifts and hospitality when its gate is open",
+    summary:
+      "Query monthly ministerial gifts and hospitality when its gate is open",
     security: [],
     request: {
       query: z.object({
@@ -2180,10 +3237,16 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       }),
     },
     responses: {
-      200: { description: "Source-reported monthly records without name-based joining.", content: { "application/json": { schema: PoliticsPublicJson } } },
+      200: {
+        description:
+          "Source-reported monthly records without name-based joining.",
+        content: { "application/json": { schema: PoliticsPublicJson } },
+      },
       404: { description: "No matching published attachment." },
       422: { description: "Invalid month, department or record type." },
-      503: { description: "The ministerial-benefits publication gate is closed." },
+      503: {
+        description: "The ministerial-benefits publication gate is closed.",
+      },
     },
   });
 }
@@ -2197,6 +3260,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
     description:
       "A TaxSorted workspace key. The SDLT calculation route requires the sdlt:calculate scope.",
   });
+  registerAgentInterfaceOpenApi(app);
   registerOpenDataOpenApi(app);
   registerTaxSystemOpenApi(app);
   registerTaxIndustryOpenApi(app);
@@ -2215,13 +3279,17 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
             message: "Keep calculation requests at or below 16 KiB.",
             requestId: requestIdFor(c),
           },
-          413
+          413,
         ),
-    })
+    }),
   );
   app.use("/v1/uk/sdlt/*", async (c, next) => {
     if (c.req.method === "POST") {
-      const mediaType = c.req.header("Content-Type")?.split(";", 1)[0]?.trim().toLowerCase();
+      const mediaType = c.req
+        .header("Content-Type")
+        ?.split(";", 1)[0]
+        ?.trim()
+        .toLowerCase();
       if (mediaType !== "application/json") {
         return c.json(
           {
@@ -2229,7 +3297,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
             message: "Send calculation facts as application/json.",
             requestId: requestIdFor(c),
           },
-          415
+          415,
         );
       }
     }

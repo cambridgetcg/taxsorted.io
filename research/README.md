@@ -51,3 +51,8 @@ honest, and marked so — guides first, rails later.
 | `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level |
 | `uk/competitive/`, `uk/technical/` | Scaffolds |
 | `world/` | Seeded — ontology distilled, treaty layer pending |
+
+The politics book also contains a proposed, unimplemented
+[official-events evidence contract](uk/politics/official-events-method.md) for
+official words, votes, decisions, appointments, budget approvals, enforcement
+actions and corrections.

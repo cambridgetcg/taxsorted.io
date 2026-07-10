@@ -78,6 +78,10 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 - **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
   and `POST /v1/uk/sdlt/calculations`. Calculation requests are stateless and never create
   the browser cookies used by the filing cockpit.
+- **Machine doorway**: public, sessionless `/agent.txt`, `/.well-known/agent.txt` and
+  `/v1/wake` routes orient agents with current dataset versions, publication states, rights,
+  evidence lanes, safety walls and typed next actions. The design is inspired by XENIA; no
+  conformance claim or agent identity/session is created.
 - **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
   bodies behind an explicit production-publication switch, covering the
   authority chain, collection lanes, accounts, infrastructure, private collaborators,
@@ -94,6 +98,8 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   fiscal spine, health and education funding, all four UK nations, formal offices, boards,
   aggregate allocations, functional contacts, delivery stages, audit and known gaps. It does
   not pretend an ordinary tax pound can be traced to one school or hospital.
+  The append-only `/changes` feed lets mirrors resume from caller-held cursors, while
+  `/records/{id}` resolves stable IDs without making builders guess their collection.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Self-hosting & HMRC credentials
@@ -117,6 +123,9 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   sector works: relief conditions, registers, money, stewardship, duties and safe reuse
 - [`research/uk/public-funding/README.md`](research/uk/public-funding/README.md) — how pooled
   public money becomes authority, allocations, health and education delivery, accounts and audit
+- [`research/uk/politics/official-events-method.md`](research/uk/politics/official-events-method.md)
+  — proposed evidence contract for official words, votes, decisions and actions; named
+  attributions remain unimplemented behind a separate legal and human review
 - [`docs/PUBLIC-DATA-CHARTER.md`](docs/PUBLIC-DATA-CHARTER.md) — the agent-authored draft
   explaining the public API's distribution, safety and rights choices; awaiting Yu's adoption
 - `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers

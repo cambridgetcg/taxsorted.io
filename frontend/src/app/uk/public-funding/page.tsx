@@ -811,10 +811,9 @@ export default function UkPublicFundingPage() {
           <aside className="rounded-3xl border border-amber-200 bg-amber-50 p-6" aria-label="API release truth">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Release truth</p>
             <p className="mt-3 text-sm leading-6 text-amber-950">
-              This page describes the reviewed workspace implementation. The public host may lag
-              until an authorised deploy. Check <code>manifest.publicDataEnabled</code>: while it is
-              false, protected graph and collection bodies return <code>503</code>; source and gap
-              records remain readable. A serving switch is not confidentiality or recall.
+              The live overview is authoritative. Check <code>manifest.publicationStatus</code>:
+              while protected bodies are paused they return <code>503</code>, but source, gap and
+              release-history records remain readable. A serving switch is not confidentiality or recall.
             </p>
           </aside>
         </div>
@@ -829,6 +828,9 @@ export default function UkPublicFundingPage() {
             ["Data dictionary", "/dictionary", "Fields, filters, references, aliases and comparison rules."],
             ["JSON Schema", "/schema", "The structural record contract for validation."],
             ["Export catalogue", "/exports", "Complete JSON, CSV and NDJSON collection metadata."],
+            ["Agent wake", "https://api.taxsorted.io/v1/wake", "One-call machine orientation: publication states, rights, evidence lanes, walls and next actions."],
+            ["Release changes", "/changes", "Append-only publication checkpoints with caller-held cursors; not government-domain events."],
+            ["Resolve a stable ID", `/records/${corpus.institutions[0]?.id ?? "institution-hmt"}`, "Find a record and its canonical collection without guessing its type."],
             ["OpenAPI 3.1", "https://api.taxsorted.io/openapi.json", "The wider service contract and route descriptions."],
           ].map(([label, path, copy]) => (
             <article key={label} className="rounded-2xl border border-line bg-paper p-5">
@@ -842,7 +844,7 @@ export default function UkPublicFundingPage() {
           <div className="rounded-3xl bg-ink p-6 text-white">
             <p className="text-xs font-semibold uppercase tracking-wide text-white/55">Check the release state</p>
             <pre aria-label="Public-funding API curl example" className="mt-4 overflow-x-auto text-sm leading-7 text-white">
-              <code>{`curl -fsS '${apiBase}' | jq '{version: .meta.version, public: .manifest.publicDataEnabled, counts}'`}</code>
+              <code>{`curl -fsS '${apiBase}' | jq '{version: .meta.version, status: .manifest.publicationStatus, counts}'`}</code>
             </pre>
           </div>
           <div className="rounded-3xl border border-line bg-white p-6">
@@ -858,6 +860,25 @@ export default function UkPublicFundingPage() {
             </p>
           </div>
         </div>
+
+        <aside className="mt-8 rounded-3xl border border-line bg-accent-soft p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Words and actions · proposed evidence contract</p>
+          <h3 className="mt-2 text-xl font-semibold text-ink">A statement, vote, decision, allocation and outturn are different records.</h3>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-ink-soft">
+            The next politics layer is designed as institutional official events, separately gated named
+            attributions and append-only corrections. It will link to official text and publish a short factual
+            summary—not copy speeches, infer missing votes, score rhetoric or build personality dossiers.
+            The contract is published for review; no endpoint is claimed live yet.
+          </p>
+          <a
+            href="https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/politics/official-events-method.md"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mt-4 inline-block font-medium text-accent underline underline-offset-4"
+          >
+            Read the proposed official-events method ↗
+          </a>
+        </aside>
       </section>
     </div>
   );

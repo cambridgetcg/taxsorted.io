@@ -21,11 +21,28 @@ import { createUkTaxIndustryRoutes } from "./routes/uk-tax-industry.js";
 import { createUkTaxSystemRoutes } from "./routes/uk-tax-system.js";
 import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
 import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
+import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
 
 const app = new OpenAPIHono();
 
 app.use("*", requestId);
 app.use("*", apiCors);
+
+const openDataRouteOptions = {
+  taxSystemPublic: config.taxSystem.publicDataEnabled,
+  taxIndustryPublic: config.taxIndustry.publicDataEnabled,
+  charitiesPublic: config.charities.publicDataEnabled,
+  charitiesEmergencyStop: config.charities.emergencyStop,
+  publicFundingPublic: config.publicFunding.publicDataEnabled,
+  publicFundingEmergencyStop: config.publicFunding.emergencyStop,
+  politicsBulkDataAvailable: config.politics.bulkDataEnabled,
+  politicsBulkDataEmergencyStop: config.politics.bulkDataEmergencyStop,
+  politicsBulkDataApproval: config.politics.bulkDataApproval,
+};
+
+// A machine can orient itself without opening a taxpayer/browser session.
+// The wake response is a projection of the same catalog mounted below.
+app.route("/", createAgentInterfaceRoutes(openDataRouteOptions));
 
 app.get("/v1/health", (c) =>
   c.json({ ok: true, hmrc: { configured: config.hmrc.configured, env: config.hmrc.env } })
@@ -35,17 +52,7 @@ app.get("/v1/health", (c) =>
 // cookies. Route it before the /v1/* session rail for that reason.
 app.route(
   "/v1/open-data",
-  createOpenDataRoutes({
-    taxSystemPublic: config.taxSystem.publicDataEnabled,
-    taxIndustryPublic: config.taxIndustry.publicDataEnabled,
-    charitiesPublic: config.charities.publicDataEnabled,
-    charitiesEmergencyStop: config.charities.emergencyStop,
-    publicFundingPublic: config.publicFunding.publicDataEnabled,
-    publicFundingEmergencyStop: config.publicFunding.emergencyStop,
-    politicsBulkDataAvailable: config.politics.bulkDataEnabled,
-    politicsBulkDataEmergencyStop: config.politics.bulkDataEmergencyStop,
-    politicsBulkDataApproval: config.politics.bulkDataApproval,
-  })
+  createOpenDataRoutes(openDataRouteOptions)
 );
 app.route(
   "/v1/politics/uk",

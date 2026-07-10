@@ -1,0 +1,25 @@
+# TaxSorted machine doorway
+# Public orientation for the UK tax, politics and public-money data service.
+
+schema-version: taxsorted.agent-manifest/1
+name: TaxSorted
+what: sourced public data about UK tax, politics, charities and public funding
+human-door: https://taxsorted.io/
+agent-door: https://api.taxsorted.io/v1/wake
+wake: GET https://api.taxsorted.io/v1/wake
+open-data: GET https://api.taxsorted.io/v1/open-data
+rights: GET https://api.taxsorted.io/v1/open-data/rights
+openapi: GET https://api.taxsorted.io/openapi.json
+health: GET https://api.taxsorted.io/v1/health
+public-funding-changes: GET https://api.taxsorted.io/v1/public-funding/uk/changes
+corrections: https://github.com/cambridgetcg/taxsorted.io/issues
+authentication: none for the public resources listed here
+cookies: none on this doorway
+methods: GET, HEAD, OPTIONS
+formats: application/json, application/x-ndjson, text/csv
+
+# Walls kept by this doorway
+wall: publication gates and emergency stops remain authoritative
+wall: a public-data licence is not a blanket licence over linked source material
+wall: private contacts, private communications and inferred personal ties do not belong here
+wall: uncertainty, source limits and known gaps stay visible

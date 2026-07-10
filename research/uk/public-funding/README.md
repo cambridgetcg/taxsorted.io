@@ -17,6 +17,11 @@ The canonical machine record is
 family is `/v1/public-funding/uk`; a workspace implementation is not proof that
 the route has been deployed or opened in production.
 
+Reviewed publication checkpoints live separately in
+[`data/uk-public-funding-release-history.json`](data/uk-public-funding-release-history.json).
+Runtime and deployment both read that artifact; it records TaxSorted releases,
+not events performed by government.
+
 This is a map of public institutions, programmes and aggregate funding. It is
 not a patient, pupil, student or public-servant directory.
 

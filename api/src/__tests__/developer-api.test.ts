@@ -78,6 +78,22 @@ describe("developer API boundary", () => {
     const document = await response.json();
     expect(document.openapi).toBe("3.1.0");
     expect(document.servers).toEqual([{ url: "https://api.taxsorted.io" }]);
+    expect(document.paths).toHaveProperty("/");
+    expect(document.paths).toHaveProperty("/agent.txt");
+    expect(document.paths).toHaveProperty("/.well-known/agent.txt");
+    expect(document.paths).toHaveProperty("/v1/wake");
+    expect(document.paths["/v1/wake"].get).toMatchObject({
+      operationId: "wakeTaxSortedAgent",
+      security: [],
+    });
+    expect(
+      document.paths["/v1/wake"].get.responses[200].content["application/json"]
+        .schema.$ref,
+    ).toBe("#/components/schemas/AgentWake");
+    expect(
+      document.paths["/agent.txt"].get.responses[200].content,
+    ).toHaveProperty("text/plain");
+    expect(document.paths["/"].get.responses).toHaveProperty("404");
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/open-data/rights");
@@ -88,58 +104,74 @@ describe("developer API boundary", () => {
     });
     expect(document.paths).toHaveProperty("/v1/tax-system/uk");
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/{collection}");
-    expect(document.paths).toHaveProperty("/v1/tax-system/uk/{collection}/{id}");
+    expect(document.paths).toHaveProperty(
+      "/v1/tax-system/uk/{collection}/{id}",
+    );
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/graph");
-    expect(document.paths["/v1/tax-system/uk/map"].get.responses).toHaveProperty("308");
-    expect(document.paths["/v1/tax-system/uk/map"].head.responses).toHaveProperty("400");
+    expect(
+      document.paths["/v1/tax-system/uk/map"].get.responses,
+    ).toHaveProperty("308");
+    expect(
+      document.paths["/v1/tax-system/uk/map"].head.responses,
+    ).toHaveProperty("400");
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/schema");
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/dictionary");
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/exports");
     expect(document.paths).toHaveProperty(
-      "/v1/tax-system/uk/exports/{collection}/{format}"
+      "/v1/tax-system/uk/exports/{collection}/{format}",
     );
     expect(document.paths["/v1/tax-system/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/tax-system/uk"].head.security).toEqual([]);
     expect(
       document.paths["/v1/tax-system/uk/exports/{collection}/{format}"].head
-        .parameters
+        .parameters,
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "If-None-Match", in: "header" }),
-      ])
+      ]),
     );
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk");
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/{collection}");
-    expect(document.paths).toHaveProperty("/v1/tax-industry/uk/{collection}/{id}");
+    expect(document.paths).toHaveProperty(
+      "/v1/tax-industry/uk/{collection}/{id}",
+    );
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/graph");
-    expect(document.paths["/v1/tax-industry/uk/map"].get.responses).toHaveProperty("308");
-    expect(document.paths["/v1/tax-industry/uk/map"].head.responses).toHaveProperty("400");
+    expect(
+      document.paths["/v1/tax-industry/uk/map"].get.responses,
+    ).toHaveProperty("308");
+    expect(
+      document.paths["/v1/tax-industry/uk/map"].head.responses,
+    ).toHaveProperty("400");
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/schema");
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/dictionary");
     expect(document.paths).toHaveProperty("/v1/tax-industry/uk/exports");
     expect(document.paths).toHaveProperty(
-      "/v1/tax-industry/uk/exports/{collection}/{format}"
+      "/v1/tax-industry/uk/exports/{collection}/{format}",
     );
     expect(document.paths["/v1/tax-industry/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/tax-industry/uk"].head.security).toEqual([]);
     expect(
       document.paths["/v1/tax-industry/uk/exports/{collection}/{format}"].head
-        .responses[200].headers
+        .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
     expect(document.paths).toHaveProperty("/v1/charities/uk");
     expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}");
     expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}/{id}");
     expect(document.paths).toHaveProperty("/v1/charities/uk/graph");
-    expect(document.paths["/v1/charities/uk/map"].get.responses).toHaveProperty("308");
-    expect(document.paths["/v1/charities/uk/map"].head.responses).toHaveProperty("400");
+    expect(document.paths["/v1/charities/uk/map"].get.responses).toHaveProperty(
+      "308",
+    );
+    expect(
+      document.paths["/v1/charities/uk/map"].head.responses,
+    ).toHaveProperty("400");
     expect(document.paths).toHaveProperty("/v1/charities/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/charities/uk/schema");
     expect(document.paths).toHaveProperty("/v1/charities/uk/dictionary");
     expect(document.paths).toHaveProperty("/v1/charities/uk/exports");
     expect(document.paths).toHaveProperty(
-      "/v1/charities/uk/exports/{collection}/{format}"
+      "/v1/charities/uk/exports/{collection}/{format}",
     );
     expect(document.paths["/v1/charities/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/charities/uk"].head.security).toEqual([]);
@@ -149,32 +181,36 @@ describe("developer API boundary", () => {
       expect.arrayContaining([
         expect.objectContaining({ name: "jurisdiction", in: "query" }),
         expect.objectContaining({ name: "regulatorId", in: "query" }),
-      ])
+      ]),
     );
     expect(charityQueryParameters).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "religion", in: "query" }),
-      ])
+      ]),
     );
     expect(charityQueryParameters).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "name", in: "query" }),
-      ])
+      ]),
     );
     expect(
       document.paths["/v1/charities/uk/exports/{collection}/{format}"].head
-        .responses[200].headers
+        .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/{collection}");
-    expect(document.paths).toHaveProperty("/v1/public-funding/uk/{collection}/{id}");
+    expect(document.paths).toHaveProperty(
+      "/v1/public-funding/uk/{collection}/{id}",
+    );
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/graph");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/schema");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/dictionary");
     expect(document.paths).toHaveProperty("/v1/public-funding/uk/exports");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/changes");
+    expect(document.paths).toHaveProperty("/v1/public-funding/uk/records/{id}");
     expect(document.paths).toHaveProperty(
-      "/v1/public-funding/uk/exports/{collection}/{format}"
+      "/v1/public-funding/uk/exports/{collection}/{format}",
     );
     expect(document.paths["/v1/public-funding/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/public-funding/uk"].head.security).toEqual([]);
@@ -184,68 +220,109 @@ describe("developer API boundary", () => {
       expect.arrayContaining([
         expect.objectContaining({ name: "financialYear", in: "query" }),
         expect.objectContaining({ name: "beneficiaryTag", in: "query" }),
-      ])
+      ]),
     );
     expect(publicFundingQueryParameters).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "holderName", in: "query" }),
-      ])
+      ]),
     );
     expect(
       document.paths["/v1/public-funding/uk/exports/{collection}/{format}"].head
-        .responses[200].headers
+        .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
     expect(
       document.paths["/v1/public-funding/uk/{collection}"].get.responses[200]
-        .content["application/json"].schema.$ref
+        .content["application/json"].schema.$ref,
     ).toBe("#/components/schemas/UkPublicFundingList");
     expect(
-      document.paths["/v1/public-funding/uk/{collection}/{id}"].get.responses[200]
-        .content["application/json"].schema.$ref
+      document.paths["/v1/public-funding/uk/{collection}/{id}"].get
+        .responses[200].content["application/json"].schema.$ref,
     ).toBe("#/components/schemas/UkPublicFundingDetail");
     expect(
       document.paths["/v1/public-funding/uk/exports/{collection}/{format}"].get
-        .responses[503].content["application/json"].schema.$ref
+        .responses[503].content["application/json"].schema.$ref,
     ).toBe("#/components/schemas/UkPublicFundingUnavailable");
     expect(
-      document.components.schemas.UkPublicFundingUnavailable.properties.error.enum
-    ).toEqual([
-      "publication_review_pending",
-      "publication_emergency_stopped",
-    ]);
+      document.components.schemas.UkPublicFundingUnavailable.properties.error
+        .enum,
+    ).toEqual(["publication_review_pending", "publication_emergency_stopped"]);
+    expect(
+      document.paths["/v1/public-funding/uk/changes"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicFundingChangeFeed");
+    expect(
+      document.paths["/v1/public-funding/uk/records/{id}"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicFundingResolvedRecord");
+    expect(
+      document.paths["/v1/public-funding/uk/changes"].get.responses[400]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicFundingActionError");
+    expect(
+      document.paths["/v1/public-funding/uk/records/{id}"].get.responses[404]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicFundingActionError");
+    expect(
+      document.components.schemas.UkPublicFundingUnavailable.properties,
+    ).toHaveProperty("nextActions");
+    expect(
+      document.components.schemas.UkPublicFundingChange.properties,
+    ).toMatchObject({
+      previousEventHash: expect.any(Object),
+      eventHash: expect.any(Object),
+    });
+    expect(
+      document.components.schemas.UkPublicFundingList.properties.page
+        .properties,
+    ).toHaveProperty("hasMore");
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/politics/uk");
     expect(document.paths).toHaveProperty("/v1/politics/uk/datasets");
     expect(document.paths).toHaveProperty("/v1/politics/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/politics/uk/datasets/schema");
     expect(document.paths).toHaveProperty("/v1/politics/uk/datasets/rights");
-    expect(document.paths).toHaveProperty("/v1/politics/uk/datasets/admissions");
-    expect(document.paths["/v1/politics/uk/datasets/admissions"].head.security).toEqual([]);
-    expect(document.paths).toHaveProperty("/v1/politics/uk/datasets/{datasetId}");
     expect(document.paths).toHaveProperty(
-      "/v1/politics/uk/datasets/{datasetId}/schema"
+      "/v1/politics/uk/datasets/admissions",
+    );
+    expect(
+      document.paths["/v1/politics/uk/datasets/admissions"].head.security,
+    ).toEqual([]);
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/datasets/{datasetId}",
     );
     expect(document.paths).toHaveProperty(
-      "/v1/politics/uk/datasets/{datasetId}/download"
+      "/v1/politics/uk/datasets/{datasetId}/schema",
     );
-    expect(document.paths).toHaveProperty("/v1/politics/uk/relationships/contracts");
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/datasets/{datasetId}/download",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/relationships/contracts",
+    );
     expect(document.paths).toHaveProperty("/v1/politics/uk/enforcement/forces");
     expect(document.paths).toHaveProperty("/v1/politics/uk/system");
-    expect(document.paths).toHaveProperty("/v1/politics/uk/power/offices/{officeId}");
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/power/offices/{officeId}",
+    );
     expect(document.paths).toHaveProperty("/v1/politics/uk/people");
     expect(document.paths).toHaveProperty("/v1/politics/uk/people/{id}");
     expect(document.paths).toHaveProperty("/v1/politics/uk/funding/donations");
     expect(document.paths).toHaveProperty(
-      "/v1/politics/uk/relationships/ministerial-benefits"
+      "/v1/politics/uk/relationships/ministerial-benefits",
     );
     expect(document.paths["/v1/politics/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/politics/uk/datasets"].get.security).toEqual([]);
-    expect(document.paths["/v1/politics/uk/datasets"].head.security).toEqual([]);
+    expect(document.paths["/v1/politics/uk/datasets"].head.security).toEqual(
+      [],
+    );
     expect(
-      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get.security
+      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get
+        .security,
     ).toEqual([]);
     expect(
-      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get.parameters
+      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get
+        .parameters,
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -253,10 +330,10 @@ describe("developer API boundary", () => {
           in: "query",
           schema: expect.objectContaining({ enum: ["json", "csv", "ndjson"] }),
         }),
-      ])
+      ]),
     );
     expect(
-      document.paths["/v1/politics/uk/datasets/{datasetId}"].get.parameters
+      document.paths["/v1/politics/uk/datasets/{datasetId}"].get.parameters,
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -264,26 +341,31 @@ describe("developer API boundary", () => {
           in: "path",
           schema: expect.objectContaining({ pattern: "^[a-z0-9-]+$" }),
         }),
-      ])
+      ]),
     );
     expect(
-      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get.responses[200]
-        .headers
+      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get
+        .responses[200].headers,
     ).toHaveProperty("X-Checksum-SHA256");
     expect(
-      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get.responses[200]
-        .headers
+      document.paths["/v1/politics/uk/datasets/{datasetId}/download"].get
+        .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
     expect(
-      document.paths["/v1/tax-industry/uk/{collection}"].get.parameters
+      document.paths["/v1/tax-industry/uk/{collection}"].get.parameters,
     ).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "gateId", in: "query" }),
-      ])
+      ]),
     );
     for (const path of ["/v1/open-data", "/v1/open-data/rights"]) {
-      expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty("400");
-      expect(document.paths[path].head.responses, `${path} HEAD`).toHaveProperty("400");
+      expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty(
+        "400",
+      );
+      expect(
+        document.paths[path].head.responses,
+        `${path} HEAD`,
+      ).toHaveProperty("400");
     }
     for (const family of ["tax-system", "tax-industry", "charities"]) {
       const staticSuffixes = [
@@ -297,29 +379,51 @@ describe("developer API boundary", () => {
       ];
       for (const suffix of staticSuffixes) {
         const path = `/v1/${family}/uk${suffix}`;
-        expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty("400");
-        expect(document.paths[path].head.responses, `${path} HEAD`).toHaveProperty("400");
+        expect(
+          document.paths[path].get.responses,
+          `${path} GET`,
+        ).toHaveProperty("400");
+        expect(
+          document.paths[path].head.responses,
+          `${path} HEAD`,
+        ).toHaveProperty("400");
       }
-      for (const suffix of ["/{collection}/{id}", "/exports/{collection}/{format}"]) {
+      for (const suffix of [
+        "/{collection}/{id}",
+        "/exports/{collection}/{format}",
+      ]) {
         const path = `/v1/${family}/uk${suffix}`;
-        expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty("400");
-        expect(document.paths[path].head.responses, `${path} HEAD`).toHaveProperty("400");
+        expect(
+          document.paths[path].get.responses,
+          `${path} GET`,
+        ).toHaveProperty("400");
+        expect(
+          document.paths[path].head.responses,
+          `${path} HEAD`,
+        ).toHaveProperty("400");
       }
     }
-    expect(document.components.schemas.DataDictionary.required).not.toContain("updatePolicy");
     expect(document.components.schemas.DataDictionary.required).not.toContain(
-      "correctionChannel"
+      "updatePolicy",
+    );
+    expect(document.components.schemas.DataDictionary.required).not.toContain(
+      "correctionChannel",
     );
     expect(
       document.paths["/v1/tax-system/uk/graph"].get.responses[200].content[
         "application/json"
-      ].schema.properties.pipelineStages
+      ].schema.properties.pipelineStages,
     ).toBeDefined();
     expect(document.info.license.name).toContain("CC BY-SA 4.0");
-    expect(document.components.securitySchemes.WorkspaceKey.scheme).toBe("bearer");
-    expect(document.info.description).toContain("server source code uses AGPL-3.0");
+    expect(document.components.securitySchemes.WorkspaceKey.scheme).toBe(
+      "bearer",
+    );
+    expect(document.info.description).toContain(
+      "server source code uses AGPL-3.0",
+    );
     expect(
-      document.components.schemas.SdltCalculatedResponse.properties.reviewReasons
+      document.components.schemas.SdltCalculatedResponse.properties
+        .reviewReasons,
     ).toMatchObject({ type: "array", maxItems: 0 });
   });
 
@@ -362,7 +466,9 @@ describe("developer API boundary", () => {
       body: "not json",
     });
     expect(response.status).toBe(415);
-    expect(await response.json()).toMatchObject({ error: "unsupported_media_type" });
+    expect(await response.json()).toMatchObject({
+      error: "unsupported_media_type",
+    });
     expect(response.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
     expect(browserSessionCalls()).toBe(0);
     expect(query).not.toHaveBeenCalled();

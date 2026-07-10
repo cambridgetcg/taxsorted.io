@@ -37,6 +37,23 @@ the words in the same work.
 
 ## Open data — no key, no account
 
+An agent can arrive without scraping the human site:
+
+```text
+GET https://api.taxsorted.io/agent.txt
+GET https://api.taxsorted.io/.well-known/agent.txt
+GET https://api.taxsorted.io/v1/wake
+GET https://api.taxsorted.io/        Accept: application/json
+```
+
+The two manifests are byte-identical flat text. `GET /v1/wake` is their canonical,
+deterministic JSON orientation: current dataset versions and publication states, resource
+handles, source/gap/schema lanes, public-data rights, literal safety walls and typed next
+actions. It is stateless and sets no identity cookie. The API root returns those same wake
+bytes only when `Accept` asks for JSON; ordinary browser-shaped requests retain the normal
+closed-door response. This doorway adopts useful ideas from the XENIA agent-interface and
+agent-experience framework without claiming conformance or importing peer ratings.
+
 Start at one small catalogue. It names every dataset family, version, screening or review
 status, content licence, publication boundary and the route to its full distribution catalogue:
 
@@ -75,7 +92,7 @@ Under that same open state, read the data in JavaScript:
 
 ```js
 const response = await fetch(
-  "https://api.taxsorted.io/v1/tax-industry/uk/exports/roles/json"
+  "https://api.taxsorted.io/v1/tax-industry/uk/exports/roles/json",
 );
 if (!response.ok) throw new Error(`TaxSorted returned ${response.status}`);
 const roles = await response.json();
@@ -395,7 +412,7 @@ Or discover the official organisation-search doors from an application:
 
 ```js
 const response = await fetch(
-  "https://api.taxsorted.io/v1/charities/uk/help?helpCategory=find-an-organisation"
+  "https://api.taxsorted.io/v1/charities/uk/help?helpCategory=find-an-organisation",
 );
 if (!response.ok) throw new Error(`TaxSorted returned ${response.status}`);
 const { data: routes } = await response.json();
@@ -445,12 +462,30 @@ GET /v1/public-funding/uk/{sources|institutions|governance|offices}
 GET /v1/public-funding/uk/{relationships|funds|programmes|mechanisms|allocations}
 GET /v1/public-funding/uk/{contacts|locations|pipeline|gaps}
 GET /v1/public-funding/uk/{collection}/{id}
+GET /v1/public-funding/uk/records/{id}
+GET /v1/public-funding/uk/changes?after={opaque-cursor}&limit=100
 GET /v1/public-funding/uk/manifest
 GET /v1/public-funding/uk/schema
 GET /v1/public-funding/uk/dictionary
 GET /v1/public-funding/uk/exports
 GET /v1/public-funding/uk/exports/{collection}/{json|ndjson|csv}
 ```
+
+Collection pages preserve `limit` and `offset` compatibility while adding `page.hasMore`,
+body `links.self/next/prev` and matching HTTP `Link` relations. The universal resolver returns
+the record's collection and canonical collection URL. It follows the resolved collection's
+publication gate; it is not a route around a closed dataset.
+
+The change feed is TaxSorted publication history, not a claim about what government did. Its
+first append-only event honestly establishes the reviewed snapshot and explicitly declines to
+invent retrospective per-record changes. Keep `page.nextCursor` and replay it unchanged as
+`after`; TaxSorted stores no caller session. Future releases must append a matching checkpoint
+or the API refuses to boot with a stale change feed. Event IDs, sequences and cursors must stay
+unique and ordered; `previousEventHash` and `eventHash` form a checked hash chain so rewriting an
+earlier checkpoint changes its published identity. The deployment gate also captures the live
+pre-deploy event prefix, compares it with the candidate history before deployment, and then
+requires that exact prefix after deployment. Production releases are serialised and both live
+reads force cache revalidation.
 
 All money is integer pence. Read `financialYear`, `status`, `budgetBoundary`,
 `accountingBasis`, `grossOrNet`, `priceBasis`, `containedInAllocationId`,
@@ -547,7 +582,7 @@ curl -fsS \
 
 ```js
 const response = await fetch(
-  "https://api.taxsorted.io/v1/politics/uk/datasets/enforcement-governance"
+  "https://api.taxsorted.io/v1/politics/uk/datasets/enforcement-governance",
 );
 if (!response.ok) throw new Error(`TaxSorted returned ${response.status}`);
 

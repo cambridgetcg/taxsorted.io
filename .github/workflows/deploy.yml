@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: taxsorted-production-release
+  cancel-in-progress: false
+
 jobs:
   test-build:
     runs-on: ubuntu-latest
@@ -44,6 +48,8 @@ jobs:
       deployed: ${{ steps.fly.outputs.present }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
 
       - name: Check for Fly token
         id: fly
@@ -51,6 +57,48 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
         if: steps.fly.outputs.present == 'true'
+
+      - name: Capture the published public-funding change prefix
+        if: steps.fly.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          response="${RUNNER_TEMP}/public-funding-changes-before.json"
+          prefix="${RUNNER_TEMP}/public-funding-change-prefix.json"
+          status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 --retry 4 --retry-delay 2 --retry-all-errors \
+            --header 'Cache-Control: no-cache' \
+            --output "${response}" --write-out '%{http_code}' \
+            'https://api.taxsorted.io/v1/public-funding/uk/changes?limit=100')
+          case "${status}" in
+            200)
+              jq --exit-status \
+                '.schema == "taxsorted.uk.public-funding.changes/1" and .page.hasMore == false and (.data | type == "array")' \
+                "${response}" >/dev/null
+              jq '.data' "${response}" >"${prefix}"
+              ;;
+            404)
+              if git show HEAD^:api/src/routes/uk-public-funding.ts 2>/dev/null | \
+                grep --quiet 'taxsorted.uk.public-funding.changes/1'
+              then
+                echo 'Published change feed disappeared after its first release; refusing to deploy.' >&2
+                exit 1
+              fi
+              printf '[]\n' >"${prefix}"
+              ;;
+            *)
+              echo "Could not capture published change feed (HTTP ${status}); refusing to deploy." >&2
+              exit 1
+              ;;
+          esac
+
+          candidate='research/uk/public-funding/data/uk-public-funding-release-history.json'
+          jq --exit-status \
+            'type == "array" and length <= 100' "${candidate}" >/dev/null
+          jq --exit-status --slurpfile before "${prefix}" '
+            ($before[0]) as $old |
+            (length >= ($old | length)) and
+            (.[0:($old | length)] == $old)
+          ' "${candidate}" >/dev/null
 
       - name: Deploy api to Fly.io
         if: steps.fly.outputs.present == 'true'
@@ -64,21 +112,61 @@ jobs:
           set -euo pipefail
           for path in \
             /v1/health \
+            /agent.txt \
+            /.well-known/agent.txt \
+            /v1/wake \
             /openapi.json \
             /v1/open-data \
             /v1/charities/uk \
             /v1/charities/uk/manifest \
             /v1/charities/uk/sources \
-            /v1/charities/uk/registers \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
-            /v1/public-funding/uk/sources
+            /v1/public-funding/uk/sources \
+            /v1/public-funding/uk/changes \
+            /v1/public-funding/uk/records/src-hmt-spending-review-2025
           do
             curl --fail --silent --show-error \
               --connect-timeout 10 --max-time 30 --retry-max-time 120 \
               --retry 12 --retry-delay 5 --retry-all-errors \
               --output /dev/null "https://api.taxsorted.io${path}"
           done
+
+          api_agent_manifest=$(curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/agent.txt)
+          api_well_known_manifest=$(curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/.well-known/agent.txt)
+          test "${api_agent_manifest}" = "${api_well_known_manifest}"
+          printf '%s\n' "${api_agent_manifest}" | \
+            grep --fixed-strings --line-regexp 'schema-version: taxsorted.agent-manifest/1'
+          api_manifest_content_type=$(curl --fail --silent --show-error --head \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/agent.txt | \
+            awk 'tolower($1) == "content-type:" { print tolower($2); exit }')
+          case "${api_manifest_content_type}" in
+            text/plain*) ;;
+            *)
+              echo "API agent manifest has unexpected content type: ${api_manifest_content_type}" >&2
+              exit 1
+              ;;
+          esac
+
+          current_changes="${RUNNER_TEMP}/public-funding-changes-after.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${current_changes}" \
+            'https://api.taxsorted.io/v1/public-funding/uk/changes?limit=100'
+          jq --exit-status --slurpfile before \
+            "${RUNNER_TEMP}/public-funding-change-prefix.json" '
+              ($before[0]) as $old |
+              (.page.hasMore == false) and
+              ((.data | type) == "array") and
+              ((.data | length) >= ($old | length)) and
+              (.data[0:($old | length)] == $old)
+            ' "${current_changes}" >/dev/null
 
           publication_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -95,6 +183,12 @@ jobs:
               exit 1
               ;;
           esac
+
+          negotiated_wake_schema=$(curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Accept: application/json' \
+            https://api.taxsorted.io/ | jq --raw-output '.schema')
+          test "${negotiated_wake_schema}" = 'taxsorted.agent-wake/1'
 
           public_funding_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -141,6 +235,40 @@ jobs:
           accountId: cf4198e651bf3009877d49f688c9d88e
           workingDirectory: frontend
           command: pages deploy out --project-name=taxsorted --branch=main
+
+      - name: Smoke-test the deployed human and machine doors
+        if: steps.token.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          for path in /uk/public-funding /agent.txt /.well-known/agent.txt
+          do
+            curl --fail --silent --show-error \
+              --location \
+              --connect-timeout 10 --max-time 30 --retry-max-time 120 \
+              --retry 12 --retry-delay 5 --retry-all-errors \
+              --output /dev/null "https://taxsorted.io${path}"
+          done
+
+          frontend_agent_manifest=$(curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 https://taxsorted.io/agent.txt)
+          frontend_well_known_manifest=$(curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 https://taxsorted.io/.well-known/agent.txt)
+          api_agent_manifest=$(curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 https://api.taxsorted.io/agent.txt)
+          test "${frontend_agent_manifest}" = "${frontend_well_known_manifest}"
+          test "${frontend_agent_manifest}" = "${api_agent_manifest}"
+          printf '%s\n' "${frontend_agent_manifest}" | \
+            grep --fixed-strings --line-regexp 'schema-version: taxsorted.agent-manifest/1'
+          frontend_manifest_content_type=$(curl --fail --silent --show-error --head --location \
+            --connect-timeout 10 --max-time 30 https://taxsorted.io/agent.txt | \
+            awk 'tolower($1) == "content-type:" { value=tolower($2) } END { print value }')
+          case "${frontend_manifest_content_type}" in
+            text/plain*) ;;
+            *)
+              echo "Frontend agent manifest has unexpected content type: ${frontend_manifest_content_type}" >&2
+              exit 1
+              ;;
+          esac
 
   # HMRC's own Test Fraud Prevention Headers API, sandbox only, checking the
   # exact header-assembly code path production uses (api/src/fraud.ts's
