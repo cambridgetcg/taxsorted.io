@@ -135,7 +135,7 @@ An open endpoint can still be difficult to reuse. A distributable dataset theref
 These are not decorations. They let another person mirror the data, detect change, validate a
 copy and build without depending on TaxSorted's frontend.
 
-For the two tax graphs, JSON means a lossless array in TaxSorted's deterministic form: object
+For the tax-system, tax-industry and charity-sector graphs, JSON means a lossless array in TaxSorted's deterministic form: object
 keys sorted recursively, compact JSON scalar encoding and preserved array order. It is not RFC
 8785/JCS. NDJSON uses that same form one record per line. CSV is convenience data: nested
 values remain deterministic JSON and a leading apostrophe mitigates common spreadsheet-formula
@@ -226,10 +226,13 @@ currently a bounded query service rather than an ever-growing static archive.
 
 ## What is true now
 
-- The tax-system and tax-industry graphs implement a discovery catalogue, structural schema,
+- The tax-system, tax-industry and organisation-free charity-sector graphs implement a discovery catalogue, structural schema,
   recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
   mixed-rights statement without requiring a caller account. Their protected collection and
   full-graph bodies remain behind separate production-publication switches.
+- The charity-sector boundary publishes legal and institutional explanations, official register
+  doors and aggregate disclosure definitions. It does not publish charity-by-charity rows, named
+  trustees, personal contacts, work histories, named pay or any inferred religious belief.
 - Tax graph, structural-schema, dictionary, export-index and collection-export bodies and
   validators are prepared when the route is created. Meaningless query parameters on tax
   static routes are rejected instead of creating silent cache variants.

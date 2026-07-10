@@ -19,6 +19,7 @@ import { createUkPoliticsRoutes } from "./routes/uk-politics.js";
 import { createOpenDataRoutes } from "./routes/open-data.js";
 import { createUkTaxIndustryRoutes } from "./routes/uk-tax-industry.js";
 import { createUkTaxSystemRoutes } from "./routes/uk-tax-system.js";
+import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
 
 const app = new OpenAPIHono();
 
@@ -36,6 +37,8 @@ app.route(
   createOpenDataRoutes({
     taxSystemPublic: config.taxSystem.publicDataEnabled,
     taxIndustryPublic: config.taxIndustry.publicDataEnabled,
+    charitiesPublic: config.charities.publicDataEnabled,
+    charitiesEmergencyStop: config.charities.emergencyStop,
     politicsBulkDataAvailable: config.politics.bulkDataEnabled,
     politicsBulkDataEmergencyStop: config.politics.bulkDataEmergencyStop,
     politicsBulkDataApproval: config.politics.bulkDataApproval,
@@ -63,6 +66,13 @@ app.route(
 app.route(
   "/v1/tax-industry/uk",
   createUkTaxIndustryRoutes({ publicDataEnabled: config.taxIndustry.publicDataEnabled })
+);
+app.route(
+  "/v1/charities/uk",
+  createUkCharitiesRoutes({
+    publicDataEnabled: config.charities.publicDataEnabled,
+    emergencyStop: config.charities.emergencyStop,
+  })
 );
 
 // Machine routes use workspace keys and never create browser sessions.

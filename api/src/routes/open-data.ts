@@ -9,6 +9,7 @@ import {
 } from "../open-data.js";
 import { ukTaxIndustry } from "../uk-tax-industry.js";
 import { ukTaxSystem } from "../uk-tax-system.js";
+import { ukCharities } from "../uk-charities.js";
 import {
   isPoliticsBulkPublicationApproval,
   politicsDatasetAdmissionDigest,
@@ -26,6 +27,8 @@ const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
 export type OpenDataRouteOptions = {
   taxSystemPublic?: boolean;
   taxIndustryPublic?: boolean;
+  charitiesPublic?: boolean;
+  charitiesEmergencyStop?: boolean;
   politicsBulkDataAvailable?: boolean;
   politicsBulkDataEmergencyStop?: boolean;
   politicsBulkDataApproval?: PoliticsBulkPublicationApproval | null;
@@ -54,11 +57,22 @@ function catalogHeaders(
 }
 
 function dataset(
-  id: "uk-tax-system" | "uk-tax-industry",
+  id:
+    | "uk-tax-system"
+    | "uk-tax-industry"
+    | "uk-charities-sector",
   root: string,
-  corpus: typeof ukTaxSystem | typeof ukTaxIndustry,
+  corpus:
+    | typeof ukTaxSystem
+    | typeof ukTaxIndustry
+    | typeof ukCharities,
   published: boolean,
-  humanGuide: string | null
+  humanGuide: string | null,
+  options: {
+    emergencyStopped?: boolean;
+    reviewBoundary?: string;
+    scopeBoundary?: string;
+  } = {}
 ) {
   return {
     id,
@@ -81,8 +95,17 @@ function dataset(
     },
     publication: {
       fullDatasetAvailable: published,
+      status: options.emergencyStopped
+        ? "emergency-stopped"
+        : published
+          ? "open"
+          : "publication-review",
       reviewBoundary:
+        options.reviewBoundary ??
         "The source ledger, known gaps, manifest, schema, dictionary and export index remain readable while full-data publication is closed.",
+      ...(options.scopeBoundary
+        ? { scopeBoundary: options.scopeBoundary }
+        : {}),
       notConfidentiality:
         "This hosted-service switch is not confidentiality or revocation. Unapproved or sensitive material must never enter the public repository or static corpus.",
     },
@@ -96,6 +119,9 @@ function dataset(
       dictionary: `${root}/dictionary`,
       exports: `${root}/exports`,
       sources: `${root}/sources`,
+      ...(id === "uk-charities-sector"
+        ? { registers: `${root}/registers` }
+        : {}),
       gaps: `${root}/gaps`,
       humanGuide,
       corrections: correctionsUrl,
@@ -106,6 +132,9 @@ function dataset(
 export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
   const taxSystemPublic = options.taxSystemPublic ?? false;
   const taxIndustryPublic = options.taxIndustryPublic ?? false;
+  const charitiesEmergencyStop = options.charitiesEmergencyStop ?? false;
+  const charitiesPublic =
+    (options.charitiesPublic ?? false) && !charitiesEmergencyStop;
   const politicsBulkDataAvailable = options.politicsBulkDataAvailable ?? true;
   const politicsBulkDataEmergencyStop =
     options.politicsBulkDataEmergencyStop ?? false;
@@ -155,6 +184,20 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
         ukTaxIndustry,
         taxIndustryPublic,
         "https://taxsorted.io/uk/tax-industry"
+      ),
+      dataset(
+        "uk-charities-sector",
+        "/v1/charities/uk",
+        ukCharities,
+        charitiesPublic,
+        "https://taxsorted.io/uk/charities",
+        {
+          emergencyStopped: charitiesEmergencyStop,
+          reviewBoundary:
+            "The source ledger, official register doors, known gaps, manifest, schema, dictionary and export index remain readable while the full sector map is closed.",
+          scopeBoundary:
+            "This release explains the UK charity sector. It contains no mirrored charity-by-charity records, named people, personal contacts, donor or beneficiary data, or inferred religious beliefs.",
+        }
       ),
       {
         id: "uk-politics-public-integrity",
@@ -254,6 +297,7 @@ export function buildOpenDataRights() {
     datasetRights: {
       taxSystem: "/v1/tax-system/uk/sources",
       taxIndustry: "/v1/tax-industry/uk/sources",
+      charities: "/v1/charities/uk/sources",
       politics: "/v1/politics/uk/datasets/rights",
     },
     publicIssueTracker: "https://github.com/cambridgetcg/taxsorted.io/issues",

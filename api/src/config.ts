@@ -32,6 +32,11 @@ const politicsBulkDataEnabled =
   (env.NODE_ENV !== "production" ||
     (env.POLITICS_BULK_DATA_ENABLED === "true" &&
       politicsBulkDataApproval !== null));
+const charitiesEmergencyStop = env.UK_CHARITIES_EMERGENCY_STOP === "true";
+const charitiesPublicDataEnabled =
+  !charitiesEmergencyStop &&
+  (env.NODE_ENV !== "production" ||
+    env.UK_CHARITIES_PUBLIC_DATA_ENABLED === "true");
 
 export const config = {
   port: Number(env.PORT || 8787),
@@ -102,6 +107,14 @@ export const config = {
   taxIndustry: {
     publicDataEnabled:
       env.NODE_ENV !== "production" || env.UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED === "true",
+  },
+  // This first charity release describes the sector, official register doors,
+  // legal conditions and organisation-level disclosure rules. It contains no
+  // charity-by-charity mirror or people directory. The independent stop still wins
+  // so a disputed release can be contained without affecting tax filing.
+  charities: {
+    emergencyStop: charitiesEmergencyStop,
+    publicDataEnabled: charitiesPublicDataEnabled,
   },
   corsOrigins:
     env.NODE_ENV === "production"

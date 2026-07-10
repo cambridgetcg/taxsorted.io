@@ -128,6 +128,43 @@ describe("developer API boundary", () => {
       document.paths["/v1/tax-industry/uk/exports/{collection}/{format}"].head
         .responses[200].headers
     ).toHaveProperty("Content-Disposition");
+    expect(document.paths).toHaveProperty("/v1/charities/uk");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}/{id}");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/graph");
+    expect(document.paths["/v1/charities/uk/map"].get.responses).toHaveProperty("308");
+    expect(document.paths["/v1/charities/uk/map"].head.responses).toHaveProperty("400");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/manifest");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/schema");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/dictionary");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/exports");
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/exports/{collection}/{format}"
+    );
+    expect(document.paths["/v1/charities/uk"].get.security).toEqual([]);
+    expect(document.paths["/v1/charities/uk"].head.security).toEqual([]);
+    const charityQueryParameters =
+      document.paths["/v1/charities/uk/{collection}"].get.parameters;
+    expect(charityQueryParameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "jurisdiction", in: "query" }),
+        expect.objectContaining({ name: "regulatorId", in: "query" }),
+      ])
+    );
+    expect(charityQueryParameters).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "religion", in: "query" }),
+      ])
+    );
+    expect(charityQueryParameters).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "name", in: "query" }),
+      ])
+    );
+    expect(
+      document.paths["/v1/charities/uk/exports/{collection}/{format}"].head
+        .responses[200].headers
+    ).toHaveProperty("Content-Disposition");
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/politics/uk");
     expect(document.paths).toHaveProperty("/v1/politics/uk/datasets");
@@ -200,8 +237,17 @@ describe("developer API boundary", () => {
       expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty("400");
       expect(document.paths[path].head.responses, `${path} HEAD`).toHaveProperty("400");
     }
-    for (const family of ["tax-system", "tax-industry"]) {
-      for (const suffix of ["", "/map", "/graph", "/manifest", "/schema", "/dictionary", "/exports"]) {
+    for (const family of ["tax-system", "tax-industry", "charities"]) {
+      const staticSuffixes = [
+        "",
+        "/map",
+        "/graph",
+        "/manifest",
+        "/schema",
+        "/dictionary",
+        "/exports",
+      ];
+      for (const suffix of staticSuffixes) {
         const path = `/v1/${family}/uk${suffix}`;
         expect(document.paths[path].get.responses, `${path} GET`).toHaveProperty("400");
         expect(document.paths[path].head.responses, `${path} HEAD`).toHaveProperty("400");

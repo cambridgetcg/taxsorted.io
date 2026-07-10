@@ -4,6 +4,7 @@ import { requireApiKey } from "./api-key.js";
 import { sdltRoutes } from "./routes/sdlt.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
+import { ukCharitiesSchema } from "./uk-charities.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 
@@ -74,6 +75,37 @@ const TaxIndustryQuery = z.object({
 });
 const TaxIndustryPublicJson = z.object({}).passthrough().openapi("UkTaxIndustryResponse");
 
+const CharitiesCollection = z.enum([
+  "sources",
+  "regulators",
+  "registers",
+  "legal-forms",
+  "tax-treatments",
+  "obligations",
+  "funding",
+  "finance",
+  "control",
+  "help",
+  "pipeline",
+  "gaps",
+]);
+const CharitiesQuery = z.object({
+  q: z.string().max(100).optional(),
+  jurisdiction: z.string().optional(),
+  kind: z.string().optional(),
+  type: z.string().optional(),
+  status: z.string().optional(),
+  taxType: z.string().optional(),
+  obligationType: z.string().optional(),
+  fundingType: z.string().optional(),
+  helpCategory: z.string().optional(),
+  regulatorId: z.string().optional(),
+  sourceId: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().nonnegative().optional(),
+});
+const CharitiesPublicJson = z.object({}).passthrough().openapi("UkCharitiesResponse");
+
 const ContentLicence = z
   .object({ name: z.string(), url: z.string().url() })
   .openapi("ContentLicence");
@@ -118,6 +150,8 @@ const DataDictionary = z
     reviewedOn: z.string(),
     structuralSchema: z.string().url(),
     corrections: z.string().url(),
+    correctionSafety: z.string().optional(),
+    scope: z.object({}).passthrough().optional(),
     validation: z.object({
       structuralSchema: z.string(),
       bootOnlyInvariants: z.array(z.string()),
@@ -158,9 +192,11 @@ const DatasetExportIndex = z
     version: z.string(),
     reviewedOn: z.string(),
     licence: ContentLicence,
+    publicationStatus: z.string().optional(),
     attribution: z.string(),
     attributionInstructions: z.string(),
     corrections: z.string().url(),
+    correctionSafety: z.string().optional(),
     rules: z.record(z.string(), z.string()),
     collections: z.array(ExportCollection),
   })
@@ -185,7 +221,9 @@ const OpenDataDataset = z
     }),
     publication: z.object({
       fullDatasetAvailable: z.boolean(),
+      status: z.string().optional(),
       reviewBoundary: z.string(),
+      scopeBoundary: z.string().optional(),
       notConfidentiality: z.string(),
     }),
     licence: z.object({}).passthrough(),
@@ -399,7 +437,7 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
     operationId: "listOpenDataDatasets",
     summary: "Discover TaxSorted public datasets",
     description:
-      "Public, sessionless catalog of tax-system, tax-industry and politics/public-integrity datasets, licences, review dates, schemas, dictionaries and bulk exports. No API key is read or required.",
+      "Public, sessionless catalog of tax-system, tax-industry, charity-sector and politics/public-integrity datasets, licences, review dates, schemas, dictionaries and bulk exports. No API key is read or required.",
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
@@ -1051,6 +1089,293 @@ function registerTaxIndustryOpenApi(app: OpenAPIHono) {
   });
 }
 
+function registerCharitiesOpenApi(app: OpenAPIHono) {
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/map",
+    operationId: "redirectUkCharitiesMap",
+    summary: "Follow the UK charity-sector map alias",
+    description: "Compatibility redirect to the canonical charity-sector overview.",
+    request: { headers: ConditionalRequestHeaders },
+    security: [],
+    responses: {
+      308: {
+        description: "Permanent redirect to /v1/charities/uk.",
+        headers: redirectResponseHeaders,
+      },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Static routes do not accept query parameters." },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/map",
+    operationId: "headUkCharitiesMapRedirect",
+    summary: "Check the UK charity-sector map redirect",
+    request: { headers: ConditionalRequestHeaders },
+    security: [],
+    responses: {
+      308: { description: "Permanent redirect metadata.", headers: redirectResponseHeaders },
+      304: {
+        description: "The redirect representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Static routes do not accept query parameters." },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/{collection}",
+    operationId: "queryUkCharitiesCollection",
+    summary: "Query the bounded UK charity-sector map",
+    description:
+      "Queries regulators, official register doors, legal forms, conditional tax treatments, obligations, funding mechanisms, finance disclosures, control models, generic help routes, pipeline stages and gaps. Filters are collection-specific; the dictionary is authoritative and unsupported collection/filter pairs return 400. There are no charity-by-charity or people records and no religion or name filter.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection }),
+      query: CharitiesQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Filtered sector records with paging and provenance metadata.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharitiesPublicJson } },
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Unknown, repeated, irrelevant or invalid filter." },
+      503: {
+        description:
+          "The full sector release is disabled or emergency-stopped; sources, register doors and gaps remain readable.",
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/{collection}/{id}",
+    operationId: "getUkCharitiesRecord",
+    summary: "Read one evidence-backed UK charity-sector record",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection, id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "One sector record with its resolved official sources.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharitiesPublicJson } },
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No record with that ID in the collection." },
+      503: { description: "The collection is disabled or emergency-stopped." },
+    },
+  });
+
+  const staticRoutes = [
+    {
+      path: "/v1/charities/uk",
+      operationId: "getUkCharitiesOverview",
+      summary: "Understand the bounded UK charity-sector API",
+      description:
+        "Public, sessionless route map for conditional relief, regulation, money, control, obligations and safe help discovery. This release contains no charity mirror, named people, personal contacts or inferred beliefs.",
+      schema: CharitiesPublicJson,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/charities/uk/graph",
+      operationId: "downloadUkCharitiesGraph",
+      summary: "Download the complete reviewed UK charity-sector graph",
+      description:
+        "Complete organisation-free sector corpus, including source limitations and known transparency gaps.",
+      schema: ukCharitiesSchema,
+      mediaType: "application/json",
+      mayBeClosed: true,
+    },
+    {
+      path: "/v1/charities/uk/manifest",
+      operationId: "getUkCharitiesManifest",
+      summary: "Read the UK charity-sector release manifest",
+      description: "Version, review date, exact graph hash, counts, licence and distribution links.",
+      schema: CharitiesPublicJson,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/charities/uk/schema",
+      operationId: "getUkCharitiesSchema",
+      summary: "Read the structural UK charity-sector JSON Schema",
+      description: "Strict record shapes; the dictionary lists boot-only reference and safety invariants.",
+      schema: CharitiesPublicJson,
+      mediaType: "application/schema+json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/charities/uk/dictionary",
+      operationId: "getUkCharitiesDictionary",
+      summary: "Read the plain-language UK charity-sector data dictionary",
+      description: "Collection aliases, field meanings, filters, references, formats and missing-value rules.",
+      schema: DataDictionary,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+    {
+      path: "/v1/charities/uk/exports",
+      operationId: "listUkCharitiesExports",
+      summary: "List complete UK charity-sector collection exports",
+      description: "Format links, filenames, byte sizes and exact-representation ETags.",
+      schema: DatasetExportIndex,
+      mediaType: "application/json",
+      mayBeClosed: false,
+    },
+  ] as const;
+
+  for (const route of staticRoutes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current reviewed static representation.",
+          headers: publicResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static routes do not accept query parameters." },
+        ...(route.mayBeClosed
+          ? { 503: { description: "The full sector release is disabled or emergency-stopped." } }
+          : {}),
+      },
+    });
+
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: route.operationId.replace(/^get|^download|^list/, "head"),
+      summary: `Check: ${route.summary}`,
+      description: "Returns the same validators and links as GET without a response body.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: { description: "Current representation metadata.", headers: publicResponseHeaders },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static routes do not accept query parameters." },
+        ...(route.mayBeClosed
+          ? { 503: { description: "The full sector release is disabled or emergency-stopped." } }
+          : {}),
+      },
+    });
+  }
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/exports/{collection}/{format}",
+    operationId: "downloadUkCharitiesCollection",
+    summary: "Download one complete UK charity-sector collection",
+    description:
+      "JSON and NDJSON are lossless deterministic TaxSorted encodings. CSV is a spreadsheet convenience copy and keeps nested values as deterministic JSON.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection, format: ExportFormat }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Complete, unpaginated collection attachment.",
+        headers: taxExportResponseHeaders,
+        content: {
+          "application/json": { schema: z.array(OpenDataRecord) },
+          "application/x-ndjson": { schema: z.string() },
+          "text/csv": { schema: z.string() },
+        },
+      },
+      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
+      400: { description: "Static export routes do not accept query parameters." },
+      404: { description: "Unknown collection or format." },
+      503: { description: "This collection is disabled or emergency-stopped." },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/{collection}",
+    operationId: "headUkCharitiesCollectionQuery",
+    summary: "Check a UK charity-sector collection query",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection }),
+      query: CharitiesQuery,
+    },
+    security: [],
+    responses: {
+      200: { description: "Current query metadata.", headers: publicResponseHeaders },
+      304: { description: "This exact query is unchanged.", headers: publicResponseHeaders },
+      400: { description: "Unknown, repeated, irrelevant or invalid filter." },
+      503: { description: "The collection is disabled or emergency-stopped." },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/{collection}/{id}",
+    operationId: "headUkCharitiesRecord",
+    summary: "Check one UK charity-sector record",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection, id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: { description: "Current record metadata.", headers: publicResponseHeaders },
+      304: { description: "This exact record is unchanged.", headers: publicResponseHeaders },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No record with that ID in the collection." },
+      503: { description: "The collection is disabled or emergency-stopped." },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/exports/{collection}/{format}",
+    operationId: "headUkCharitiesCollectionExport",
+    summary: "Check one UK charity-sector collection export",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ collection: CharitiesCollection, format: ExportFormat }),
+    },
+    security: [],
+    responses: {
+      200: { description: "Current export metadata.", headers: taxExportResponseHeaders },
+      304: { description: "This exact export is unchanged.", headers: taxExportResponseHeaders },
+      400: { description: "Static export routes do not accept query parameters." },
+      404: { description: "Unknown collection or format." },
+      503: { description: "This collection is disabled or emergency-stopped." },
+    },
+  });
+}
+
 function registerPoliticsOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -1512,6 +1837,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerOpenDataOpenApi(app);
   registerTaxSystemOpenApi(app);
   registerTaxIndustryOpenApi(app);
+  registerCharitiesOpenApi(app);
   registerPoliticsOpenApi(app);
 
   app.use(

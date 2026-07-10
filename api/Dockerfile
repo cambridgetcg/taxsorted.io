@@ -14,6 +14,7 @@ COPY api/ api/
 # collection tooling stay out of the image.
 COPY research/uk/tax-system/data/ research/uk/tax-system/data/
 COPY research/uk/tax-industry/data/ research/uk/tax-industry/data/
+COPY research/uk/charities/data/ research/uk/charities/data/
 
 USER node
 EXPOSE 8080

@@ -168,6 +168,35 @@ available; protected collections, their downloads and the full graph return 503 
 `Cache-Control: no-store`. Removing the secret is the off-switch and does not affect the
 tax-system graph, calculations, accounts or HMRC filing routes.
 
+## Public charity-sector graph
+
+The first charity release is an organisation-free sector map: regulators, official register
+doors, legal forms, conditional tax treatments, obligations, funding, finance disclosures,
+control models, generic help routes, collection stages and known gaps. It must contain no named
+people, personal contacts, organisation mirror, donor or beneficiary data, or inferred beliefs.
+
+Validate and review the complete diff before enabling it:
+
+```bash
+npm run validate:uk-charities
+fly secrets set -a taxsorted-api UK_CHARITIES_PUBLIC_DATA_ENABLED=true
+```
+
+The repository's Fly configuration currently enables this bounded sector corpus. Sources,
+register doors, gaps and release metadata remain readable if the full map is disabled. If a
+source-rights, legal or safety issue is found, use the independent stop:
+
+```bash
+fly secrets set -a taxsorted-api UK_CHARITIES_EMERGENCY_STOP=true
+```
+
+Verify protected collection bodies and the graph return `503` with `Cache-Control: no-store`,
+while `/sources`, `/registers`, `/gaps`, `/manifest`, `/schema`, `/dictionary` and `/exports`
+remain available. Purge any controllable external cache and record the issue. The stop cannot
+recall a downloaded or public-repository copy. Correct and re-review the source before removing
+the stop; never re-enable on a timer. This switch does not affect calculations, accounts, HMRC
+filing, the tax-system graph or the tax-industry graph.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register

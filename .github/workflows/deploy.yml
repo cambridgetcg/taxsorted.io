@@ -58,6 +58,25 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+      - name: Smoke-test the deployed charity contract
+        if: steps.fly.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          for path in \
+            /v1/health \
+            /openapi.json \
+            /v1/open-data \
+            /v1/charities/uk \
+            /v1/charities/uk/graph \
+            /v1/charities/uk/manifest \
+            /v1/charities/uk/sources \
+            /v1/charities/uk/registers
+          do
+            curl --fail --silent --show-error \
+              --retry 12 --retry-delay 5 --retry-all-errors \
+              --output /dev/null "https://api.taxsorted.io${path}"
+          done
+
   deploy-frontend:
     runs-on: ubuntu-latest
     needs: deploy-api

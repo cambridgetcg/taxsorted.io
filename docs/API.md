@@ -6,11 +6,13 @@ The first developer surface is a deterministic SDLT calculator for one ordinary 
 purchase in England or Northern Ireland. It is a bounded calculation service, not a generic
 tax-advice chatbot and not yet a filing rail.
 
-Alongside calculations, three UK maps explain the systems around the answer. The
+Alongside calculations, four UK maps explain the systems around the answer. The
 tax-system graph covers authority, accounts, permissions, collection and challenge. The
 tax-industry graph covers roles, qualifications, legal and market gates, lawful entry paths,
 pay evidence and barriers. The politics catalogue covers elections, public funding, formal
-office power, enforcement and evidence methods. Their public metadata needs no API key or
+office power, enforcement and evidence methods. The charity-sector graph covers official
+registers, conditional tax treatments, obligations, funding, finance disclosures, control
+structures and safe help routes. Their public metadata needs no API key or
 taxpayer session; protected record bodies still require their explicit production-publication
 switch. Static downloads make no upstream network call; clearly labelled live query services
 may read their named official source.
@@ -19,9 +21,9 @@ This guide describes the implementation in this workspace, not proof that the pu
 been deployed. After an authorised deploy, verify `/v1/health`, `/openapi.json` and the relevant
 catalogue before treating an example as live.
 
-**Deployment check, 2026-07-10:** `https://api.taxsorted.io/v1/health` answered `200`, while
-the public politics guide, `/openapi.json`, `/v1/open-data` and
-`/v1/politics/uk/datasets` answered `404`. This API and frontend work is therefore pre-deploy.
+Do not infer deployment from this file or from a local build. Check `/v1/health`,
+`/openapi.json`, `/v1/open-data` and the dataset's overview on the public host; a release note
+must record the verified deployment separately.
 
 The reasons, safety boundary and known weaknesses are recorded in the
 [draft public data design charter](PUBLIC-DATA-CHARTER.md). It is an agent-authored governance
@@ -40,9 +42,9 @@ GET https://api.taxsorted.io/v1/open-data/rights
 GET https://api.taxsorted.io/openapi.json
 ```
 
-Every tax-system and tax-industry dataset has the same prepared distribution shape. The
-metadata routes remain readable when deployed; collection and full-graph bodies return `503`
-until that family's catalogue says it is available:
+The tax-system, tax-industry and charity-sector datasets have the same prepared distribution shape. The
+metadata routes remain readable when deployed; protected collection and full-graph bodies return
+`503` until that family's catalogue says it is available. Source and gap collections stay readable:
 
 ```text
 GET /v1/tax-industry/uk/schema
@@ -53,8 +55,8 @@ GET /v1/tax-industry/uk/exports/roles/ndjson
 GET /v1/tax-industry/uk/exports/roles/csv
 ```
 
-Replace `tax-industry` with `tax-system`, and `roles` with any collection named by its
-export index. When the publication switch is open, downloads are complete and unpaginated.
+Replace `tax-industry` with `tax-system` or `charities`, and `roles` with any collection named
+by that dataset's export index. When the publication switch is open, downloads are complete and unpaginated.
 Query routes remain the place for search and filtering.
 
 After the tax-industry catalogue reports that bodies are available, download a version-named
@@ -116,18 +118,19 @@ curl --fail --header 'If-None-Match: "sha256-…"' \
 HTTP 304 means the validator supplied for that requested resource still matches its exact
 response bytes. Keep validators per URL and format; two requests may legitimately have the
 same ETag when their bytes are identical. Cache policy is stated on each response:
-tax-system and tax-industry release routes
+tax-system, tax-industry and charity-sector release routes
 revalidate within five minutes, while the deployed politics bulk catalogue revalidates
 within one hour.
 
 The catalogue also states each dataset family's current update policy and whether its correction
-channel accepts private or sensitive material. Tax datasets are updated irregularly when evidence
-changes, a correction is accepted or a new review pass completes; there is no promised next release
-date. The current GitHub correction route requires an account and is public, so it must not receive
-private, personal or safety-sensitive information. A private intake is not live.
+channel accepts private or sensitive material. The tax-system, tax-industry and charity-sector
+maps are updated irregularly when evidence changes, a correction is accepted or a new review pass
+completes; there is no promised next release date. The current GitHub correction route requires an
+account and is public, so it must not receive private, personal or safety-sensitive information. A
+private intake is not live.
 
-Tax and central-catalogue `GET` representations also have documented `HEAD` operations. Tax and
-central-catalogue static routes reject query parameters with `400` and `Cache-Control: no-store`;
+Sector-map and central-catalogue `GET` representations also have documented `HEAD` operations.
+Sector-map and central-catalogue static routes reject query parameters with `400` and `Cache-Control: no-store`;
 filtering belongs on a collection query URL, not on a detail, bulk or metadata URL. Politics route
 query behavior remains route-specific and is documented separately in OpenAPI.
 
@@ -355,6 +358,73 @@ different measures; they are not personal earnings promises.
 
 The plain-language route map, launch boundary and reading guide live in
 [`research/uk/tax-industry/`](../research/uk/tax-industry/).
+
+## Public UK charity-sector graph
+
+This first release explains the system around UK charities and religious organisations. It
+does not mirror individual charities. Religion is an organisation-level charitable-purpose
+category only; the API never infers or indexes a person's belief. A charity is normally
+governed and its assets stewarded for charitable purposes, not owned like an equity company.
+
+```text
+GET /v1/charities/uk
+GET /v1/charities/uk/map
+GET /v1/charities/uk/graph
+GET /v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments}
+GET /v1/charities/uk/{obligations|funding|finance|control|help|pipeline|gaps}
+GET /v1/charities/uk/{collection}/{id}
+GET /v1/charities/uk/manifest
+GET /v1/charities/uk/schema
+GET /v1/charities/uk/dictionary
+GET /v1/charities/uk/exports
+GET /v1/charities/uk/exports/{collection}/{json|ndjson|csv}
+```
+
+For example, mirror every reviewed tax-treatment explanation without an account:
+
+```sh
+curl --fail --location --remote-header-name --remote-name \
+  https://api.taxsorted.io/v1/charities/uk/exports/tax-treatments/ndjson
+```
+
+Or discover the official organisation-search doors from an application:
+
+```js
+const response = await fetch(
+  "https://api.taxsorted.io/v1/charities/uk/help?helpCategory=find-an-organisation"
+);
+if (!response.ok) throw new Error(`TaxSorted returned ${response.status}`);
+const { data: routes } = await response.json();
+```
+
+The records answer what each regulator and register covers, how legal forms hold assets,
+which tax treatments may apply and on what conditions, what charities must report, which
+funding mechanisms exist, how accounts expose finance and aggregate pay, and which generic
+official or organisation-level route a person can use to ask for help. `q`, `limit` and
+`offset` are bounded; exact filters are collection-specific and listed by the dictionary.
+There is deliberately no person, trustee-name, personal-contact, religion, denomination,
+recipient or donor filter.
+
+Relief is not described as a reward for religion or as blanket tax exemption. Advancement of
+religion is one possible charitable purpose, but charitable status still depends on the
+applicable charity test and public benefit; HMRC tax recognition and charitable use of funds
+add separate conditions. VAT relief is limited rather than universal. TaxSorted's explanation
+of the policy bargain is labelled as analysis, not legislation.
+
+The corpus contains no charity-by-charity rows, people directory, work histories, named pay,
+home addresses, personal email or phone numbers, donor, beneficiary, congregation or volunteer
+identities, inferred beliefs, or fuzzy cross-register matches. Complete organisation discovery
+is delegated to the official register doors in the `registers` collection. A later partitioned
+organisation layer needs an explicit inclusion rule, source-by-source rights checks, exact-ID
+joins, a private safety/correction route and a fresh privacy assessment before publication.
+
+Production serving uses `UK_CHARITIES_PUBLIC_DATA_ENABLED=true`; the independent
+`UK_CHARITIES_EMERGENCY_STOP=true` wins. While the release is closed, the overview, sources,
+register doors, gaps, manifest, schema, dictionary and export index remain readable. The stop
+cannot recall copies already downloaded or committed publicly.
+
+The method, publication assessment and reading guide live in
+[`research/uk/charities/`](../research/uk/charities/).
 
 ## Public UK politics and integrity API
 

@@ -86,6 +86,10 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   bodies behind an explicit production-publication switch, covering
   roles, qualifications, exams, study materials, costs, pay evidence, origins, legal and
   market gates, lawful entry paths and the mechanics of structural barriers.
+- **Charity-sector graph**: sessionless `GET /v1/charities/uk` routes explain official UK
+  registers, legal forms, conditional tax treatments, obligations, funding, finance and pay
+  disclosures, control structures and safe help routes. The first release deliberately has no
+  mirrored charity-by-charity records, people directory, personal contacts or inferred beliefs.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Self-hosting & HMRC credentials
@@ -105,9 +109,12 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   feeds, runs, funds, challenges and enforces UK tax, with a machine-readable evidence graph
 - [`research/uk/tax-industry/README.md`](research/uk/tax-industry/README.md) — how people
   enter the industry, what each credential or licence really does, who controls it and pays
+- [`research/uk/charities/README.md`](research/uk/charities/README.md) — how the UK charity
+  sector works: relief conditions, registers, money, stewardship, duties and safe reuse
 - [`docs/PUBLIC-DATA-CHARTER.md`](docs/PUBLIC-DATA-CHARTER.md) — the agent-authored draft
   explaining the public API's distribution, safety and rights choices; awaiting Yu's adoption
 - `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers
+- `/uk/charities` — public page: conditional reliefs, regulators, money, control and help routes
 - `/uk/personal-tax` — public page: 7 UK plays, official receipts, ordinary counter-moves
 - `regs/research/` — the MTD Income Tax regulatory corpus: mandate, API surface,
   recognition process, fraud-prevention headers, 2026-27 tax substance — every claim cited

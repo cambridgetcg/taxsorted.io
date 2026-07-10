@@ -13,7 +13,8 @@
     "validate:uk-politics": "node scripts/validate-uk-politics.mjs",
     "validate:uk-tax-system": "npm run validate:tax-system --workspace api",
     "validate:uk-tax-industry": "npm run validate:tax-industry --workspace api",
-    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry",
+    "validate:uk-charities": "npm run validate:charities --workspace api",
+    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry && npm run validate:uk-charities",
     "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }

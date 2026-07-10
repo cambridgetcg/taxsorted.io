@@ -12,6 +12,7 @@
     "validate:fraud-headers": "tsx scripts/validate-fraud-headers.ts",
     "validate:tax-system": "tsx scripts/validate-tax-system.ts",
     "validate:tax-industry": "tsx scripts/validate-tax-industry.ts",
+    "validate:charities": "tsx ../scripts/validate-uk-charities.mjs",
     "create:api-key": "tsx scripts/create-api-key.ts"
   },
   "dependencies": {

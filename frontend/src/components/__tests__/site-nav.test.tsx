@@ -18,4 +18,12 @@ describe("SiteNav", () => {
       "/uk/tax-industry",
     );
   });
+
+  it("offers the public charities map", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Charities" })).toHaveAttribute(
+      "href",
+      "/uk/charities",
+    );
+  });
 });

@@ -31,6 +31,7 @@ const publicCivicBases = [
   "/v1/politics/uk",
   "/v1/tax-system/uk",
   "/v1/tax-industry/uk",
+  "/v1/charities/uk",
 ];
 
 export function isPublicCivicPath(path: string) {
