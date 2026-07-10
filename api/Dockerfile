@@ -10,6 +10,10 @@ RUN npm ci --omit=dev --workspace api
 
 COPY engine/ engine/
 COPY api/ api/
+# Only the reviewed static corpora are needed at runtime; research notes and
+# collection tooling stay out of the image.
+COPY research/uk/tax-system/data/ research/uk/tax-system/data/
+COPY research/uk/tax-industry/data/ research/uk/tax-industry/data/
 
 USER node
 EXPOSE 8080

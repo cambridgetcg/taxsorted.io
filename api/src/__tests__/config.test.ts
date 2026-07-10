@@ -3,8 +3,27 @@
 // Postgres, no network — pure env-in/shape-out.
 
 import { describe, it, expect, afterEach, vi } from "vitest";
+import { politicsDatasetAdmissionDigest } from "../uk-politics-datasets.js";
+
+function stubBulkApproval() {
+  vi.stubEnv("POLITICS_BULK_APPROVED_BY", "Yu");
+  vi.stubEnv("POLITICS_BULK_APPROVED_ON", "2026-07-10");
+  vi.stubEnv("POLITICS_BULK_ADMISSION_DIGEST", politicsDatasetAdmissionDigest);
+  vi.stubEnv(
+    "POLITICS_CONFIDENTIAL_INTAKE_URL",
+    "https://intake.taxsorted.io/politics"
+  );
+}
+
+function clearBulkApproval() {
+  vi.stubEnv("POLITICS_BULK_APPROVED_BY", "");
+  vi.stubEnv("POLITICS_BULK_APPROVED_ON", "");
+  vi.stubEnv("POLITICS_BULK_ADMISSION_DIGEST", "");
+  vi.stubEnv("POLITICS_CONFIDENTIAL_INTAKE_URL", "");
+}
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.resetModules();
   vi.unstubAllEnvs();
 });
@@ -80,5 +99,226 @@ describe("config.webauthn — not a boot-config requirement", () => {
     vi.stubEnv("WEBAUTHN_ORIGIN", "");
     const { assertBootConfig } = await import("../config.js");
     expect(() => assertBootConfig()).not.toThrow();
+  });
+});
+
+describe("config.politics — publication gates", () => {
+  it("is open for local/test work but keeps Electoral Commission reuse closed", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("POLITICS_BULK_DATA_EMERGENCY_STOP", "");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "");
+    clearBulkApproval();
+    vi.stubEnv("POLITICS_PERSONAL_DATA_EMERGENCY_STOP", "");
+    vi.stubEnv("POLITICS_PERSONAL_DATA_ENABLED", "");
+    vi.stubEnv("POLITICS_PUBLIC_DATA_ENABLED", "");
+    vi.stubEnv("POLITICS_EC_REUSE_CONFIRMED", "");
+    vi.stubEnv("POLITICS_EC_PRIVACY_REVIEW_APPROVED", "");
+    vi.stubEnv("POLITICS_GOV_BENEFITS_ENABLED", "");
+    vi.stubEnv("POLITICS_ENFORCEMENT_LEADERS_ENABLED", "");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_STAFF_ENABLED", "");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_INTERESTS_ENABLED", "");
+    const { config } = await import("../config.js");
+    expect(config.politics).toEqual({
+      bulkDataEmergencyStop: false,
+      bulkDataEnabled: true,
+      bulkDataApproval: null,
+      personalDataEmergencyStop: false,
+      personalDataEnabled: true,
+      publicDataEnabled: true,
+      electoralCommissionReuseConfirmed: false,
+      electoralFinanceReviewApproved: true,
+      ministerialBenefitsEnabled: true,
+      enforcementLeadersEnabled: true,
+      parliamentaryStaffEnabled: true,
+      parliamentaryInterestsEnabled: true,
+    });
+  });
+
+  it("is closed in production unless each exact switch is true", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POLITICS_BULK_DATA_EMERGENCY_STOP", "TRUE");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "TRUE");
+    clearBulkApproval();
+    vi.stubEnv("POLITICS_PERSONAL_DATA_EMERGENCY_STOP", "");
+    vi.stubEnv("POLITICS_PERSONAL_DATA_ENABLED", "TRUE");
+    vi.stubEnv("POLITICS_PUBLIC_DATA_ENABLED", "TRUE");
+    vi.stubEnv("POLITICS_EC_REUSE_CONFIRMED", "true");
+    vi.stubEnv("POLITICS_EC_PRIVACY_REVIEW_APPROVED", "true");
+    vi.stubEnv("POLITICS_GOV_BENEFITS_ENABLED", "true");
+    vi.stubEnv("POLITICS_ENFORCEMENT_LEADERS_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_STAFF_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_INTERESTS_ENABLED", "true");
+    let loaded = await import("../config.js");
+    expect(loaded.config.politics).toEqual({
+      bulkDataEmergencyStop: false,
+      bulkDataEnabled: false,
+      bulkDataApproval: null,
+      personalDataEmergencyStop: false,
+      personalDataEnabled: false,
+      publicDataEnabled: false,
+      electoralCommissionReuseConfirmed: false,
+      electoralFinanceReviewApproved: false,
+      ministerialBenefitsEnabled: false,
+      enforcementLeadersEnabled: false,
+      parliamentaryStaffEnabled: false,
+      parliamentaryInterestsEnabled: false,
+    });
+
+    vi.resetModules();
+    vi.stubEnv("POLITICS_PERSONAL_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "true");
+    stubBulkApproval();
+    vi.stubEnv("POLITICS_PUBLIC_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_EC_REUSE_CONFIRMED", "true");
+    vi.stubEnv("POLITICS_EC_PRIVACY_REVIEW_APPROVED", "true");
+    vi.stubEnv("POLITICS_GOV_BENEFITS_ENABLED", "true");
+    vi.stubEnv("POLITICS_ENFORCEMENT_LEADERS_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_STAFF_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_INTERESTS_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.politics).toEqual({
+      bulkDataEmergencyStop: false,
+      bulkDataEnabled: true,
+      bulkDataApproval: {
+        approver: "Yu",
+        approvedOn: "2026-07-10",
+        admissionDigest: politicsDatasetAdmissionDigest,
+        confidentialIntakeUrl: "https://intake.taxsorted.io/politics",
+      },
+      personalDataEmergencyStop: false,
+      personalDataEnabled: true,
+      publicDataEnabled: true,
+      electoralCommissionReuseConfirmed: true,
+      electoralFinanceReviewApproved: true,
+      ministerialBenefitsEnabled: true,
+      enforcementLeadersEnabled: true,
+      parliamentaryStaffEnabled: true,
+      parliamentaryInterestsEnabled: true,
+    });
+  });
+
+  it("lets the emergency stop override every named-person publication gate", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POLITICS_BULK_DATA_EMERGENCY_STOP", "");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "true");
+    stubBulkApproval();
+    vi.stubEnv("POLITICS_PERSONAL_DATA_EMERGENCY_STOP", "true");
+    vi.stubEnv("POLITICS_PERSONAL_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_PUBLIC_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_EC_REUSE_CONFIRMED", "true");
+    vi.stubEnv("POLITICS_EC_PRIVACY_REVIEW_APPROVED", "true");
+    vi.stubEnv("POLITICS_GOV_BENEFITS_ENABLED", "true");
+    vi.stubEnv("POLITICS_ENFORCEMENT_LEADERS_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_STAFF_ENABLED", "true");
+    vi.stubEnv("POLITICS_PARLIAMENTARY_INTERESTS_ENABLED", "true");
+    const { config } = await import("../config.js");
+    expect(config.politics).toEqual({
+      bulkDataEmergencyStop: false,
+      bulkDataEnabled: true,
+      bulkDataApproval: {
+        approver: "Yu",
+        approvedOn: "2026-07-10",
+        admissionDigest: politicsDatasetAdmissionDigest,
+        confidentialIntakeUrl: "https://intake.taxsorted.io/politics",
+      },
+      personalDataEmergencyStop: true,
+      personalDataEnabled: false,
+      publicDataEnabled: false,
+      electoralCommissionReuseConfirmed: false,
+      electoralFinanceReviewApproved: false,
+      ministerialBenefitsEnabled: false,
+      enforcementLeadersEnabled: false,
+      parliamentaryStaffEnabled: false,
+      parliamentaryInterestsEnabled: false,
+    });
+  });
+
+  it("lets the independent bulk stop close static records without enabling personal data", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POLITICS_BULK_DATA_EMERGENCY_STOP", "true");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "true");
+    clearBulkApproval();
+    vi.stubEnv("POLITICS_PERSONAL_DATA_EMERGENCY_STOP", "");
+    vi.stubEnv("POLITICS_PERSONAL_DATA_ENABLED", "");
+    const { config } = await import("../config.js");
+
+    expect(config.politics.bulkDataEmergencyStop).toBe(true);
+    expect(config.politics.bulkDataEnabled).toBe(false);
+    expect(config.politics.personalDataEmergencyStop).toBe(false);
+    expect(config.politics.personalDataEnabled).toBe(false);
+  });
+
+  it("keeps production bulk data closed when approval metadata is incomplete or stale", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_BULK_APPROVED_BY", "Yu");
+    vi.stubEnv("POLITICS_BULK_APPROVED_ON", "2026-07-10");
+    vi.stubEnv("POLITICS_BULK_ADMISSION_DIGEST", "sha256-stale");
+    vi.stubEnv(
+      "POLITICS_CONFIDENTIAL_INTAKE_URL",
+      "https://intake.taxsorted.io/politics"
+    );
+
+    const { config } = await import("../config.js");
+    expect(config.politics.bulkDataApproval).toBeNull();
+    expect(config.politics.bulkDataEnabled).toBe(false);
+  });
+
+  it("rejects an impossible approval calendar date instead of normalising it", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2027-01-01T00:00:00Z"));
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("POLITICS_BULK_DATA_ENABLED", "true");
+    vi.stubEnv("POLITICS_BULK_APPROVED_BY", "Yu");
+    vi.stubEnv("POLITICS_BULK_APPROVED_ON", "2026-11-31");
+    vi.stubEnv("POLITICS_BULK_ADMISSION_DIGEST", politicsDatasetAdmissionDigest);
+    vi.stubEnv(
+      "POLITICS_CONFIDENTIAL_INTAKE_URL",
+      "https://intake.taxsorted.io/politics"
+    );
+
+    const { config } = await import("../config.js");
+    expect(config.politics.bulkDataApproval).toBeNull();
+    expect(config.politics.bulkDataEnabled).toBe(false);
+  });
+});
+
+describe("config.taxSystem — publication gate", () => {
+  it("is open locally and requires the exact production switch", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("UK_TAX_SYSTEM_PUBLIC_DATA_ENABLED", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.taxSystem.publicDataEnabled).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("UK_TAX_SYSTEM_PUBLIC_DATA_ENABLED", "TRUE");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxSystem.publicDataEnabled).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("UK_TAX_SYSTEM_PUBLIC_DATA_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxSystem.publicDataEnabled).toBe(true);
+  });
+});
+
+describe("config.taxIndustry — publication gate", () => {
+  it("is open locally and requires the exact production switch", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.taxIndustry.publicDataEnabled).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED", "TRUE");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxIndustry.publicDataEnabled).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxIndustry.publicDataEnabled).toBe(true);
   });
 });

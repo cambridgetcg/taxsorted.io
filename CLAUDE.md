@@ -13,8 +13,15 @@ Restated 2026-06-12 from UK-only to international scope; rails built the same da
 npm workspaces: `engine/` (carved out, tests green), `api/` (Hono + Postgres,
 HMRC sandbox connector with live credentials in Fly secrets, verified via
 `GET /v1/health` → `hmrc.configured:true`), `frontend/` (real cockpit at /vat wired
-to the api; demo "sample books" routes kept and labelled). Anonymous device sessions
-are v1 auth — real accounts are a hard precondition for production filing.
+to the api; demo "sample books" routes kept and labelled). Passkey accounts with recovery
+codes now exist; anonymous device sessions remain only for the no-sign-up sandbox path, and
+production filing requires a recent passkey-backed data identity.
+
+Developer API slice added 2026-07-10: pure UK residential SDLT engine, primary-source
+ledger, workspace API keys hashed at rest, `POST /v1/uk/sdlt/calculations`, and generated
+OpenAPI 3.1 at `/openapi.json`. It is server-to-server and stateless; it never creates the
+browser sessions used by the human filing cockpit. Current scope is calculation/explanation,
+not SDLT XML submission or HMRC recognition.
 
 ## Tech Stack
 - Next.js 16 (App Router, **static export** — no server runtime in frontend)
@@ -39,6 +46,7 @@ are v1 auth — real accounts are a hard precondition for production filing.
   - `world/` — jurisdiction-neutral knowledge (tax ontology)
   - `uk/` — country #1: `filing/`, `laws/`, `entities/`, `tax-types/`, `deadlines/`,
     `competitive/`, `technical/`
+- `docs/API.md` — developer contract, key boundary, outcomes and the honest path to receipts
 - `infrastructure/` — delivery truth lives in `.github/workflows/deploy.yml`
 
 ## Direction (the roadmap's spine)
@@ -50,6 +58,8 @@ are v1 auth — real accounts are a hard precondition for production filing.
    hard precondition: real user accounts before any production rail
 4. Wire the UK end to end (sandbox receipt = the proof), then country #2
    (Ireland VAT3); adding a country must touch no core code
+5. Prove the SDLT calculation API with conveyancing design partners; only then build the
+   separate legacy XML validation/submission/recognition rail
 
 ## How to Run
 ```bash

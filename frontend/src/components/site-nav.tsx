@@ -20,6 +20,9 @@ export function SiteNav() {
           <Link href="/uk/personal-tax" className="text-ink-soft hover:text-ink">
             {t("nav.playbook")}
           </Link>
+          <Link href="/uk/tax-industry" className="text-ink-soft hover:text-ink">
+            Industry
+          </Link>
           <Link href="/uk/politics" className="text-ink-soft hover:text-ink">
             {t("nav.politics")}
           </Link>

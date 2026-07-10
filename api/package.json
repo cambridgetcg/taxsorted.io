@@ -9,10 +9,14 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "validate:fraud-headers": "tsx scripts/validate-fraud-headers.ts"
+    "validate:fraud-headers": "tsx scripts/validate-fraud-headers.ts",
+    "validate:tax-system": "tsx scripts/validate-tax-system.ts",
+    "validate:tax-industry": "tsx scripts/validate-tax-industry.ts",
+    "create:api-key": "tsx scripts/create-api-key.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
+    "@hono/zod-openapi": "1.4.0",
     "@simplewebauthn/server": "13.3.2",
     "@taxsorted/engine": "*",
     "hono": "^4.7.0",

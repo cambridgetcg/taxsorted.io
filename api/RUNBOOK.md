@@ -6,6 +6,168 @@ credentials (verified via `GET /v1/health` → `hmrc.configured:true`). What it
 waits for: production credentials — HMRC's approval process (milestone M3).
 Only a human can mint those.
 
+## UK politics publication controls
+
+### Public-safe dataset distribution
+
+The institutional, aggregate and agent-screened organisation-only bulk candidate catalogue is
+implemented without a caller key. Catalogue, rights and bulk dataset schema routes remain
+readable when deployed even while record bodies await approval. Check those first:
+
+```bash
+curl --fail https://api.taxsorted.io/v1/politics/uk/datasets
+curl --fail https://api.taxsorted.io/v1/politics/uk/datasets/rights
+curl --fail https://api.taxsorted.io/v1/politics/uk/datasets/admissions
+```
+
+Only after the catalogue reports `publication.status: "open"` should a release check fetch
+record bodies:
+
+```bash
+curl --fail --output enforcement.csv \
+  'https://api.taxsorted.io/v1/politics/uk/datasets/enforcement-institutions/download?format=csv'
+curl --fail --header 'If-None-Match: "the-etag-from-last-time"' \
+  'https://api.taxsorted.io/v1/politics/uk/datasets/enforcement-institutions/download?format=ndjson'
+```
+
+The last request returns `304` when those exact NDJSON bytes are unchanged.
+Before releasing a dataset change, check its record IDs, fields, source IDs,
+licence note and all three formats. IDs are permanent and must not be recycled;
+record removals need a tombstone entry once that public ledger is built. A new optional field
+may be additive within the current major. Removing a field, making one required
+or nullable, or changing its type, meaning, primary key or money unit requires a
+new schema major.
+
+Never add a named-person collection to the bulk registry merely because its
+purpose-bound lookup gate was approved. Bulk amplification is a separate
+publication decision.
+
+Production record bodies fail closed until all three conditions are recorded:
+Yu adopts the publication boundary, reviews the published admission ledger, and
+a confidential safety-reporting route is live. The admission response publishes the exact
+`admissionDigest` being approved. Record all five values in one secrets update:
+
+```bash
+fly secrets set -a taxsorted-api \
+  POLITICS_BULK_DATA_ENABLED=true \
+  POLITICS_BULK_APPROVED_BY='<public approver name>' \
+  POLITICS_BULK_APPROVED_ON='<YYYY-MM-DD>' \
+  POLITICS_BULK_ADMISSION_DIGEST='<copy exact admissionDigest>' \
+  POLITICS_CONFIDENTIAL_INTAKE_URL='https://<live confidential intake>'
+```
+
+Production remains closed if the switch, approver, real date, exact current digest or HTTPS
+intake URL is absent or invalid. When all approval metadata is valid but the serving switch is
+off, the catalogue says `approved-disabled`; local body access without approval says
+`development-preview`, never `open`. An open catalogue and admission ledger therefore report
+the same approver, date, digest and live intake. This is a release decision, not an account or
+payment tier. The catalogue, admission ledger, rights statement, bulk dataset schemas and
+correction method remain readable while closed.
+
+If a supposedly safe bulk dataset is misclassified, stop record bodies without
+hiding the catalogue, admission ledger, rights statement or bulk dataset schemas:
+
+```bash
+fly secrets set -a taxsorted-api POLITICS_BULK_DATA_EMERGENCY_STOP=true
+```
+
+Affected dataset detail, download and older static politics reading routes
+return `503` with `Cache-Control: no-store`. Discovery, rights, bulk dataset schemas and the
+correction method stay readable. Do not clear the stop on a timer. Review the
+projection, source rights and foreseeable harm; publish the correction; then
+explicitly set the value to `false`. This stop is independent of every
+named-person and live-query gate.
+
+The stop changes the origin response after the configuration rollout; it cannot recall a copy
+already downloaded or licensed. Existing successful bulk responses are cacheable for one hour,
+so a browser, application or CDN may continue serving a fresh cached `200` during that bound.
+Purge every cache under operator control when setting the emergency stop, verify the origin with
+a cache-busting operator request, and record the time by which remaining one-hour entries expire.
+
+Once bulk publication is open, political-system, source, method and law-enforcement
+institution routes stay independent of the named-person switches. While bulk publication is
+awaiting approval or emergency-stopped, those older static routes return `503`; independently
+gated live queries keep their own controls. The contract-award query follows buyer identity
+from the official award and discloses a supplier name only when an approved organisation
+identifier verifies that supplier. Every named feature fails closed in production.
+
+The master named-data approval is required before any narrower gate can open:
+
+```bash
+fly secrets set -a taxsorted-api POLITICS_PERSONAL_DATA_ENABLED=true
+```
+
+The narrower switches are independent:
+
+```bash
+# Current Parliament people, roles and contacts
+fly secrets set -a taxsorted-api POLITICS_PUBLIC_DATA_ENABLED=true
+
+# Political Finance Online, only after written reuse confirmation
+fly secrets set -a taxsorted-api POLITICS_EC_REUSE_CONFIRMED=true
+
+# Bulk-CSV processing, only after the separate Article 9/minimisation review
+fly secrets set -a taxsorted-api POLITICS_EC_PRIVACY_REVIEW_APPROVED=true
+
+# Monthly ministerial gifts/hospitality after field, third-party and correction review
+fly secrets set -a taxsorted-api POLITICS_GOV_BENEFITS_ENABLED=true
+
+# Force-published senior names/ranks after senior-office and safety review
+fly secrets set -a taxsorted-api POLITICS_ENFORCEMENT_LEADERS_ENABLED=true
+
+# Parliament-published staff names after the separate necessity/expectations review
+fly secrets set -a taxsorted-api POLITICS_PARLIAMENTARY_STAFF_ENABLED=true
+
+# Commons registered-interest text after field, third-party and land-detail review
+fly secrets set -a taxsorted-api POLITICS_PARLIAMENTARY_INTERESTS_ENABLED=true
+```
+
+Setting a narrow switch without `POLITICS_PERSONAL_DATA_ENABLED=true` does nothing.
+Named responses are `Cache-Control: no-store`.
+
+The emergency stop overrides every named feature and prevents new named upstream fetches:
+
+```bash
+fly secrets set -a taxsorted-api POLITICS_PERSONAL_DATA_EMERGENCY_STOP=true
+```
+
+After setting it, verify named endpoints return `503` with `Cache-Control: no-store`,
+purge any external CDN or application cache, and record the incident. Do not re-enable on
+a timer. Review the source or mapping, deploy the correction, manually remove the stop,
+and re-check `/v1/politics/uk/sources`.
+
+## Public tax-system graph
+
+The reviewed UK institutional graph is independent of the HMRC filing rail. It is static,
+read-only and contains no taxpayer data. Production publication is explicit:
+
+```bash
+fly secrets set -a taxsorted-api UK_TAX_SYSTEM_PUBLIC_DATA_ENABLED=true
+```
+
+Before switching it on, run `npm run validate:uk-tax-system` and read the corpus diff in
+`research/uk/tax-system/data/`. With the switch closed, the overview, `/sources`, `/gaps`,
+`/manifest`, `/schema`, `/dictionary` and `/exports` index stay readable. Source and gap
+downloads stay available; protected collections, their downloads and the full graph return
+503 with `Cache-Control: no-store`. Current public responses must revalidate within five
+minutes, so removing the secret remains a bounded off-switch. It does not affect
+calculations, accounts or HMRC filing routes.
+
+## Public tax-industry graph
+
+The reviewed UK entry-and-gates graph has its own publication decision:
+
+```bash
+fly secrets set -a taxsorted-api UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED=true
+```
+
+Run `npm run validate:uk-tax-industry` and read the corpus diff in
+`research/uk/tax-industry/data/` first. With the switch closed, the overview, sources, gaps,
+manifest, schema, dictionary and export index stay readable. Source and gap downloads stay
+available; protected collections, their downloads and the full graph return 503 with
+`Cache-Control: no-store`. Removing the secret is the off-switch and does not affect the
+tax-system graph, calculations, accounts or HMRC filing routes.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register

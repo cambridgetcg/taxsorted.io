@@ -16,14 +16,22 @@ same door, same plain words, same engine. Three things in one calm place:
 Underneath sits one engine; every country is rules, dates and words plugged into it —
 never a fork of the product. The UK is drawn first and drawn deep: the proof, not the limit.
 
-TaxSorted is a **commons, not a product**: free and open-source, no price, no bait tier,
-no donations button. People file their own taxes; we pave the road.
+TaxSorted's open book, public-law reference corpus and base public datasets are a **commons**:
+free and open-source, no price, no bait tier, no donations button. Optional filing support or
+derived services may charge fairly for work that saves time or money, but payment must never
+become the practical gate to those base public materials. People file their own taxes; we pave
+the road.
 
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →
 year-end return, aiming to be the first open-source software on HMRC's recognised list.
 2026-27 has no penalty points for late quarterly updates (Autumn Budget 2025) — this
 year is an on-ramp, not a cliff.
+
+**Developer API preview:** the first machine-facing tax decision is an authenticated,
+source-backed SDLT calculator for one ordinary residential purchase in England or Northern
+Ireland. It uses integer money, effective-dated rules and explicit `needs_review` outcomes —
+never a guessed zero. See [`docs/API.md`](docs/API.md) and `GET /openapi.json` on the API.
 
 See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 
@@ -33,10 +41,10 @@ See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 taxsorted.io/           # npm workspaces: engine · frontend · api
 ├── PRINCIPLES.md       # The soul
 ├── engine/             # One engine, countries as plugins — pure TypeScript
-│   └── jurisdictions/uk/   # Plugin #1: vat/ (compute, explain, optimise) + personal/ + hmrc/
+│   └── jurisdictions/uk/   # Plugin #1: vat/ + itsa/ + personal/ + sdlt/ + hmrc/
 ├── frontend/           # Next.js web application (static export)
 │   └── src/app/        # Landing (the map), dashboard, vat/ (real cockpit + demo)
-├── api/                # The rails — Hono on Fly.io (lhr): OAuth vault, receipts
+├── api/                # The rails — Hono on Fly.io: browser accounts + workspace API keys
 │   ├── migrations/     # Postgres: sessions → entities → connections → submissions
 │   └── RUNBOOK.md      # How the HMRC rail switches on
 ├── regs/               # Our understanding of the law, open and cited — wrong is catchable
@@ -67,6 +75,17 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   sessions, server-side HMRC OAuth with an encrypted token vault, engine-validated
   submission, immutable receipts. One typed API for humans and agents alike.
   Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
+- **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
+  and `POST /v1/uk/sdlt/calculations`. Calculation requests are stateless and never create
+  the browser cookies used by the filing cockpit.
+- **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
+  bodies behind an explicit production-publication switch, covering the
+  authority chain, collection lanes, accounts, infrastructure, private collaborators,
+  permissions, enforcement, challenge routes, cases, evidence and known transparency gaps.
+- **Tax-industry graph**: implemented sessionless `GET /v1/tax-industry/uk` routes, with protected
+  bodies behind an explicit production-publication switch, covering
+  roles, qualifications, exams, study materials, costs, pay evidence, origins, legal and
+  market gates, lawful entry paths and the mechanics of structural barriers.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 ## Self-hosting & HMRC credentials
@@ -80,6 +99,15 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 - [`research/uk/filing/README.md`](research/uk/filing/README.md) — every UK filing
   obligation: forms, deadline formulas, penalties, API specs, submission workflow
 - [`research/uk/personal-tax/README.md`](research/uk/personal-tax/README.md) — UK personal-tax optimisation playbook (玩爆英國個税), source ledger, and safe boundaries
+- [`research/uk/tax-types/sdlt.md`](research/uk/tax-types/sdlt.md) — the first SDLT ruleset,
+  its primary sources, exclusions, rounding and legacy XML recognition path
+- [`research/uk/tax-system/README.md`](research/uk/tax-system/README.md) — who makes,
+  feeds, runs, funds, challenges and enforces UK tax, with a machine-readable evidence graph
+- [`research/uk/tax-industry/README.md`](research/uk/tax-industry/README.md) — how people
+  enter the industry, what each credential or licence really does, who controls it and pays
+- [`docs/PUBLIC-DATA-CHARTER.md`](docs/PUBLIC-DATA-CHARTER.md) — the agent-authored draft
+  explaining the public API's distribution, safety and rights choices; awaiting Yu's adoption
+- `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers
 - `/uk/personal-tax` — public page: 7 UK plays, official receipts, ordinary counter-moves
 - `regs/research/` — the MTD Income Tax regulatory corpus: mandate, API surface,
   recognition process, fraud-prevention headers, 2026-27 tax substance — every claim cited

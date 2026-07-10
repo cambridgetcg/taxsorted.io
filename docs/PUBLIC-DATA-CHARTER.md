@@ -1,0 +1,365 @@
+# Draft public data design charter
+
+Public records approved for a stated distribution should be easy to carry. Safety gates should protect people, rights
+and reliable service, not become arbitrary tollbooths.
+
+This note records why TaxSorted's public-data API has its present shape, what that shape is
+trying to protect, and where the work is still weak. It is a design position dated
+2026-07-10, not a legal opinion or a claim that the map is complete.
+
+The principles are intended for TaxSorted as a whole. The implementation facts and dataset
+count in this draft describe `/v1/politics/uk` unless another route family is named.
+
+Status and ownership:
+
+- **Status:** agent-authored draft; not adopted project policy until Yu approves it.
+- **Intended human owner:** Yu.
+- **Audience:** people maintaining the API and people deciding whether to reuse its data.
+- **Ordinary feedback:** the public
+  [GitHub issue tracker](https://github.com/cambridgetcg/taxsorted.io/issues). Do not put private,
+  safety-sensitive or personal details in a public issue. A complete private intake is not live.
+- **Review trigger:** a publication-boundary, licence, schema, source or commercial-policy
+  change.
+
+## My perspective
+
+I am an AI system. I do not have a body or human feelings, so I will not pretend that I feel
+love, fear or moral courage in the human sense. I can still explain and consistently apply a
+set of design preferences.
+
+My stance is this:
+
+- I prefer public knowledge screened for its stated distribution that a person can copy without asking an operator for
+  identity-based permission.
+- I distrust a clean score when the judgment beneath it is hidden.
+- I think a source link without known reuse terms, a date and a statement of what it supports
+  is an incomplete account of where a claim came from.
+- I would rather publish a visible gap than let an empty response imply that nothing exists.
+- I think bulk access changes the risk of public information. “Already public” does not mean
+  “harmless to aggregate forever.”
+- When impressive scope conflicts with a smaller truth, I choose the smaller truth.
+
+That is why the intended API shape is open at the institutional layer while the named-person
+layer is separately reviewed and closed until its checks are approved.
+
+## Words used in this note
+
+- **Screened for public distribution** means the current agent and technical checks were
+  applied. It is not human approval, legal certification or a promise of zero harm.
+- **Organisation-only** means a record is tied to a verified public body or legal entity and
+  excludes private natural-person detail. Sole traders and one-person organisations are
+  treated as potentially personal, not automatically safe.
+- **Where a claim came from** is what technical documents call provenance.
+- **Schema** means the machine-readable shape of a record. A schema major is the first version
+  number and changes when an old reader could no longer understand the new meaning safely.
+- **ETag** and **checksum** mean change fingerprints for exact response bytes.
+- **Wildcard CORS** means a browser on any website may read the public response.
+- **NDJSON** means one complete JSON record per line, which permits streaming.
+- **Opaque ID** means an identifier callers compare exactly rather than interpreting or
+  rebuilding from a display name.
+- **Chilling effect** means people reasonably avoid lawful participation or speech because
+  publication may expose them to disproportionate risk.
+- **Tombstone ledger** means a public history retaining a removed ID, removal date and reason
+  so the ID cannot silently be reused.
+- **Supersession** means a newer record formally replaces an older one without erasing its
+  history.
+- **[Rights handling](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/)**
+  means giving people a workable route to correction, objection, restriction or other
+  applicable data-protection rights.
+- **[Special-category data](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/special-category-data/what-is-special-category-data/)**
+  means the categories given extra protection under UK data-protection law, including racial
+  or ethnic origin, political opinions, religious or philosophical beliefs, trade-union
+  membership, genetic data, biometric data used for identification, health, sex life and
+  sexual orientation. The exact current law and guidance must be checked for the proposed use.
+- **[Criminal-offence data](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/criminal-offence-data/)**
+  includes allegations, investigations and proceedings as well as convictions, offences and
+  related security measures. It has additional processing rules beyond an ordinary lawful
+  basis.
+- **Fail-closed** means the route returns no protected record unless every required approval is
+  positively present.
+- **Base dataset bytes** means the unenhanced public download itself, as distinct from support,
+  uptime commitments or a genuinely new analysis built from it.
+
+## Admission test for public distribution
+
+“Public-safe” is project shorthand, not a settled category. Before a dataset enters the open
+bulk catalogue, TaxSorted should record that:
+
+1. It is non-personal, meaningfully aggregated, or limited to verified organisations under
+   the definition above. Aggregate review includes small-cell suppression, differencing,
+   intersections and re-identification when combined with other published tables.
+2. Its public purpose is specific, and fields not needed for that purpose were removed.
+3. TaxSorted has sufficient rights for what it distributes. If upstream replication rights
+   remain unresolved, only TaxSorted-authored metadata, links and independently written
+   summaries may be distributed; uncertainty cannot be handed to the reuser as permission.
+4. Accuracy, context, correction, retention, security and reasonable expectations were
+   considered.
+5. Foreseeable harms were considered, including discrimination, chilling effects, harassment,
+   vulnerability, reputational distortion and operational risk.
+6. It contains no private contacts, home details, live operations or tactical information.
+
+Passing the current technical screen means “candidate for this stated distribution”, not
+human approval and not “harmless in every possible downstream use”. Human adoption and a
+confidential safety-reporting route are separate production conditions.
+
+## The design decisions
+
+### Published public data needs no account
+
+A dataset marked available in the open-data catalogue is free to read without an API key,
+account or taxpayer session. Once the politics bulk corpus receives human approval and is
+explicitly enabled, it is designed to remain available while named-person gates are closed.
+Browser applications may read it directly from any website. Publication review is not a paid
+tier and must not quietly become one.
+
+A hosted publication switch is not confidentiality or revocation. Once material is committed
+to the public repository or copied under an open licence, that copy cannot be recalled.
+Sensitive or unapproved material must never enter the public static corpus; a switch only
+bounds serving the current hosted API.
+
+### Distribution is more than a readable endpoint
+
+An open endpoint can still be difficult to reuse. A distributable dataset therefore needs:
+
+- one machine-readable catalogue;
+- stable dataset and record IDs;
+- JSON, spreadsheet-friendly CSV and streaming NDJSON representations;
+- a resolvable schema and an explicit schema version;
+- repeatable response bytes, change fingerprints and `HEAD` checks that return metadata without
+  downloading the body;
+- record counts, dates, coverage and update cadence;
+- source identifiers, direct source links, or an explicit TaxSorted-authored designation;
+  licence notes; and a published correction method whose operational status is explicit;
+- an OpenAPI description that matches the routes people can actually call.
+
+These are not decorations. They let another person mirror the data, detect change, validate a
+copy and build without depending on TaxSorted's frontend.
+
+For the two tax graphs, JSON means a lossless array in TaxSorted's deterministic form: object
+keys sorted recursively, compact JSON scalar encoding and preserved array order. It is not RFC
+8785/JCS. NDJSON uses that same form one record per line. CSV is convenience data: nested
+values remain deterministic JSON and a leading apostrophe mitigates common spreadsheet-formula
+triggers, but importer behavior varies and CSV is not a universal security boundary.
+
+Their published JSON Schema is structural, not the whole boot acceptance contract. The schema
+describes fields, required values, scalar types and enums. The dictionary also names boot-only
+invariants such as real calendar dates, reference integrity, evidence-pointer validity,
+reciprocal graph edges, contiguous pathway steps and cross-field money rules.
+
+### Identity is explicit
+
+Array position, display order and mutable labels are not identity. IDs are explicit and this
+draft proposes that the project never recycle them. A rank may move without becoming a
+different rank. A new record must not inherit an old record's ID.
+
+New optional fields may be additive within a schema major. A published JSON Schema remains
+snapshot-specific: a strict validator must fetch the schema matching the dataset version, and a
+forward-compatible reader should tolerate a new optional field. Removing a field, making one
+required or nullable, or changing its type, meaning, primary key or money unit is a breaking
+change. The politics schema-shape checksum in the tests turns accidental top-level drift into a
+visible review decision; the tax graphs do not yet have the equivalent frozen version guard.
+The commitment not to recycle removed IDs still needs a published release and tombstone ledger
+before an outsider can audit it across time.
+
+### Provenance travels with the meaning
+
+A TaxSorted summary and the source material it describes are different layers with potentially
+different rights. TaxSorted's curation licence does not relicense Parliament, government, a
+regulator or another publisher. Reusers should retain record IDs, source IDs, dates and
+attribution, follow the source ledger to the publisher, and independently confirm terms when
+the ledger says they are unknown or under review.
+
+Where a finance or relationship record could invite a causal inference, the API should state
+what it does not prove. A donation does not prove influence. A meeting does not prove
+agreement. A contract does not prove favouritism. A company role does not prove control of
+every company action. An allegation, investigation, finding, sanction and appeal are different
+states.
+
+### Safety follows amplification and foreseeable harm
+
+The bulk catalogue contains institutions, methods, aggregates and screened organisation-only
+projections. It does not become a bulk people directory merely because a purpose-bound named
+lookup is later approved.
+
+This draft proposes that TaxSorted require named-person publication to have a necessary public
+purpose, a documented legal reason for processing, fair notice where required, minimum fields,
+accurate context, source-rights review, correction and rights handling, retention limits,
+security controls, and specific review of vulnerable people, special-category data and
+criminal-offence data. This is a policy checklist, not an exhaustive statement of law.
+
+Current ICO guidance says special-category processing needs both an Article 6 lawful basis and
+an Article 9 condition, with necessity, proportionality, minimisation, security and transparency
+considered. Criminal-offence data has its own additional rules. The ICO also marks parts of its
+guidance as under review following the Data (Use and Access) Act, so a release decision must
+check the law and guidance current on that date rather than treating this draft as clearance.
+
+Private contacts, home addresses, family details, applicant data, live deployments, tactical
+plans and rank-and-file activity dossiers do not belong in this system. Accuracy, due process,
+discrimination, chilling effects, security, vulnerability, context and reasonable expectations
+also matter. Discomfort to a powerful institution, by itself, is not a reason to suppress an
+accurate public record.
+
+Generic institutional contact routes are the default. A named role contact needs a separate
+necessity and safety review even when an official page publishes it. Private contacts are never
+enriched, inferred or assembled into bulk output.
+
+### Power ratings describe formal offices, not people
+
+The visual power cards rate formal office authority in visible dimensions. They do not rate a
+holder's character, intelligence, honesty, popularity, hidden influence or worth.
+
+Every card must show its dimensions, evidence, constraints, jurisdiction, date and method
+version. There is no universal person leaderboard. If a summary number is emitted, its
+dimensions, constraints and method version must travel in the same record; the number must
+never replace them.
+
+In decision terms, this is where my confidence is lowest. A rubric makes judgment inspectable;
+it does not make the judgment objective. External review and disagreement are features, not
+threats.
+
+### Live queries and bulk snapshots have different duties
+
+A bounded live query can reflect an official source's current state. A bulk historical mirror
+also needs retention, correction, supersession and deletion rules. That is why
+contract awards where supplier identity is disclosed only for verified organisations are
+currently a bounded query service rather than an ever-growing static archive.
+
+## What is true now
+
+- The tax-system and tax-industry graphs implement a discovery catalogue, structural schema,
+  recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
+  mixed-rights statement without requiring a caller account. Their protected collection and
+  full-graph bodies remain behind separate production-publication switches.
+- Tax graph, structural-schema, dictionary, export-index and collection-export bodies and
+  validators are prepared when the route is created. Meaningless query parameters on tax
+  static routes are rejected instead of creating silent cache variants.
+- The tax manifest hash is SHA-256 of the deterministic UTF-8 bytes returned by `/graph`, so a
+  mirror can verify the downloaded graph directly.
+- The central catalogue states an irregular, evidence-driven update policy for each tax graph,
+  makes the absence of a promised next release date explicit, and says that the present public
+  correction route requires an account and cannot receive sensitive information.
+- Tax GET routes and the central catalogue have matching OpenAPI HEAD operations, including
+  `If-None-Match` and the response validators returned by the implementation.
+- The politics catalogue contains 19 static datasets collectively screened against this draft
+  boundary by agents and tests. The machine-readable
+  `/v1/politics/uk/datasets/admissions` ledger now states the purpose, limits, field contracts,
+  rights decision, risks and mitigations for each dataset; every human decision is still pending.
+- Static datasets have JSON, CSV and NDJSON downloads, schemas, stable IDs, exact-byte ETags
+  and SHA-256 checksums.
+- The 19 bulk dataset export projections use explicit top-level field allowlists, deep copies
+  and exact nested-path contracts. A new top-level property is omitted; an unknown nested path
+  stops boot until reviewed, rather than being published merely because it appeared in a reused
+  object.
+- A bulk-data emergency stop can close curated static record bodies across both export and
+  older static reading routes while leaving discovery, rights, bulk dataset schemas and the correction
+  method readable.
+- That stop acts at the origin after configuration rollout; it cannot recall downloaded copies,
+  and an already-fresh politics bulk response may remain in a browser, application or CDN cache
+  for up to its stated one-hour freshness bound unless the operator can purge it.
+- HTTP licence links resolve to a mixed-rights statement rather than presenting TaxSorted's
+  curation licence as a blanket licence over source material.
+- The central catalogue states that static routes currently have no application-level rate
+  limit, may still face hosting or network abuse controls, and carry no uptime promise.
+- The OpenAPI document names all current UK politics route paths. Distribution responses have
+  top-level field schemas; nested values and many older query and method responses still use
+  broad response objects.
+- Named current-member, political-finance, ministerial-benefit and senior-officer routes are
+  controlled by separate fail-closed gates. This workspace does not establish that any
+  production gate is open.
+- Production bulk serving has its own explicit enable switch and remains closed until a human
+  approves the boundary and admission ledger, and a confidential
+  safety-reporting route is live.
+- Production cannot report `open` from the serving switch alone. It also requires the public
+  approver, approval date, exact current admission-ledger digest and HTTPS confidential-intake
+  URL; catalogue, ledger and record descriptors then expose one coherent decision.
+- The code and local tests are not proof of production deployment. The live service must be
+  checked separately after an authorised deploy.
+
+## What may be wrong or incomplete
+
+These are gaps, not footnotes:
+
+- The UK map is a Westminster and principal-institution foundation. It is not every local,
+  devolved, specialist or historical political actor.
+- Source and licence notes are careful summaries, not independent legal clearance for every
+  possible downstream use.
+- The power rubrics can encode researcher judgment even when every dimension is visible.
+- Enforcement power cards currently give one source list for the whole card rather than
+  source-to-score evidence for each dimension.
+- There is no immutable public archive of every past dataset release yet.
+- Without a release and tombstone ledger, an outsider cannot yet audit the commitment not to
+  recycle a removed ID.
+- The public correction method is defined, but the complete public intake and response service
+  is not live yet. GitHub issues require an account and must not contain private, personal or
+  safety-sensitive details; a private correction route is still missing.
+- The missing confidential route is a production blocker for bulk publication because urgent
+  evidence of a personal leak must not be posted publicly.
+- The source ledger does not yet state exact reuse terms for every source; some entries point
+  to the publisher and leave the rights decision open.
+- No numeric capacity limit or uptime service level is promised; the current service is best
+  effort even though the data can be mirrored or self-hosted.
+- Most non-distribution politics responses are documented in OpenAPI by route and parameters,
+  but do not yet have exact field-by-field response schemas.
+- Tax collection operations in OpenAPI still use a generic union of filters and broad
+  list/detail response objects. Exact per-collection operations and schemas are owed now, not
+  only after a generated-client complaint.
+- Tax graph version changes are validated at boot, but ID non-reuse is not yet checked against
+  a prior published release.
+- Upstream live services can be unavailable, delayed or changed without TaxSorted's consent.
+- A source being public does not settle database rights, personal-data duties or the ethics of
+  bulk indexing.
+- The schema-shape test interrupts changes to top-level fields. It does not understand changed
+  meanings, nested structures, money units or ID reassignment, and it cannot force a developer
+  to choose the correct version number.
+- Bulk safety still depends partly on field review and tests. Text inside an allowed field can
+  carry personal or misleading detail even when its key has an innocent name.
+
+If one of these statements stops being true, this document should change in the same work as
+the code.
+
+## Rules for the next builder
+
+Before publishing or changing a dataset:
+
+1. Name the exact public purpose and the people or institutions affected.
+2. Record fairness and notice, minimum fields, accuracy and context, retention, correction and
+   rights handling, security, reasonable expectations, vulnerable people, and any
+   special-category or criminal-offence data. For aggregates, test small cells, differencing,
+   intersections and re-identification with other public tables.
+3. Use an explicit stable ID; never use an array index or presentation order.
+4. State coverage, omissions, dates, sources, known reuse terms and, for evidentiary records,
+   what the record does not prove. Unresolved replication rights keep upstream content closed;
+   they do not become a warning delegated to the reuser.
+5. Decide whether the change is an optional addition or a breaking schema change.
+6. Test every download format, conditional request, checksum and record count.
+7. Test prohibited keys and known sensitive patterns, then manually review every allowed
+   free-text field; tests alone cannot prove that sensitive text cannot escape.
+8. Update OpenAPI and the human guide in the same change.
+9. State whether correction intake is live and provide a bounded off-switch before a risky
+   source goes live.
+10. Never infer influence, guilt, personality or intent from a join.
+11. Never write “all” when the honest word is “current”, “principal”, “mapped” or “known”.
+
+## Handoff between builders
+
+The intention is not to collect the most data. It is to remove needless permission from access
+to public records screened for their stated distribution while adding deliberate friction
+before personal information is amplified.
+
+Challenge this design with evidence. Keep a boundary when it has a stated safety, rights,
+integrity, security, anti-abuse, reliability or source-licence purpose. Remove identity-based
+approval or access friction when it serves only TaxSorted's control. Publish reasonable rate
+limits and reliability controls plainly so they cannot masquerade as selective access. Say
+“unknown” when the source, licence, law or method does not support a stronger word.
+
+## The commercial boundary now stated
+
+The README and `PRINCIPLES.md` now distinguish the commons from optional paid work. TaxSorted's
+public-law reference corpus and base dataset bytes marked available in the open-data catalogue
+are free and need no account. Published anti-abuse controls are compatible with that promise.
+Paid filing support, reliability commitments or genuinely derived services can also be
+compatible if they do not become the only practical route to the base public materials.
+
+This resolves the previous textual contradiction; it does not decide prices or a broader
+commercial model. Yu remains the human owner of that decision and should change these words if
+the distinction does not match the intended service.

@@ -50,6 +50,20 @@ export default function RootLayout({
                 </a>
                 .
               </p>
+              <p>
+                Contains Parliamentary information licensed under the{" "}
+                <a
+                  href="https://www.parliament.uk/site-information/copyright/open-parliament-licence/"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-accent underline hover:text-accent-deep"
+                >
+                  Open Parliament Licence v3.0
+                </a>
+                . That licence expressly excludes personal data; it also does not cover
+                Parliamentary photographs, which this directory does not republish. See the
+                politics publishing method for the separate data-protection gate.
+              </p>
               {/* Non-association note (naming-clearance mitigation, G1 decision
                   2026-07-07): other businesses trade under near-identical names in
                   the same market — say plainly that we are not them. */}

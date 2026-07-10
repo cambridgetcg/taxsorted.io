@@ -10,4 +10,12 @@ describe("SiteNav", () => {
     render(<SiteNav />);
     expect(screen.getByRole("link", { name: /account/i })).toHaveAttribute("href", "/account");
   });
+
+  it("offers the public industry map", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Industry" })).toHaveAttribute(
+      "href",
+      "/uk/tax-industry",
+    );
+  });
 });

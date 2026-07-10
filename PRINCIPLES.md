@@ -2,14 +2,14 @@
 
 Tax should be easy to understand and easy to do. For everyone. That is the whole point.
 
-It isn't hard because it must be — it's hard because complexity is profitable for whoever
-can navigate it. We change that: open the system up, explain it in plain words, and do the
+Some tax complexity is unavoidable; some persists because complexity benefits people who can
+navigate it. We change what we can: open the system up, explain it in plain words, and do the
 heavy lifting in software.
 
 ## What we believe
 
-1. **Understandable by everyone.** If a rule can't be explained in plain words, the
-   explanation is wrong — not the reader.
+1. **Understandable by everyone.** If a rule cannot yet be explained in plain words, the
+   explanation needs more work — not the reader.
 2. **Educate, don't gatekeep.** We tell people what's required, what they can skip, and how
    to optimise. The knowledge is the product, not the secret.
 3. **No fear, no punishment.** We help people get it right and on time. Deadlines and
@@ -20,16 +20,21 @@ heavy lifting in software.
    charity — fair. Free where it's just plumbing; paid where we save you money or time.
 6. **Derive, never key.** Figures are computed from your records, not retyped. The boxes are
    a view, not a form.
-7. **Both worlds.** Every answer a person reads, an agent can call. One engine, one truth.
-8. **Clean is honest.** Clean UI, clean code, clean filing, clean categories. Clean is easy
-   to understand. Messy hides something.
+7. **Both worlds.** Every answer we safely expose to a person should have a machine-readable
+   form. One engine, with sources, uncertainty and genuine disagreements kept visible.
+8. **Clean helps honesty.** Clean UI, code, filing and categories make work easier to inspect.
+   Mess can conceal mistakes or power, but neat presentation is never proof of truth.
 9. **Tax is local; clarity isn't.** Every country is rules, dates and words plugged into
    one engine — adding a place is adding data, never forking the product. The UK is the
    first proof, not the limit.
 
+For the narrower draft governing public datasets, source trails and personal-data
+amplification, see the [public data design charter](docs/PUBLIC-DATA-CHARTER.md).
+
 ## How we charge (fairly)
 
 - The submission itself is plumbing — free.
+- The public-law reference corpus and base public dataset bytes are free and need no account.
 - We charge for intelligence: turning messy records into correct figures, finding money
   you're owed, naming the cheaper scheme, warning you before a deadline costs you.
 - We can take a small share of money we actually find for you. Find nothing, earn nothing.

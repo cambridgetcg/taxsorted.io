@@ -16,7 +16,10 @@ research/
     ├── tax-types/     # WHAT taxes exist (UK instance of the world ontology)
     ├── deadlines/     # The UK tax calendar
     ├── competitive/   # The UK market map
-    └── technical/     # HMRC integration landscape (OAuth, fraud headers, APIs)
+    ├── technical/     # HMRC integration landscape (OAuth, fraud headers, APIs)
+    ├── politics/      # Elections, offices, finance evidence and public accountability
+    ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
+    └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
 ```
 
 Adding a country means copying the schemas, not inventing a structure:
@@ -37,6 +40,10 @@ honest, and marked so — guides first, rails later.
 |---|---|
 | `uk/filing/` | Deep — forms, deadlines, penalties, APIs, submission workflow |
 | `uk/laws/legislation-by-entity/` | Deep — 16 entity profiles, section-level, point-in-time |
-| `uk/entities/`, `uk/tax-types/`, `uk/deadlines/` | Reference-level |
+| `uk/tax-types/sdlt.md` | Deep — current rates, source ledger, safe API boundary, XML rail |
+| `uk/tax-system/` | Deep — 4 collection lanes, permissions, infrastructure, collaborators, cases and gaps |
+| `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
+| `uk/politics/` | Growing — Westminster directory plus finance, election, enforcement and formal-power methods |
+| `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level |
 | `uk/competitive/`, `uk/technical/` | Scaffolds |
 | `world/` | Seeded — ontology distilled, treaty layer pending |

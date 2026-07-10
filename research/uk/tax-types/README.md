@@ -41,7 +41,7 @@ PAYE        National
 | **National Insurance** | Workers/Employers | 2-13.8% | Via PAYE/SA | Monthly/Annual |
 | **Capital Gains Tax** | Asset sellers | 10-28% | Self Assessment | Annual |
 | **Dividend Tax** | Shareholders | 0-39.35% | Self Assessment | Annual |
-| **Stamp Duty (SDLT)** | Property buyers | 0-17% | SDLT Return | Per transaction |
+| **[Stamp Duty (SDLT)](sdlt.md)** | Property buyers | 0-19% incl. stacked surcharges | SDLT Return | Per transaction |
 | **Inheritance Tax** | Estates | 40% | IHT400 | Per death |
 | **Business Rates** | Businesses | Varies | Council | Annual |
 
@@ -61,7 +61,7 @@ PAYE        National
 5. **Capital Gains Tax** - Property, investments
 6. **Dividend Tax** - Company directors
 7. **PAYE** - Employer responsibilities
-8. **Stamp Duty** - Property transactions
+8. **[Stamp Duty](sdlt.md)** - current residential API ruleset and recognition path mapped
 9. **Inheritance Tax** - Estate planning
 10. **Business Rates** - Premises costs
 
