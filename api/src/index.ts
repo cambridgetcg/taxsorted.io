@@ -24,6 +24,7 @@ import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
 import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
 import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
 import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
+import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accountability.js";
 
 const app = new OpenAPIHono();
 
@@ -95,6 +96,10 @@ app.route(
     publicDataEnabled: config.publicFunding.publicDataEnabled,
     emergencyStop: config.publicFunding.emergencyStop,
   })
+);
+app.route(
+  "/v1/accountability/uk",
+  createUkObserverAccountabilityRoutes()
 );
 
 // Machine routes use workspace keys and never create browser sessions.

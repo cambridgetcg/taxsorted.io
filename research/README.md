@@ -20,6 +20,7 @@ research/
     ├── politics/      # Elections, offices, finance evidence and public accountability
     ├── charities/     # Relief conditions, regulators, money, control, duties and safe help routes
     ├── charity-accountability/ # Zero-row words/actions contract, safety method and example
+    ├── observer-accountability/ # Watching-the-watchers principle, contract, source doors and walls
     ├── public-funding/ # Tax pools, authority, health, education, delivery and audit
     ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
     └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
@@ -48,6 +49,7 @@ honest, and marked so — guides first, rails later.
 | `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
 | `uk/charities/` | Deep sector map — conditional reliefs, registers, legal forms, funding, finance, control, duties and privacy boundaries |
 | `uk/charity-accountability/` | Candidate-only contract — evidence types, exact joins, admission conditions, safe comparison and a zero-row validator example |
+| `uk/observer-accountability/` | Observer reciprocity — institutional mandate, method, relations, words, actions, responses, challenges and zero-row admission boundary |
 | `uk/public-funding/` | Coverage-first graph — pooled tax, parliamentary authority, health and education allocations, governance, delivery and audit |
 | `uk/politics/` | Growing — Westminster directory plus finance, election, enforcement and formal-power methods |
 | `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level |

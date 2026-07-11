@@ -1,0 +1,24 @@
+{
+  "schema": "taxsorted.uk.observer-accountability-candidate/1",
+  "meta": {
+    "title": "UK observer accountability candidate extension",
+    "status": "candidate-not-admitted",
+    "jurisdiction": "United Kingdom",
+    "generatedOn": "2026-07-11",
+    "baseDatasets": [
+      {
+        "datasetId": "uk-tax-system",
+        "schemaId": "taxsorted.uk.tax-system/1",
+        "releaseReference": "urn:taxsorted:release-checkpoint:uk-tax-system:2026-07-10.2",
+        "datasetDigest": "sha256:400bbe40cad2cfad3a755cb248263822e53d633c22ceb42f2f7d4b84ecd0cb99",
+        "recordResolverTemplate": "/v1/tax-system/uk/records/{id}"
+      }
+    ],
+    "recordMeaning": "public-institutional-capacity-and-procedure-not-person-profile"
+  },
+  "institutionalRelations": [],
+  "investigationEngagements": [],
+  "investigationActions": [],
+  "institutionalResponses": [],
+  "coverageGaps": []
+}

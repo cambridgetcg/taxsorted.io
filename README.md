@@ -109,17 +109,24 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   not pretend an ordinary tax pound can be traced to one school or hospital.
   The append-only `/changes` feed lets mirrors resume from caller-held cursors, while
   `/records/{id}` resolves stable IDs without making builders guess their collection.
+- **Observer accountability**: sessionless `GET /v1/accountability/uk` publishes the
+  “observer is also observed” protocol, official investigation/appeal/oversight source doors and
+  a zero-row candidate contract. The schema at `/v1/accountability/uk/schema` separates formal
+  institutional relations, investigation engagements, public actions, institutional responses
+  and coverage gaps. Every observer needs a sourced accountability route or an explicit gap;
+  there are no people dossiers, private networks, live-case records, motive inferences or scores.
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
   all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
   checkpoints with JSON Feed and Atom views. `/openapi-public.json` and five dataset slices give
-  agents bounded, cacheable contracts; the full `/openapi.json` remains available. Public errors
+  agents bounded, cacheable contracts, plus a separate observer-accountability framework slice;
+  the full `/openapi.json` remains available. Public errors
   carry RFC 9457 fields and recovery actions without reflecting query values.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
 manifests point to the canonical JSON orientation at `/v1/wake`, public/full OpenAPI, the
 open-data catalogue and release feeds,
-the charity accountability shape and the safety walls. The API root returns the same wake bytes
+the charity and observer accountability shapes and the safety walls. The API root returns the same wake bytes
 only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
 charity API also turns errors into instructions:
 a refusal names the reason, confirms the walls remain intact and gives bounded next actions.
@@ -154,6 +161,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   — the zero-row words-and-actions contract, full admission conditions, example and validator
 - [`research/uk/public-funding/README.md`](research/uk/public-funding/README.md) — how pooled
   public money becomes authority, allocations, health and education delivery, accounts and audit
+- `/uk/accountability` — public page: who watches, under what authority and method, what they
+  publish, who can challenge them, and where the evidence still stops
 - [`research/uk/politics/official-events-method.md`](research/uk/politics/official-events-method.md)
   — proposed evidence contract for official words, votes, decisions and actions; named
   attributions remain unimplemented behind a separate legal and human review

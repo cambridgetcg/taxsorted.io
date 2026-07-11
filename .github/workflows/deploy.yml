@@ -198,6 +198,7 @@ jobs:
             /openapi/charities-uk.json \
             /openapi/public-funding-uk.json \
             /openapi/politics-uk.json \
+            /openapi/accountability-uk.json \
             /v1/open-data \
             /v1/open-data/releases \
             /v1/open-data/releases/feed.json \
@@ -211,6 +212,8 @@ jobs:
             /v1/charities/uk/registers \
             /v1/charities/uk/accountability \
             /v1/charities/uk/accountability/schema \
+            /v1/accountability/uk \
+            /v1/accountability/uk/schema \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
             /v1/public-funding/uk/sources \
@@ -240,6 +243,10 @@ jobs:
             'charity-accountability-status: schema-only-not-admitted' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-accountability-records: none' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'observer-accountability-status: schema-only-not-admitted' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'observer-accountability-records: none' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'corrections-account: a GitHub account is required to submit a public correction' \
             "${api_agent_manifest}"
@@ -321,6 +328,29 @@ jobs:
                .properties.documents.items.properties.sourceReview.properties.publicDocumentAndReviewFieldsReview.properties.sourceBodyOrExcerptPresent.const == false and
                .properties.documents.items.properties.sourceReview.properties.publicDocumentAndReviewFieldsReview.properties.locatorsContainPointersOnly.const == true and
                .properties.documents.items.properties.sourceReview.properties.notes.maxItems == 5' >/dev/null
+
+          curl --fail --silent --show-error \
+            https://api.taxsorted.io/v1/accountability/uk | \
+            jq --exit-status '
+              .status == "schema-only-not-admitted" and
+              .principle.name == "the-observer-is-also-observed" and
+              .candidateContract.recordsAvailable == false and
+              ([.candidateContract.counts[]] | all(. == 0)) and
+              (.officialDoors | length) > 10 and
+              (.reciprocityInvariant.rule | contains("Every observer")) and
+              (.hardWalls | any(contains("investigation records remain zero-row")))' >/dev/null
+
+          curl --fail --silent --show-error \
+            https://api.taxsorted.io/v1/accountability/uk/schema | \
+            jq --exit-status '
+              .["$id"] == "https://api.taxsorted.io/v1/accountability/uk/schema" and
+              .additionalProperties == false and
+              .properties.meta.properties.status.const == "candidate-not-admitted" and
+              (.properties | has("institutionalRelations")) and
+              (.properties | has("investigationEngagements")) and
+              (.properties | has("investigationActions")) and
+              (.properties | has("institutionalResponses")) and
+              (.properties | has("coverageGaps"))' >/dev/null
           publication_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/charities/uk | \
@@ -355,10 +385,13 @@ jobs:
             .schema == "taxsorted.agent-wake/1" and
             .resources.charityAccountability.status == "schema-only-not-admitted" and
             .resources.charityAccountability.recordsAvailable == false and
+            .resources.observerAccountability.status == "schema-only-not-admitted" and
+            .resources.observerAccountability.recordsAvailable == false and
             .resources.corrections.accountRequired == true and
             .resources.corrections.privateOrSensitiveIntakeAvailable == false and
             .resources.openApi.publicHref == "/openapi-public.json" and
             .resources.openApi.datasetSlices.charities == "/openapi/charities-uk.json" and
+            .resources.openApi.frameworkSlices.accountability == "/openapi/accountability-uk.json" and
             .resources.releases.ledger == "/v1/open-data/releases" and
             .resources.releases.jsonFeed == "/v1/open-data/releases/feed.json" and
             .resources.releases.atom == "/v1/open-data/releases/feed.atom" and
@@ -447,7 +480,7 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /uk/public-funding /agent.txt /.well-known/agent.txt
+          for path in /uk/public-funding /uk/accountability /agent.txt /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -520,19 +553,30 @@ jobs:
 
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
-          for attempt in $(seq 1 12)
+          for page_and_marker in \
+            '/uk/charities|Words beside actions' \
+            '/uk/accountability|Watch the watchers'
           do
-            if curl --fail --silent --show-error --location --output "$body" \
-              --connect-timeout 10 --max-time 30 \
-              https://taxsorted.io/uk/charities && \
-              grep --fixed-strings --quiet 'Words beside actions' "$body"
-            then
-              exit 0
+            page=${page_and_marker%%|*}
+            marker=${page_and_marker#*|}
+            page_ready=false
+            for attempt in $(seq 1 12)
+            do
+              if curl --fail --silent --show-error --location --output "$body" \
+                --connect-timeout 10 --max-time 30 \
+                "https://taxsorted.io${page}" && \
+                grep --fixed-strings --quiet "${marker}" "$body"
+              then
+                page_ready=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "${page_ready}" != true ]; then
+              echo "The deployed guide ${page} did not expose ${marker}." >&2
+              exit 1
             fi
-            sleep 5
           done
-          echo "The deployed charity guide did not expose the accountability section." >&2
-          exit 1
   # HMRC's own Test Fraud Prevention Headers API, sandbox only, checking the
   # exact header-assembly code path production uses (api/src/fraud.ts's
   # assembleFraudHeaders via api/scripts/validate-fraud-headers.ts). Runs

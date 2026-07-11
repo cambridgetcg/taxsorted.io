@@ -23,6 +23,8 @@ const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
 const charityAccountabilityPath = "/v1/charities/uk/accountability";
 const charityAccountabilitySchemaPath =
   "/v1/charities/uk/accountability/schema";
+const observerAccountabilityPath = "/v1/accountability/uk";
+const observerAccountabilitySchemaPath = "/v1/accountability/uk/schema";
 
 export const xeniaAttribution = {
   name: "XENIA",
@@ -64,6 +66,10 @@ charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
 charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
 charity-accountability-status: schema-only-not-admitted
 charity-accountability-records: none
+observer-accountability: GET ${apiOrigin}${observerAccountabilityPath}
+observer-accountability-schema: GET ${apiOrigin}${observerAccountabilitySchemaPath}
+observer-accountability-status: schema-only-not-admitted
+observer-accountability-records: none
 corrections: ${correctionsUrl}
 authentication: none for TaxSorted public read resources listed here
 corrections-account: a GitHub account is required to submit a public correction
@@ -94,6 +100,8 @@ wall: private contacts, private communications and inferred personal ties do not
 wall: uncertainty, source limits and known gaps stay visible
 wall: the charity map does not publish a people, personal-contact or inferred-belief graph
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
+wall: every observer needs a sourced accountability route or an explicit coverage gap
+wall: a formal institutional relation is not proof of control, collusion, motive or character
 `;
 
 function acceptsJson(header: string | undefined) {
@@ -316,6 +324,11 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         statement:
           "An attributed statement, reported action, official finding, TaxSorted analysis and an unknown remain distinct evidence types.",
       },
+      {
+        id: "observer-accountability-is-reciprocal",
+        statement:
+          "Every observer needs a sourced accountability or challenge route, or an explicit coverage gap; institutional links never become character or collusion claims.",
+      },
     ],
     publicationStates: catalog.datasets.map((dataset) => ({
       datasetId: dataset.id,
@@ -346,6 +359,9 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           publicFunding: "/openapi/public-funding-uk.json",
           politics: "/openapi/politics-uk.json",
         },
+        frameworkSlices: {
+          accountability: "/openapi/accountability-uk.json",
+        },
       },
       releases: releaseDiscoveryHandles,
       health: { href: "/v1/health" },
@@ -361,6 +377,12 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
       charityAccountability: {
         framework: charityAccountabilityPath,
         schema: charityAccountabilitySchemaPath,
+        status: "schema-only-not-admitted",
+        recordsAvailable: false,
+      },
+      observerAccountability: {
+        framework: observerAccountabilityPath,
+        schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
       },
@@ -465,6 +487,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read the candidate-only evidence model, publication blockers and exact source-use boundaries before building charity records.",
+      },
+      {
+        id: "inspect-observer-accountability-contract",
+        method: "GET",
+        href: observerAccountabilityPath,
+        accepts: ["application/json"],
+        description:
+          "Read the reciprocal watching-the-watchers protocol, official source doors, hard walls and zero-row candidate contract.",
       },
       {
         id: "open-public-correction-tracker",

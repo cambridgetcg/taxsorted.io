@@ -76,12 +76,36 @@ GET /openapi/tax-industry-uk.json
 GET /openapi/charities-uk.json
 GET /openapi/public-funding-uk.json
 GET /openapi/politics-uk.json
+GET /openapi/accountability-uk.json
 ```
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
 `operationId` and one plain domain tag. Slice construction fails if a selected operation does
 not explicitly declare `security: []`; an authenticated operation cannot silently enter the
 public description merely because somebody mounted it under a public-looking path.
+
+The observer-accountability doorway is a framework and candidate contract, not an admitted
+case dataset:
+
+```text
+GET /v1/accountability/uk
+GET /v1/accountability/uk/schema
+```
+
+The framework makes investigation power inspectable through exact institutional identity,
+mandate, commissioning, funding, method, evidence selection, limits, words, public actions,
+structured action targets and referral destinations, responses, corrections and challenge
+routes. Its candidate schema has five collections:
+`institutionalRelations`, `investigationEngagements`, `investigationActions`,
+`institutionalResponses` and `coverageGaps`. Every observer must have a sourced accountability
+or challenge relation, or an explicit unmapped-route gap. All five collections are currently
+zero-row. There are no named-investigator profiles, private networks, unpublished or operational case files, witness data,
+operational tactics, trust scores or motive inferences. Schema validation cannot replace source
+rights, operational privacy review, confidential correction intake, human approval or a tested
+off-switch. Literal privacy flags and structural validation cannot detect personal data,
+allegations or unsafe context hidden in free text; every field still needs human review.
+Disclosure states carry field-specific receipts or a scoped, dated coverage gap, and an active
+"not published" gap cannot coexist with a fully published state.
 
 The tax-system, tax-industry, charity-sector and public-funding datasets have the same prepared distribution shape. The
 metadata routes remain readable when deployed; protected collection and full-graph bodies return
@@ -245,7 +269,7 @@ GET /.well-known/agent.txt
 whose schema is `taxsorted.agent-wake/1`. The API root returns the exact same wake bytes only
 when `Accept` includes `application/json`; an ordinary request to `/` still gets the closed-door
 `404`. The wake response states its scoped access boundary, current dataset publication states,
-resource handles, evidence lanes, seven typed walls and bounded next actions. It grants no extra
+resource handles, evidence lanes, eight typed walls and bounded next actions. It grants no extra
 access, identity or authority and does not change any publication switch. Its no-account,
 no-session and no-cookie statement applies only to the doorway and listed public read routes,
 not to filing or authenticated calculation services.

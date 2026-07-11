@@ -20,6 +20,10 @@ charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountabil
 charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
 charity-accountability-status: schema-only-not-admitted
 charity-accountability-records: none
+observer-accountability: GET https://api.taxsorted.io/v1/accountability/uk
+observer-accountability-schema: GET https://api.taxsorted.io/v1/accountability/uk/schema
+observer-accountability-status: schema-only-not-admitted
+observer-accountability-records: none
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
 authentication: none for TaxSorted public read resources listed here
 corrections-account: a GitHub account is required to submit a public correction
@@ -50,3 +54,5 @@ wall: private contacts, private communications and inferred personal ties do not
 wall: uncertainty, source limits and known gaps stay visible
 wall: the charity map does not publish a people, personal-contact or inferred-belief graph
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
+wall: every observer needs a sourced accountability route or an explicit coverage gap
+wall: a formal institutional relation is not proof of control, collusion, motive or character

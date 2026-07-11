@@ -61,6 +61,11 @@ const openApiTags = [
       "Political-system, public-integrity and screened bulk datasets.",
   },
   {
+    name: "UK observer accountability",
+    description:
+      "Reciprocal investigation accountability, public source doors and the zero-row candidate contract.",
+  },
+  {
     name: "OpenAPI descriptions",
     description:
       "Cacheable, task-sized API descriptions for machine callers.",
@@ -74,6 +79,7 @@ const publicApiPathPrefixes = [
   "/v1/charities/uk",
   "/v1/public-funding/uk",
   "/v1/politics/uk",
+  "/v1/accountability/uk",
 ] as const;
 
 const publicAgentPaths = new Set([
@@ -137,6 +143,14 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     description:
       "Task-sized contract for political-system and public-integrity data.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/politics/uk"),
+  },
+  {
+    id: "accountability-uk",
+    path: "/openapi/accountability-uk.json",
+    title: "TaxSorted UK Observer Accountability API",
+    description:
+      "Task-sized contract for the watching-the-watchers framework and candidate schema.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/accountability/uk"),
   },
 ];
 
@@ -392,6 +406,141 @@ const charityErrorContent = {
   "application/json": { schema: CharityInstructionalError },
 };
 
+const ObserverAccountabilityFrameworkJson = z
+  .object({
+    schema: z.literal("taxsorted.uk.observer-accountability-framework/1"),
+    id: z.literal("uk-observer-accountability"),
+    title: z.literal("Watching the watchers"),
+    status: z.literal("schema-only-not-admitted"),
+    reviewedOn: z.string(),
+    reviewAfter: z.string(),
+    purpose: z.string(),
+    principle: z.object({
+      name: z.literal("the-observer-is-also-observed"),
+      operationalMeaning: z.string(),
+      notAMetaphysicalClaim: z.string(),
+      observerEffectBoundary: z.string(),
+    }),
+    sourceEpistemicBoundary: z.string(),
+    dignityAndIdentity: z.object({
+      beings: z.string(),
+      identity: z.string(),
+      organisationLevelCaveat: z.string(),
+      excluded: z.array(z.string()),
+    }),
+    networkRule: z.object({
+      meaning: z.string(),
+      notEquivalentTo: z.string(),
+    }),
+    wordsAndDoings: z.object({
+      words: z.string(),
+      doings: z.string(),
+      actionReferenceRule: z.string(),
+      outcomeStates: z.array(z.string()),
+      separationRule: z.string(),
+      correctionRule: z.string(),
+    }),
+    reciprocityInvariant: z.object({
+      rule: z.string(),
+      taxsortedIncluded: z.string(),
+      taxsortedRecordStatus: z.literal(
+        "principle-declared-no-curation-or-investigation-records-admitted",
+      ),
+      noRanking: z.string(),
+      terminationRule: z.string(),
+    }),
+    inquiryLoop: z.object({
+      informalName: z.string(),
+      publicMeaning: z.string(),
+      steps: z.array(z.object({ id: z.string(), action: z.string() })),
+      stopConditions: z.array(z.string()),
+      offSwitch: z.string(),
+    }),
+    candidateContract: z.object({
+      schema: z.string(),
+      example: z.string().url(),
+      status: z.literal("candidate-shape-only"),
+      recordsAvailable: z.literal(false),
+      collections: z.array(
+        z.object({ name: z.string(), question: z.string() }),
+      ),
+      counts: z.object({
+        institutionalRelations: z.literal(0),
+        investigationEngagements: z.literal(0),
+        investigationActions: z.literal(0),
+        institutionalResponses: z.literal(0),
+        coverageGaps: z.literal(0),
+      }),
+      validation: z.object({
+        jsonSchema: z.literal("structural-shape-only"),
+        runtimeValidatorRequired: z.literal(true),
+        runtimeValidatorSource: z.string().url(),
+        command: z.string(),
+        runtimeInvariants: z.array(z.string()),
+        validationDoesNotProve: z.string(),
+      }),
+      externalAdmissionChecks: z.array(z.string()),
+    }),
+    officialDoors: z.array(
+      z.object({
+        id: z.string(),
+        system: z.string(),
+        publisher: z.string(),
+        title: z.string(),
+        url: z.string().url(),
+        letsYouInspect: z.string(),
+        reviewedOn: z.string(),
+        publicationMode: z.literal("link-and-reviewed-summary"),
+        copiedSourceBodyStored: z.literal(false),
+        mayContainNaturalPersonDataAtSource: z.literal(true),
+        reviewMethod: z.literal(
+          "agent-assisted-editorial-review-of-linked-official-page",
+        ),
+        humanApprovalStatus: z.literal("not-recorded"),
+        assessmentNature: z.literal(
+          "source-link-and-taxsorted-summary-not-independent-proof-of-practice",
+        ),
+      }),
+    ),
+    existingTaxSortedDoors: z.array(
+      z.object({ href: z.string(), scope: z.string() }),
+    ),
+    publicationBlockers: z.array(z.string()),
+    hardWalls: z.array(z.string()),
+    rights: z.object({
+      taxsortedCuration: z.object({
+        id: z.literal("CC-BY-SA-4.0"),
+        url: z.string().url(),
+      }),
+      linkedSources: z.string(),
+    }),
+    corrections: z.object({
+      publicNonPersonalFacts: z.string().url(),
+      accountRequired: z.literal(true),
+      confidentialOrSensitiveIntakeAvailable: z.literal(false),
+      warning: z.string(),
+    }),
+  })
+  .passthrough()
+  .openapi("UkObserverAccountabilityFramework");
+const ObserverAccountabilitySchemaJson = z
+  .object({
+    $schema: z.string().optional(),
+    $id: z.literal("https://api.taxsorted.io/v1/accountability/uk/schema"),
+    title: z.string(),
+    description: z.string(),
+    "x-taxsorted-validation-scope": z.object({
+      jsonSchema: z.literal("structural-shape-only"),
+      runtimeSemanticValidationRequired: z.literal(true),
+      runtimeValidatorSource: z.string().url(),
+      copyableValidationCommand: z.string(),
+      externalChecksStillRequired: z.string(),
+    }),
+    "x-taxsorted-runtime-invariants": z.array(z.string()),
+  })
+  .passthrough()
+  .openapi("UkObserverAccountabilityJsonSchema");
+
 const PublicFundingCollection = z.enum([
   "sources",
   "institutions",
@@ -626,6 +775,7 @@ const AgentWake = z
           publicFunding: z.string(),
           politics: z.string(),
         }),
+        frameworkSlices: z.object({ accountability: z.string() }),
       }),
       releases: z.object({
         ledger: z.string(),
@@ -643,6 +793,12 @@ const AgentWake = z
         wellKnownMirror: z.string(),
       }),
       charityAccountability: z.object({
+        framework: z.string(),
+        schema: z.string(),
+        status: z.literal("schema-only-not-admitted"),
+        recordsAvailable: z.literal(false),
+      }),
+      observerAccountability: z.object({
         framework: z.string(),
         schema: z.string(),
         status: z.literal("schema-only-not-admitted"),
@@ -2785,6 +2941,80 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
   });
 }
 
+function registerObserverAccountabilityOpenApi(app: OpenAPIHono) {
+  const routes = [
+    {
+      path: "/v1/accountability/uk",
+      operationId: "getUkObserverAccountabilityFramework",
+      summary: "Read the UK watching-the-watchers protocol",
+      description:
+        "Sessionless, institution-only framework for reciprocal investigation accountability. It defines identity, network, words, actions, outcome states, challenge routes, a bounded inquiry loop and official source doors. It publishes no investigation or people records.",
+      schema: ObserverAccountabilityFrameworkJson,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/accountability/uk/schema",
+      operationId: "getUkObserverAccountabilityCandidateSchema",
+      summary: "Read the UK observer-accountability candidate schema",
+      description:
+        "Structural JSON Schema for institution-level relations, investigation engagements, procedural actions, institutional responses and coverage gaps. The document declares the additional runtime invariants and external checks it cannot express. Neither validation layer admits records for publication.",
+      schema: ObserverAccountabilitySchemaJson,
+      mediaType: "application/schema+json",
+    },
+  ] as const;
+
+  for (const route of routes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current reviewed static representation.",
+          headers: publicResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+          content: problemContent,
+        },
+        405: {
+          description: "The doorway is read-only.",
+          content: problemContent,
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: `head${route.operationId.slice(3)}`,
+      summary: `Check ${route.summary.slice(5).toLowerCase()}`,
+      description: "Returns the GET representation's validators and links without its body.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static resources do not accept query parameters." },
+      },
+    });
+  }
+}
+
 function registerPublicFundingOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -3940,6 +4170,9 @@ function openApiTagForPath(path: string): string {
     return "UK public funding";
   }
   if (hasPathPrefix(path, "/v1/politics/uk")) return "UK politics";
+  if (hasPathPrefix(path, "/v1/accountability/uk")) {
+    return "UK observer accountability";
+  }
   throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
 }
 
@@ -4317,6 +4550,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerTaxSystemOpenApi(app);
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
+  registerObserverAccountabilityOpenApi(app);
   registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);
   registerStableRecordResolversOpenApi(app);

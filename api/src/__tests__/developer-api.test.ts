@@ -279,6 +279,19 @@ describe("developer API boundary", () => {
     ).toHaveProperty("comparableMoney");
     expect(document.paths["/v1/charities/uk/accountability"].get.security).toEqual([]);
     expect(document.paths["/v1/charities/uk/accountability"].head.security).toEqual([]);
+    expect(document.paths).toHaveProperty("/v1/accountability/uk");
+    expect(document.paths).toHaveProperty("/v1/accountability/uk/schema");
+    expect(
+      document.paths["/v1/accountability/uk"].get.responses[200].content[
+        "application/json"
+      ].schema.$ref,
+    ).toBe("#/components/schemas/UkObserverAccountabilityFramework");
+    expect(
+      document.components.schemas.UkObserverAccountabilityFramework.properties
+        .candidateContract.properties.recordsAvailable.enum,
+    ).toEqual([false]);
+    expect(document.paths["/v1/accountability/uk"].get.security).toEqual([]);
+    expect(document.paths["/v1/accountability/uk"].head.security).toEqual([]);
     expect(document.paths).toHaveProperty("/v1/charities/uk/manifest");
     expect(document.paths).toHaveProperty("/v1/charities/uk/schema");
     expect(document.paths).toHaveProperty("/v1/charities/uk/dictionary");
@@ -552,6 +565,7 @@ describe("developer API boundary", () => {
     ).toMatchObject({ type: "array", maxItems: 0 });
     expect(document.paths).toHaveProperty("/openapi-public.json");
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
+    expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
       tags: ["OpenAPI descriptions"],
@@ -598,6 +612,11 @@ describe("developer API boundary", () => {
         path: "/openapi/politics-uk.json",
         id: "politics-uk",
         prefix: "/v1/politics/uk",
+      },
+      {
+        path: "/openapi/accountability-uk.json",
+        id: "accountability-uk",
+        prefix: "/v1/accountability/uk",
       },
     ] as const;
     const methods = [
@@ -713,6 +732,10 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).toHaveProperty("/v1/health");
     expect(publicDocument.paths).toHaveProperty("/v1/open-data/releases");
     expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
+    expect(publicDocument.paths).toHaveProperty("/v1/accountability/uk");
+    expect(publicDocument.paths).toHaveProperty(
+      "/v1/accountability/uk/schema",
+    );
     expect(publicDocument.paths).toHaveProperty("/v1/politics/uk/datasets");
     expect(publicDocument.paths).not.toHaveProperty(
       "/v1/uk/sdlt/calculations",

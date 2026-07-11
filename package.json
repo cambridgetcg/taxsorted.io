@@ -14,8 +14,9 @@
     "validate:uk-tax-system": "npm run validate:tax-system --workspace api",
     "validate:uk-tax-industry": "npm run validate:tax-industry --workspace api",
     "validate:uk-charities": "npm run validate:charities --workspace api",
+    "validate:uk-observer-accountability": "npm run validate:observer-accountability-candidate --workspace api",
     "validate:uk-public-funding": "npm run validate:public-funding --workspace api",
-    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry && npm run validate:uk-charities && npm run validate:uk-public-funding",
+    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry && npm run validate:uk-charities && npm run validate:uk-observer-accountability && npm run validate:uk-public-funding",
     "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }

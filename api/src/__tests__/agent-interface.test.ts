@@ -196,6 +196,9 @@ describe("agent interface", () => {
         publicFunding: "/openapi/public-funding-uk.json",
         politics: "/openapi/politics-uk.json",
       },
+      frameworkSlices: {
+        accountability: "/openapi/accountability-uk.json",
+      },
     });
     expect(body.resources.releases).toEqual({
       ledger: "/v1/open-data/releases",
@@ -205,6 +208,12 @@ describe("agent interface", () => {
     expect(body.resources.charityAccountability).toEqual({
       framework: "/v1/charities/uk/accountability",
       schema: "/v1/charities/uk/accountability/schema",
+      status: "schema-only-not-admitted",
+      recordsAvailable: false,
+    });
+    expect(body.resources.observerAccountability).toEqual({
+      framework: "/v1/accountability/uk",
+      schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
     });
@@ -246,6 +255,10 @@ describe("agent interface", () => {
         expect.objectContaining({
           id: "inspect-charity-accountability-contract",
           href: "/v1/charities/uk/accountability",
+        }),
+        expect.objectContaining({
+          id: "inspect-observer-accountability-contract",
+          href: "/v1/accountability/uk",
         }),
         expect.objectContaining({
           id: "watch-release-checkpoints",

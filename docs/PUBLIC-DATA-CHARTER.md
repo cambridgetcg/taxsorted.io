@@ -401,8 +401,13 @@ currently a bounded query service rather than an ever-growing static archive.
   correction route requires an account and cannot receive sensitive information.
 - Tax GET routes and the central catalogue have matching OpenAPI HEAD operations, including
   `If-None-Match` and the response validators returned by the implementation. A bounded public
-  OpenAPI document and five self-contained dataset slices are cacheable by exact-byte ETag; a
+  OpenAPI document, five dataset slices and one observer-accountability slice are cacheable by exact-byte ETag; a
   slice rejects any operation that does not explicitly declare itself sessionless.
+- The sessionless observer-accountability framework makes institutional observation reciprocal:
+  every investigator or observer in a future engagement must have a sourced complaint, review,
+  appeal, audit or oversight route, or an explicit gap. It distinguishes published institutional
+  relations from inferred influence and keeps allegation, procedure, finding, sanction, response,
+  appeal, correction and withdrawal as separate states. Its candidate collections are zero-row.
 - The politics catalogue contains 19 static datasets collectively screened against this draft
   boundary by agents and tests. The machine-readable
   `/v1/politics/uk/datasets/admissions` ledger now states the purpose, limits, field contracts,
@@ -468,6 +473,11 @@ These are gaps, not footnotes:
 - The accountability controller/lawful-basis record, formal DPIA, narrow field review, end-to-end
   correction and rollback exercise, comparison calibration and monitored emergency stop also do
   not exist. Resolving the two immediate blockers alone cannot admit organisation rows.
+- The observer-accountability endpoint is a protocol plus reviewed official source doors, not an
+  investigation archive. No engagement, action, institutional-response or relationship rows are
+  admitted. Its cross-dataset references and reciprocity rule are implemented in the candidate
+  validator, but no operational audit store proves that a later source review or human approval
+  occurred.
 - The source ledger does not yet state exact reuse terms for every source; some entries point
   to the publisher and leave the rights decision open.
 - No numeric capacity limit or uptime service level is promised; the current service is best

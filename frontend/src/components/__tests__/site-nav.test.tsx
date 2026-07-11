@@ -8,7 +8,7 @@ import { SiteNav } from "../site-nav";
 describe("SiteNav", () => {
   it("offers an Account link", () => {
     render(<SiteNav />);
-    expect(screen.getByRole("link", { name: /account/i })).toHaveAttribute("href", "/account");
+    expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
   });
 
   it("offers the public industry map", () => {
@@ -32,6 +32,14 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: "Public money" })).toHaveAttribute(
       "href",
       "/uk/public-funding",
+    );
+  });
+
+  it("offers the observer-accountability map", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Accountability" })).toHaveAttribute(
+      "href",
+      "/uk/accountability",
     );
   });
 });
