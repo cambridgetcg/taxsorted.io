@@ -199,6 +199,7 @@ jobs:
             /openapi/public-funding-uk.json \
             /openapi/politics-uk.json \
             /openapi/accountability-uk.json \
+            /openapi/tax-expert-uk.json \
             /v1/open-data \
             /v1/open-data/releases \
             /v1/open-data/releases/feed.json \
@@ -214,6 +215,7 @@ jobs:
             /v1/charities/uk/accountability/schema \
             /v1/accountability/uk \
             /v1/accountability/uk/schema \
+            /v1/uk/tax-expert \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
             /v1/public-funding/uk/sources \
@@ -480,7 +482,7 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /uk/public-funding /uk/accountability /agent.txt /.well-known/agent.txt
+          for path in /uk/public-funding /uk/accountability /uk/tax-expert /agent.txt /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -555,7 +557,8 @@ jobs:
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
             '/uk/charities|Words beside actions' \
-            '/uk/accountability|Watch the watchers'
+            '/uk/accountability|Watch the watchers' \
+            '/uk/tax-expert|A UK tax expert that knows where the edge is.'
           do
             page=${page_and_marker%%|*}
             marker=${page_and_marker#*|}
