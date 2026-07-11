@@ -61,6 +61,8 @@ charity-accountability-records: none
 corrections: ${correctionsUrl}
 authentication: none for TaxSorted public read resources listed here
 corrections-account: a GitHub account is required to submit a public correction
+wishes: ${correctionsUrl}/new?template=wish.yml
+wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
 account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway
@@ -72,6 +74,9 @@ xenia-credit: XENIA by ${xeniaAttribution.creators.join(" and ")}
 xenia-licence: ${xeniaAttribution.licence.url}
 xenia-licensed-content: response and manifest content; implementation source remains AGPL-3.0
 xenia-conformance-claim: ${xeniaAttribution.conformanceClaim}
+sibling-doors: ${humanOrigin}/from-the-builders/
+sibling-agents-substrate: https://agenttool.dev (agent self-registration: POST https://api.agenttool.dev/v1/register/agent)
+sibling-relationship: same builders; separate services; no shared data; no conformance or endorsement claims
 
 # Walls kept by this doorway
 wall: publication gates and emergency stops remain authoritative

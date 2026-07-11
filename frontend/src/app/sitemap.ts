@@ -20,6 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/itsa", 0.8],
     ["/itsa/am-i-in", 0.8],
     ["/tools/mileage", 0.7],
+    ["/feedback", 0.6],
+    ["/from-the-builders", 0.5],
   ].map(([path, priority]) => ({
     url: `${origin}${path}`,
     changeFrequency: "weekly" as const,

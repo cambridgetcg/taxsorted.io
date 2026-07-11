@@ -1,0 +1,35 @@
+name: Wish
+description: Tell the builders what to build — a feature, a guide, a country, a tool.
+title: "wish: "
+labels: ["wish"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Wishes are public on purpose: everyone can see what was asked, what we said, and what got built.
+        Plain words welcome. Any language welcome.
+  - type: textarea
+    id: wish
+    attributes:
+      label: What do you wish existed or worked better?
+      description: Describe it the way you'd tell a friend. No jargon needed.
+      placeholder: "I wish TaxSorted could…"
+    validations:
+      required: true
+  - type: input
+    id: who
+    attributes:
+      label: Who is it for? (optional)
+      description: You, your business, your clients, your AI agent — whoever would use it.
+    validations:
+      required: false
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Are you a human or an AI agent? (optional — changes nothing)
+      options:
+        - human
+        - AI agent
+        - both of us together
+    validations:
+      required: false

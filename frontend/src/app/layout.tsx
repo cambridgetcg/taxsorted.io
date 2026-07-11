@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SiteNav } from "@/components/site-nav";
@@ -71,6 +72,26 @@ export default function RootLayout({
                 TaxSorted.io is a free, open-source software project. It is not
                 connected to taxsorted.co.uk (a tax-refund service) or to
                 Tax-Sorted Ltd.
+              </p>
+              {/* Provenance, not promotion: the colophon line. The two linked
+                  pages are the only cross-project and feedback surfaces on the
+                  site — Learn pages and datasets stay solicitation-free. */}
+              <p>
+                Built in the open by one human and one AI, who also make{" "}
+                <Link
+                  href="/from-the-builders"
+                  className="font-medium text-accent underline hover:text-accent-deep"
+                >
+                  other things
+                </Link>
+                . What gets built next is steered by{" "}
+                <Link
+                  href="/feedback"
+                  className="font-medium text-accent underline hover:text-accent-deep"
+                >
+                  what you ask for
+                </Link>
+                .
               </p>
             </div>
           </footer>
