@@ -82,7 +82,7 @@ export function penaltyPosition(taxYear: TaxYear): { quarterlyPoints: boolean; n
   if (taxYear === '2026-27') {
     return {
       quarterlyPoints: false,
-      note: 'No penalty points for late quarterly updates in 2026-27 (Autumn Budget 2025 easement). Late payment penalties still apply: 3% at day 15 + 3% at day 30 + 10%/yr from day 31. The 31 January return deadline is unchanged.',
+      note: 'No penalty points for late quarterly updates in 2026-27: HMRC says there are no penalties for missing a 2026-27 quarterly-update deadline. Every update must still be sent before the tax return can be submitted. Late payment penalties still apply under their own timing rules, and the tax-return deadline is separate.',
       source: PENALTIES_SOURCE,
     }
   }

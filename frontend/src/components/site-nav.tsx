@@ -16,7 +16,10 @@ export function SiteNav() {
           <span className="text-lg font-semibold text-ink">TaxSorted</span>
           <span className="hidden text-sm text-ink-soft sm:inline">{t("nav.tagline")}</span>
         </Link>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex w-full max-w-full flex-wrap items-center gap-x-4 gap-y-2 text-sm lg:w-auto lg:justify-end">
+          <Link href="/uk/tax-expert" className="font-medium text-accent hover:text-accent-deep">
+            Tax expert
+          </Link>
           <Link href="/uk/personal-tax" className="text-ink-soft hover:text-ink">
             {t("nav.playbook")}
           </Link>

@@ -10,7 +10,8 @@
     "./uk/personal-tax": "./jurisdictions/uk/personal-tax/index.ts",
     "./uk/personal": "./jurisdictions/uk/personal/index.ts",
     "./uk/itsa": "./jurisdictions/uk/itsa/index.ts",
-    "./uk/sdlt": "./jurisdictions/uk/sdlt/index.ts"
+    "./uk/sdlt": "./jurisdictions/uk/sdlt/index.ts",
+    "./uk/expert": "./jurisdictions/uk/expert/index.ts"
   },
   "scripts": {
     "test": "vitest run",

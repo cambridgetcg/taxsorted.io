@@ -84,6 +84,9 @@ function headlineFor(result: EligibilityResult): string {
   if (result.status === "mandated-later" && result.mandatedFrom) {
     return `You'll be in from ${formatUkDate(result.mandatedFrom)}`;
   }
+  if (result.status === "needs-information") {
+    return "More return history is needed";
+  }
   return "Not required on these figures";
 }
 

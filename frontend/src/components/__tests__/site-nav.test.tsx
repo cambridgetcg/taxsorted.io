@@ -11,6 +11,14 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
   });
 
+  it("offers the evidence-backed UK tax expert", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Tax expert" })).toHaveAttribute(
+      "href",
+      "/uk/tax-expert",
+    );
+  });
+
   it("offers the public industry map", () => {
     render(<SiteNav />);
     expect(screen.getByRole("link", { name: "Industry" })).toHaveAttribute(

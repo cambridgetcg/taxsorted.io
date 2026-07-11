@@ -1,13 +1,26 @@
 // Create one workspace and its first machine key. The secret is printed once;
 // only its SHA-256 digest is stored. Usage:
 //   npm run create:api-key --workspace api -- "Firm name" [--live]
+//     [--scope=sdlt:calculate] [--scope=tax-expert:assess]
 
 import { createHash, randomBytes } from "node:crypto";
 import { migrate, sql } from "../src/db.js";
 
 const args = process.argv.slice(2);
 const live = args.includes("--live");
-const name = args.filter((arg) => arg !== "--live").join(" ").trim();
+const allowedScopes = new Set(["sdlt:calculate", "tax-expert:assess"]);
+const requestedScopes = args
+  .filter((arg) => arg.startsWith("--scope="))
+  .map((arg) => arg.slice("--scope=".length));
+for (const scope of requestedScopes) {
+  if (!allowedScopes.has(scope)) {
+    throw new Error(`Unsupported scope: ${scope}`);
+  }
+}
+const name = args
+  .filter((arg) => arg !== "--live" && !arg.startsWith("--scope="))
+  .join(" ")
+  .trim();
 
 if (!name) {
   throw new Error('Give the workspace name, for example: npm run create:api-key --workspace api -- "North & Co"');
@@ -17,7 +30,9 @@ const mode = live ? "live" : "test";
 const rawKey = `ts_${mode}_${randomBytes(32).toString("base64url")}`;
 const keyHash = createHash("sha256").update(rawKey, "utf8").digest("hex");
 const keyPrefix = rawKey.slice(0, 16);
-const scopes = ["sdlt:calculate"];
+const scopes = requestedScopes.length > 0
+  ? [...new Set(requestedScopes)]
+  : ["sdlt:calculate"];
 
 try {
   await migrate();

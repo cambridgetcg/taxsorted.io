@@ -15,6 +15,7 @@ export function HomeClient() {
 
   const places = [
     { name: t("home.place.uk"), status: "open" as const, href: "/dashboard" },
+    { name: "UK tax expert", status: "open" as const, href: "/uk/tax-expert" },
     { name: t("home.place.personal"), status: "open" as const, href: "/uk/personal-tax" },
     { name: t("home.place.ireland"), status: "drawing" as const },
     { name: t("home.place.germany"), status: "drawing" as const },
@@ -141,8 +142,14 @@ export function HomeClient() {
 
       <div className="mt-14 flex flex-wrap gap-3">
         <Link
-          href="/uk/personal-tax"
+          href="/uk/tax-expert"
           className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-8 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
+        >
+          Understand my UK tax position
+        </Link>
+        <Link
+          href="/uk/personal-tax"
+          className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-8 text-sm font-medium text-ink transition-colors hover:bg-accent-soft"
         >
           {t("home.cta.playbook")}
         </Link>

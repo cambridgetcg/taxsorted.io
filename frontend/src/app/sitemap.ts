@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/", 1],
     ["/learn", 0.8],
     ["/uk/personal-tax", 0.9],
+    ["/uk/tax-expert", 1],
     ["/uk/tax-industry", 0.9],
     ["/uk/charities", 0.9],
     ["/uk/public-funding", 0.9],

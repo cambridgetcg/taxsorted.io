@@ -2,9 +2,10 @@
 
 Tax answers software can act on — and show its workings.
 
-The first developer surface is a deterministic SDLT calculator for one ordinary residential
-purchase in England or Northern Ireland. It is a bounded calculation service, not a generic
-tax-advice chatbot and not yet a filing rail.
+The first developer surface was a deterministic SDLT calculator for one ordinary residential
+purchase in England or Northern Ireland. The second is an evidence-backed MTD Income Tax
+readiness assessment and public capability registry. Both are bounded services, not a generic
+tax-advice chatbot and not a filing rail.
 
 Alongside calculations, five UK maps explain the systems around the answer. The
 tax-system graph covers authority, accounts, permissions, collection and challenge. The
@@ -302,6 +303,133 @@ These are implementation facts in this workspace, not a deployment claim. After 
 authorised release, retrieve both manifest paths and follow every advertised URL on the
 public host before calling the door live.
 
+## UK tax expert — coverage and first deep path
+
+The public capability registry separates product depth into six honest stages:
+
+```text
+GET /v1/uk/tax-expert
+mapped → explained → classified → calculated → prepared → filed
+```
+
+It needs no account or key. A mapped capability is not advertised as calculated, and a prepared
+capability is not advertised as filed. The registry currently marks MTD Income Tax readiness and
+residential SDLT as the two available deep paths; other journeys keep their exclusions visible.
+
+The first expert assessment is server-to-server:
+
+```text
+POST /v1/uk/tax-expert/mtd-income-tax/assessments
+Authorization: Bearer ts_test_...
+Content-Type: application/json
+```
+
+It requires the `tax-expert:assess` workspace scope. The task-sized OpenAPI 3.1 description is:
+
+```text
+GET /openapi/tax-expert-uk.json
+```
+
+The assessment is deterministic and stateless. It does not collect a name, NINO, UTR or address,
+does not sign anyone up, does not file, and does not write request facts to application storage.
+The browser version at `/uk/tax-expert` runs the same engine locally without calling this route.
+
+Every fact is explicit. `"unknown"` is different from zero or false. Money is non-negative integer
+pence. The entry fact records whether the person was required to deliver the relevant 2024/25
+return, so failing to file cannot create an escape. Current classification uses period-specific
+residence and admitted return figures; later working figures stay labelled as forecasts.
+
+```json
+{
+  "schema": "taxsorted.uk.mtd-income-tax.request/1",
+  "asOfDate": "2026-07-11",
+  "person": {
+    "relevantReturnPosition": "required-and-submitted",
+    "hadNationalInsuranceNumberAtStartOf2026To27": true
+  },
+  "income": {
+    "taxYears": {
+      "2024-25": {
+        "basis": "submitted-return",
+        "residence": "uk-resident",
+        "selfEmploymentGrossPence": 4000000,
+        "ukPropertyGrossPence": 500000,
+        "foreignPropertyGrossPence": 600000
+      },
+      "2025-26": {
+        "basis": "working-estimate",
+        "residence": "uk-resident",
+        "selfEmploymentGrossPence": 0,
+        "ukPropertyGrossPence": 0,
+        "foreignPropertyGrossPence": 0
+      },
+      "2026-27": {
+        "basis": "unknown",
+        "residence": "unknown",
+        "selfEmploymentGrossPence": "unknown",
+        "ukPropertyGrossPence": "unknown",
+        "foreignPropertyGrossPence": "unknown"
+      }
+    },
+    "atLeastOneRelevantReturnActivityContinuedAtEntry": true,
+    "lastRelevantActivityCessationDate": "at-least-one-continues",
+    "relevantReturnWasAmended": false,
+    "annualisationOrOtherSpecialRulesMayApply": false
+  },
+  "exemption": {
+    "returnIndicators": [],
+    "digitalExclusion": "not-approved-or-pending",
+    "otherExemptionApplication": "none"
+  },
+  "reporting": {
+    "updatePeriod": "standard"
+  }
+}
+```
+
+The response uses `taxsorted.tax-answer/1`. It keeps these parts separate:
+
+- capability version and task;
+- effective date, independent evaluation date, knowledge date, period, territory and rules;
+- provided, derived and unknown facts, plus any real assumptions;
+- answer and step-by-step reasoning;
+- claims and sources, with source kind and legal force separated;
+- confidence basis and blockers — explicitly not a probability;
+- escalation reasons, facts needed and useful next actions;
+- data-use and retention statement.
+
+Possible MTD decisions are `in_scope`, `out_of_scope`, `exempt`, `exemption_possible`,
+`hmrc_decision_needed`, `insufficient_facts`, `professional_review_needed`,
+`source_review_required` and `outside_supported_date`. An application-based exemption is always an
+HMRC decision. Return amendments, annualisation and other admitted special cases stop for review.
+Automatic exemptions are derived only from concrete return indicators or NINO status; callers do
+not submit a generic legal conclusion. A separate HMRC status records any application based on an
+indicator expected on a later return, so an unreviewed future exemption cannot be silently missed.
+
+The exact April 2026 boundary is tested: £50,000 is not over the threshold; £50,000.01 is. Gross
+self-employment and property income are added before expenses. UK residents include foreign
+property income; non-UK residents generally include UK property and self-employment admitted to the
+UK return. Employment, an individual's partnership profit share, dividends and pensions are not
+included in MTD qualifying income.
+
+For the 2026/27 cohort the answer shows 7 August, 7 November, 7 February and 7 May quarterly
+deadlines, then the annual return and payment path. Regulation 5 activity continuity is tied to an
+activity represented on the relevant return: a different new source cannot stand in for it. A
+mid-year final-entry-activity cessation keeps the notice, the final update for the cessation period
+and the annual return. An exempt person keeps normal Self Assessment: paper and online filing
+deadlines are shown separately, and payment remains due on 31 January. There is no penalty for
+missing a 2026/27 quarterly-update deadline, but required updates must still be sent before the
+return; that penalty note is never attached to an exempt or out-of-scope answer.
+
+Tax calculation bodies also reject duplicate JSON object fields before normal schema parsing. This
+prevents two systems from reading different values from an ambiguous request. Malformed or duplicate
+JSON returns `400`; wrong media type `415`; oversize bodies `413`; a valid JSON shape with missing or
+extra facts `422`. Error bodies never reflect submitted financial values.
+
+This is an expert contract, not a generic tax chatbot. A later conversational layer may ask for the
+next fact and explain admitted results, but it cannot invent rates, change rules, override the engine
+or submit to HMRC.
+
 ## Calculation service — workspace key
 
 ```text
@@ -315,13 +443,14 @@ Authorization: Bearer ts_test_...
 ```
 
 Keys are 32 random bytes. The database holds only their SHA-256 digest, a harmless prefix,
-their workspace, mode and scopes. The first scope is `sdlt:calculate`. Browser passkeys and
-machine keys are separate identities by design.
+their workspace, mode and scopes. Browser passkeys and machine keys are separate identities by
+design. New keys default to `sdlt:calculate`; request only the expert scope when that is the task:
 
 Create a local design-partner key with a configured API database:
 
 ```bash
 npm run create:api-key --workspace api -- "Firm name"
+npm run create:api-key --workspace api -- "Firm name" --scope=tax-expert:assess
 ```
 
 Add `--live` only for a production workspace. The plaintext key is shown once.

@@ -42,6 +42,7 @@ const publicAgentPaths = new Set([
   "/.well-known/agent.txt",
   "/v1/wake",
   "/v1/health",
+  "/v1/uk/tax-expert",
 ]);
 
 const publicOpenApiPaths = new Set([
@@ -53,6 +54,7 @@ const publicOpenApiPaths = new Set([
   "/openapi/public-funding-uk.json",
   "/openapi/politics-uk.json",
   "/openapi/accountability-uk.json",
+  "/openapi/tax-expert-uk.json",
 ]);
 
 export function isPublicCivicPath(path: string) {

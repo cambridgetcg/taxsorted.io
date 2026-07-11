@@ -24,10 +24,11 @@ export interface YearlyGrossIncome {
 }
 
 export interface EligibilityResult {
-  status: 'mandated' | 'mandated-later' | 'below-threshold'
+  status: 'mandated' | 'mandated-later' | 'below-threshold' | 'needs-information'
   mandatedFrom?: string
   triggeringYear?: TaxYear
-  qualifyingIncome: Pence
+  qualifyingIncome: Pence | null
+  missingTaxYears: TaxYear[]
   explain: string[]     // plain-words reasoning, each line citing its rule
   exemptionsNote: string
 }
@@ -57,8 +58,9 @@ interface FiringStep { step: MtdThresholdStep; qualifyingIncome: Pence }
  * row is simply not measured against that step. Among firing steps, the one with the earliest
  * `mandatedFrom` wins. That winning step reads as `'mandated'` only when it IS the table's
  * earliest step (2024-25 / £50,000, in force by product context); any other winning step reads
- * as `'mandated-later'`. No firing step at all → `'below-threshold'`, which is a PERMANENT
- * automatic-exemption category per gov.uk, not merely "not yet".
+ * as `'mandated-later'`. A final below-threshold result requires every phased year to be
+ * measured; otherwise the result is `needs-information` so a missing earlier year can never
+ * be mistaken for a zero-income year.
  */
 export function checkEligibility(incomes: YearlyGrossIncome[]): EligibilityResult {
   const thresholds = configFor('2026-27').mtdThresholds
@@ -72,9 +74,13 @@ export function checkEligibility(incomes: YearlyGrossIncome[]): EligibilityResul
   ]
 
   const firing: FiringStep[] = []
+  const missingTaxYears: TaxYear[] = []
   for (const step of steps) {
     const qualifyingIncome = grossFor(incomes, step.incomeYear)
-    if (qualifyingIncome === undefined) continue
+    if (qualifyingIncome === undefined) {
+      missingTaxYears.push(step.incomeYear)
+      continue
+    }
     const fires = qualifyingIncome > step.qualifyingIncomeOver
     explain.push(
       `In ${step.incomeYear} your qualifying income was ${gbp(qualifyingIncome)}, which is ` +
@@ -85,15 +91,29 @@ export function checkEligibility(incomes: YearlyGrossIncome[]): EligibilityResul
   }
 
   if (firing.length === 0) {
-    explain.push(
-      `No measured year crossed its threshold, so you fall below the Making Tax Digital for Income Tax ` +
-        `threshold. Qualifying income at or below £20,000 is a permanent automatic exemption category, ` +
-        `not just a "not yet" (${thresholds.si}). See ${MTD_ELIGIBILITY_URL}.`,
-    )
     const latest = [...incomes].sort((a, b) => (a.taxYear < b.taxYear ? -1 : a.taxYear > b.taxYear ? 1 : 0)).at(-1)
+    if (missingTaxYears.length > 0) {
+      explain.push(
+        `No SUPPLIED year crossed its threshold, but ${missingTaxYears.join(', ')} ${missingTaxYears.length === 1 ? 'was' : 'were'} not measured. ` +
+          `That missing history can change whether you already entered an earlier phase, so this is not a final out-of-scope decision. ` +
+          `See ${MTD_ELIGIBILITY_URL}.`,
+      )
+      return {
+        status: 'needs-information',
+        qualifyingIncome: latest ? latest.selfEmploymentGross + latest.ukPropertyGross : null,
+        missingTaxYears,
+        explain,
+        exemptionsNote: EXEMPTIONS_NOTE,
+      }
+    }
+    explain.push(
+      `Every phased year was measured and none crossed its strictly-over threshold, so the supplied history is below the MTD Income Tax thresholds (${thresholds.si}). ` +
+        `This does not decide whether another Self Assessment obligation applies. See ${MTD_ELIGIBILITY_URL}.`,
+    )
     return {
       status: 'below-threshold',
       qualifyingIncome: latest ? latest.selfEmploymentGross + latest.ukPropertyGross : 0,
+      missingTaxYears,
       explain,
       exemptionsNote: EXEMPTIONS_NOTE,
     }
@@ -103,6 +123,24 @@ export function checkEligibility(incomes: YearlyGrossIncome[]): EligibilityResul
     candidate.step.mandatedFrom < earliest.step.mandatedFrom ? candidate : earliest)
 
   const status = winner.step.mandatedFrom === earliestStep.mandatedFrom ? 'mandated' : 'mandated-later'
+
+  const earlierMissing = steps
+    .filter((step) => step.mandatedFrom < winner.step.mandatedFrom && missingTaxYears.includes(step.incomeYear))
+    .map((step) => step.incomeYear)
+  if (earlierMissing.length > 0) {
+    explain.push(
+      `${winner.step.incomeYear} crosses its threshold, but earlier phased ${earlierMissing.join(', ')} ${earlierMissing.length === 1 ? 'is' : 'are'} missing. ` +
+        `An earlier phase may already apply, so supply that return history before relying on a start date. ${thresholds.source}`,
+    )
+    return {
+      status: 'needs-information',
+      triggeringYear: winner.step.incomeYear,
+      qualifyingIncome: winner.qualifyingIncome,
+      missingTaxYears,
+      explain,
+      exemptionsNote: EXEMPTIONS_NOTE,
+    }
+  }
 
   explain.push(
     `${winner.step.incomeYear} is the earliest year to cross its threshold, so Making Tax Digital for ` +
@@ -115,6 +153,7 @@ export function checkEligibility(incomes: YearlyGrossIncome[]): EligibilityResul
     mandatedFrom: winner.step.mandatedFrom,
     triggeringYear: winner.step.incomeYear,
     qualifyingIncome: winner.qualifyingIncome,
+    missingTaxYears,
     explain,
     exemptionsNote: EXEMPTIONS_NOTE,
   }

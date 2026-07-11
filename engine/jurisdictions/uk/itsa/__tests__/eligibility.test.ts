@@ -23,8 +23,29 @@ describe('MTD IT eligibility', () => {
     expect(r.triggeringYear).toBe('2026-27')
   })
   it('≤£20k every year → below-threshold', () => {
-    const r = checkEligibility([{ taxYear: '2026-27', selfEmploymentGross: 1800000, ukPropertyGross: 0 }])
+    const r = checkEligibility([
+      { taxYear: '2024-25', selfEmploymentGross: 1800000, ukPropertyGross: 0 },
+      { taxYear: '2025-26', selfEmploymentGross: 1800000, ukPropertyGross: 0 },
+      { taxYear: '2026-27', selfEmploymentGross: 1800000, ukPropertyGross: 0 },
+    ])
     expect(r.status).toBe('below-threshold')
     expect(r.explain.join(' ')).toMatch(/SI 2026\/336/)
+  })
+  it('never treats an unmeasured earlier phase as below-threshold', () => {
+    const r = checkEligibility([{ taxYear: '2026-27', selfEmploymentGross: 1800000, ukPropertyGross: 0 }])
+    expect(r.status).toBe('needs-information')
+    expect(r.missingTaxYears).toEqual(['2024-25', '2025-26'])
+    expect(r.explain.join(' ')).toMatch(/not a final out-of-scope decision/i)
+  })
+  it('keeps wholly absent income unknown instead of reporting zero', () => {
+    const r = checkEligibility([])
+    expect(r.status).toBe('needs-information')
+    expect(r.qualifyingIncome).toBeNull()
+  })
+  it('does not claim a later start date while an earlier phase is missing', () => {
+    const r = checkEligibility([{ taxYear: '2025-26', selfEmploymentGross: 3100000, ukPropertyGross: 0 }])
+    expect(r.status).toBe('needs-information')
+    expect(r.mandatedFrom).toBeUndefined()
+    expect(r.missingTaxYears).toContain('2024-25')
   })
 })

@@ -23,6 +23,7 @@ research/
     ├── observer-accountability/ # Watching-the-watchers principle, contract, source doors and walls
     ├── public-funding/ # Tax pools, authority, health, education, delivery and audit
     ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
+    ├── tax-expert/    # Evidence contract, honest coverage stages and deep expert paths
     └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
 ```
 
@@ -47,6 +48,7 @@ honest, and marked so — guides first, rails later.
 | `uk/tax-types/sdlt.md` | Deep — current rates, source ledger, safe API boundary, XML rail |
 | `uk/tax-system/` | Deep — 4 collection lanes, permissions, infrastructure, collaborators, cases and gaps |
 | `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
+| `uk/tax-expert/` | Coverage-first expert architecture — one shared answer contract; MTD Income Tax is the first deep path |
 | `uk/charities/` | Deep sector map — conditional reliefs, registers, legal forms, funding, finance, control, duties and privacy boundaries |
 | `uk/charity-accountability/` | Candidate-only contract — evidence types, exact joins, admission conditions, safe comparison and a zero-row validator example |
 | `uk/observer-accountability/` | Observer reciprocity — institutional mandate, method, relations, words, actions, responses, challenges and zero-row admission boundary |

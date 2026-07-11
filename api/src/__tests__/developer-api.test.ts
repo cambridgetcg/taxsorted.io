@@ -117,6 +117,10 @@ describe("developer API boundary", () => {
     ).toHaveProperty("text/plain");
     expect(document.paths["/"].get.responses).toHaveProperty("404");
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
+    expect(document.paths).toHaveProperty("/v1/uk/tax-expert");
+    expect(document.paths).toHaveProperty(
+      "/v1/uk/tax-expert/mtd-income-tax/assessments",
+    );
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/open-data/rights");
     expect(document.paths).toHaveProperty("/v1/open-data/releases");
@@ -566,6 +570,7 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi-public.json");
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
+    expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
       tags: ["OpenAPI descriptions"],
@@ -617,6 +622,11 @@ describe("developer API boundary", () => {
         path: "/openapi/accountability-uk.json",
         id: "accountability-uk",
         prefix: "/v1/accountability/uk",
+      },
+      {
+        path: "/openapi/tax-expert-uk.json",
+        id: "tax-expert-uk",
+        prefix: "/v1/uk/tax-expert",
       },
     ] as const;
     const methods = [
@@ -678,7 +688,14 @@ describe("developer API boundary", () => {
       expect(representation.length, definition.path).toBeLessThan(
         fullRepresentation.length,
       );
-      expect(document.components?.securitySchemes?.WorkspaceKey).toBeUndefined();
+      if (definition.id === "tax-expert-uk") {
+        expect(document.components?.securitySchemes?.WorkspaceKey).toMatchObject({
+          type: "http",
+          scheme: "bearer",
+        });
+      } else {
+        expect(document.components?.securitySchemes?.WorkspaceKey).toBeUndefined();
+      }
       expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
 
       const operationIds = new Set<string>();
@@ -730,6 +747,7 @@ describe("developer API boundary", () => {
     ).json();
     expect(publicDocument.paths).toHaveProperty("/v1/wake");
     expect(publicDocument.paths).toHaveProperty("/v1/health");
+    expect(publicDocument.paths).toHaveProperty("/v1/uk/tax-expert");
     expect(publicDocument.paths).toHaveProperty("/v1/open-data/releases");
     expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
     expect(publicDocument.paths).toHaveProperty("/v1/accountability/uk");
@@ -800,6 +818,7 @@ describe("developer API boundary", () => {
       body: JSON.stringify(requestBody()),
     });
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("set-cookie")).toBeNull();
     expect(browserSessionCalls()).toBe(0);
     const submittedValues = query.mock.calls[0]?.slice(1) ?? [];
@@ -814,6 +833,7 @@ describe("developer API boundary", () => {
       body: JSON.stringify({ padding: "x".repeat(17 * 1024) }),
     });
     expect(response.status).toBe(413);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toMatchObject({ error: "request_too_large" });
     expect(response.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
     expect(browserSessionCalls()).toBe(0);
@@ -828,6 +848,7 @@ describe("developer API boundary", () => {
       body: "not json",
     });
     expect(response.status).toBe(415);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toMatchObject({
       error: "unsupported_media_type",
     });
@@ -836,7 +857,7 @@ describe("developer API boundary", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  it("returns a structured 400 for malformed JSON after authentication", async () => {
+  it("returns a structured 400 for malformed JSON before authentication", async () => {
     const { app, browserSessionCalls } = mount();
     const response = await app.request("/v1/uk/sdlt/calculations", {
       method: "POST",
@@ -847,9 +868,60 @@ describe("developer API boundary", () => {
       body: "{",
     });
     expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toMatchObject({ error: "invalid_json" });
     expect(browserSessionCalls()).toBe(0);
-    expect(query).toHaveBeenCalledOnce();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it("keeps missing and insufficient SDLT key responses private", async () => {
+    const { app, browserSessionCalls } = mount();
+    const missing = await app.request("/v1/uk/sdlt/calculations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody()),
+    });
+    expect(missing.status).toBe(401);
+    expect(missing.headers.get("cache-control")).toBe("no-store");
+    expect(query).not.toHaveBeenCalled();
+
+    query.mockResolvedValueOnce([
+      {
+        id: "key-1",
+        workspace_id: "workspace-1",
+        mode: "test",
+        scopes: ["tax-expert:assess"],
+      },
+    ]);
+    const insufficient = await app.request("/v1/uk/sdlt/calculations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${rawKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody()),
+    });
+    expect(insufficient.status).toBe(403);
+    expect(insufficient.headers.get("cache-control")).toBe("no-store");
+    expect(browserSessionCalls()).toBe(0);
+  });
+
+  it("keeps SDLT schema-validation errors private", async () => {
+    const { app, browserSessionCalls } = mount();
+    const body = requestBody();
+    delete (body as Partial<typeof body>).buyerKind;
+    const response = await app.request("/v1/uk/sdlt/calculations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${rawKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    expect(response.status).toBe(422);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toMatchObject({ error: "invalid_request" });
+    expect(browserSessionCalls()).toBe(0);
   });
 
   it("still leaves later /v1 routes to the browser session rail", async () => {

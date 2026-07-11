@@ -1,7 +1,8 @@
 import { z, type OpenAPIHono } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
-import type { Context } from "hono";
+import type { Context, Next } from "hono";
 import { requireApiKey } from "./api-key.js";
+import { assertNoDuplicateJsonKeys, StrictJsonError } from "./strict-json.js";
 import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
@@ -14,6 +15,7 @@ import {
   releaseJsonFeedPath,
   releaseLedgerPath,
 } from "./release-discovery-contract.js";
+import { ukTaxExpertRoutes } from "./routes/tax-expert.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 const OPENAPI_MEDIA_TYPE = "application/vnd.oai.openapi+json;version=3.1";
@@ -25,6 +27,7 @@ interface OpenApiSliceDefinition {
   path: string;
   title: string;
   description: string;
+  allowSecuredOperations?: boolean;
   matchesPath: (path: string) => boolean;
 }
 
@@ -70,6 +73,11 @@ const openApiTags = [
     description:
       "Cacheable, task-sized API descriptions for machine callers.",
   },
+  {
+    name: "UK tax expert",
+    description:
+      "Evidence-backed tax capability discovery and bounded deterministic assessments.",
+  },
 ] as const;
 
 const publicApiPathPrefixes = [
@@ -88,6 +96,7 @@ const publicAgentPaths = new Set([
   "/.well-known/agent.txt",
   "/v1/wake",
   "/v1/health",
+  "/v1/uk/tax-expert",
 ]);
 
 function hasPathPrefix(path: string, prefix: string): boolean {
@@ -152,10 +161,45 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
       "Task-sized contract for the watching-the-watchers framework and candidate schema.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/accountability/uk"),
   },
+  {
+    id: "tax-expert-uk",
+    path: "/openapi/tax-expert-uk.json",
+    title: "TaxSorted UK Tax Expert API",
+    description:
+      "Task-sized contract for tax-expert coverage and bounded deterministic assessments.",
+    allowSecuredOperations: true,
+    matchesPath: (path) => hasPathPrefix(path, "/v1/uk/tax-expert"),
+  },
 ];
 
 function requestIdFor(c: { get: (key: "requestId") => string }): string {
   return c.get("requestId") ?? "unavailable";
+}
+
+async function rejectAmbiguousJson(c: Context, next: Next) {
+  if (c.req.method !== "POST") {
+    await next();
+    return;
+  }
+  try {
+    assertNoDuplicateJsonKeys(await c.req.raw.clone().text());
+  } catch (error) {
+    const code = error instanceof StrictJsonError ? error.code : "invalid_json";
+    return c.json(
+      {
+        error: code,
+        message:
+          code === "duplicate_json_key"
+            ? "Send every JSON field once. Duplicate tax facts are ambiguous."
+            : code === "json_too_deep"
+              ? "Use a shallower JSON object."
+              : "Send one valid JSON object.",
+        requestId: requestIdFor(c),
+      },
+      400,
+    );
+  }
+  await next();
 }
 
 const TaxSystemCollection = z.enum([
@@ -4173,6 +4217,7 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/accountability/uk")) {
     return "UK observer accountability";
   }
+  if (hasPathPrefix(path, "/v1/uk/tax-expert")) return "UK tax expert";
   throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
 }
 
@@ -4257,6 +4302,37 @@ function retainReferencedComponents(
     collectComponentReferences(component, pending);
   }
 
+  // OpenAPI security requirements name schemes directly instead of using a
+  // $ref, so retain those components explicitly for a secured task slice.
+  const securitySchemeNames = new Set<string>();
+  for (const pathItem of Object.values(selectedPaths)) {
+    if (!isJsonObject(pathItem)) continue;
+    for (const method of openApiOperationMethods) {
+      const operation = pathItem[method];
+      if (!isJsonObject(operation) || !Array.isArray(operation.security)) continue;
+      for (const requirement of operation.security) {
+        if (!isJsonObject(requirement)) continue;
+        for (const name of Object.keys(requirement)) securitySchemeNames.add(name);
+      }
+    }
+  }
+  const sourceSecuritySchemes = sourceComponents.securitySchemes;
+  if (securitySchemeNames.size > 0) {
+    if (!isJsonObject(sourceSecuritySchemes)) {
+      throw new Error("OpenAPI slice references security schemes but the source document has none.");
+    }
+    const retainedSecuritySchemes = isJsonObject(retained.securitySchemes)
+      ? retained.securitySchemes
+      : {};
+    for (const name of securitySchemeNames) {
+      if (!(name in sourceSecuritySchemes)) {
+        throw new Error(`OpenAPI slice cannot resolve security scheme ${name}.`);
+      }
+      retainedSecuritySchemes[name] = structuredClone(sourceSecuritySchemes[name]);
+    }
+    retained.securitySchemes = retainedSecuritySchemes;
+  }
+
   return Object.keys(retained).length > 0 ? retained : undefined;
 }
 
@@ -4284,10 +4360,12 @@ function createOpenApiSlice(
     for (const method of openApiOperationMethods) {
       const candidate = pathItem[method];
       if (!isJsonObject(candidate)) continue;
-      if (
-        !Array.isArray(candidate.security) ||
-        candidate.security.length !== 0
-      ) {
+      if (!Array.isArray(candidate.security)) {
+        throw new Error(
+          `OpenAPI slice ${definition.id} refuses ${method.toUpperCase()} ${path} because security is not explicit.`,
+        );
+      }
+      if (candidate.security.length !== 0 && !definition.allowSecuredOperations) {
         throw new Error(
           `OpenAPI slice ${definition.id} refuses ${method.toUpperCase()} ${path} because it is not explicitly sessionless (security: []).`,
         );
@@ -4541,7 +4619,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
     scheme: "bearer",
     bearerFormat: "ts_test_<32-byte-secret>",
     description:
-      "A TaxSorted workspace key. The SDLT calculation route requires the sdlt:calculate scope.",
+      "A TaxSorted workspace key. Tax calculations and assessments declare their required scope, such as sdlt:calculate or tax-expert:assess.",
   });
   registerAgentInterfaceOpenApi(app);
   registerHealthOpenApi(app);
@@ -4556,6 +4634,13 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerStableRecordResolversOpenApi(app);
   registerOpenApiSliceDescriptions(app);
 
+  app.use("/v1/uk/sdlt/*", async (c, next) => {
+    // SDLT requests and results contain transaction values. Apply the private
+    // cache policy before size, media, JSON, auth and schema checks so every
+    // early response inherits it too.
+    c.header("Cache-Control", "no-store");
+    await next();
+  });
   app.use(
     "/v1/uk/sdlt/*",
     bodyLimit({
@@ -4591,8 +4676,57 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
     }
     await next();
   });
+  app.use("/v1/uk/sdlt/*", rejectAmbiguousJson);
   app.use("/v1/uk/sdlt/*", requireApiKey("sdlt:calculate"));
   app.route("/v1/uk/sdlt", sdltRoutes);
+
+  const expertAssessmentPath =
+    "/v1/uk/tax-expert/mtd-income-tax/assessments";
+  app.use(expertAssessmentPath, async (c, next) => {
+    // Financial request facts and every success/error derived from them are
+    // private to this call. Set the policy before size, media, JSON and auth
+    // checks so an early response cannot become cacheable by omission.
+    c.header("Cache-Control", "no-store");
+    await next();
+  });
+  app.use(
+    expertAssessmentPath,
+    bodyLimit({
+      maxSize: MAX_CALCULATION_BODY_BYTES,
+      onError: (c) =>
+        c.json(
+          {
+            error: "request_too_large",
+            message: "Keep assessment requests at or below 16 KiB.",
+            requestId: requestIdFor(c),
+          },
+          413,
+        ),
+    }),
+  );
+  app.use(expertAssessmentPath, async (c, next) => {
+    if (c.req.method === "POST") {
+      const mediaType = c.req
+        .header("Content-Type")
+        ?.split(";", 1)[0]
+        ?.trim()
+        .toLowerCase();
+      if (mediaType !== "application/json") {
+        return c.json(
+          {
+            error: "unsupported_media_type",
+            message: "Send assessment facts as application/json.",
+            requestId: requestIdFor(c),
+          },
+          415,
+        );
+      }
+    }
+    await next();
+  });
+  app.use(expertAssessmentPath, rejectAmbiguousJson);
+  app.use(expertAssessmentPath, requireApiKey("tax-expert:assess"));
+  app.route("/v1/uk/tax-expert", ukTaxExpertRoutes);
 
   const documentConfig = openApiDocumentConfig(apiOrigin);
   const sourceDocument = app.getOpenAPI31Document(

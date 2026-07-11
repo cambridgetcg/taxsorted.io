@@ -33,6 +33,7 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/openapi-public.json")).toBe(true);
     expect(isPublicCivicPath("/openapi/charities-uk.json")).toBe(true);
     expect(isPublicCivicPath("/openapi/politics-uk.json")).toBe(true);
+    expect(isPublicCivicPath("/openapi/tax-expert-uk.json")).toBe(true);
     expect(isPublicCivicPath("/openapi/private.json")).toBe(false);
     expect(isPublicCivicPath("/openapi/charities-uk.json/evil")).toBe(false);
     expect(isPublicCivicPath("/openapi-public.json-evil")).toBe(false);
@@ -44,6 +45,8 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/v1/charities/uk-evil")).toBe(false);
     expect(isPublicCivicPath("/v1/public-funding/uk")).toBe(true);
     expect(isPublicCivicPath("/v1/public-funding/uk-evil")).toBe(false);
+    expect(isPublicCivicPath("/v1/uk/tax-expert")).toBe(true);
+    expect(isPublicCivicPath("/v1/uk/tax-expert/mtd-income-tax/assessments")).toBe(false);
 
     const { app, sessionCalls } = mount();
     const openApiPreflight = await app.request(

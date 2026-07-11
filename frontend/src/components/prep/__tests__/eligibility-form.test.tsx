@@ -11,12 +11,20 @@ describe('eligibility form', () => {
     fireEvent.click(screen.getByRole('button', { name: /check/i }))
     expect(screen.getByText(/already in — since 6 April 2026/i)).toBeInTheDocument()
   })
-  it('shows below-threshold with the exemption note', () => {
+  it('shows below-threshold only after every phased year is measured', () => {
     render(<EligibilityForm />)
     fireEvent.change(screen.getByLabelText(/self-employment.*2024-25/i), { target: { value: '15000' } })
+    fireEvent.change(screen.getByLabelText(/self-employment.*2025-26/i), { target: { value: '0' } })
+    fireEvent.change(screen.getByLabelText(/self-employment.*2026-27/i), { target: { value: '0' } })
     fireEvent.click(screen.getByRole('button', { name: /check/i }))
     expect(screen.getByText(/not required/i)).toBeInTheDocument()
-    expect(screen.getByText(/exempt/i)).toBeInTheDocument()
+  })
+  it('asks for missing phased history instead of silently reading it as zero', () => {
+    render(<EligibilityForm />)
+    fireEvent.change(screen.getByLabelText(/self-employment.*2026-27/i), { target: { value: '15000' } })
+    fireEvent.click(screen.getByRole('button', { name: /check/i }))
+    expect(screen.getByText(/more return history is needed/i)).toBeInTheDocument()
+    expect(screen.queryByText(/not required/i)).toBeNull()
   })
   it('sanitizes £ signs and thousands separators before parsing', () => {
     render(<EligibilityForm />)
