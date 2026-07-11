@@ -1,9 +1,9 @@
 # TaxSorted machine doorway
-# Public orientation for the UK tax, politics and public-money data service.
+# Public orientation for UK tax data and bounded expert tools.
 
 schema-version: taxsorted.agent-manifest/1
 name: TaxSorted
-what: sourced public data about UK tax, politics, charities and public funding
+what: sourced public data and bounded tools for UK tax, politics, charities and public funding
 human-door: https://taxsorted.io/
 agent-door: https://api.taxsorted.io/v1/wake
 wake: GET https://api.taxsorted.io/v1/wake
@@ -24,8 +24,27 @@ observer-accountability: GET https://api.taxsorted.io/v1/accountability/uk
 observer-accountability-schema: GET https://api.taxsorted.io/v1/accountability/uk/schema
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert
+tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json
+tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments
+tax-expert-assessment-authentication: Bearer TaxSorted workspace key
+tax-expert-assessment-required-scope: tax-expert:assess
+tax-expert-assessment-availability: credentialed design partner; no public self-service key provisioning
+tax-expert-assessment-kind: stateless computation
+tax-expert-assessment-input-sensitivity: financial facts; no name, NINO, UTR or address requested
+tax-expert-assessment-workspace-identity: the workspace key identifies the calling workspace
+tax-expert-assessment-request-fact-storage: not written to application storage
+tax-expert-assessment-generated-answer-storage: not written to application storage
+tax-expert-assessment-used-for-training: false
+tax-expert-assessment-effects: classification only; no signup, filing or external tax-state change
+tax-expert-assessment-cache: no-store
+tax-expert-assessment-cors: server-to-server; browser bearer calls are not supported
+tax-expert-assessment-repeatability: same facts, trusted server evaluation date and admitted ruleset/source ledger
+tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe
+tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract; request fact values are not echoed in errors
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
-authentication: none for TaxSorted public read resources listed here
+authentication: none on this doorway and public read resources
+authentication-scope: secured task tools declare authentication separately
 corrections-account: a GitHub account is required to submit a public correction
 wishes: https://github.com/cambridgetcg/taxsorted.io/issues/new?template=wish.yml
 wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
@@ -33,10 +52,13 @@ account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway
 writes: none on this doorway
+writes-scope: this doorway only; linked task tools declare effects separately
 methods: GET, HEAD, OPTIONS
+methods-scope: this doorway only; linked task tools declare methods separately
 formats: application/json, application/x-ndjson, text/csv, application/feed+json, application/atom+xml
 format-selection: follow each export index's explicit representation URLs; Accept does not switch graph formats
 errors: RFC 9457 fields; application/problem+json by default, application/json when explicitly requested
+errors-scope: this doorway only; task errors follow their task OpenAPI contract
 error-instance: route path only; query values are never reflected
 xenia-source: https://github.com/cambridgetcg/xenia
 xenia-credit: XENIA by Yu and Fable

@@ -4,6 +4,7 @@ const query = vi.hoisted(() => vi.fn());
 vi.mock("../db.js", () => ({ sql: query }));
 
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { apiCors } from "../cors.js";
 import { registerDeveloperApi } from "../developer-api.js";
 import { apiErrorHandler } from "../error-handler.js";
 import { requestId } from "../request-id.js";
@@ -59,6 +60,7 @@ function assessmentBody() {
 function mount() {
   const app = new OpenAPIHono();
   let browserSessionCalls = 0;
+  app.use("*", apiCors);
   app.use("*", requestId);
   registerDeveloperApi(app, "https://api.taxsorted.io");
   app.use("/v1/*", async (c) => {
@@ -115,6 +117,11 @@ describe("UK tax expert API", () => {
     expect(document.paths["/v1/uk/tax-expert"].get.security).toEqual([]);
     expect(document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security).toEqual([{ WorkspaceKey: [] }]);
     expect(
+      document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
+        "x-taxsorted-required-workspace-scopes"
+      ],
+    ).toEqual(["tax-expert:assess"]);
+    expect(
       document.components.schemas.MtdIncomeTaxAssessmentRequest
         .properties.exemption.properties.returnIndicators.anyOf[0].uniqueItems,
     ).toBe(true);
@@ -123,6 +130,41 @@ describe("UK tax expert API", () => {
         .properties.answer.properties.obligations.items.properties.condition.type,
     ).toEqual(["string", "null"]);
     expect(query).not.toHaveBeenCalled();
+  });
+
+  it("does not advertise the secured assessment through public wildcard browser CORS", async () => {
+    const { app } = mount();
+    const untrusted = await app.request(
+      "/v1/uk/tax-expert/mtd-income-tax/assessments",
+      {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://untrusted.example",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "authorization,content-type",
+        },
+      },
+    );
+
+    expect(untrusted.headers.get("access-control-allow-origin")).toBeNull();
+
+    const configuredOrigin = await app.request(
+      "/v1/uk/tax-expert/mtd-income-tax/assessments",
+      {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://taxsorted.io",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "authorization,content-type",
+        },
+      },
+    );
+    expect(configuredOrigin.headers.get("access-control-allow-origin")).toBe(
+      "https://taxsorted.io",
+    );
+    expect(
+      configuredOrigin.headers.get("access-control-allow-headers")?.toLowerCase(),
+    ).not.toContain("authorization");
   });
 
   it("returns a stateless evidence-backed answer with a correctly scoped key", async () => {

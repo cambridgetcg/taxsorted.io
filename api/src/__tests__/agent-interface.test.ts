@@ -92,6 +92,29 @@ describe("agent interface", () => {
     );
     expect(body).toContain("charity-accountability-records: none");
     expect(body).toContain(
+      "tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert",
+    );
+    expect(body).toContain(
+      "tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment-required-scope: tax-expert:assess",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment-availability: credentialed design partner; no public self-service key provisioning",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment-request-fact-storage: not written to application storage",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe",
+    );
+    expect(body).toContain("methods: GET, HEAD, OPTIONS\n");
+    expect(body).toContain("methods-scope: this doorway only");
+    expect(body).toContain(
       "openapi-public: GET https://api.taxsorted.io/openapi-public.json",
     );
     expect(body).toContain(
@@ -199,6 +222,9 @@ describe("agent interface", () => {
       frameworkSlices: {
         accountability: "/openapi/accountability-uk.json",
       },
+      taskSlices: {
+        taxExpert: "/openapi/tax-expert-uk.json",
+      },
     });
     expect(body.resources.releases).toEqual({
       ledger: "/v1/open-data/releases",
@@ -217,17 +243,77 @@ describe("agent interface", () => {
       status: "schema-only-not-admitted",
       recordsAvailable: false,
     });
+    expect(body.resources.taxExpert).toEqual({
+      humanHref: "https://taxsorted.io/uk/tax-expert",
+      publicManifest: {
+        method: "GET",
+        href: "/v1/uk/tax-expert",
+        authentication: "none",
+      },
+      taskContract: {
+        method: "GET",
+        href: "/openapi/tax-expert-uk.json",
+        authentication: "none",
+      },
+      assessment: {
+        operationId: "assessMtdIncomeTaxReadiness",
+        method: "POST",
+        href: "/v1/uk/tax-expert/mtd-income-tax/assessments",
+        kind: "stateless-computation",
+        requestContentType: "application/json",
+        responseContentType: "application/json",
+        authentication: {
+          openApiSecurityScheme: "WorkspaceKey",
+          type: "http-bearer",
+          credential: "TaxSorted workspace key",
+          requiredScope: "tax-expert:assess",
+        },
+        availability: "credentialed-design-partner",
+        publicSelfServiceKeyProvisioning: false,
+        inputSensitivity: "financial-facts",
+        directIdentifiersRequested: false,
+        workspaceKeyIdentifiesWorkspace: true,
+        requestFactsStorage: "not-written-to-application-storage",
+        generatedAnswerStorage: "not-written-to-application-storage",
+        usedForTraining: false,
+        applicationStateWrite: false,
+        externalSubmission: false,
+        sessionCreated: false,
+        setsCookies: false,
+        cache: "no-store",
+        intendedClient: "server-to-server",
+        browserCors: "not-supported-for-bearer-assessment",
+        browserCorsAuthorizationHeaderAllowed: false,
+        maxBodyBytes: 16_384,
+        repeatabilityBoundary:
+          "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
+        idempotency: "not-declared",
+        errorContract: {
+          mediaType: "application/json",
+          schema: "TaxExpertApiError",
+          requestFactValuesEchoedInErrors: false,
+        },
+      },
+    });
     expect(body.resources.corrections).toEqual({
       href: "https://github.com/cambridgetcg/taxsorted.io/issues",
       accountRequired: true,
       privateOrSensitiveIntakeAvailable: false,
     });
     expect(body.access).toMatchObject({
+      scope: "The four machine doorway representations named by access.appliesTo.",
+      appliesTo: ["/", "/agent.txt", "/.well-known/agent.txt", "/v1/wake"],
+      linkedTaskAccessDeclaredSeparately: true,
       account: "none",
       session: "none",
       cookies: "none",
       writes: "none",
+      methods: ["GET", "HEAD", "OPTIONS"],
     });
+    expect(body.access.appliesTo).not.toContain(
+      "/v1/uk/tax-expert/mtd-income-tax/assessments",
+    );
+    expect(body.access.methods).not.toContain("POST");
     expect(body.evidenceLanes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "official-sources" }),
@@ -263,6 +349,11 @@ describe("agent interface", () => {
         expect.objectContaining({
           id: "watch-release-checkpoints",
           href: "/v1/open-data/releases",
+        }),
+        expect.objectContaining({
+          id: "inspect-tax-expert-task-contract",
+          method: "GET",
+          href: "/openapi/tax-expert-uk.json",
         }),
       ]),
     );

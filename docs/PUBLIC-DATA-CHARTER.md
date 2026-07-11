@@ -301,7 +301,9 @@ The workspace implements `/agent.txt` and `/.well-known/agent.txt` as equivalent
 machine-addressed discovery files. They point to the catalogue-derived JSON orientation at
 `/v1/wake`; the API root returns the same bytes only when the caller asks for
 `application/json`. The wake document points to OpenAPI, release history and the bounded
-charity accountability shape. Public errors add RFC 9457 fields and bounded recovery actions
+charity accountability shape. It describes the credentialed tax-expert assessment as a separate
+task with its own method, scope, storage and effect boundary; it does not enlarge the public
+doorway's authority. Public errors add RFC 9457 fields and bounded recovery actions
 while retaining established endpoint fields; they do not silently loosen a filter or safety
 wall to make a request succeed. Problem instances omit query values.
 
@@ -368,6 +370,12 @@ currently a bounded query service rather than an ever-growing static archive.
   derived from the same open-data catalogue. The API root is a negotiated JSON alias, not a
   replacement for its default 404. This is XENIA-inspired and makes no conformance, identity or
   trust-score claim.
+- The tax-expert task is separately discoverable: its public capability registry and OpenAPI
+  description need no key, while assessment requires an operator-provided workspace key with
+  `tax-expert:assess`. It is a credentialed design-partner service, not public self-service; the
+  workspace key identifies the caller's workspace even though no name, NINO, UTR or address is
+  requested. Request facts and generated answers are not written to application storage, and no
+  signup, filing or external tax-state change occurs.
 - The tax-system, tax-industry, charity-sector and public-funding graphs implement a discovery catalogue, structural schema,
   recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
   mixed-rights statement without requiring a caller account. Their protected collection and

@@ -316,6 +316,18 @@ do
   curl --fail "$API/openapi/${slice}.json" | jq \
     --arg slice "$slice" '.["x-taxsorted-slice"].id == $slice'
 done
+curl --fail "$API/openapi/accountability-uk.json" | jq \
+  '.openapi, .["x-taxsorted-slice"], (.paths | keys)'
+curl --fail "$API/openapi/tax-expert-uk.json" | jq \
+  '{openapi,
+    slice: .["x-taxsorted-slice"],
+    manifestSecurity: .paths["/v1/uk/tax-expert"].get.security,
+    assessment: (
+      .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post |
+      {operationId, security, requiredScopes: .["x-taxsorted-required-workspace-scopes"]}
+    )}'
+curl --fail "$API/v1/uk/tax-expert" | jq \
+  '{schema, reviewedOn, capabilities, privacy, boundaries}'
 curl --fail "$API/v1/open-data/releases" | jq \
   '{schema, semantics, currentPublication, checkpoints, representations}'
 curl --fail "$API/v1/open-data/releases/feed.json" | jq \
@@ -331,10 +343,16 @@ curl --fail "$API/v1/charities/uk/records/src-charities-act-2011" | jq \
 
 Both text manifests must be byte-identical and point to `/v1/wake`, `/v1/health`,
 `/v1/open-data`, the release ledger and feeds, the charity accountability contract,
-`/openapi-public.json`, the dataset slices and `/openapi.json`. The canonical wake and
+`/openapi-public.json`, the dataset, framework and tax-expert task slices and `/openapi.json`.
+The wake must place the tax-expert slice under `taskSlices`, never `datasetSlices` or
+`frameworkSlices`. Its assessment descriptor must preserve `POST`, `WorkspaceKey`,
+`tax-expert:assess`, credentialed-design-partner availability, financial-fact sensitivity,
+workspace identification, no application fact/answer storage, no training, no filing or external
+submission, server-to-server use and undeclared idempotency. It must not imply public self-service
+key provisioning or browser bearer support. The canonical wake and
 the JSON-negotiated root must have identical bodies and ETags; a browser-shaped root request must
-remain `404`. The wake access statement covers only the doorway and listed TaxSorted public read
-routes: no account, authentication, session, cookie or write. The external GitHub correction
+remain `404`. The wake access statement covers only its four doorway representations: no account,
+authentication, session, cookie or write. Secured task access is declared separately. The external GitHub correction
 tracker needs an account and is not a private intake. Confirm the
 XENIA credit reads “XENIA by Yu and Fable”, links
 <https://github.com/cambridgetcg/xenia>, names CC BY-SA 4.0 and claims no full-framework

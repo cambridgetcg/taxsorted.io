@@ -106,6 +106,57 @@ describe("developer API boundary", () => {
       expect.arrayContaining(["publicHref", "fullHref", "datasetSlices"]),
     );
     expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.properties,
+    ).toHaveProperty("taskSlices");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.required,
+    ).not.toContain("taskSlices");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("taxExpert");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.required,
+    ).not.toContain("taxExpert");
+    expect(
+      document.components.schemas.AgentWake.properties.access.properties,
+    ).toMatchObject({
+      appliesTo: expect.any(Object),
+      linkedTaskAccessDeclaredSeparately: expect.any(Object),
+    });
+    expect(
+      document.components.schemas.AgentWake.properties.access.required,
+    ).not.toEqual(
+      expect.arrayContaining([
+        "appliesTo",
+        "linkedTaskAccessDeclaredSeparately",
+      ]),
+    );
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .taxExpert.properties.assessment.properties,
+    ).toMatchObject({
+      operationId: { type: "string", enum: ["assessMtdIncomeTaxReadiness"] },
+      method: { type: "string", enum: ["POST"] },
+      intendedClient: { type: "string", enum: ["server-to-server"] },
+      browserCorsAuthorizationHeaderAllowed: {
+        type: "boolean",
+        enum: [false],
+      },
+      applicationStateWrite: { type: "boolean", enum: [false] },
+      externalSubmission: { type: "boolean", enum: [false] },
+      requestFactsStorage: {
+        type: "string",
+        enum: ["not-written-to-application-storage"],
+      },
+    });
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .taxExpert.properties.assessment.properties.authentication.properties
+        .requiredScope.enum,
+    ).toEqual(["tax-expert:assess"]);
+    expect(
       document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("releases");
     expect(
@@ -121,6 +172,11 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty(
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
     );
+    expect(
+      document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
+        "x-taxsorted-required-workspace-scopes"
+      ],
+    ).toEqual(["tax-expert:assess"]);
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/open-data/rights");
     expect(document.paths).toHaveProperty("/v1/open-data/releases");

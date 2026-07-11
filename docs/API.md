@@ -50,7 +50,9 @@ GET https://api.taxsorted.io/        Accept: application/json
 The two manifests are byte-identical flat text. `GET /v1/wake` is their canonical,
 deterministic JSON orientation: current dataset versions and publication states, resource
 handles, source/gap/schema lanes, public-data rights, literal safety walls and typed next
-actions. It is stateless and sets no identity cookie. The API root returns those same wake
+actions. It also advertises authenticated task tools under a separate access contract, rather
+than folding their methods or credentials into the read-only doorway. It is stateless and sets
+no identity cookie. The API root returns those same wake
 bytes only when `Accept` asks for JSON; ordinary browser-shaped requests retain the normal
 closed-door response. This doorway adopts useful ideas from the XENIA agent-interface and
 agent-experience framework without claiming conformance or importing peer ratings.
@@ -78,12 +80,15 @@ GET /openapi/charities-uk.json
 GET /openapi/public-funding-uk.json
 GET /openapi/politics-uk.json
 GET /openapi/accountability-uk.json
+GET /openapi/tax-expert-uk.json
 ```
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
-`operationId` and one plain domain tag. Slice construction fails if a selected operation does
-not explicitly declare `security: []`; an authenticated operation cannot silently enter the
-public description merely because somebody mounted it under a public-looking path.
+`operationId` and one plain domain tag. Dataset and framework slices fail construction if a
+selected operation does not explicitly declare `security: []`. The tax-expert task slice is a
+different class: it intentionally contains a public capability `GET` and a secured assessment
+`POST`, preserving the operation-level `WorkspaceKey` security declaration and required
+`tax-expert:assess` scope.
 
 The observer-accountability doorway is a framework and candidate contract, not an admitted
 case dataset:
@@ -330,8 +335,12 @@ It requires the `tax-expert:assess` workspace scope. The task-sized OpenAPI 3.1 
 GET /openapi/tax-expert-uk.json
 ```
 
-The assessment is deterministic and stateless. It does not collect a name, NINO, UTR or address,
-does not sign anyone up, does not file, and does not write request facts to application storage.
+The assessment is repeatable for the same request facts, trusted server evaluation date and
+admitted ruleset and source ledger; the request alone does not promise byte-identical output on
+another date. It is stateless. It does not collect a name, NINO, UTR or address, does not sign
+anyone up, does not file, and does not write request facts to application storage. A workspace
+key still identifies the calling workspace. Keys are operator-created for credentialed design
+partners; there is no public self-service key-provisioning route.
 The browser version at `/uk/tax-expert` runs the same engine locally without calling this route.
 
 Every fact is explicit. `"unknown"` is different from zero or false. Money is non-negative integer

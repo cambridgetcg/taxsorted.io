@@ -334,9 +334,10 @@ const manifestRoute = createRoute({
 const assessmentRoute = createRoute({
   method: "post",
   path: "/mtd-income-tax/assessments",
+  "x-taxsorted-required-workspace-scopes": ["tax-expert:assess"],
   operationId: "assessMtdIncomeTaxReadiness",
   summary: "Assess MTD Income Tax readiness and 2026/27 deadlines",
-  description: "Stateless, deterministic classification from explicit Self Assessment, gross-income and exemption facts. Unknown is never read as zero. The route does not sign up, file or persist case facts.",
+  description: "Stateless classification from explicit Self Assessment, gross-income and exemption facts, the trusted server evaluation date and the admitted ruleset and source ledger. Unknown is never read as zero. The route does not sign up, file or persist case facts.",
   tags: ["UK tax expert"],
   security: [{ WorkspaceKey: [] }],
   request: {

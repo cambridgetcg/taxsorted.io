@@ -776,6 +776,8 @@ const AgentWake = z
     }),
     access: z.object({
       scope: z.string(),
+      appliesTo: z.array(z.string()).optional(),
+      linkedTaskAccessDeclaredSeparately: z.literal(true).optional(),
       authentication: z.literal("none"),
       account: z.literal("none"),
       session: z.literal("none"),
@@ -820,6 +822,7 @@ const AgentWake = z
           politics: z.string(),
         }),
         frameworkSlices: z.object({ accountability: z.string() }),
+        taskSlices: z.object({ taxExpert: z.string() }).optional(),
       }),
       releases: z.object({
         ledger: z.string(),
@@ -848,6 +851,65 @@ const AgentWake = z
         status: z.literal("schema-only-not-admitted"),
         recordsAvailable: z.literal(false),
       }),
+      taxExpert: z
+        .object({
+          humanHref: z.string().url(),
+          publicManifest: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          taskContract: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          assessment: z.object({
+            operationId: z.literal("assessMtdIncomeTaxReadiness"),
+            method: z.literal("POST"),
+            href: z.string(),
+            kind: z.literal("stateless-computation"),
+            requestContentType: z.literal("application/json"),
+            responseContentType: z.literal("application/json"),
+            authentication: z.object({
+              openApiSecurityScheme: z.literal("WorkspaceKey"),
+              type: z.literal("http-bearer"),
+              credential: z.literal("TaxSorted workspace key"),
+              requiredScope: z.literal("tax-expert:assess"),
+            }),
+            availability: z.literal("credentialed-design-partner"),
+            publicSelfServiceKeyProvisioning: z.literal(false),
+            inputSensitivity: z.literal("financial-facts"),
+            directIdentifiersRequested: z.literal(false),
+            workspaceKeyIdentifiesWorkspace: z.literal(true),
+            requestFactsStorage: z.literal(
+              "not-written-to-application-storage",
+            ),
+            generatedAnswerStorage: z.literal(
+              "not-written-to-application-storage",
+            ),
+            usedForTraining: z.literal(false),
+            applicationStateWrite: z.literal(false),
+            externalSubmission: z.literal(false),
+            sessionCreated: z.literal(false),
+            setsCookies: z.literal(false),
+            cache: z.literal("no-store"),
+            intendedClient: z.literal("server-to-server"),
+            browserCors: z.literal("not-supported-for-bearer-assessment"),
+            browserCorsAuthorizationHeaderAllowed: z.literal(false),
+            maxBodyBytes: z.literal(16_384),
+            repeatabilityBoundary: z.literal(
+              "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
+            ),
+            idempotency: z.literal("not-declared"),
+            errorContract: z.object({
+              mediaType: z.literal("application/json"),
+              schema: z.literal("TaxExpertApiError"),
+              requestFactValuesEchoedInErrors: z.literal(false),
+            }),
+          }),
+        })
+        .optional(),
       datasets: z.array(
         z.object({
           datasetId: z.string(),

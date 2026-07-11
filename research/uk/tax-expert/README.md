@@ -19,6 +19,10 @@ The machine contract is `taxsorted.tax-answer/1`. Its canonical TypeScript shape
 invariants live in `engine/jurisdictions/uk/expert/contract.ts`. Product coverage lives in
 `engine/jurisdictions/uk/expert/capabilities.ts`. The public page is `/uk/tax-expert`; the public
 machine registry is `GET /v1/uk/tax-expert`.
+The agent doorway also points to the public task contract at
+`GET /openapi/tax-expert-uk.json`. That contract keeps the public registry `GET` separate from
+the credentialed design-partner assessment `POST`, including its workspace scope, financial-fact
+boundary, no-storage promise and no-filing boundary. There is no public self-service key route.
 
 ## Why the first deep path is MTD Income Tax
 
@@ -47,6 +51,8 @@ reporting.
 
 It does not collect names, NINOs, UTRs, addresses or HMRC credentials. The browser check runs
 locally. The assessment API is stateless and does not write request facts to application storage.
+Its repeatability boundary includes the trusted server evaluation date and admitted ruleset and
+source ledger; identical request JSON alone is not an idempotency or same-output promise.
 
 ## Official source ledger for the first path
 

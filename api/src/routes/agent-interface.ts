@@ -25,6 +25,10 @@ const charityAccountabilitySchemaPath =
   "/v1/charities/uk/accountability/schema";
 const observerAccountabilityPath = "/v1/accountability/uk";
 const observerAccountabilitySchemaPath = "/v1/accountability/uk/schema";
+const taxExpertManifestPath = "/v1/uk/tax-expert";
+const taxExpertAssessmentPath =
+  "/v1/uk/tax-expert/mtd-income-tax/assessments";
+const taxExpertOpenApiPath = "/openapi/tax-expert-uk.json";
 
 export const xeniaAttribution = {
   name: "XENIA",
@@ -45,11 +49,11 @@ export const xeniaAttribution = {
 } as const;
 
 export const agentManifestText = `# TaxSorted machine doorway
-# Public orientation for the UK tax, politics and public-money data service.
+# Public orientation for UK tax data and bounded expert tools.
 
 schema-version: taxsorted.agent-manifest/1
 name: TaxSorted
-what: sourced public data about UK tax, politics, charities and public funding
+what: sourced public data and bounded tools for UK tax, politics, charities and public funding
 human-door: ${humanOrigin}/
 agent-door: ${apiOrigin}${wakePath}
 wake: GET ${apiOrigin}${wakePath}
@@ -70,8 +74,27 @@ observer-accountability: GET ${apiOrigin}${observerAccountabilityPath}
 observer-accountability-schema: GET ${apiOrigin}${observerAccountabilitySchemaPath}
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+tax-expert-manifest: GET ${apiOrigin}${taxExpertManifestPath}
+tax-expert-openapi: GET ${apiOrigin}${taxExpertOpenApiPath}
+tax-expert-assessment: POST ${apiOrigin}${taxExpertAssessmentPath}
+tax-expert-assessment-authentication: Bearer TaxSorted workspace key
+tax-expert-assessment-required-scope: tax-expert:assess
+tax-expert-assessment-availability: credentialed design partner; no public self-service key provisioning
+tax-expert-assessment-kind: stateless computation
+tax-expert-assessment-input-sensitivity: financial facts; no name, NINO, UTR or address requested
+tax-expert-assessment-workspace-identity: the workspace key identifies the calling workspace
+tax-expert-assessment-request-fact-storage: not written to application storage
+tax-expert-assessment-generated-answer-storage: not written to application storage
+tax-expert-assessment-used-for-training: false
+tax-expert-assessment-effects: classification only; no signup, filing or external tax-state change
+tax-expert-assessment-cache: no-store
+tax-expert-assessment-cors: server-to-server; browser bearer calls are not supported
+tax-expert-assessment-repeatability: same facts, trusted server evaluation date and admitted ruleset/source ledger
+tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe
+tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract; request fact values are not echoed in errors
 corrections: ${correctionsUrl}
-authentication: none for TaxSorted public read resources listed here
+authentication: none on this doorway and public read resources
+authentication-scope: secured task tools declare authentication separately
 corrections-account: a GitHub account is required to submit a public correction
 wishes: ${correctionsUrl}/new?template=wish.yml
 wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
@@ -79,10 +102,13 @@ account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway
 writes: none on this doorway
+writes-scope: this doorway only; linked task tools declare effects separately
 methods: GET, HEAD, OPTIONS
+methods-scope: this doorway only; linked task tools declare methods separately
 formats: application/json, application/x-ndjson, text/csv, application/feed+json, application/atom+xml
 format-selection: follow each export index's explicit representation URLs; Accept does not switch graph formats
 errors: RFC 9457 fields; application/problem+json by default, application/json when explicitly requested
+errors-scope: this doorway only; task errors follow their task OpenAPI contract
 error-instance: route path only; query values are never reflected
 xenia-source: ${xeniaAttribution.source}
 xenia-credit: XENIA by ${xeniaAttribution.creators.join(" and ")}
@@ -265,13 +291,15 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
     service: {
       name: "TaxSorted",
       purpose:
-        "Make sourced UK tax, politics, charity and public-money structures easier to understand, inspect and reuse.",
+        "Make sourced UK tax, politics, charity and public-money structures easier to understand, inspect and reuse, and expose bounded tax tools with separate access contracts.",
       humanDoor: `${humanOrigin}/`,
       machineDoor: `${apiOrigin}${wakePath}`,
       jurisdiction: "United Kingdom",
     },
     access: {
-      scope: "TaxSorted public API resources listed by this doorway",
+      scope: "The four machine doorway representations named by access.appliesTo.",
+      appliesTo: ["/", "/agent.txt", "/.well-known/agent.txt", wakePath],
+      linkedTaskAccessDeclaredSeparately: true,
       authentication: "none",
       account: "none",
       session: "none",
@@ -362,6 +390,9 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         frameworkSlices: {
           accountability: "/openapi/accountability-uk.json",
         },
+        taskSlices: {
+          taxExpert: taxExpertOpenApiPath,
+        },
       },
       releases: releaseDiscoveryHandles,
       health: { href: "/v1/health" },
@@ -385,6 +416,58 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
+      },
+      taxExpert: {
+        humanHref: `${humanOrigin}/uk/tax-expert`,
+        publicManifest: {
+          method: "GET",
+          href: taxExpertManifestPath,
+          authentication: "none",
+        },
+        taskContract: {
+          method: "GET",
+          href: taxExpertOpenApiPath,
+          authentication: "none",
+        },
+        assessment: {
+          operationId: "assessMtdIncomeTaxReadiness",
+          method: "POST",
+          href: taxExpertAssessmentPath,
+          kind: "stateless-computation",
+          requestContentType: "application/json",
+          responseContentType: "application/json",
+          authentication: {
+            openApiSecurityScheme: "WorkspaceKey",
+            type: "http-bearer",
+            credential: "TaxSorted workspace key",
+            requiredScope: "tax-expert:assess",
+          },
+          availability: "credentialed-design-partner",
+          publicSelfServiceKeyProvisioning: false,
+          inputSensitivity: "financial-facts",
+          directIdentifiersRequested: false,
+          workspaceKeyIdentifiesWorkspace: true,
+          requestFactsStorage: "not-written-to-application-storage",
+          generatedAnswerStorage: "not-written-to-application-storage",
+          usedForTraining: false,
+          applicationStateWrite: false,
+          externalSubmission: false,
+          sessionCreated: false,
+          setsCookies: false,
+          cache: "no-store",
+          intendedClient: "server-to-server",
+          browserCors: "not-supported-for-bearer-assessment",
+          browserCorsAuthorizationHeaderAllowed: false,
+          maxBodyBytes: 16_384,
+          repeatabilityBoundary:
+            "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
+          idempotency: "not-declared",
+          errorContract: {
+            mediaType: "application/json",
+            schema: "TaxExpertApiError",
+            requestFactValuesEchoedInErrors: false,
+          },
+        },
       },
       datasets: datasetHandles(catalog),
     },
@@ -495,6 +578,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read the reciprocal watching-the-watchers protocol, official source doors, hard walls and zero-row candidate contract.",
+      },
+      {
+        id: "inspect-tax-expert-task-contract",
+        method: "GET",
+        href: taxExpertOpenApiPath,
+        accepts: ["application/vnd.oai.openapi+json;version=3.1"],
+        description:
+          "Inspect the task-sized OpenAPI covering both the public capability manifest and the separately authenticated stateless assessment before supplying tax facts.",
       },
       {
         id: "open-public-correction-tracker",

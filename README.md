@@ -83,7 +83,9 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   duplicate JSON facts and never create the browser cookies used by the filing cockpit.
 - **Machine doorway**: public, sessionless `/agent.txt`, `/.well-known/agent.txt` and
   `/v1/wake` routes orient agents with current dataset versions, publication states, rights,
-  evidence lanes, safety walls and typed next actions. The design is inspired by XENIA; no
+  evidence lanes, safety walls and typed next actions. A separate tax-expert task descriptor
+  names its authenticated `POST`, workspace scope, input/storage boundary and OpenAPI contract
+  without changing the doorway's read-only access claim. The design is inspired by XENIA; no
   conformance claim or agent identity/session is created.
 - **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
   bodies behind an explicit production-publication switch, covering the
@@ -129,7 +131,8 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
 manifests point to the canonical JSON orientation at `/v1/wake`, public/full OpenAPI, the
 open-data catalogue and release feeds,
-the charity and observer accountability shapes and the safety walls. The API root returns the same wake bytes
+the charity and observer accountability shapes, the separately credentialed tax-expert task and
+the safety walls. The API root returns the same wake bytes
 only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
 charity API also turns errors into instructions:
 a refusal names the reason, confirms the walls remain intact and gives bounded next actions.
