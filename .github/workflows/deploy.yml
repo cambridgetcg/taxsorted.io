@@ -5,7 +5,15 @@ name: Test, build and deploy
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      allow_unpublished_release_ledger:
+        description: >-
+          One-time recovery only: allow a live 404 after verifying that the
+          central release ledger has never been published successfully.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -101,6 +109,75 @@ jobs:
             (.[0:($old | length)] == $old)
           ' "${candidate}" >/dev/null
 
+      - name: Require the public release ledger to extend its live prefix
+        env:
+          PREVIOUS_DEPLOYED_SHA: ${{ github.event.before }}
+          ALLOW_UNPUBLISHED_RELEASE_LEDGER: ${{ inputs.allow_unpublished_release_ledger || false }}
+        run: |
+          set -euo pipefail
+          response="${RUNNER_TEMP}/release-ledger-before.json"
+          prefix="${RUNNER_TEMP}/release-checkpoint-prefix.json"
+          status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 --retry 4 --retry-delay 2 --retry-all-errors \
+            --header 'Cache-Control: no-cache' \
+            --output "${response}" --write-out '%{http_code}' \
+            'https://api.taxsorted.io/v1/open-data/releases')
+          case "${status}" in
+            200)
+              jq --exit-status '
+                .schema == "taxsorted.open-data-release-ledger/1" and
+                (.checkpoints | type == "array")
+              ' "${response}" >/dev/null
+              jq '.checkpoints' "${response}" >"${prefix}"
+              ;;
+            404)
+              previous_had_contract=false
+              if [ "${GITHUB_EVENT_NAME}" = 'push' ]; then
+                if [ -z "${PREVIOUS_DEPLOYED_SHA}" ] || \
+                   [[ "${PREVIOUS_DEPLOYED_SHA}" =~ ^0+$ ]]
+                then
+                  echo 'The previous deployed-main SHA is unavailable; refusing a live 404.' >&2
+                  exit 1
+                fi
+                if ! git cat-file -e "${PREVIOUS_DEPLOYED_SHA}^{commit}" 2>/dev/null
+                then
+                  git fetch --no-tags --depth=1 origin "${PREVIOUS_DEPLOYED_SHA}"
+                fi
+                if git cat-file -e \
+                  "${PREVIOUS_DEPLOYED_SHA}:api/src/release-checkpoints.json" \
+                  2>/dev/null
+                then
+                  previous_had_contract=true
+                fi
+              fi
+
+              if [ "${previous_had_contract}" = true ]; then
+                echo 'Published central release ledger disappeared after its first release; refusing to deploy.' >&2
+                echo 'If every earlier ledger deployment failed, verify that fact and use the one-time manual workflow input.' >&2
+                exit 1
+              fi
+              if [ "${GITHUB_EVENT_NAME}" != 'push' ] && \
+                 [ "${ALLOW_UNPUBLISHED_RELEASE_LEDGER}" != true ]
+              then
+                echo 'Manual deployment found no live release ledger; the one-time recovery input is required.' >&2
+                exit 1
+              fi
+              printf '[]\n' >"${prefix}"
+              ;;
+            *)
+              echo "Could not capture published central release ledger (HTTP ${status}); refusing to deploy." >&2
+              exit 1
+              ;;
+          esac
+
+          candidate='api/src/release-checkpoints.json'
+          jq --exit-status 'type == "array" and length > 0' "${candidate}" >/dev/null
+          jq --exit-status --slurpfile before "${prefix}" '
+            ($before[0]) as $old |
+            (length >= ($old | length)) and
+            (.[0:($old | length)] == $old)
+          ' "${candidate}" >/dev/null
+
       - name: Deploy api to Fly.io
         run: flyctl deploy -c api/fly.toml --remote-only
         env:
@@ -115,7 +192,19 @@ jobs:
             /.well-known/agent.txt \
             /v1/wake \
             /openapi.json \
+            /openapi-public.json \
+            /openapi/tax-system-uk.json \
+            /openapi/tax-industry-uk.json \
+            /openapi/charities-uk.json \
+            /openapi/public-funding-uk.json \
+            /openapi/politics-uk.json \
             /v1/open-data \
+            /v1/open-data/releases \
+            /v1/open-data/releases/feed.json \
+            /v1/open-data/releases/feed.atom \
+            /v1/tax-system/uk/records/src-parliament-tax-procedure \
+            /v1/tax-industry/uk/records/src-industry-regulation-response \
+            /v1/charities/uk/records/src-charities-act-2011 \
             /v1/charities/uk \
             /v1/charities/uk/manifest \
             /v1/charities/uk/sources \
@@ -154,6 +243,15 @@ jobs:
           grep --fixed-strings --line-regexp \
             'corrections-account: a GitHub account is required to submit a public correction' \
             "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'openapi-public: GET https://api.taxsorted.io/openapi-public.json' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'release-ledger: GET https://api.taxsorted.io/v1/open-data/releases' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'formats: application/json, application/x-ndjson, text/csv, application/feed+json, application/atom+xml' \
+            "${api_agent_manifest}"
           api_manifest_content_type=$(curl --fail --silent --show-error --head \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/agent.txt | \
@@ -180,6 +278,22 @@ jobs:
               ((.data | length) >= ($old | length)) and
               (.data[0:($old | length)] == $old)
             ' "${current_changes}" >/dev/null
+
+          current_releases="${RUNNER_TEMP}/release-ledger-after.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${current_releases}" \
+            'https://api.taxsorted.io/v1/open-data/releases'
+          jq --exit-status \
+            --slurpfile before "${RUNNER_TEMP}/release-checkpoint-prefix.json" \
+            --slurpfile candidate api/src/release-checkpoints.json '
+              ($before[0]) as $old |
+              (.schema == "taxsorted.open-data-release-ledger/1") and
+              (.checkpoints == $candidate[0]) and
+              ((.checkpoints | length) >= ($old | length)) and
+              (.checkpoints[0:($old | length)] == $old)
+            ' "${current_releases}" >/dev/null
 
           curl --fail --silent --show-error \
             https://api.taxsorted.io/v1/charities/uk/accountability | \
@@ -243,6 +357,11 @@ jobs:
             .resources.charityAccountability.recordsAvailable == false and
             .resources.corrections.accountRequired == true and
             .resources.corrections.privateOrSensitiveIntakeAvailable == false and
+            .resources.openApi.publicHref == "/openapi-public.json" and
+            .resources.openApi.datasetSlices.charities == "/openapi/charities-uk.json" and
+            .resources.releases.ledger == "/v1/open-data/releases" and
+            .resources.releases.jsonFeed == "/v1/open-data/releases/feed.json" and
+            .resources.releases.atom == "/v1/open-data/releases/feed.atom" and
             .attribution.conformanceClaim == "none"
           ' "${wake_body}" >/dev/null
           wake_etag=$(awk 'tolower($1) == "etag:" { gsub("\\r", "", $2); print $2; exit }' "${wake_headers}")
@@ -256,6 +375,25 @@ jobs:
             --output /dev/null --write-out '%{http_code}' \
             https://api.taxsorted.io/)
           test "${bare_root_status}" = '404'
+
+          problem_headers="${RUNNER_TEMP}/problem.headers"
+          problem_body="${RUNNER_TEMP}/problem.json"
+          problem_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Accept: application/problem+json' \
+            --dump-header "${problem_headers}" --output "${problem_body}" \
+            --write-out '%{http_code}' \
+            'https://api.taxsorted.io/v1/open-data?secret=must-not-be-reflected')
+          test "${problem_status}" = '400'
+          awk 'tolower($1) == "content-type:" { found = (tolower($2) ~ /^application\/problem\+json/) } END { exit !found }' \
+            "${problem_headers}"
+          jq --exit-status '
+            .type == "https://api.taxsorted.io/problems/unknown_query_parameter" and
+            .status == 400 and
+            .instance == "/v1/open-data" and
+            .parameters == ["secret"] and
+            ((tostring | contains("must-not-be-reflected")) | not)
+          ' "${problem_body}" >/dev/null
 
           public_funding_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \

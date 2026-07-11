@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 
 const query = vi.hoisted(() => vi.fn());
 vi.mock("../db.js", () => ({ sql: query }));
@@ -99,6 +100,15 @@ describe("developer API boundary", () => {
         .corrections.properties.accountRequired.enum
     ).toEqual([true]);
     expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.required,
+    ).toEqual(
+      expect.arrayContaining(["publicHref", "fullHref", "datasetSlices"]),
+    );
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("releases");
+    expect(
       document.components.schemas.AgentWake.properties.evidenceLanes.items
         .properties.resources.items.properties
     ).toHaveProperty("href");
@@ -109,6 +119,48 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
     expect(document.paths).toHaveProperty("/v1/open-data");
     expect(document.paths).toHaveProperty("/v1/open-data/rights");
+    expect(document.paths).toHaveProperty("/v1/open-data/releases");
+    expect(document.paths).toHaveProperty("/v1/open-data/releases/feed.json");
+    expect(document.paths).toHaveProperty("/v1/open-data/releases/feed.atom");
+    expect(
+      document.paths["/v1/open-data/releases/feed.atom"].get.responses[200]
+        .content,
+    ).toHaveProperty("application/atom+xml");
+    expect(
+      document.components.schemas.OpenDataCatalog.properties,
+    ).toHaveProperty("releaseDiscovery");
+    expect(
+      document.components.schemas.OpenDataCatalog.properties.access.properties,
+    ).toHaveProperty("agentDiscovery");
+    expect(
+      document.components.schemas.OpenDataDataset.properties.publication
+        .properties,
+    ).toHaveProperty("humanApproval");
+    expect(
+      document.components.schemas.OpenDataDataset.properties.publication
+        .properties,
+    ).toHaveProperty("confidentialIntake");
+    expect(
+      document.components.schemas.OpenDataReleaseCheckpoint.required,
+    ).toEqual(expect.arrayContaining(["title", "links", "digest"]));
+    expect(
+      document.components.schemas.OpenDataReleaseCheckpointLinks.properties,
+    ).toMatchObject({
+      currentGraph: expect.any(Object),
+      immutableSnapshot: expect.any(Object),
+    });
+    for (const field of ["datasetId", "version", "digest"] as const) {
+      const pattern =
+        document.components.schemas.OpenDataReleaseCheckpoint.properties[field]
+          .pattern;
+      expect(pattern, field).not.toMatch(/\/[a-z]+$/);
+    }
+    expect(
+      new RegExp(
+        document.components.schemas.OpenDataReleaseCheckpoint.properties
+          .datasetId.pattern,
+      ).test("uk-tax-system"),
+    ).toBe(true);
     expect(document.paths["/v1/open-data/rights"].head.security).toEqual([]);
     expect(document.paths["/v1/open-data"].get).toMatchObject({
       operationId: "listOpenDataDatasets",
@@ -118,6 +170,9 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/{collection}");
     expect(document.paths).toHaveProperty(
       "/v1/tax-system/uk/{collection}/{id}",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/tax-system/uk/records/{id}",
     );
     expect(document.paths).toHaveProperty("/v1/tax-system/uk/graph");
     expect(
@@ -135,6 +190,20 @@ describe("developer API boundary", () => {
     );
     expect(document.paths["/v1/tax-system/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/tax-system/uk"].head.security).toEqual([]);
+    expect(
+      document.paths["/v1/tax-system/uk/records/{id}"].get.responses[503]
+        .description,
+    ).toMatch(/intentionally indistinguishable/i);
+    expect(
+      document.paths["/v1/tax-system/uk/records/{id}"].get.responses[404]
+        .content,
+    ).toHaveProperty("application/problem+json");
+    expect(document.paths).toHaveProperty(
+      "/v1/tax-industry/uk/records/{id}",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/records/{id}",
+    );
     expect(
       document.paths["/v1/tax-system/uk/exports/{collection}/{format}"].head
         .parameters,
@@ -481,6 +550,220 @@ describe("developer API boundary", () => {
       document.components.schemas.SdltCalculatedResponse.properties
         .reviewReasons,
     ).toMatchObject({ type: "array", maxItems: 0 });
+    expect(document.paths).toHaveProperty("/openapi-public.json");
+    expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
+    expect(document.paths["/openapi-public.json"].get).toMatchObject({
+      operationId: "getPublicOpenApiDescription",
+      tags: ["OpenAPI descriptions"],
+      security: [],
+    });
+    expect(
+      document.paths["/v1/wake"].get.responses[400].content,
+    ).toHaveProperty("application/problem+json");
+    expect(
+      document.paths["/v1/wake"].get.responses[500].content,
+    ).toHaveProperty("application/problem+json");
+  });
+
+  it("serves self-contained public and dataset OpenAPI slices with stable tool names", async () => {
+    const { app, browserSessionCalls } = mount();
+    const fullRepresentation = await (await app.request("/openapi.json")).text();
+    const definitions = [
+      {
+        path: "/openapi-public.json",
+        id: "public",
+        prefix: undefined,
+      },
+      {
+        path: "/openapi/tax-system-uk.json",
+        id: "tax-system-uk",
+        prefix: "/v1/tax-system/uk",
+      },
+      {
+        path: "/openapi/tax-industry-uk.json",
+        id: "tax-industry-uk",
+        prefix: "/v1/tax-industry/uk",
+      },
+      {
+        path: "/openapi/charities-uk.json",
+        id: "charities-uk",
+        prefix: "/v1/charities/uk",
+      },
+      {
+        path: "/openapi/public-funding-uk.json",
+        id: "public-funding-uk",
+        prefix: "/v1/public-funding/uk",
+      },
+      {
+        path: "/openapi/politics-uk.json",
+        id: "politics-uk",
+        prefix: "/v1/politics/uk",
+      },
+    ] as const;
+    const methods = [
+      "get",
+      "put",
+      "post",
+      "delete",
+      "options",
+      "head",
+      "patch",
+      "trace",
+    ] as const;
+
+    for (const definition of definitions) {
+      const response = await app.request(definition.path);
+      const representation = await response.text();
+      const document = JSON.parse(representation);
+
+      expect(response.status, definition.path).toBe(200);
+      expect(response.headers.get("content-type"), definition.path).toContain(
+        "application/vnd.oai.openapi+json",
+      );
+      expect(response.headers.get("cache-control"), definition.path).toBe(
+        "public, max-age=300, must-revalidate",
+      );
+      expect(response.headers.get("etag"), definition.path).toMatch(
+        /^"sha256-[a-f0-9]{64}"$/,
+      );
+      expect(response.headers.get("etag"), definition.path).toBe(
+        `"sha256-${createHash("sha256").update(representation, "utf8").digest("hex")}"`,
+      );
+      expect(response.headers.get("content-location"), definition.path).toBe(
+        definition.path,
+      );
+      expect(response.headers.get("link"), definition.path).toContain(
+        `</openapi.json>; rel="alternate"`,
+      );
+      expect(document.openapi, definition.path).toBe("3.1.0");
+      expect(document.servers, definition.path).toEqual([
+        { url: "https://api.taxsorted.io" },
+      ]);
+      expect(document["x-taxsorted-slice"], definition.path).toMatchObject({
+        id: definition.id,
+        canonical: definition.path,
+        fullSpecification: "/openapi.json",
+      });
+      expect(
+        document["x-taxsorted-slice"].availableSlices,
+        definition.path,
+      ).toEqual(
+        expect.arrayContaining([
+          {
+            id: "charities-uk",
+            href: "/openapi/charities-uk.json",
+            title: "TaxSorted UK Charities API",
+          },
+        ]),
+      );
+      expect(representation.length, definition.path).toBeLessThan(
+        fullRepresentation.length,
+      );
+      expect(document.components?.securitySchemes?.WorkspaceKey).toBeUndefined();
+      expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
+
+      const operationIds = new Set<string>();
+      let operationCount = 0;
+      for (const [operationPath, pathItem] of Object.entries(document.paths)) {
+        if (definition.prefix) {
+          expect(
+            operationPath === definition.prefix ||
+              operationPath.startsWith(`${definition.prefix}/`),
+            `${definition.path} leaked ${operationPath}`,
+          ).toBe(true);
+        }
+        for (const method of methods) {
+          const operation = (pathItem as Record<string, unknown>)[method];
+          if (!operation || typeof operation !== "object") continue;
+          const typedOperation = operation as Record<string, unknown>;
+          expect(
+            typedOperation.operationId,
+            `${definition.path}: ${method.toUpperCase()} ${operationPath}`,
+          ).toEqual(expect.any(String));
+          expect(
+            typedOperation.tags,
+            `${definition.path}: ${method.toUpperCase()} ${operationPath}`,
+          ).toEqual([expect.any(String)]);
+          const operationId = typedOperation.operationId as string;
+          expect(operationIds.has(operationId), operationId).toBe(false);
+          operationIds.add(operationId);
+          operationCount += 1;
+        }
+      }
+      expect(operationCount, definition.path).toBeGreaterThan(0);
+      expect(document["x-taxsorted-slice"].operationCount).toBe(operationCount);
+
+      const references = [
+        ...representation.matchAll(/"\$ref":"(#\/components\/[^"#]+)"/gu),
+      ].map((match) => match[1]);
+      expect(references.length, definition.path).toBeGreaterThan(0);
+      for (const reference of references) {
+        const [, , group, name] = reference!.split("/");
+        expect(
+          document.components?.[group!]?.[name!],
+          `${definition.path} does not contain ${reference}`,
+        ).toBeDefined();
+      }
+    }
+
+    const publicDocument = await (
+      await app.request("/openapi-public.json")
+    ).json();
+    expect(publicDocument.paths).toHaveProperty("/v1/wake");
+    expect(publicDocument.paths).toHaveProperty("/v1/health");
+    expect(publicDocument.paths).toHaveProperty("/v1/open-data/releases");
+    expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
+    expect(publicDocument.paths).toHaveProperty("/v1/politics/uk/datasets");
+    expect(publicDocument.paths).not.toHaveProperty(
+      "/v1/uk/sdlt/calculations",
+    );
+    expect(publicDocument.paths["/v1/politics/uk"].get).toMatchObject({
+      operationId: "getV1PoliticsUk",
+      tags: ["UK politics"],
+    });
+    expect(browserSessionCalls()).toBe(0);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it("refuses to place an authenticated operation inside a public slice", () => {
+    const app = new OpenAPIHono();
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: "/v1/open-data/private-probe",
+      summary: "Synthetic authenticated route",
+      security: [{ WorkspaceKey: [] }],
+      responses: { 200: { description: "Should never enter a public slice." } },
+    });
+
+    expect(() => registerDeveloperApi(app, "https://api.taxsorted.io")).toThrow(
+      /not explicitly sessionless/i,
+    );
+  });
+
+  it("revalidates OpenAPI slices by exact representation and supports HEAD", async () => {
+    const { app } = mount();
+    const path = "/openapi/charities-uk.json";
+    const first = await app.request(path);
+    const etag = first.headers.get("etag")!;
+
+    const unchanged = await app.request(path, {
+      headers: { "If-None-Match": `"elsewhere", W/${etag}` },
+    });
+    expect(unchanged.status).toBe(304);
+    expect(await unchanged.text()).toBe("");
+    expect(unchanged.headers.get("etag")).toBe(etag);
+
+    const head = await app.request(path, { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect(head.headers.get("etag")).toBe(etag);
+
+    const unchangedHead = await app.request(path, {
+      method: "HEAD",
+      headers: { "If-None-Match": "*" },
+    });
+    expect(unchangedHead.status).toBe(304);
+    expect(await unchangedHead.text()).toBe("");
   });
 
   it("authenticates the machine call without touching the browser session rail", async () => {

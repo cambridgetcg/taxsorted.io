@@ -30,6 +30,12 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/v1/open-data")).toBe(true);
     expect(isPublicCivicPath("/v1/open-data-evil")).toBe(false);
     expect(isPublicCivicPath("/openapi.json")).toBe(true);
+    expect(isPublicCivicPath("/openapi-public.json")).toBe(true);
+    expect(isPublicCivicPath("/openapi/charities-uk.json")).toBe(true);
+    expect(isPublicCivicPath("/openapi/politics-uk.json")).toBe(true);
+    expect(isPublicCivicPath("/openapi/private.json")).toBe(false);
+    expect(isPublicCivicPath("/openapi/charities-uk.json/evil")).toBe(false);
+    expect(isPublicCivicPath("/openapi-public.json-evil")).toBe(false);
     expect(isPublicCivicPath("/agent.txt")).toBe(true);
     expect(isPublicCivicPath("/.well-known/agent.txt")).toBe(true);
     expect(isPublicCivicPath("/agent.txt-evil")).toBe(false);
@@ -40,6 +46,25 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/v1/public-funding/uk-evil")).toBe(false);
 
     const { app, sessionCalls } = mount();
+    const openApiPreflight = await app.request(
+      "/openapi/charities-uk.json",
+      {
+        method: "OPTIONS",
+        headers: {
+          Origin: "https://law-stack.example",
+          "Access-Control-Request-Method": "GET",
+          "Access-Control-Request-Headers": "If-None-Match",
+        },
+      },
+    );
+    expect(openApiPreflight.status).toBe(204);
+    expect(openApiPreflight.headers.get("access-control-allow-origin")).toBe(
+      "*",
+    );
+    expect(
+      openApiPreflight.headers.get("access-control-allow-headers"),
+    ).toContain("If-None-Match");
+
     const response = await app.request("/v1/open-data", {
       headers: { Origin: "https://law-stack.example", Cookie: "existing=1" },
     });
@@ -55,18 +80,36 @@ describe("open-data catalog", () => {
     expect(response.headers.get("link")).toContain(
       '</agent.txt>; rel="related"; type="text/plain"; title="Agent discovery"'
     );
+    expect(response.headers.get("link")).toContain(
+      '</openapi-public.json>; rel="service-desc"',
+    );
+    expect(response.headers.get("link")).toContain(
+      '</openapi.json>; rel="related"',
+    );
     expect(response.headers.get("etag")).toMatch(/^"sha256-/);
     expect(sessionCalls()).toBe(0);
     expect(body.access).toMatchObject({
       authentication: "none",
       price: "free",
       agentDiscovery: "/agent.txt",
+      openApi: "/openapi.json",
+      openApiPublic: "/openapi-public.json",
+      openApiSlices: {
+        taxSystem: "/openapi/tax-system-uk.json",
+        charities: "/openapi/charities-uk.json",
+      },
     });
     expect(body.datasets).toHaveLength(5);
     expect(body.datasets[0].publication.fullDatasetAvailable).toBe(true);
     expect(body.datasets[1].publication.fullDatasetAvailable).toBe(false);
     expect(body.datasets[1].resources.exports).toBe(
       "/v1/tax-industry/uk/exports"
+    );
+    expect(body.datasets[0].resources.recordResolver).toBe(
+      "/v1/tax-system/uk/records/{id}"
+    );
+    expect(body.datasets[1].resources.recordResolver).toBe(
+      "/v1/tax-industry/uk/records/{id}"
     );
     expect(body.datasets[0].updatePolicy).toMatchObject({
       cadence: expect.stringMatching(/evidence-driven/),
@@ -86,6 +129,8 @@ describe("open-data catalog", () => {
       resources: {
         overview: "/v1/charities/uk",
         registers: "/v1/charities/uk/registers",
+        recordResolver: "/v1/charities/uk/records/{id}",
+        releaseLedger: "/v1/open-data/releases",
         accountability: "/v1/charities/uk/accountability",
         accountabilitySchema: "/v1/charities/uk/accountability/schema",
         humanGuide: "https://taxsorted.io/uk/charities",
@@ -116,6 +161,11 @@ describe("open-data catalog", () => {
       },
     });
     expect(body.reuse.sourceRights).toMatch(/leave uncertainty explicit/);
+    expect(body.releaseDiscovery).toMatchObject({
+      ledger: "/v1/open-data/releases",
+      jsonFeed: "/v1/open-data/releases/feed.json",
+      atom: "/v1/open-data/releases/feed.atom",
+    });
     expect(body.reuse.corrections).toBe(
       "https://github.com/cambridgetcg/taxsorted.io/issues"
     );
@@ -292,6 +342,9 @@ describe("open-data catalog", () => {
       const response = await app.request(path);
       expect(response.status, path).toBe(400);
       expect(response.headers.get("cache-control"), path).toBe("no-store");
+      expect(response.headers.get("content-type"), path).toContain(
+        "application/problem+json",
+      );
       expect(await response.json(), path).toMatchObject({
         error: "unknown_query_parameter",
       });

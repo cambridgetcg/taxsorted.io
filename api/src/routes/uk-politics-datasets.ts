@@ -24,6 +24,7 @@ import {
   type PoliticsBulkPublicationApproval,
   type PoliticsOpenDataset,
 } from "../uk-politics-datasets.js";
+import { problemDetails, type ProblemNextAction } from "../problem-details.js";
 
 const API_ROOT = "/v1/politics/uk";
 const DATASETS_ROOT = `${API_ROOT}/datasets`;
@@ -37,10 +38,6 @@ const MEDIA_TYPES: Record<DownloadFormat, string> = {
   csv: "text/csv; charset=UTF-8",
   ndjson: "application/x-ndjson; charset=UTF-8",
 };
-
-function noStore(c: Context) {
-  c.header("Cache-Control", "no-store");
-}
 
 function checksumFromEtag(etag: string) {
   return etag.slice('"sha256-'.length, -1);
@@ -349,7 +346,8 @@ function commonHeaders(
           (url) => `<${url}>; rel="describedby"; type="application/schema+json"`
         ),
         `<${options.licenseLocation ?? RIGHTS_PATH}>; rel="license"`,
-        `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+        `</openapi/politics-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+        `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
       ];
   c.header("Link", links.join(", "));
   if (options.attachmentFilename) {
@@ -370,15 +368,23 @@ function deterministicResponse(
 }
 
 function datasetNotFound(c: Context) {
-  noStore(c);
-  return c.json(
-    {
-      error: "dataset_not_found",
-      message: "No static dataset screened as a public-distribution candidate has that ID.",
+  const detail =
+    "No static dataset screened as a public-distribution candidate has that ID.";
+  return problemDetails(c, 404, {
+    error: "dataset_not_found",
+    detail,
+    extensions: {
+      message: detail,
       catalogue: DATASETS_ROOT,
     },
-    404
-  );
+    nextActions: [
+      {
+        method: "GET",
+        href: DATASETS_ROOT,
+        description: "List the screened public-distribution candidates.",
+      },
+    ],
+  });
 }
 
 function datasetEnvelope(
@@ -440,26 +446,39 @@ export function createUkPoliticsDatasetRoutes(
         : "publication-review";
 
   const stopped = (c: Context) => {
-    noStore(c);
-    return c.json(
+    const error = bulkDataEmergencyStop
+      ? "bulk_data_emergency_stop"
+      : bulkDataApproval
+        ? "bulk_data_publication_disabled"
+        : "bulk_data_publication_review_needed";
+    const detail = bulkDataEmergencyStop
+      ? "Static UK politics record bodies are temporarily stopped for safety review. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable."
+      : bulkDataApproval
+        ? "The admission ledger is approved, but hosted bulk publication is disabled. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable."
+        : "Static UK politics record bodies are closed until a human approves the public-distribution review and a confidential safety-reporting route exists. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable.";
+    const nextActions: ProblemNextAction[] = [
       {
-        error: bulkDataEmergencyStop
-          ? "bulk_data_emergency_stop"
-          : bulkDataApproval
-            ? "bulk_data_publication_disabled"
-            : "bulk_data_publication_review_needed",
-        message:
-          bulkDataEmergencyStop
-            ? "Static UK politics record bodies are temporarily stopped for safety review. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable."
-            : bulkDataApproval
-              ? "The admission ledger is approved, but hosted bulk publication is disabled. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable."
-              : "Static UK politics record bodies are closed until a human approves the public-distribution review and a confidential safety-reporting route exists. The catalogue, admission ledger, rights statement and bulk dataset schemas remain readable.",
+        method: "GET",
+        href: DATASETS_ROOT,
+        description: "Read the dataset catalogue and publication state.",
+      },
+      {
+        method: "GET",
+        href: ADMISSIONS_PATH,
+        description: "Read the publication admission ledger.",
+      },
+    ];
+    return problemDetails(c, 503, {
+      error,
+      detail,
+      extensions: {
+        message: detail,
         catalogue: DATASETS_ROOT,
         rights: RIGHTS_PATH,
         admissions: ADMISSIONS_PATH,
       },
-      503
-    );
+      nextActions,
+    });
   };
 
   app.get("/", (c) => {
@@ -591,16 +610,23 @@ export function createUkPoliticsDatasetRoutes(
       !format ||
       !SUPPORTED_FORMATS.includes(format as DownloadFormat)
     ) {
-      noStore(c);
-      return c.json(
-        {
-          error: "invalid_format",
-          message: "Choose one exact format value.",
+      const detail = "Choose one exact format value.";
+      return problemDetails(c, 400, {
+        error: "invalid_format",
+        detail,
+        extensions: {
+          message: detail,
           supportedFormats: SUPPORTED_FORMATS,
           unknownParameters: unknown,
         },
-        400
-      );
+        nextActions: [
+          {
+            method: "GET",
+            href: `${DATASETS_ROOT}/${dataset.id}`,
+            description: "Read this dataset's explicit distribution URLs.",
+          },
+        ],
+      });
     }
     const typedFormat = format as DownloadFormat;
     const body = downloadBody(

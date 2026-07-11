@@ -13,6 +13,7 @@ import { formalPowerReferencesForPerson } from "../uk-politics-system.js";
 import { createUkPoliticsDatasetRoutes } from "./uk-politics-datasets.js";
 import { createUkPoliticsSystemRoutes } from "./uk-politics-system.js";
 import { createUkPublicIntegrityRoutes } from "./uk-public-integrity.js";
+import { problemDetails, type ProblemNextAction } from "../problem-details.js";
 
 const MEMBERS_API = "https://members-api.parliament.uk";
 const MEMBERS_DOCS = `${MEMBERS_API}/index.html`;
@@ -365,8 +366,38 @@ function personalJson(c: Context, body: unknown) {
 }
 
 function errorJson(c: Context, body: unknown, status: 400 | 404 | 422 | 502 | 503 | 504) {
-  c.header("Cache-Control", "no-store");
-  return c.json(body, status);
+  const extensions =
+    typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>)
+      : {};
+  const error =
+    typeof extensions.error === "string" ? extensions.error : "request_failed";
+  const detail =
+    typeof extensions.message === "string"
+      ? extensions.message
+      : "The requested UK politics resource could not be served.";
+  const suppliedActions = Array.isArray(extensions.nextActions)
+    ? extensions.nextActions.filter(
+        (action): action is ProblemNextAction =>
+          typeof action === "object" && action !== null,
+      )
+    : [];
+  return problemDetails(c, status, {
+    error,
+    detail,
+    extensions,
+    nextActions:
+      suppliedActions.length > 0
+        ? suppliedActions
+        : [
+            {
+              method: "GET",
+              href: "/v1/politics/uk",
+              description:
+                "Read the politics route map, publication state and public methods.",
+            },
+          ],
+  });
 }
 
 function houseName(value: number | undefined): HouseName | null {

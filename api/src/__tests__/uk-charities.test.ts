@@ -207,14 +207,28 @@ describe("public UK charity-sector API", () => {
       "/v1/charities/uk/accountability?organisationId=anything"
     );
     expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toMatchObject({
+    expect(invalid.headers.get("content-type")).toContain(
+      "application/problem+json"
+    );
+    const invalidBody = await invalid.json();
+    expect(invalidBody).toMatchObject({
+      type: "https://api.taxsorted.io/problems/unknown_query_parameter",
+      title: "Unknown query parameter",
+      status: 400,
+      detail:
+        "This static representation does not accept query parameters; use a collection query for filtering.",
+      reason:
+        "This static representation does not accept query parameters; use a collection query for filtering.",
+      instance: "/v1/charities/uk/accountability",
       schema: "taxsorted.charity-error/1",
       error: "unknown_query_parameter",
       method: "GET",
       path: "/v1/charities/uk/accountability",
       walls_intact: true,
+      nextActions: expect.any(Array),
       next_actions: expect.any(Array),
     });
+    expect(invalidBody.nextActions).toEqual(invalidBody.next_actions);
   });
 
   it("applies only meaningful exact filters and bounded paging", async () => {
@@ -283,6 +297,54 @@ describe("public UK charity-sector API", () => {
     );
   });
 
+  it("resolves a stable ID without making the caller guess its collection", async () => {
+    const { app } = mount();
+    const regulator = ukCharities.regulators[0];
+    const resolved = await app.request(
+      `/v1/charities/uk/records/${regulator.id}`
+    );
+    expect(resolved.status).toBe(200);
+    expect(resolved.headers.get("content-location")).toBe(
+      `/v1/charities/uk/records/${regulator.id}`
+    );
+    expect(resolved.headers.get("link")).toContain(
+      `</v1/charities/uk/regulators/${regulator.id}>; rel="canonical"`
+    );
+    expect(await resolved.json()).toMatchObject({
+      collection: "regulators",
+      corpusKey: "regulators",
+      canonicalUrl: `/v1/charities/uk/regulators/${regulator.id}`,
+      data: { id: regulator.id },
+      links: {
+        self: `/v1/charities/uk/records/${regulator.id}`,
+        canonical: `/v1/charities/uk/regulators/${regulator.id}`,
+      },
+    });
+
+    const missing = await app.request(
+      "/v1/charities/uk/records/record-not-real"
+    );
+    expect(missing.status).toBe(404);
+    const missingBody = await missing.json();
+    expect(missingBody).toMatchObject({
+      type: "https://api.taxsorted.io/problems/not_found",
+      status: 404,
+      error: "not_found",
+      nextActions: [{ href: "/v1/charities/uk" }],
+      next_actions: [{ href: "/v1/charities/uk" }],
+    });
+    expect(missingBody.nextActions).toEqual(missingBody.next_actions);
+
+    const queried = await app.request(
+      `/v1/charities/uk/records/${regulator.id}?expand=true`
+    );
+    expect(queried.status).toBe(400);
+    expect(await queried.json()).toMatchObject({
+      error: "unknown_query_parameter",
+      parameters: ["expand"],
+    });
+  });
+
   it("rejects unknown, irrelevant, repeated and invalid query values", async () => {
     const { app } = mount();
     for (const filter of [
@@ -342,7 +404,13 @@ describe("public UK charity-sector API", () => {
 
     const badPage = await app.request("/v1/charities/uk/sources?limit=101");
     expect(badPage.status).toBe(400);
-    expect(await badPage.json()).toMatchObject({ error: "invalid_page" });
+    expect(await badPage.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/invalid_page",
+      status: 400,
+      error: "invalid_page",
+      nextActions: expect.any(Array),
+      next_actions: expect.any(Array),
+    });
 
     const longQuery = await app.request(
       `/v1/charities/uk/sources?q=${"x".repeat(101)}`
@@ -562,6 +630,43 @@ describe("public UK charity-sector API", () => {
     );
     expect(existing.status).toBe(503);
     expect(missing.status).toBe(503);
+
+    const publicSource = await app.request(
+      `/v1/charities/uk/records/${ukCharities.sources[0].id}`
+    );
+    const protectedTreatment = await app.request(
+      `/v1/charities/uk/records/${ukCharities.taxTreatments[0].id}`
+    );
+    const protectedUnknown = await app.request(
+      "/v1/charities/uk/records/record-not-real"
+    );
+    expect(publicSource.status).toBe(200);
+    expect(protectedTreatment.status).toBe(503);
+    expect(protectedUnknown.status).toBe(503);
+    expect(protectedTreatment.headers.get("content-type")).toBe(
+      protectedUnknown.headers.get("content-type")
+    );
+    expect(protectedTreatment.headers.get("cache-control")).toBe(
+      protectedUnknown.headers.get("cache-control")
+    );
+    const {
+      instance: _knownInstance,
+      path: _knownPath,
+      ...knownProblem
+    } = await protectedTreatment.json();
+    const {
+      instance: _unknownInstance,
+      path: _unknownPath,
+      ...unknownProblem
+    } = await protectedUnknown.json();
+    expect(unknownProblem).toEqual(knownProblem);
+
+    const protectedHead = await app.request(
+      `/v1/charities/uk/records/${ukCharities.taxTreatments[0].id}`,
+      { method: "HEAD" }
+    );
+    expect(protectedHead.status).toBe(503);
+    expect(await protectedHead.text()).toBe("");
 
     const exports = await (await app.request("/v1/charities/uk/exports")).json();
     expect(

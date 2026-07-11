@@ -178,7 +178,14 @@ checkpoint fail closed at boot. Later releases must append additions, updates, r
 tombstones. The deployment gate anchors that promise to the previously published live prefix,
 checks the candidate before deployment, revalidates the live result afterward and serialises
 releases. The promise therefore does not rest only on mutable source code. The other families
-still need equivalent public histories.
+still need equivalent record-level histories.
+
+A separate central ledger now gives all four open graph families an exact dataset-release
+baseline and forward checkpoint contract. It does not reconstruct record events. Its checked-in
+JSON is compared with the previously published live prefix before and after deployment, so an
+old dataset checkpoint cannot be silently rewritten. JSON Feed and Atom are views of the same
+rows. No immutable graph archive exists yet: the current graph URL is explicitly mutable and a
+caller must compare its bytes with the checkpoint digest.
 
 ### Provenance travels with the meaning
 
@@ -294,8 +301,9 @@ The workspace implements `/agent.txt` and `/.well-known/agent.txt` as equivalent
 machine-addressed discovery files. They point to the catalogue-derived JSON orientation at
 `/v1/wake`; the API root returns the same bytes only when the caller asks for
 `application/json`. The wake document points to OpenAPI, release history and the bounded
-charity accountability shape. Charity-route errors state their reason and give safe
-`next_actions`; they do not silently loosen a filter or safety wall to make a request succeed.
+charity accountability shape. Public errors add RFC 9457 fields and bounded recovery actions
+while retaining established endpoint fields; they do not silently loosen a filter or safety
+wall to make a request succeed. Problem instances omit query values.
 
 This narrow design was inspired by
 [XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), an agent-interaction and
@@ -375,9 +383,14 @@ currently a bounded query service rather than an ever-growing static archive.
 - The public-funding boundary publishes institutions, formal offices, governance units,
   aggregate allocations and functional contacts. It keeps office-holder names at dated official
   links and does not claim that pooled tax receipts trace to a specific provider or beneficiary.
-- Public-funding query pages expose continuation links; `/records/{id}` resolves a stable ID;
-  `/changes` exposes the honest release baseline. Government words-and-actions events remain a
-  proposed method, not a released dataset.
+- All four tax, industry, charity and public-funding graphs expose `/records/{id}` so a caller
+  can resolve a stable ID without guessing its collection. Closed publication makes unknown and
+  protected IDs deliberately indistinguishable. Public-funding query pages expose continuation
+  links and `/changes` exposes its record-history baseline. Government words-and-actions events
+  remain a proposed method, not a released dataset.
+- `/v1/open-data/releases` exposes exact dataset checkpoints for all four graphs, with JSON Feed
+  and Atom views and a deployment-enforced append-only prefix. It makes no retrospective
+  record-change claim and no claim of exact publication time.
 - Tax graph, structural-schema, dictionary, export-index and collection-export bodies and
   validators are prepared when the route is created. Meaningless query parameters on tax
   static routes are rejected instead of creating silent cache variants.
@@ -387,7 +400,9 @@ currently a bounded query service rather than an ever-growing static archive.
   makes the absence of a promised next release date explicit, and says that the present public
   correction route requires an account and cannot receive sensitive information.
 - Tax GET routes and the central catalogue have matching OpenAPI HEAD operations, including
-  `If-None-Match` and the response validators returned by the implementation.
+  `If-None-Match` and the response validators returned by the implementation. A bounded public
+  OpenAPI document and five self-contained dataset slices are cacheable by exact-byte ETag; a
+  slice rejects any operation that does not explicitly declare itself sessionless.
 - The politics catalogue contains 19 static datasets collectively screened against this draft
   boundary by agents and tests. The machine-readable
   `/v1/politics/uk/datasets/admissions` ledger now states the purpose, limits, field contracts,
@@ -408,9 +423,9 @@ currently a bounded query service rather than an ever-growing static archive.
   curation licence as a blanket licence over source material.
 - The central catalogue states that static routes currently have no application-level rate
   limit, may still face hosting or network abuse controls, and carry no uptime promise.
-- The OpenAPI document names all current UK politics route paths. Distribution responses have
-  top-level field schemas; nested values and many older query and method responses still use
-  broad response objects.
+- OpenAPI names all current UK politics route paths and the standard public error media types.
+  Distribution responses have top-level field schemas; nested values and many older success
+  responses still use broad response objects.
 - Named current-member, political-finance, ministerial-benefit and senior-officer routes are
   controlled by separate fail-closed gates. This workspace does not establish that any
   production gate is open.
@@ -435,8 +450,9 @@ These are gaps, not footnotes:
 - Enforcement power cards currently give one source list for the whole card rather than
   source-to-score evidence for each dimension.
 - There is no immutable public archive of every past dataset release yet.
-- Without a release and tombstone ledger, an outsider cannot yet audit the commitment not to
-  recycle a removed ID.
+- Outside the public-funding change baseline, there is no per-record release and tombstone
+  history. The central dataset checkpoint ledger therefore cannot yet prove that a removed ID
+  was never recycled between releases.
 - The public correction method is defined, but the complete public intake and response service
   is not live yet. GitHub issues require an account and must not contain private, personal or
   safety-sensitive details; a private correction route is still missing.

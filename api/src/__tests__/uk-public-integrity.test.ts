@@ -220,7 +220,17 @@ describe("public contract awards", () => {
       const response = await app.request(path);
       expect(response.status).toBe(422);
       expect(response.headers.get("cache-control")).toBe("no-store");
-      expect((await response.json()).error).toBe("invalid_query");
+      expect(response.headers.get("content-type")).toContain(
+        "application/problem+json",
+      );
+      expect(await response.json()).toMatchObject({
+        type: "https://api.taxsorted.io/problems/invalid_query",
+        title: "Invalid query",
+        status: 422,
+        instance: "/v1/politics/uk/relationships/contracts",
+        error: "invalid_query",
+        nextActions: [{ href: "/v1/politics/uk/integrity" }],
+      });
     }
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -240,7 +250,15 @@ describe("ministerial gifts and hospitality", () => {
 
     expect(response.status).toBe(503);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(body.error).toBe("publication_review_needed");
+    expect(response.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(body).toMatchObject({
+      title: "Publication review pending",
+      status: 503,
+      instance: "/v1/politics/uk/relationships/ministerial-benefits",
+      error: "publication_review_needed",
+    });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 

@@ -11,6 +11,9 @@ function appWithPublicErrors() {
   app.get("/unexpected", () => {
     throw new Error("private diagnostic");
   });
+  app.get("/v1/open-data/unexpected", () => {
+    throw new Error("private diagnostic");
+  });
   app.onError(apiErrorHandler);
   return app;
 }
@@ -44,5 +47,28 @@ describe("public API errors", () => {
       expect.stringMatching(/^server_error request_id=[0-9a-f-]{36} name=Error$/)
     );
     expect(consoleError.mock.calls.flat().join(" ")).not.toContain("private diagnostic");
+  });
+
+  it("uses the public problem contract without exposing the thrown error", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await appWithPublicErrors().request(
+      "/v1/open-data/unexpected?token=private",
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(body).toMatchObject({
+      type: "https://api.taxsorted.io/problems/server_error",
+      title: "Server error",
+      status: 500,
+      instance: "/v1/open-data/unexpected",
+      error: "server_error",
+      nextActions: [{ href: "/v1/health" }],
+    });
+    expect(JSON.stringify(body)).not.toContain("private diagnostic");
+    expect(JSON.stringify(body)).not.toContain("token=private");
   });
 });

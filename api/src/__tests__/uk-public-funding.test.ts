@@ -273,7 +273,12 @@ describe("public UK public-funding API", () => {
       "/v1/public-funding/uk/allocations?holderName=x",
     );
     expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toEqual({
+    expect(invalid.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(await invalid.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/unknown_filter",
+      status: 400,
       error: "unknown_filter",
       filters: ["holderName"],
     });
@@ -319,7 +324,18 @@ describe("public UK public-funding API", () => {
       "/v1/public-funding/uk/institutions?limit=0",
     );
     expect(invalid.status).toBe(400);
+    expect(invalid.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
     expect(await invalid.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/invalid_page",
+      title: "Invalid page",
+      status: 400,
+      detail:
+        "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
+      message:
+        "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
+      instance: "/v1/public-funding/uk/institutions",
       error: "invalid_page",
       nextActions: [{ method: "GET" }],
     });
@@ -376,8 +392,30 @@ describe("public UK public-funding API", () => {
     expect(invalid.status).toBe(400);
     expect(invalid.headers.get("cache-control")).toBe("no-store");
     expect(await invalid.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/invalid_cursor",
+      title: "Invalid cursor",
+      status: 400,
+      detail:
+        "The after cursor is unknown. Cursors are opaque and must be replayed unchanged from a prior response.",
+      message:
+        "The after cursor is unknown. Cursors are opaque and must be replayed unchanged from a prior response.",
+      instance: "/v1/public-funding/uk/changes",
       error: "invalid_cursor",
+      cursor: "made-up-cursor",
       nextActions: [{ href: "/v1/public-funding/uk/changes" }],
+    });
+
+    const invalidLimit = await app.request(
+      "/v1/public-funding/uk/changes?limit=0",
+    );
+    expect(invalidLimit.status).toBe(400);
+    expect(await invalidLimit.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/invalid_page",
+      status: 400,
+      instance: "/v1/public-funding/uk/changes",
+      error: "invalid_page",
+      message: "Change-feed limit must be an integer from 1 to 100.",
+      nextActions: [{ href: "/v1/public-funding/uk/changes?limit=100" }],
     });
     expect(sessionCalls()).toBe(0);
   });
@@ -435,7 +473,14 @@ describe("public UK public-funding API", () => {
     );
     expect(missing.status).toBe(404);
     expect(await missing.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/not_found",
+      title: "Resource not found",
+      status: 404,
+      detail: "No UK public-funding record has this stable dataset ID.",
+      instance: "/v1/public-funding/uk/records/record-not-real",
       error: "not_found",
+      message: "No UK public-funding record has this stable dataset ID.",
+      id: "record-not-real",
       nextActions: [{ href: "/v1/public-funding/uk" }],
     });
 
@@ -664,7 +709,17 @@ describe("public UK public-funding API", () => {
     expect(publicSource.status).toBe(200);
     expect(protectedInstitution.status).toBe(503);
     expect(protectedUnknown.status).toBe(503);
+    expect(protectedInstitution.headers.get("content-type")).toBe(
+      protectedUnknown.headers.get("content-type"),
+    );
+    expect(protectedInstitution.headers.get("cache-control")).toBe(
+      protectedUnknown.headers.get("cache-control"),
+    );
     const protectedBody = await protectedInstitution.json();
+    const unknownBody = await protectedUnknown.json();
+    const { instance: _knownInstance, ...knownProblem } = protectedBody;
+    const { instance: _unknownInstance, ...unknownProblem } = unknownBody;
+    expect(unknownProblem).toEqual(knownProblem);
     expect(protectedBody.error).toBe("publication_review_pending");
     expect(protectedBody.nextActions).toEqual(
       expect.arrayContaining([
@@ -673,6 +728,13 @@ describe("public UK public-funding API", () => {
         }),
       ]),
     );
+
+    const protectedHead = await app.request(
+      `/v1/public-funding/uk/records/${ukPublicFunding.institutions[0].id}`,
+      { method: "HEAD" },
+    );
+    expect(protectedHead.status).toBe(503);
+    expect(await protectedHead.text()).toBe("");
 
     const unknown = await app.request("/v1/public-funding/uk/not-a-route");
     expect(unknown.status).toBe(404);

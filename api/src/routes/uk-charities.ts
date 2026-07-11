@@ -17,6 +17,7 @@ import {
   allowedValuesFromJsonSchema,
   fieldsFromJsonSchema,
 } from "../open-data-dictionary.js";
+import { problemDetails } from "../problem-details.js";
 import {
   ukCharities,
   ukCharitiesSchema,
@@ -220,9 +221,27 @@ const mediaTypes: Record<ExportFormat, string> = {
 };
 
 type Identified = { id: string; sourceIds?: string[] } & Record<string, unknown>;
+type RecordLocation = {
+  path: string;
+  corpusKey: CollectionName;
+  data: Identified;
+};
 
 function itemsFor(corpus: UkCharities, name: CollectionName): Identified[] {
   return corpus[name] as unknown as Identified[];
+}
+
+function recordIndex(corpus: UkCharities) {
+  const records = new Map<string, RecordLocation>();
+  for (const [path, corpusKey] of Object.entries(paths)) {
+    for (const data of itemsFor(corpus, corpusKey)) {
+      if (records.has(data.id)) {
+        throw new Error(`Duplicate UK charity-sector record ID: ${data.id}`);
+      }
+      records.set(data.id, { path, corpusKey, data });
+    }
+  }
+  return records;
 }
 
 function schemaPropertiesFor(name: CollectionName) {
@@ -485,7 +504,8 @@ function cacheHeaders(
             `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
           ]
         : []),
-      `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi/charities-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
       `<${agentDiscoveryUrl}>; rel="related"; type="text/plain"; title="Agent discovery"`,
       ...(linkOptions.related ?? []).map(
         (related) =>
@@ -509,15 +529,24 @@ function cacheableRepresentation(
     disposition?: string;
     alternates?: Array<{ href: string; type: string }>;
     etag?: string;
+    canonicalLocation?: string;
     includeSectorDescriptions?: boolean;
     related?: Array<{ href: string; type: string; title: string }>;
   } = {}
 ) {
   const etag = options.etag ?? representationEtag(body);
-  cacheHeaders(c, corpus, etag, canonicalPath, options.alternates, canonicalPath, {
-    includeSectorDescriptions: options.includeSectorDescriptions,
-    related: options.related,
-  });
+  cacheHeaders(
+    c,
+    corpus,
+    etag,
+    canonicalPath,
+    options.alternates,
+    options.canonicalLocation ?? canonicalPath,
+    {
+      includeSectorDescriptions: options.includeSectorDescriptions,
+      related: options.related,
+    }
+  );
   if (options.disposition) c.header("Content-Disposition", options.disposition);
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
     return c.body(null, 304);
@@ -525,13 +554,19 @@ function cacheableRepresentation(
   return c.body(body, 200, { "Content-Type": contentType });
 }
 
-function cacheableJson(c: Context, corpus: UkCharities, value: unknown) {
+function cacheableJson(
+  c: Context,
+  corpus: UkCharities,
+  value: unknown,
+  options: { canonicalLocation?: string } = {}
+) {
   return cacheableRepresentation(
     c,
     corpus,
     canonicalJson(value),
     relativeUrl(c),
-    "application/json; charset=utf-8"
+    "application/json; charset=utf-8",
+    options
   );
 }
 
@@ -568,16 +603,20 @@ function instructionalError(
   ]
 ) {
   noStore(c);
-  return c.json(
-    {
+  return problemDetails(c, status, {
+    error,
+    detail: reason,
+    nextActions,
+    extensions: {
       schema: "taxsorted.charity-error/1",
-      error,
       method: c.req.method,
       path: c.req.path,
       ...details,
       reason,
       walls_intact: true,
       walls: charitySafetyWalls,
+      // Published before RFC 9457 adoption. Keep this alias until a versioned
+      // charity error contract can remove it without surprising callers.
       next_actions: nextActions,
       docs: {
         openapi: "/openapi.json",
@@ -585,8 +624,7 @@ function instructionalError(
         agent_discovery: agentDiscoveryUrl,
       },
     },
-    status
-  );
+  });
 }
 
 function rejectStaticQuery(c: Context) {
@@ -773,6 +811,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
   const accountabilitySchemaEtag = representationEtag(
     accountabilitySchemaRepresentation
   );
+  const records = recordIndex(corpus);
   const exportRepresentations = new Map<string, { body: string; etag: string }>();
 
   for (const [path, name] of Object.entries(paths)) {
@@ -792,6 +831,10 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       : c.req.path;
     const segments = relativePath.split("/").filter(Boolean);
     const collection = segments[0];
+    const resolverRequest = segments[0] === "records" && segments.length === 2;
+    const resolvedRecord = resolverRequest
+      ? records.get(segments[1])
+      : undefined;
     const collectionName = collection ? paths[collection] : undefined;
     const exportCollection = segments[0] === "exports" ? paths[segments[1]] : undefined;
     const exportFormat = segments[2] as ExportFormat | undefined;
@@ -807,9 +850,16 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         (segments.length === 1 || segments.length === 2) &&
         !publicWhenClosed.has(collection)) ||
       protectedExport;
+    const protectedResolver =
+      resolverRequest &&
+      (!resolvedRecord || !publicWhenClosed.has(resolvedRecord.path));
 
     const isRead = c.req.method === "GET" || c.req.method === "HEAD";
-    if (isRead && !fullCorpusAvailable && protectedPath) {
+    if (
+      isRead &&
+      !fullCorpusAvailable &&
+      (protectedPath || protectedResolver)
+    ) {
       return closedError(c, emergencyStop);
     }
     await next();
@@ -855,6 +905,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         fullGraph: `${basePath}/graph`,
         collections: Object.keys(paths).map((path) => `${basePath}/${path}`),
         item: `${basePath}/{collection}/{id}`,
+        record: `${basePath}/records/{id}`,
         filters: advertisedFilterKeys,
         schema: `${basePath}/schema`,
         dictionary: `${basePath}/dictionary`,
@@ -924,6 +975,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       schemaDocument: `${basePath}/schema`,
       dictionary: `${basePath}/dictionary`,
       exports: `${basePath}/exports`,
+      recordResolver: `${basePath}/records/{id}`,
       accountability: {
         status: ukCharityAccountabilityFramework.status,
         recordsAvailable: false,
@@ -998,6 +1050,46 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
           },
         ],
       }
+    );
+  });
+
+  app.get("/records/:id", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    const id = c.req.param("id");
+    const resolved = records.get(id);
+    if (!resolved) {
+      return instructionalError(
+        c,
+        404,
+        "not_found",
+        "No UK charity-sector record has this stable dataset ID.",
+        { id },
+        [
+          {
+            action: "orient",
+            method: "GET",
+            href: basePath,
+            description: "Discover collections, filters and bulk exports.",
+          },
+        ]
+      );
+    }
+    const canonicalUrl = `${basePath}/${resolved.path}/${resolved.data.id}`;
+    return cacheableJson(
+      c,
+      corpus,
+      {
+        collection: resolved.path,
+        corpusKey: resolved.corpusKey,
+        canonicalUrl,
+        data: resolved.data,
+        links: {
+          self: `${basePath}/records/${resolved.data.id}`,
+          canonical: canonicalUrl,
+        },
+      },
+      { canonicalLocation: canonicalUrl }
     );
   });
 

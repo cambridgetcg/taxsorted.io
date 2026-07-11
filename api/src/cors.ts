@@ -43,10 +43,20 @@ const publicAgentPaths = new Set([
   "/v1/health",
 ]);
 
+const publicOpenApiPaths = new Set([
+  "/openapi.json",
+  "/openapi-public.json",
+  "/openapi/tax-system-uk.json",
+  "/openapi/tax-industry-uk.json",
+  "/openapi/charities-uk.json",
+  "/openapi/public-funding-uk.json",
+  "/openapi/politics-uk.json",
+]);
+
 export function isPublicCivicPath(path: string) {
   return (
     publicAgentPaths.has(path) ||
-    path === "/openapi.json" ||
+    publicOpenApiPaths.has(path) ||
     publicCivicBases.some(
       (base) => path === base || path.startsWith(`${base}/`),
     )

@@ -7,10 +7,12 @@ import {
   ifNoneMatchMatches,
   representationEtag,
 } from "../open-data.js";
+import { noSuchDoorProblem, problemDetails } from "../problem-details.js";
 import {
   buildOpenDataCatalog,
   type OpenDataRouteOptions,
 } from "./open-data.js";
+import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
 
 const apiOrigin = "https://api.taxsorted.io";
 const humanOrigin = "https://taxsorted.io";
@@ -51,8 +53,12 @@ agent-door: ${apiOrigin}${wakePath}
 wake: GET ${apiOrigin}${wakePath}
 open-data: GET ${apiOrigin}${catalogPath}
 rights: GET ${apiOrigin}${rightsPath}
-openapi: GET ${apiOrigin}/openapi.json
+openapi-public: GET ${apiOrigin}/openapi-public.json
+openapi-full: GET ${apiOrigin}/openapi.json
 health: GET ${apiOrigin}/v1/health
+release-ledger: GET ${apiOrigin}${releaseDiscoveryHandles.ledger}
+release-json-feed: GET ${apiOrigin}${releaseDiscoveryHandles.jsonFeed}
+release-atom-feed: GET ${apiOrigin}${releaseDiscoveryHandles.atom}
 public-funding-changes: GET ${apiOrigin}/v1/public-funding/uk/changes
 charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
 charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
@@ -68,7 +74,10 @@ session: none on this doorway
 cookies: none on this doorway
 writes: none on this doorway
 methods: GET, HEAD, OPTIONS
-formats: application/json, application/x-ndjson, text/csv
+formats: application/json, application/x-ndjson, text/csv, application/feed+json, application/atom+xml
+format-selection: follow each export index's explicit representation URLs; Accept does not switch graph formats
+errors: RFC 9457 fields; application/problem+json by default, application/json when explicitly requested
+error-instance: route path only; query values are never reflected
 xenia-source: ${xeniaAttribution.source}
 xenia-credit: XENIA by ${xeniaAttribution.creators.join(" and ")}
 xenia-licence: ${xeniaAttribution.licence.url}
@@ -125,7 +134,9 @@ function publicHeaders(
       `<${wakePath}>; rel="service"; type="application/json"`,
       `<${catalogPath}>; rel="collection"; type="application/json"`,
       `<${rightsPath}>; rel="license"; type="application/json"`,
-      `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi-public.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"; title="Public read API"`,
+      `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
+      `<${releaseDiscoveryHandles.ledger}>; rel="collection"; type="application/json"; title="Public release checkpoints"`,
       `</agent.txt>; rel="alternate"; type="text/plain"`,
       `<${xeniaAttribution.source}>; rel="related"; title="XENIA"`,
       `<${xeniaAttribution.licence.url}>; rel="license"; title="Agent doorway content licence"`,
@@ -143,16 +154,17 @@ function queryError(
   retryHref: string,
   accepts = ["application/json"],
 ) {
-  c.header("Cache-Control", "no-store");
-  c.header("Content-Type", "application/json; charset=utf-8");
-  c.header("X-Content-Type-Options", "nosniff");
-  const body = {
-    schema: "taxsorted.agent-error/1",
+  const detail = "This doorway does not use query parameters.";
+  return problemDetails(c, 400, {
     error: "unknown_query_parameter",
-    message: "This doorway does not use query parameters.",
-    method: c.req.method,
-    path: c.req.path,
-    parameters,
+    detail,
+    extensions: {
+      schema: "taxsorted.agent-error/1",
+      message: detail,
+      method: c.req.method,
+      path: c.req.path,
+      parameters,
+    },
     nextActions: [
       {
         id: "retry-without-query",
@@ -162,9 +174,7 @@ function queryError(
         description: "Retry the same public resource without a query string.",
       },
     ],
-  } as const;
-  if (c.req.method === "HEAD") return c.body(null, 400);
-  return c.json(body, 400);
+  });
 }
 
 function methodError(
@@ -173,18 +183,18 @@ function methodError(
   accepts = ["application/json"],
 ) {
   c.header("Allow", "GET, HEAD, OPTIONS");
-  c.header("Cache-Control", "no-store");
-  c.header("Content-Type", "application/json; charset=utf-8");
-  c.header("X-Content-Type-Options", "nosniff");
-  return c.json(
-    {
+  const detail = "The machine doorway is read-only.";
+  return problemDetails(c, 405, {
+    error: "method_not_allowed",
+    detail,
+    extensions: {
       schema: "taxsorted.agent-error/1",
-      error: "method_not_allowed",
-      message: "The machine doorway is read-only.",
+      message: detail,
       method: c.req.method,
       path,
       parameters: [],
-      nextActions: [
+    },
+    nextActions: [
         {
           id: "retry-with-read-method",
           method: "GET",
@@ -192,10 +202,8 @@ function methodError(
           accepts,
           description: "Read this doorway without creating or changing state.",
         },
-      ],
-    },
-    405,
-  );
+    ],
+  });
 }
 
 function datasetHandles(catalog: ReturnType<typeof buildOpenDataCatalog>) {
@@ -236,6 +244,13 @@ function evidenceLane(
 export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
   const catalog = buildOpenDataCatalog(options);
   const catalogBody = canonicalJson(catalog);
+  const datasetChangeLane = evidenceLane(
+    catalog,
+    "release-history",
+    "Append-only release history",
+    "Caller-held cursors for detecting reviewed dataset publication changes without creating an identity session.",
+    ["changes"],
+  );
 
   return {
     schema: "taxsorted.agent-wake/1",
@@ -321,7 +336,18 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         etag: representationEtag(catalogBody),
       },
       rights: { href: rightsPath },
-      openApi: { href: "/openapi.json" },
+      openApi: {
+        publicHref: "/openapi-public.json",
+        fullHref: "/openapi.json",
+        datasetSlices: {
+          taxSystem: "/openapi/tax-system-uk.json",
+          taxIndustry: "/openapi/tax-industry-uk.json",
+          charities: "/openapi/charities-uk.json",
+          publicFunding: "/openapi/public-funding-uk.json",
+          politics: "/openapi/politics-uk.json",
+        },
+      },
+      releases: releaseDiscoveryHandles,
       health: { href: "/v1/health" },
       corrections: {
         href: correctionsUrl,
@@ -369,13 +395,17 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         "Export indexes and screened dataset catalogues for efficient reuse.",
         ["exports", "catalog"],
       ),
-      evidenceLane(
-        catalog,
-        "release-history",
-        "Append-only release history",
-        "Caller-held cursors for detecting reviewed dataset publication changes without creating an identity session.",
-        ["changes"],
-      ),
+      {
+        ...datasetChangeLane,
+        description:
+          "Central dataset-release checkpoints plus any dataset-specific record-level change feeds. Both are caller-held and create no identity session.",
+        resources: [
+          { resource: "releaseLedger", href: releaseDiscoveryHandles.ledger },
+          { resource: "releaseJsonFeed", href: releaseDiscoveryHandles.jsonFeed },
+          { resource: "releaseAtomFeed", href: releaseDiscoveryHandles.atom },
+          ...datasetChangeLane.resources,
+        ],
+      },
       {
         id: "rights-and-corrections",
         title: "Rights and corrections",
@@ -407,9 +437,18 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
       {
         id: "inspect-api-contract",
         method: "GET",
-        href: "/openapi.json",
+        href: "/openapi-public.json",
         accepts: ["application/json"],
-        description: "Inspect the typed API contract and available filters.",
+        description:
+          "Inspect the bounded public-read API contract, then follow a dataset slice when useful.",
+      },
+      {
+        id: "watch-release-checkpoints",
+        method: "GET",
+        href: releaseDiscoveryHandles.ledger,
+        accepts: ["application/json"],
+        description:
+          "Read exact dataset-release baselines and forward checkpoints without invented record history.",
       },
       {
         id: "resume-public-funding-mirror",
@@ -502,8 +541,7 @@ export function createAgentInterfaceRoutes(options: OpenDataRouteOptions = {}) {
   app.on(["GET", "HEAD"], wakePath, (c) => sendWake(c, wakeBody, wakeEtag));
   app.on(["GET", "HEAD"], "/", (c) => {
     if (!acceptsJson(c.req.header("Accept"))) {
-      c.header("Cache-Control", "no-store");
-      return c.json({ error: "no_such_door" }, 404);
+      return noSuchDoorProblem(c);
     }
     return sendWake(c, wakeBody, wakeEtag);
   });

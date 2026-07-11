@@ -18,6 +18,7 @@ import {
   allowedValuesFromJsonSchema,
   fieldsFromJsonSchema,
 } from "../open-data-dictionary.js";
+import { problemDetails, type ProblemNextAction } from "../problem-details.js";
 import {
   ukPublicFunding,
   ukPublicFundingSchema,
@@ -668,7 +669,8 @@ function cacheHeaders(
       `<${correctionsUrl}>; rel="help"`,
       `<${basePath}/dictionary>; rel="describedby"; type="application/json"`,
       `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
-      `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi/public-funding-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
       ...alternates.map(
         (alternate) =>
           `<${alternate.href}>; rel="alternate"; type="${alternate.type}"`,
@@ -727,28 +729,38 @@ function cacheableJson(
   );
 }
 
-function noStore(c: Context) {
-  c.header("Cache-Control", "no-store");
+function publicFundingProblem(
+  c: Context,
+  status: 400 | 404 | 503,
+  error: string,
+  detail: string,
+  extensions: Readonly<Record<string, unknown>>,
+  nextActions: readonly ProblemNextAction[],
+) {
+  return problemDetails(c, status, {
+    error,
+    detail,
+    nextActions,
+    extensions: { message: detail, ...extensions },
+  });
 }
 
 function rejectStaticQuery(c: Context) {
   const parameters = [...new URL(c.req.url).searchParams.keys()];
   if (parameters.length === 0) return undefined;
-  noStore(c);
-  return c.json(
-    {
-      error: "unknown_query_parameter",
-      message: "This static resource does not accept query parameters.",
-      parameters: [...new Set(parameters)].sort(),
-      nextActions: [
-        {
-          method: "GET",
-          href: new URL(c.req.url).pathname,
-          description: "Retry the same resource without query parameters.",
-        },
-      ],
-    },
+  return publicFundingProblem(
+    c,
     400,
+    "unknown_query_parameter",
+    "This static resource does not accept query parameters.",
+    { parameters: [...new Set(parameters)].sort() },
+    [
+      {
+        method: "GET",
+        href: new URL(c.req.url).pathname,
+        description: "Retry the same resource without query parameters.",
+      },
+    ],
   );
 }
 
@@ -1110,18 +1122,22 @@ export function createUkPublicFundingRoutes(
         protectedExport ||
         protectedResolver)
     ) {
-      noStore(c);
-      return c.json(
+      const error = emergencyStop
+        ? "publication_emergency_stopped"
+        : "publication_review_pending";
+      const detail = emergencyStop
+        ? "The full public-funding graph is temporarily stopped while a publication issue is reviewed; sources and known gaps remain public."
+        : "The reviewed source ledger and gap register remain public while the full public-funding graph is closed.";
+      return publicFundingProblem(
+        c,
+        503,
+        error,
+        detail,
         {
-          error: emergencyStop
-            ? "publication_emergency_stopped"
-            : "publication_review_pending",
-          message: emergencyStop
-            ? "The full public-funding graph is temporarily stopped while a publication issue is reviewed; sources and known gaps remain public."
-            : "The reviewed source ledger and gap register remain public while the full public-funding graph is closed.",
           sources: `${basePath}/sources`,
           gaps: `${basePath}/gaps`,
-          nextActions: [
+        },
+        [
             {
               method: "GET",
               href: `${basePath}/sources`,
@@ -1138,9 +1154,7 @@ export function createUkPublicFundingRoutes(
               description:
                 "Check the append-only release checkpoint and cursor.",
             },
-          ],
-        },
-        503,
+        ],
       );
     }
     await next();
@@ -1235,64 +1249,60 @@ export function createUkPublicFundingRoutes(
     const allowed = new Set(["after", "limit"]);
     const unknown = [...searchParams.keys()].filter((key) => !allowed.has(key));
     if (unknown.length) {
-      noStore(c);
-      return c.json(
-        {
-          error: "unknown_query_parameter",
-          message: "The change feed accepts only after and limit.",
-          parameters: [...new Set(unknown)].sort(),
-          nextActions: [
+      return publicFundingProblem(
+        c,
+        400,
+        "unknown_query_parameter",
+        "The change feed accepts only after and limit.",
+        { parameters: [...new Set(unknown)].sort() },
+        [
             {
               method: "GET",
               href: `${basePath}/changes`,
               description: "Start at the first public change-feed checkpoint.",
             },
-          ],
-        },
-        400,
+        ],
       );
     }
     const repeated = [...new Set(searchParams.keys())].filter(
       (key) => searchParams.getAll(key).length > 1,
     );
     if (repeated.length) {
-      noStore(c);
-      return c.json(
-        {
-          error: "repeated_query_parameter",
-          message: "Supply at most one value for after and limit.",
-          parameters: repeated.sort(),
-          nextActions: [
+      return publicFundingProblem(
+        c,
+        400,
+        "repeated_query_parameter",
+        "Supply at most one value for after and limit.",
+        { parameters: repeated.sort() },
+        [
             {
               method: "GET",
               href: `${basePath}/changes`,
               description:
                 "Restart with no cursor, or use one cursor returned by this feed.",
             },
-          ],
-        },
-        400,
+        ],
       );
     }
 
     const rawLimit = c.req.query("limit");
     const limit = rawLimit === undefined ? 100 : Number(rawLimit);
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-      noStore(c);
-      return c.json(
-        {
-          error: "invalid_page",
-          message: "Change-feed limit must be an integer from 1 to 100.",
-          limits: { limit: [1, 100] },
-          nextActions: [
-            {
-              method: "GET",
-              href: `${basePath}/changes?limit=100`,
-              description: "Retry with the largest valid page size.",
-            },
-          ],
-        },
+      return publicFundingProblem(
+        c,
         400,
+        "invalid_page",
+        "Change-feed limit must be an integer from 1 to 100.",
+        {
+          limits: { limit: [1, 100] },
+        },
+        [
+          {
+            method: "GET",
+            href: `${basePath}/changes?limit=100`,
+            description: "Retry with the largest valid page size.",
+          },
+        ],
       );
     }
 
@@ -1301,22 +1311,21 @@ export function createUkPublicFundingRoutes(
       ? changeLog.findIndex((change) => change.cursor === after)
       : -1;
     if (after !== undefined && (after.length === 0 || afterIndex === -1)) {
-      noStore(c);
-      return c.json(
-        {
-          error: "invalid_cursor",
-          message:
-            "The after cursor is unknown. Cursors are opaque and must be replayed unchanged from a prior response.",
-          cursor: after,
-          nextActions: [
-            {
-              method: "GET",
-              href: `${basePath}/changes`,
-              description: "Restart at the first public checkpoint.",
-            },
-          ],
-        },
+      return publicFundingProblem(
+        c,
         400,
+        "invalid_cursor",
+        "The after cursor is unknown. Cursors are opaque and must be replayed unchanged from a prior response.",
+        {
+          cursor: after,
+        },
+        [
+          {
+            method: "GET",
+            href: `${basePath}/changes`,
+            description: "Restart at the first public checkpoint.",
+          },
+        ],
       );
     }
 
@@ -1362,21 +1371,21 @@ export function createUkPublicFundingRoutes(
     const id = c.req.param("id");
     const resolved = records.get(id);
     if (!resolved) {
-      noStore(c);
-      return c.json(
-        {
-          error: "not_found",
-          message: "No UK public-funding record has this stable dataset ID.",
-          id,
-          nextActions: [
-            {
-              method: "GET",
-              href: basePath,
-              description: "Discover collections, filters and bulk exports.",
-            },
-          ],
-        },
+      return publicFundingProblem(
+        c,
         404,
+        "not_found",
+        "No UK public-funding record has this stable dataset ID.",
+        {
+          id,
+        },
+        [
+          {
+            method: "GET",
+            href: basePath,
+            description: "Discover collections, filters and bulk exports.",
+          },
+        ],
       );
     }
     const canonicalUrl = `${basePath}/${resolved.path}/${resolved.data.id}`;
@@ -1456,8 +1465,20 @@ export function createUkPublicFundingRoutes(
     const name = paths[path];
     const format = c.req.param("format") as ExportFormat;
     if (!name || !exportFormats.includes(format)) {
-      noStore(c);
-      return c.json({ error: "not_found" }, 404);
+      return publicFundingProblem(
+        c,
+        404,
+        "not_found",
+        "No public-funding export matches this collection and format.",
+        { collection: path, format },
+        [
+          {
+            method: "GET",
+            href: `${basePath}/exports`,
+            description: "Read the available collections and format URLs.",
+          },
+        ],
+      );
     }
     const prepared = preparedExports.get(`${path}/${format}`)!;
     const links = exportLinks(path);
@@ -1490,26 +1511,56 @@ export function createUkPublicFundingRoutes(
         (key) => !allowed.has(key),
       );
       if (unknown.length) {
-        noStore(c);
-        return c.json(
-          { error: "unknown_filter", filters: [...new Set(unknown)].sort() },
+        return publicFundingProblem(
+          c,
           400,
+          "unknown_filter",
+          "This collection does not recognise one or more filters.",
+          { filters: [...new Set(unknown)].sort() },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/dictionary`,
+              description: "Read the filters supported by each collection.",
+            },
+          ],
         );
       }
       const repeated = [...new Set(searchParams.keys())].filter(
         (key) => searchParams.getAll(key).length > 1,
       );
       if (repeated.length) {
-        noStore(c);
-        return c.json(
-          { error: "repeated_filter", filters: repeated.sort() },
+        return publicFundingProblem(
+          c,
           400,
+          "repeated_filter",
+          "Supply each collection filter at most once.",
+          { filters: repeated.sort() },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Retry the collection with one value per filter.",
+            },
+          ],
         );
       }
       const q = c.req.query("q")?.trim();
       if (q && q.length > 100) {
-        noStore(c);
-        return c.json({ error: "query_too_long", maximum: 100 }, 400);
+        return publicFundingProblem(
+          c,
+          400,
+          "query_too_long",
+          "The full-text query must be 100 characters or fewer.",
+          { maximum: 100 },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Retry with a shorter q value.",
+            },
+          ],
+        );
       }
       const rawLimit = c.req.query("limit");
       const rawOffset = c.req.query("offset");
@@ -1522,22 +1573,21 @@ export function createUkPublicFundingRoutes(
         !Number.isInteger(offset) ||
         offset < 0
       ) {
-        noStore(c);
-        return c.json(
-          {
-            error: "invalid_page",
-            message:
-              "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
-            limits: { limit: [1, 100], offset: "0 or greater" },
-            nextActions: [
-              {
-                method: "GET",
-                href: `${basePath}/${path}?limit=100&offset=0`,
-                description: "Restart this collection with a valid first page.",
-              },
-            ],
-          },
+        return publicFundingProblem(
+          c,
           400,
+          "invalid_page",
+          "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
+          {
+            limits: { limit: [1, 100], offset: "0 or greater" },
+          },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}?limit=100&offset=0`,
+              description: "Restart this collection with a valid first page.",
+            },
+          ],
         );
       }
       const filters = Object.fromEntries(
@@ -1548,8 +1598,20 @@ export function createUkPublicFundingRoutes(
       );
       for (const [key, value] of Object.entries(filters)) {
         if (!validFilterValue(corpus, name, key as ExactFilterKey, value)) {
-          noStore(c);
-          return c.json({ error: "invalid_filter", filter: key, value }, 400);
+          return publicFundingProblem(
+            c,
+            400,
+            "invalid_filter",
+            "The filter value is not present in this collection's reviewed corpus.",
+            { filter: key, value },
+            [
+              {
+                method: "GET",
+                href: `${basePath}/dictionary`,
+                description: "Inspect the filter meaning and source field.",
+              },
+            ],
+          );
         }
       }
       let matches = itemsFor(corpus, name);
@@ -1609,10 +1671,19 @@ export function createUkPublicFundingRoutes(
         (candidate) => candidate.id === c.req.param("id"),
       );
       if (!item) {
-        noStore(c);
-        return c.json(
-          { error: "not_found", collection: path, id: c.req.param("id") },
+        return publicFundingProblem(
+          c,
           404,
+          "not_found",
+          "No public-funding record with this ID exists in the collection.",
+          { collection: path, id: c.req.param("id") },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "List or search this collection.",
+            },
+          ],
         );
       }
       return cacheableJson(c, corpus, joinsFor(corpus, name, item));
@@ -1620,8 +1691,20 @@ export function createUkPublicFundingRoutes(
   }
 
   app.all("*", (c) => {
-    noStore(c);
-    return c.json({ error: "not_found" }, 404);
+    return publicFundingProblem(
+      c,
+      404,
+      "not_found",
+      "No public-funding API route matches this path.",
+      {},
+      [
+        {
+          method: "GET",
+          href: basePath,
+          description: "Read the public-funding route map.",
+        },
+      ],
+    );
   });
 
   return app;

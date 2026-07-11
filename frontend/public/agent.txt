@@ -9,8 +9,12 @@ agent-door: https://api.taxsorted.io/v1/wake
 wake: GET https://api.taxsorted.io/v1/wake
 open-data: GET https://api.taxsorted.io/v1/open-data
 rights: GET https://api.taxsorted.io/v1/open-data/rights
-openapi: GET https://api.taxsorted.io/openapi.json
+openapi-public: GET https://api.taxsorted.io/openapi-public.json
+openapi-full: GET https://api.taxsorted.io/openapi.json
 health: GET https://api.taxsorted.io/v1/health
+release-ledger: GET https://api.taxsorted.io/v1/open-data/releases
+release-json-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.json
+release-atom-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.atom
 public-funding-changes: GET https://api.taxsorted.io/v1/public-funding/uk/changes
 charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountability
 charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
@@ -26,7 +30,10 @@ session: none on this doorway
 cookies: none on this doorway
 writes: none on this doorway
 methods: GET, HEAD, OPTIONS
-formats: application/json, application/x-ndjson, text/csv
+formats: application/json, application/x-ndjson, text/csv, application/feed+json, application/atom+xml
+format-selection: follow each export index's explicit representation URLs; Accept does not switch graph formats
+errors: RFC 9457 fields; application/problem+json by default, application/json when explicitly requested
+error-instance: route path only; query values are never reflected
 xenia-source: https://github.com/cambridgetcg/xenia
 xenia-credit: XENIA by Yu and Fable
 xenia-licence: https://creativecommons.org/licenses/by-sa/4.0/

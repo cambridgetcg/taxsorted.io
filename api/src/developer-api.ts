@@ -1,13 +1,144 @@
 import { z, type OpenAPIHono } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
+import type { Context } from "hono";
 import { requireApiKey } from "./api-key.js";
+import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
 import { ukCharitiesSchema } from "./uk-charities.js";
 import { ukPublicFundingSchema } from "./uk-public-funding.js";
+import {
+  releaseAtomFeedPath,
+  releaseCheckpointSchema,
+  releaseJsonFeedPath,
+  releaseLedgerPath,
+} from "./release-discovery-contract.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
+const OPENAPI_MEDIA_TYPE = "application/vnd.oai.openapi+json;version=3.1";
+
+type JsonObject = Record<string, unknown>;
+
+interface OpenApiSliceDefinition {
+  id: string;
+  path: string;
+  title: string;
+  description: string;
+  matchesPath: (path: string) => boolean;
+}
+
+const openApiTags = [
+  {
+    name: "Agent discovery",
+    description: "Stateless machine orientation and the plain-text doorway.",
+  },
+  {
+    name: "Open-data catalogue",
+    description: "Dataset discovery and the mixed-rights reuse boundary.",
+  },
+  {
+    name: "UK tax system",
+    description: "The reviewed UK tax-system map and bulk distributions.",
+  },
+  {
+    name: "UK tax industry",
+    description: "Roles, qualifications, institutions, gates and pathways.",
+  },
+  {
+    name: "UK charities",
+    description:
+      "The charity-sector map and the gated accountability framework.",
+  },
+  {
+    name: "UK public funding",
+    description:
+      "Public-funding records, releases, corrections and bulk distributions.",
+  },
+  {
+    name: "UK politics",
+    description:
+      "Political-system, public-integrity and screened bulk datasets.",
+  },
+  {
+    name: "OpenAPI descriptions",
+    description:
+      "Cacheable, task-sized API descriptions for machine callers.",
+  },
+] as const;
+
+const publicApiPathPrefixes = [
+  "/v1/open-data",
+  "/v1/tax-system/uk",
+  "/v1/tax-industry/uk",
+  "/v1/charities/uk",
+  "/v1/public-funding/uk",
+  "/v1/politics/uk",
+] as const;
+
+const publicAgentPaths = new Set([
+  "/",
+  "/agent.txt",
+  "/.well-known/agent.txt",
+  "/v1/wake",
+  "/v1/health",
+]);
+
+function hasPathPrefix(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
+
+const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
+  {
+    id: "public",
+    path: "/openapi-public.json",
+    title: "TaxSorted Public API",
+    description:
+      "Sessionless public data, health and agent-orientation operations. Cacheable OpenAPI descriptions are linked separately.",
+    matchesPath: (path) =>
+      publicAgentPaths.has(path) ||
+      publicApiPathPrefixes.some((prefix) => hasPathPrefix(path, prefix)),
+  },
+  {
+    id: "tax-system-uk",
+    path: "/openapi/tax-system-uk.json",
+    title: "TaxSorted UK Tax System API",
+    description: "Task-sized contract for the reviewed UK tax-system map.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/tax-system/uk"),
+  },
+  {
+    id: "tax-industry-uk",
+    path: "/openapi/tax-industry-uk.json",
+    title: "TaxSorted UK Tax Industry API",
+    description:
+      "Task-sized contract for UK tax roles, qualifications and industry gates.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/tax-industry/uk"),
+  },
+  {
+    id: "charities-uk",
+    path: "/openapi/charities-uk.json",
+    title: "TaxSorted UK Charities API",
+    description:
+      "Task-sized contract for the charity-sector map and accountability framework.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/charities/uk"),
+  },
+  {
+    id: "public-funding-uk",
+    path: "/openapi/public-funding-uk.json",
+    title: "TaxSorted UK Public Funding API",
+    description:
+      "Task-sized contract for public-funding data and correction history.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/public-funding/uk"),
+  },
+  {
+    id: "politics-uk",
+    path: "/openapi/politics-uk.json",
+    title: "TaxSorted UK Politics API",
+    description:
+      "Task-sized contract for political-system and public-integrity data.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/politics/uk"),
+  },
+];
 
 function requestIdFor(c: { get: (key: "requestId") => string }): string {
   return c.get("requestId") ?? "unavailable";
@@ -78,6 +209,25 @@ const TaxIndustryPublicJson = z
   .object({})
   .passthrough()
   .openapi("UkTaxIndustryResponse");
+
+const ProblemNextAction = z.object({}).passthrough();
+const problemDetailsShape = {
+  type: z.string().url(),
+  title: z.string(),
+  status: z.number().int().min(400).max(599),
+  detail: z.string(),
+  instance: z.string(),
+  error: z.string(),
+  nextActions: z.array(ProblemNextAction),
+} as const;
+const ProblemDetails = z
+  .object(problemDetailsShape)
+  .passthrough()
+  .openapi("ProblemDetails");
+const problemContent = {
+  "application/problem+json": { schema: ProblemDetails },
+  "application/json": { schema: ProblemDetails },
+};
 
 const CharitiesCollection = z.enum([
   "sources",
@@ -214,8 +364,8 @@ const CharityAccountabilitySchemaJson = z
   .openapi("UkCharityAccountabilityJsonSchema");
 const CharityInstructionalError = z
   .object({
+    ...problemDetailsShape,
     schema: z.literal("taxsorted.charity-error/1"),
-    error: z.string(),
     method: z.string(),
     path: z.string(),
     reason: z.string(),
@@ -238,6 +388,7 @@ const CharityInstructionalError = z
   .passthrough()
   .openapi("UkCharityInstructionalError");
 const charityErrorContent = {
+  "application/problem+json": { schema: CharityInstructionalError },
   "application/json": { schema: CharityInstructionalError },
 };
 
@@ -335,7 +486,7 @@ const PublicFundingNextAction = z
   .openapi("UkPublicFundingNextAction");
 const PublicFundingActionError = z
   .object({
-    error: z.string(),
+    ...problemDetailsShape,
     message: z.string(),
     nextActions: z.array(PublicFundingNextAction).min(1),
   })
@@ -343,6 +494,7 @@ const PublicFundingActionError = z
   .openapi("UkPublicFundingActionError");
 const PublicFundingUnavailable = z
   .object({
+    ...problemDetailsShape,
     error: z.enum([
       "publication_review_pending",
       "publication_emergency_stopped",
@@ -464,7 +616,22 @@ const AgentWake = z
         etag: z.string(),
       }),
       rights: z.object({ href: z.string() }),
-      openApi: z.object({ href: z.string() }),
+      openApi: z.object({
+        publicHref: z.string(),
+        fullHref: z.string(),
+        datasetSlices: z.object({
+          taxSystem: z.string(),
+          taxIndustry: z.string(),
+          charities: z.string(),
+          publicFunding: z.string(),
+          politics: z.string(),
+        }),
+      }),
+      releases: z.object({
+        ledger: z.string(),
+        jsonFeed: z.string(),
+        atom: z.string(),
+      }),
       health: z.object({ href: z.string() }),
       corrections: z.object({
         href: z.string().url(),
@@ -520,8 +687,8 @@ const AgentWake = z
   .openapi("AgentWake");
 const AgentDoorError = z
   .object({
+    ...problemDetailsShape,
     schema: z.literal("taxsorted.agent-error/1"),
-    error: z.string(),
     message: z.string(),
     method: z.string(),
     path: z.string(),
@@ -539,6 +706,18 @@ const OpenDataRecord = z
   })
   .passthrough()
   .openapi("OpenDataRecord");
+const StableResolvedRecord = z
+  .object({
+    collection: z.string(),
+    corpusKey: z.string(),
+    canonicalUrl: z.string(),
+    data: OpenDataRecord,
+    links: z.object({
+      self: z.string(),
+      canonical: z.string(),
+    }),
+  })
+  .openapi("StableResolvedRecord");
 const DictionaryField = z
   .object({
     name: z.string(),
@@ -646,6 +825,7 @@ const OpenDataDataset = z
       publicUrl: z.string().url(),
       accountRequired: z.boolean(),
       privateOrSensitiveIntakeAvailable: z.boolean(),
+      privateUrl: z.string().url().optional(),
       warning: z.string(),
     }),
     publication: z.object({
@@ -654,10 +834,29 @@ const OpenDataDataset = z
       reviewBoundary: z.string(),
       scopeBoundary: z.string().optional(),
       notConfidentiality: z.string(),
+      humanApproval: z
+        .object({ status: z.string() })
+        .passthrough()
+        .optional(),
+      confidentialIntake: z
+        .object({
+          status: z.string(),
+          url: z.string().url().optional(),
+        })
+        .passthrough()
+        .optional(),
     }),
     licence: z.object({}).passthrough(),
     attribution: z.string(),
     resources: z.record(z.string(), z.union([z.string(), z.null()])),
+    screenedOn: z.string().optional(),
+    screeningStatus: z.string().optional(),
+    humanApproval: z
+      .object({ status: z.string() })
+      .passthrough()
+      .optional(),
+    admissionDigest: z.string().optional(),
+    admissionDigestScope: z.string().optional(),
     datasetCount: z.number().int().nonnegative().optional(),
   })
   .passthrough()
@@ -674,8 +873,24 @@ const OpenDataCatalog = z
       cors: z.literal("*"),
       formats: z.array(z.enum(["json", "ndjson", "csv"])),
       openApi: z.string(),
+      agentDiscovery: z.string(),
+      openApiPublic: z.string(),
+      openApiSlices: z.object({
+        taxSystem: z.string(),
+        taxIndustry: z.string(),
+        charities: z.string(),
+        publicFunding: z.string(),
+        politics: z.string(),
+      }),
       rateLimits: z.string(),
       availability: z.string(),
+    }),
+    releaseDiscovery: z.object({
+      ledger: z.string(),
+      jsonFeed: z.string(),
+      atom: z.string(),
+      scope: z.string(),
+      canonical: z.string(),
     }),
     reuse: z.object({
       taxSortedCurationLicence: ContentLicence,
@@ -706,6 +921,29 @@ const OpenDataRights = z
     }),
   })
   .openapi("OpenDataRights");
+const OpenDataReleaseLedger = z
+  .object({
+    schema: z.literal("taxsorted.open-data-release-ledger/1"),
+    title: z.string(),
+    semantics: z.object({}).passthrough(),
+    currentPublication: z.array(z.object({}).passthrough()),
+    checkpoints: z.array(releaseCheckpointSchema),
+    representations: z.object({
+      canonicalLedger: z.string(),
+      jsonFeed: z.string(),
+      atom: z.string(),
+    }),
+  })
+  .openapi("OpenDataReleaseLedger");
+const OpenDataReleaseJsonFeed = z
+  .object({
+    version: z.literal("https://jsonfeed.org/version/1.1"),
+    title: z.string(),
+    feed_url: z.string().url(),
+    items: z.array(z.object({ id: z.string() }).passthrough()),
+  })
+  .passthrough()
+  .openapi("OpenDataReleaseJsonFeed");
 const ExportFormat = z.enum(["json", "ndjson", "csv"]);
 const ConditionalRequestHeaders = z.object({
   "If-None-Match": z
@@ -833,6 +1071,14 @@ const PoliticsDatasetId = z
   .regex(/^[a-z0-9-]+$/)
   .openapi({ example: "enforcement-institutions" });
 const PoliticsDownloadFormat = z.enum(["json", "csv", "ndjson"]);
+const OpenApi31Document = z
+  .object({
+    openapi: z.literal("3.1.0"),
+    info: z.object({}).passthrough(),
+    paths: z.object({}).passthrough(),
+  })
+  .passthrough()
+  .openapi("OpenApi31Document");
 
 const politicsRepresentationHeaders = {
   ...publicResponseHeaders,
@@ -1017,6 +1263,27 @@ function registerAgentInterfaceOpenApi(app: OpenAPIHono) {
     });
   }
 }
+
+function registerHealthOpenApi(app: OpenAPIHono) {
+  for (const method of ["get", "head"] as const) {
+    app.openAPIRegistry.registerPath({
+      method,
+      path: "/v1/health",
+      operationId: `${method}TaxSortedHealth`,
+      summary: `${method === "get" ? "Read" : "Check"} service health`,
+      security: [],
+      responses: {
+        200: {
+          description: "Service process and HMRC configuration status.",
+          ...(method === "get"
+            ? { content: { "application/json": { schema: PublicJson } } }
+            : {}),
+        },
+      },
+    });
+  }
+}
+
 function registerOpenDataOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -1086,6 +1353,168 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
           headers: publicResponseHeaders,
         },
         400: { description: "Static routes do not accept query parameters." },
+      },
+    });
+  }
+}
+
+function registerReleaseDiscoveryOpenApi(app: OpenAPIHono) {
+  const routes = [
+    {
+      path: releaseLedgerPath,
+      stem: "OpenDataReleaseLedger",
+      title: "TaxSorted public dataset release ledger",
+      mediaType: "application/json",
+      schema: OpenDataReleaseLedger,
+    },
+    {
+      path: releaseJsonFeedPath,
+      stem: "OpenDataReleaseJsonFeed",
+      title: "TaxSorted public dataset release JSON Feed",
+      mediaType: "application/feed+json",
+      schema: OpenDataReleaseJsonFeed,
+    },
+    {
+      path: releaseAtomFeedPath,
+      stem: "OpenDataReleaseAtomFeed",
+      title: "TaxSorted public dataset release Atom feed",
+      mediaType: "application/atom+xml",
+      schema: z.string(),
+    },
+  ] as const;
+
+  for (const route of routes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: `get${route.stem}`,
+      summary: `Read the ${route.title}`,
+      description:
+        "Baseline and forward dataset-release checkpoints only. No retrospective record events or exact publication times are invented.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: route.title,
+          headers: publicResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "This exact release representation is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Release representations do not accept query parameters.",
+          content: problemContent,
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: `head${route.stem}`,
+      summary: `Check the ${route.title}`,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current release-representation metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "This exact release representation is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Release representations do not accept query parameters.",
+        },
+      },
+    });
+  }
+}
+
+function registerStableRecordResolversOpenApi(app: OpenAPIHono) {
+  const resolvers = [
+    {
+      path: "/v1/tax-system/uk/records/{id}",
+      stem: "UkTaxSystemStableRecord",
+      title: "UK tax-system",
+    },
+    {
+      path: "/v1/tax-industry/uk/records/{id}",
+      stem: "UkTaxIndustryStableRecord",
+      title: "UK tax-industry",
+    },
+    {
+      path: "/v1/charities/uk/records/{id}",
+      stem: "UkCharitiesStableRecord",
+      title: "UK charity-sector",
+    },
+  ] as const;
+
+  for (const resolver of resolvers) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: resolver.path,
+      operationId: `resolve${resolver.stem}`,
+      summary: `Resolve one stable ${resolver.title} dataset ID`,
+      description:
+        "Resolves a dataset-wide ID without requiring the caller to know its collection. Content-Location remains the resolver URL; Link rel=canonical identifies the collection item.",
+      request: {
+        headers: ConditionalRequestHeaders,
+        params: z.object({ id: z.string() }),
+      },
+      security: [],
+      responses: {
+        200: {
+          description: "Resolved record and canonical collection location.",
+          headers: publicResponseHeaders,
+          content: { "application/json": { schema: StableResolvedRecord } },
+        },
+        304: {
+          description: "This exact resolved representation is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Resolver routes do not accept query parameters.",
+          content: problemContent,
+        },
+        404: {
+          description: "No public record has this stable dataset ID.",
+          content: problemContent,
+        },
+        503: {
+          description:
+            "Publication is closed. Unknown and protected IDs are intentionally indistinguishable.",
+          content: problemContent,
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: resolver.path,
+      operationId: `head${resolver.stem}`,
+      summary: `Check one stable ${resolver.title} dataset ID`,
+      request: {
+        headers: ConditionalRequestHeaders,
+        params: z.object({ id: z.string() }),
+      },
+      security: [],
+      responses: {
+        200: {
+          description: "Current resolved-record metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "This exact resolved representation is unchanged.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Resolver routes do not accept query parameters." },
+        404: { description: "No public record has this stable dataset ID." },
+        503: {
+          description:
+            "Publication is closed. Unknown and protected IDs are intentionally indistinguishable.",
+        },
       },
     });
   }
@@ -3486,6 +3915,392 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
   });
 }
 
+const openApiOperationMethods = [
+  "get",
+  "put",
+  "post",
+  "delete",
+  "options",
+  "head",
+  "patch",
+  "trace",
+] as const;
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function openApiTagForPath(path: string): string {
+  if (publicAgentPaths.has(path)) return "Agent discovery";
+  if (hasPathPrefix(path, "/v1/open-data")) return "Open-data catalogue";
+  if (hasPathPrefix(path, "/v1/tax-system/uk")) return "UK tax system";
+  if (hasPathPrefix(path, "/v1/tax-industry/uk")) return "UK tax industry";
+  if (hasPathPrefix(path, "/v1/charities/uk")) return "UK charities";
+  if (hasPathPrefix(path, "/v1/public-funding/uk")) {
+    return "UK public funding";
+  }
+  if (hasPathPrefix(path, "/v1/politics/uk")) return "UK politics";
+  throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
+}
+
+function upperCamelCase(value: string): string {
+  return value
+    .split(/[^A-Za-z0-9]+/u)
+    .filter(Boolean)
+    .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
+    .join("");
+}
+
+function inferredOperationId(method: string, path: string): string {
+  const segments =
+    path === "/" ? ["api", "root"] : path.split("/").filter(Boolean);
+  const pathName = segments
+    .map((segment) => {
+      const parameter = /^\{([^}]+)\}$/u.exec(segment);
+      return parameter
+        ? `By${upperCamelCase(parameter[1] ?? "parameter")}`
+        : upperCamelCase(segment);
+    })
+    .join("");
+  return `${method.toLowerCase()}${pathName}`;
+}
+
+function collectComponentReferences(value: unknown, found: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const item of value) collectComponentReferences(item, found);
+    return;
+  }
+  if (!isJsonObject(value)) return;
+  const reference = value.$ref;
+  if (
+    typeof reference === "string" &&
+    reference.startsWith("#/components/")
+  ) {
+    found.add(reference);
+  }
+  for (const child of Object.values(value)) {
+    collectComponentReferences(child, found);
+  }
+}
+
+function decodeJsonPointerToken(value: string): string {
+  return value.replaceAll("~1", "/").replaceAll("~0", "~");
+}
+
+function retainReferencedComponents(
+  sourceComponents: unknown,
+  selectedPaths: JsonObject,
+): JsonObject | undefined {
+  if (!isJsonObject(sourceComponents)) return undefined;
+
+  const pending = new Set<string>();
+  const visited = new Set<string>();
+  const retained: JsonObject = {};
+  collectComponentReferences(selectedPaths, pending);
+
+  while (pending.size > 0) {
+    const reference = pending.values().next().value as string;
+    pending.delete(reference);
+    if (visited.has(reference)) continue;
+    visited.add(reference);
+
+    const parts = reference.split("/");
+    if (parts.length !== 4 || parts[0] !== "#" || parts[1] !== "components") {
+      continue;
+    }
+    const groupName = decodeJsonPointerToken(parts[2] ?? "");
+    const componentName = decodeJsonPointerToken(parts[3] ?? "");
+    const sourceGroup = sourceComponents[groupName];
+    if (!isJsonObject(sourceGroup) || !(componentName in sourceGroup)) {
+      throw new Error(`OpenAPI slice cannot resolve ${reference}.`);
+    }
+
+    const component = structuredClone(sourceGroup[componentName]);
+    const retainedGroup = isJsonObject(retained[groupName])
+      ? retained[groupName]
+      : {};
+    retainedGroup[componentName] = component;
+    retained[groupName] = retainedGroup;
+    collectComponentReferences(component, pending);
+  }
+
+  return Object.keys(retained).length > 0 ? retained : undefined;
+}
+
+function createOpenApiSlice(
+  sourceDocument: JsonObject,
+  definition: OpenApiSliceDefinition,
+): JsonObject {
+  const sourcePaths = sourceDocument.paths;
+  if (!isJsonObject(sourcePaths)) {
+    throw new Error("The generated OpenAPI document has no paths object.");
+  }
+
+  const selectedPaths: JsonObject = {};
+  const operationIds = new Map<string, string>();
+  const usedTags = new Set<string>();
+
+  for (const [path, sourcePathItem] of Object.entries(sourcePaths)) {
+    if (!definition.matchesPath(path) || !isJsonObject(sourcePathItem)) {
+      continue;
+    }
+    const pathItem = structuredClone(sourcePathItem);
+    const tag = openApiTagForPath(path);
+    usedTags.add(tag);
+
+    for (const method of openApiOperationMethods) {
+      const candidate = pathItem[method];
+      if (!isJsonObject(candidate)) continue;
+      if (
+        !Array.isArray(candidate.security) ||
+        candidate.security.length !== 0
+      ) {
+        throw new Error(
+          `OpenAPI slice ${definition.id} refuses ${method.toUpperCase()} ${path} because it is not explicitly sessionless (security: []).`,
+        );
+      }
+      const operationId =
+        typeof candidate.operationId === "string" && candidate.operationId
+          ? candidate.operationId
+          : inferredOperationId(method, path);
+      const previous = operationIds.get(operationId);
+      if (previous) {
+        throw new Error(
+          `OpenAPI slice ${definition.id} has duplicate operationId ${operationId} at ${previous} and ${method.toUpperCase()} ${path}.`,
+        );
+      }
+      operationIds.set(operationId, `${method.toUpperCase()} ${path}`);
+      candidate.operationId = operationId;
+      candidate.tags = [tag];
+    }
+    selectedPaths[path] = pathItem;
+  }
+
+  if (Object.keys(selectedPaths).length === 0) {
+    throw new Error(`OpenAPI slice ${definition.id} selected no paths.`);
+  }
+
+  const sourceInfo = isJsonObject(sourceDocument.info)
+    ? structuredClone(sourceDocument.info)
+    : {};
+  const sourceDescription =
+    typeof sourceInfo.description === "string" ? sourceInfo.description : "";
+  const retainedComponents = retainReferencedComponents(
+    sourceDocument.components,
+    selectedPaths,
+  );
+  const slice: JsonObject = {
+    openapi: sourceDocument.openapi,
+    info: {
+      ...sourceInfo,
+      title: definition.title,
+      description: `${definition.description} ${sourceDescription}`.trim(),
+    },
+    servers: structuredClone(sourceDocument.servers),
+    paths: selectedPaths,
+    tags: openApiTags
+      .filter((tag) => usedTags.has(tag.name))
+      .map((tag) => ({ ...tag })),
+    "x-taxsorted-slice": {
+      id: definition.id,
+      canonical: definition.path,
+      fullSpecification: "/openapi.json",
+      operationCount: operationIds.size,
+      pathCount: Object.keys(selectedPaths).length,
+      availableSlices: openApiSliceDefinitions.map((sliceDefinition) => ({
+        id: sliceDefinition.id,
+        href: sliceDefinition.path,
+        title: sliceDefinition.title,
+      })),
+    },
+  };
+  if (retainedComponents) slice.components = retainedComponents;
+  return slice;
+}
+
+function addPublicProblemRepresentations(sourceDocument: JsonObject): void {
+  const paths = sourceDocument.paths;
+  if (!isJsonObject(paths)) return;
+  const publicDefinition = openApiSliceDefinitions.find(
+    (definition) => definition.id === "public",
+  );
+  if (!publicDefinition) throw new Error("The public OpenAPI slice is missing.");
+
+  for (const [path, pathItem] of Object.entries(paths)) {
+    if (!publicDefinition.matchesPath(path) || !isJsonObject(pathItem)) continue;
+    for (const method of openApiOperationMethods) {
+      const operation = pathItem[method];
+      if (!isJsonObject(operation) || !isJsonObject(operation.responses)) {
+        continue;
+      }
+      if (method === "head") {
+        if (!("500" in operation.responses)) {
+          operation.responses["500"] = {
+            description: "Unexpected public-service failure.",
+          };
+        }
+        continue;
+      }
+      if (!("500" in operation.responses)) {
+        operation.responses["500"] = {
+          description:
+            "Unexpected public-service failure with a non-sensitive request ID and recovery action.",
+          content: {
+            "application/problem+json": {
+              schema: { $ref: "#/components/schemas/ProblemDetails" },
+            },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ProblemDetails" },
+            },
+          },
+        };
+      }
+      for (const [status, response] of Object.entries(operation.responses)) {
+        if (!/^[45][0-9]{2}$/u.test(status) || !isJsonObject(response)) {
+          continue;
+        }
+        const existingContent = isJsonObject(response.content)
+          ? response.content
+          : {};
+        const existingProblem = isJsonObject(
+          existingContent["application/problem+json"],
+        )
+          ? existingContent["application/problem+json"]
+          : undefined;
+        const existingJson = isJsonObject(existingContent["application/json"])
+          ? existingContent["application/json"]
+          : undefined;
+        const schema =
+          existingProblem?.schema ??
+          existingJson?.schema ??
+          ({ $ref: "#/components/schemas/ProblemDetails" } as const);
+        response.content = {
+          ...existingContent,
+          "application/problem+json": existingProblem ?? { schema },
+          "application/json": existingJson ?? { schema },
+        };
+      }
+    }
+  }
+}
+
+function openApiSliceOperationStem(id: string): string {
+  return id === "public" ? "Public" : upperCamelCase(id);
+}
+
+function registerOpenApiSliceDescriptions(app: OpenAPIHono): void {
+  for (const definition of openApiSliceDefinitions) {
+    const stem = openApiSliceOperationStem(definition.id);
+    for (const method of ["get", "head"] as const) {
+      app.openAPIRegistry.registerPath({
+        method,
+        path: definition.path,
+        operationId: `${method}${stem}OpenApiDescription`,
+        tags: ["OpenAPI descriptions"],
+        summary: `${method === "get" ? "Read" : "Check"} the ${definition.title} description`,
+        description:
+          method === "get"
+            ? `${definition.description} Every operation has a stable operationId and tag.`
+            : "Returns validators and links without a response body.",
+        request: { headers: ConditionalRequestHeaders },
+        security: [],
+        responses: {
+          200: {
+            description:
+              method === "get"
+                ? "A self-contained OpenAPI 3.1 description."
+                : "Current description metadata.",
+            headers: publicResponseHeaders,
+            ...(method === "get"
+              ? {
+                  content: {
+                    [OPENAPI_MEDIA_TYPE]: { schema: OpenApi31Document },
+                  },
+                }
+              : {}),
+          },
+          304: {
+            description:
+              "The supplied ETag still identifies these exact description bytes.",
+            headers: publicResponseHeaders,
+          },
+        },
+      });
+    }
+  }
+}
+
+function applyOpenApiSliceHeaders(
+  c: Context,
+  definition: OpenApiSliceDefinition,
+  etag: string,
+): void {
+  c.header("Cache-Control", "public, max-age=300, must-revalidate");
+  c.header("Content-Location", definition.path);
+  c.header("Content-Type", OPENAPI_MEDIA_TYPE);
+  c.header("ETag", etag);
+  c.header(
+    "Link",
+    `<${definition.path}>; rel="canonical"; type="${OPENAPI_MEDIA_TYPE}", </openapi.json>; rel="alternate"; type="${OPENAPI_MEDIA_TYPE}"`,
+  );
+}
+
+function registerOpenApiSliceRoutes(
+  app: OpenAPIHono,
+  sourceDocument: JsonObject,
+): void {
+  for (const definition of openApiSliceDefinitions) {
+    const representation = JSON.stringify(
+      createOpenApiSlice(sourceDocument, definition),
+    );
+    const etag = representationEtag(representation);
+
+    app.get(definition.path, (c) => {
+      applyOpenApiSliceHeaders(c, definition, etag);
+      if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
+        return c.body(null, 304);
+      }
+      return c.body(representation, 200);
+    });
+    app.on("HEAD", definition.path, (c) => {
+      applyOpenApiSliceHeaders(c, definition, etag);
+      return c.body(
+        null,
+        ifNoneMatchMatches(c.req.header("If-None-Match"), etag) ? 304 : 200,
+      );
+    });
+  }
+}
+
+function registerFullOpenApiRoute(
+  app: OpenAPIHono,
+  sourceDocument: JsonObject,
+): void {
+  const representation = JSON.stringify(sourceDocument);
+  app.get("/openapi.json", (c) =>
+    c.body(representation, 200, {
+      "Content-Type": "application/json; charset=utf-8",
+    }),
+  );
+}
+
+function openApiDocumentConfig(apiOrigin: string) {
+  return {
+    openapi: "3.1.0" as const,
+    info: {
+      title: "TaxSorted API",
+      version: "0.1.0",
+      description:
+        "Deterministic, effective-dated tax decisions and reviewed public maps, with primary sources and explicit review boundaries. TaxSorted-authored documentation, summaries and curation use CC BY-SA 4.0; linked sources retain their own terms; the server source code uses AGPL-3.0.",
+      license: {
+        name: "CC BY-SA 4.0 (API documentation and TaxSorted-authored curation)",
+        url: "https://creativecommons.org/licenses/by-sa/4.0/",
+      },
+    },
+    servers: [{ url: apiOrigin }],
+  };
+}
+
 /** Register the machine API before any browser-session middleware is added. */
 export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   app.openAPIRegistry.registerComponent("securitySchemes", "WorkspaceKey", {
@@ -3496,12 +4311,16 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
       "A TaxSorted workspace key. The SDLT calculation route requires the sdlt:calculate scope.",
   });
   registerAgentInterfaceOpenApi(app);
+  registerHealthOpenApi(app);
   registerOpenDataOpenApi(app);
+  registerReleaseDiscoveryOpenApi(app);
   registerTaxSystemOpenApi(app);
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
   registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);
+  registerStableRecordResolversOpenApi(app);
+  registerOpenApiSliceDescriptions(app);
 
   app.use(
     "/v1/uk/sdlt/*",
@@ -3541,18 +4360,11 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   app.use("/v1/uk/sdlt/*", requireApiKey("sdlt:calculate"));
   app.route("/v1/uk/sdlt", sdltRoutes);
 
-  app.doc31("/openapi.json", {
-    openapi: "3.1.0",
-    info: {
-      title: "TaxSorted API",
-      version: "0.1.0",
-      description:
-        "Deterministic, effective-dated tax decisions and reviewed public maps, with primary sources and explicit review boundaries. TaxSorted-authored documentation, summaries and curation use CC BY-SA 4.0; linked sources retain their own terms; the server source code uses AGPL-3.0.",
-      license: {
-        name: "CC BY-SA 4.0 (API documentation and TaxSorted-authored curation)",
-        url: "https://creativecommons.org/licenses/by-sa/4.0/",
-      },
-    },
-    servers: [{ url: apiOrigin }],
-  });
+  const documentConfig = openApiDocumentConfig(apiOrigin);
+  const sourceDocument = app.getOpenAPI31Document(
+    documentConfig,
+  ) as unknown as JsonObject;
+  addPublicProblemRepresentations(sourceDocument);
+  registerOpenApiSliceRoutes(app, sourceDocument);
+  registerFullOpenApiRoute(app, sourceDocument);
 }

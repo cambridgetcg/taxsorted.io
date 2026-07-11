@@ -16,6 +16,7 @@ import {
   allowedValuesFromJsonSchema,
   fieldsFromJsonSchema,
 } from "../open-data-dictionary.js";
+import { problemDetails, type ProblemNextAction } from "../problem-details.js";
 import {
   ukTaxSystem,
   ukTaxSystemSchema,
@@ -175,9 +176,27 @@ const mediaTypes: Record<ExportFormat, string> = {
 };
 
 type Identified = { id: string; sourceIds?: string[] } & Record<string, unknown>;
+type RecordLocation = {
+  path: string;
+  corpusKey: CollectionName;
+  data: Identified;
+};
 
 function itemsFor(corpus: UkTaxSystem, name: CollectionName): Identified[] {
   return corpus[name] as unknown as Identified[];
+}
+
+function recordIndex(corpus: UkTaxSystem) {
+  const records = new Map<string, RecordLocation>();
+  for (const [path, corpusKey] of Object.entries(paths)) {
+    for (const data of itemsFor(corpus, corpusKey)) {
+      if (records.has(data.id)) {
+        throw new Error(`Duplicate UK tax-system record ID: ${data.id}`);
+      }
+      records.set(data.id, { path, corpusKey, data });
+    }
+  }
+  return records;
 }
 
 function columnsFor(rows: readonly Identified[], name: CollectionName) {
@@ -373,7 +392,8 @@ function cacheHeaders(
       `<${correctionsUrl}>; rel="help"`,
       `<${basePath}/dictionary>; rel="describedby"; type="application/json"`,
       `<${basePath}/schema>; rel="describedby"; type="application/schema+json"`,
-      `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi/tax-system-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
       ...alternates.map(
         (alternate) =>
           `<${alternate.href}>; rel="alternate"; type="${alternate.type}"`
@@ -392,10 +412,18 @@ function cacheableRepresentation(
     disposition?: string;
     alternates?: Array<{ href: string; type: string }>;
     etag?: string;
+    canonicalLocation?: string;
   } = {}
 ) {
   const etag = options.etag ?? representationEtag(body);
-  cacheHeaders(c, corpus, etag, canonicalPath, options.alternates);
+  cacheHeaders(
+    c,
+    corpus,
+    etag,
+    canonicalPath,
+    options.alternates,
+    options.canonicalLocation ?? canonicalPath
+  );
   if (options.disposition) c.header("Content-Disposition", options.disposition);
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
     return c.body(null, 304);
@@ -403,27 +431,54 @@ function cacheableRepresentation(
   return c.body(body, 200, { "Content-Type": contentType });
 }
 
-function cacheableJson(c: Context, corpus: UkTaxSystem, value: unknown) {
+function cacheableJson(
+  c: Context,
+  corpus: UkTaxSystem,
+  value: unknown,
+  options: { canonicalLocation?: string } = {}
+) {
   return cacheableRepresentation(
     c,
     corpus,
     canonicalJson(value),
     relativeUrl(c),
-    "application/json; charset=utf-8"
+    "application/json; charset=utf-8",
+    options
   );
 }
 
-function noStore(c: Context) {
-  c.header("Cache-Control", "no-store");
+function publicProblem(
+  c: Context,
+  status: 400 | 404 | 503,
+  error: string,
+  detail: string,
+  extensions: Readonly<Record<string, unknown>> = {},
+  nextActions: readonly ProblemNextAction[] = []
+) {
+  return problemDetails(c, status, {
+    error,
+    detail,
+    extensions,
+    nextActions,
+  });
 }
 
 function rejectStaticQuery(c: Context) {
   const parameters = [...new URL(c.req.url).searchParams.keys()];
   if (parameters.length === 0) return undefined;
-  noStore(c);
-  return c.json(
-    { error: "unknown_query_parameter", parameters: [...new Set(parameters)].sort() },
-    400
+  return publicProblem(
+    c,
+    400,
+    "unknown_query_parameter",
+    "This static resource does not accept query parameters.",
+    { parameters: [...new Set(parameters)].sort() },
+    [
+      {
+        method: "GET",
+        href: c.req.path,
+        description: "Retry the same public resource without a query string.",
+      },
+    ]
   );
 }
 
@@ -555,6 +610,7 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
   const schemaEtag = representationEtag(schemaRepresentation);
   const dictionaryEtag = representationEtag(dictionaryRepresentation);
   const exportIndexEtag = representationEtag(exportIndexRepresentation);
+  const records = recordIndex(corpus);
   const exportRepresentations = new Map<string, { body: string; etag: string }>();
   for (const [path, name] of Object.entries(paths)) {
     const rows = itemsFor(corpus, name);
@@ -573,6 +629,10 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
       : c.req.path;
     const segments = relativePath.split("/").filter(Boolean);
     const collection = segments[0];
+    const resolverRequest = segments[0] === "records" && segments.length === 2;
+    const resolvedRecord = resolverRequest
+      ? records.get(segments[1])
+      : undefined;
     const collectionName = collection ? paths[collection] : undefined;
     const exportCollection = segments[0] === "exports" ? paths[segments[1]] : undefined;
     const exportFormat = segments[2] as ExportFormat | undefined;
@@ -588,16 +648,34 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
         (segments.length === 1 || segments.length === 2) &&
         !publicWhenClosed.has(collection)) ||
       protectedExport;
-    if (!publicDataEnabled && protectedPath) {
-      noStore(c);
-      return c.json(
+    const protectedResolver =
+      resolverRequest &&
+      (!resolvedRecord || !publicWhenClosed.has(resolvedRecord.path));
+    if (!publicDataEnabled && (protectedPath || protectedResolver)) {
+      const message =
+        "The reviewed source ledger and gap register remain public while the full graph is closed.";
+      return publicProblem(
+        c,
+        503,
+        "publication_review_pending",
+        message,
         {
-          error: "publication_review_pending",
-          message: "The reviewed source ledger and gap register remain public while the full graph is closed.",
+          message,
           sources: "/v1/tax-system/uk/sources",
           gaps: "/v1/tax-system/uk/gaps",
         },
-        503
+        [
+          {
+            method: "GET",
+            href: `${basePath}/sources`,
+            description: "Read the reviewed source ledger that remains public.",
+          },
+          {
+            method: "GET",
+            href: `${basePath}/gaps`,
+            description: "Read the known gap register that remains public.",
+          },
+        ]
       );
     }
     await next();
@@ -638,6 +716,7 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
         fullGraph: "/v1/tax-system/uk/graph",
         collections: Object.keys(paths).map((path) => `/v1/tax-system/uk/${path}`),
         item: "/v1/tax-system/uk/{collection}/{id}",
+        record: `${basePath}/records/{id}`,
         filters: advertisedFilterKeys,
         schema: `${basePath}/schema`,
         dictionary: `${basePath}/dictionary`,
@@ -691,6 +770,7 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
       schemaDocument: `${basePath}/schema`,
       dictionary: `${basePath}/dictionary`,
       exports: `${basePath}/exports`,
+      recordResolver: `${basePath}/records/{id}`,
       corrections: correctionsUrl,
       idPolicy: {
         scope: "dataset-wide",
@@ -701,6 +781,49 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
       notComplete: true,
     };
     return cacheableJson(c, corpus, body);
+  });
+
+  app.get("/records/:id", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    const id = c.req.param("id");
+    const resolved = records.get(id);
+    if (!resolved) {
+      const message = "No UK tax-system record has this stable dataset ID.";
+      return publicProblem(
+        c,
+        404,
+        "not_found",
+        message,
+        {
+          message,
+          id,
+        },
+        [
+          {
+            method: "GET",
+            href: basePath,
+            description: "Discover collections, filters and bulk exports.",
+          },
+        ]
+      );
+    }
+    const canonicalUrl = `${basePath}/${resolved.path}/${resolved.data.id}`;
+    return cacheableJson(
+      c,
+      corpus,
+      {
+        collection: resolved.path,
+        corpusKey: resolved.corpusKey,
+        canonicalUrl,
+        data: resolved.data,
+        links: {
+          self: `${basePath}/records/${resolved.data.id}`,
+          canonical: canonicalUrl,
+        },
+      },
+      { canonicalLocation: canonicalUrl }
+    );
   });
 
   app.get("/graph", (c) => {
@@ -762,8 +885,20 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
     const name = paths[path];
     const format = c.req.param("format") as ExportFormat;
     if (!name || !exportFormats.includes(format)) {
-      noStore(c);
-      return c.json({ error: "not_found" }, 404);
+      return publicProblem(
+        c,
+        404,
+        "not_found",
+        "The requested collection or export format is not part of this release.",
+        {},
+        [
+          {
+            method: "GET",
+            href: `${basePath}/exports`,
+            description: "Read the available export collections and formats.",
+          },
+        ]
+      );
     }
     const links = exportLinks(path);
     const prepared = exportRepresentations.get(`${path}/${format}`)!;
@@ -796,20 +931,56 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
         (key) => !allowedQueryKeys.has(key)
       );
       if (unknown.length) {
-        noStore(c);
-        return c.json({ error: "unknown_filter", filters: [...new Set(unknown)].sort() }, 400);
+        return publicProblem(
+          c,
+          400,
+          "unknown_filter",
+          "One or more filters are not available for this collection.",
+          { filters: [...new Set(unknown)].sort() },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/dictionary`,
+              description: "Read the filters declared for each collection.",
+            },
+          ]
+        );
       }
       const repeated = [...new Set(searchParams.keys())].filter(
         (key) => searchParams.getAll(key).length > 1
       );
       if (repeated.length) {
-        noStore(c);
-        return c.json({ error: "repeated_filter", filters: repeated.sort() }, 400);
+        return publicProblem(
+          c,
+          400,
+          "repeated_filter",
+          "Each filter may appear at most once in a collection query.",
+          { filters: repeated.sort() },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Retry the collection with each filter at most once.",
+            },
+          ]
+        );
       }
       const q = c.req.query("q")?.trim();
       if (q && q.length > 100) {
-        noStore(c);
-        return c.json({ error: "query_too_long", maximum: 100 }, 400);
+        return publicProblem(
+          c,
+          400,
+          "query_too_long",
+          "The text query exceeds the maximum length of 100 characters.",
+          { maximum: 100 },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Retry with a text query of at most 100 characters.",
+            },
+          ]
+        );
       }
 
       const rawLimit = c.req.query("limit");
@@ -823,8 +994,20 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
         !Number.isInteger(offset) ||
         offset < 0
       ) {
-        noStore(c);
-        return c.json({ error: "invalid_page", limits: { limit: [1, 100], offset: "0 or greater" } }, 400);
+        return publicProblem(
+          c,
+          400,
+          "invalid_page",
+          "Collection pages require an integer limit from 1 to 100 and an offset of 0 or greater.",
+          { limits: { limit: [1, 100], offset: "0 or greater" } },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}?limit=100&offset=0`,
+              description: "Restart this collection with a valid first page.",
+            },
+          ]
+        );
       }
 
       const filters = Object.fromEntries(
@@ -835,8 +1018,20 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
       );
       for (const [key, value] of Object.entries(filters)) {
         if (!validFilterValue(corpus, name, key as ExactFilterKey, value)) {
-          noStore(c);
-          return c.json({ error: "invalid_filter", filter: key, value }, 400);
+          return publicProblem(
+            c,
+            400,
+            "invalid_filter",
+            "The filter value is outside the declared vocabulary or stable IDs.",
+            { filter: key, value },
+            [
+              {
+                method: "GET",
+                href: `${basePath}/dictionary`,
+                description: "Read the allowed filter values and identity rules.",
+              },
+            ]
+          );
         }
       }
       let matches = itemsFor(corpus, name);
@@ -869,8 +1064,20 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
       if (invalidQuery) return invalidQuery;
       const item = itemsFor(corpus, name).find((candidate) => candidate.id === c.req.param("id"));
       if (!item) {
-        noStore(c);
-        return c.json({ error: "not_found", collection: path, id: c.req.param("id") }, 404);
+        return publicProblem(
+          c,
+          404,
+          "not_found",
+          "No record with this exact ID exists in the requested collection.",
+          { collection: path, id: c.req.param("id") },
+          [
+            {
+              method: "GET",
+              href: `${basePath}/${path}`,
+              description: "Read the collection and its stable record IDs.",
+            },
+          ]
+        );
       }
       if (name === "actors") return cacheableJson(c, corpus, enrichedActor(corpus, item));
       if (name === "sources") return cacheableJson(c, corpus, { data: item });
@@ -881,8 +1088,20 @@ export function createUkTaxSystemRoutes(options: UkTaxSystemRouteOptions = {}) {
   // Keep every request inside this public namespace out of the taxpayer
   // session middleware, including misspelled paths and unsupported methods.
   app.all("*", (c) => {
-    noStore(c);
-    return c.json({ error: "not_found" }, 404);
+    return publicProblem(
+      c,
+      404,
+      "not_found",
+      "No read-only UK tax-system route matches this path or method.",
+      {},
+      [
+        {
+          method: "GET",
+          href: basePath,
+          description: "Read the dataset overview and available routes.",
+        },
+      ]
+    );
   });
 
   return app;

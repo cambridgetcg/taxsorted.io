@@ -60,8 +60,28 @@ status, content licence, publication boundary and the route to its full distribu
 ```text
 GET https://api.taxsorted.io/v1/open-data
 GET https://api.taxsorted.io/v1/open-data/rights
+GET https://api.taxsorted.io/v1/open-data/releases
+GET https://api.taxsorted.io/v1/open-data/releases/feed.json
+GET https://api.taxsorted.io/v1/open-data/releases/feed.atom
+GET https://api.taxsorted.io/openapi-public.json
 GET https://api.taxsorted.io/openapi.json
 ```
+
+The full OpenAPI document remains available for compatibility. Agents should normally use the
+bounded public description or one dataset slice:
+
+```text
+GET /openapi/tax-system-uk.json
+GET /openapi/tax-industry-uk.json
+GET /openapi/charities-uk.json
+GET /openapi/public-funding-uk.json
+GET /openapi/politics-uk.json
+```
+
+Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
+`operationId` and one plain domain tag. Slice construction fails if a selected operation does
+not explicitly declare `security: []`; an authenticated operation cannot silently enter the
+public description merely because somebody mounted it under a public-looking path.
 
 The tax-system, tax-industry, charity-sector and public-funding datasets have the same prepared distribution shape. The
 metadata routes remain readable when deployed; protected collection and full-graph bodies return
@@ -79,6 +99,17 @@ GET /v1/tax-industry/uk/exports/roles/csv
 Replace `tax-industry` with `tax-system`, `charities` or `public-funding`, and `roles` with any collection named
 by that dataset's export index. When the publication switch is open, downloads are complete and unpaginated.
 Query routes remain the place for search and filtering.
+
+All four families also expose a dataset-wide resolver:
+
+```text
+GET /v1/tax-industry/uk/records/{id}
+```
+
+It returns the collection, corpus key, record and canonical collection URL, so a caller does not
+need to guess which array owns an ID. While a publication gate is closed, a protected known ID
+and an unknown ID deliberately return the same `503` shape; source and gap IDs retain their
+documented public-while-closed access.
 
 After the tax-industry catalogue reports that bodies are available, download a version-named
 spreadsheet file:
@@ -150,10 +181,29 @@ completes; there is no promised next release date. The current GitHub correction
 account and is public, so it must not receive private, personal or safety-sensitive information. A
 private intake is not live.
 
+The central release ledger is one append-only list of dataset checkpoints. Its first four rows
+are baseline snapshots observed public on 2026-07-11, not claims that every record changed that
+day. JSON Feed 1.1 and Atom are generated from the same rows. The Atom timestamps are explicitly
+day-normalised because Atom requires date-times; they are not asserted publication times. There
+is no immutable snapshot archive yet: `links.currentGraph` is mutable,
+`links.immutableSnapshot` is `null`, and a mirror must accept current graph bytes for an older
+checkpoint only when their SHA-256 digest matches. Deployment captures the live checkpoint
+prefix before release and refuses a candidate that changes or removes an earlier row. The first
+release check uses the push event's pre-push main SHA rather than assuming `HEAD^` was the last
+deployed candidate.
+
 Sector-map and central-catalogue `GET` representations also have documented `HEAD` operations.
 Sector-map and central-catalogue static routes reject query parameters with `400` and `Cache-Control: no-store`;
 filtering belongs on a collection query URL, not on a detail, bulk or metadata URL. Politics route
 query behavior remains route-specific and is documented separately in OpenAPI.
+
+Public errors add the RFC 9457 fields `type`, `title`, `status`, `detail` and `instance` while
+retaining established `error`, `message` and endpoint-specific recovery fields. The default
+media type is `application/problem+json`; a client that explicitly sends
+`Accept: application/json` receives the same additive body under the legacy media type. Problem
+`instance` contains only the route path, never query values that might hold a credential or
+personal fact. The current HTTPS problem-type URIs are stable identifiers, not yet
+dereferenceable documentation pages.
 
 No application-level rate limit currently applies to these static public routes. Hosting and
 network abuse protections may still act, so prefer one bulk export over many item requests.
@@ -166,6 +216,21 @@ each source ledger states the reuse information known for that source family and
 uncertain terms explicit. The API links to source material; it does not relicense it. The
 server source code remains AGPL-3.0. Catalogues, manifests, dictionaries and export indexes
 link the public GitHub issue tracker for corrections.
+
+## Protocol choices for agents
+
+The canonical data plane is ordinary HTTP: links, exact validators, conditional requests,
+JSON/NDJSON/CSV, and stable URLs. JSON Feed and Atom add a mature polling protocol without an
+account or server-held cursor. This is easy to cache, inspect, mirror and use from old or new
+clients.
+
+MCP is deliberately not the canonical data plane today. The current remote protocol adds a
+JSON-RPC lifecycle, session handling and a comparatively large SDK dependency while its HTTP
+transport is still evolving. A future MCP service should be a thin, separately deployable
+adapter over these same URLs, not a second source of truth. SOAP, OData, SPARQL and ActivityPub
+also add machinery without improving this dataset's present read-and-mirror jobs; they are not
+core interfaces. DCAT or CSVW metadata may be added later when a real catalogue consumer needs
+them.
 
 ## Agent orientation — one honest front door
 

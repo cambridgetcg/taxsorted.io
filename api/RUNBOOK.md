@@ -309,10 +309,29 @@ curl --fail "$API/agent.txt"
 curl --fail --head "$API/v1/wake"
 curl --fail --head "$API/.well-known/agent.txt"
 curl --fail --head "$API/agent.txt"
+curl --fail "$API/openapi-public.json" | jq \
+  '.openapi, .["x-taxsorted-slice"], (.paths | keys | length)'
+for slice in tax-system-uk tax-industry-uk charities-uk public-funding-uk politics-uk
+do
+  curl --fail "$API/openapi/${slice}.json" | jq \
+    --arg slice "$slice" '.["x-taxsorted-slice"].id == $slice'
+done
+curl --fail "$API/v1/open-data/releases" | jq \
+  '{schema, semantics, currentPublication, checkpoints, representations}'
+curl --fail "$API/v1/open-data/releases/feed.json" | jq \
+  '{version, title, itemCount: (.items | length)}'
+curl --fail "$API/v1/open-data/releases/feed.atom"
+curl --fail "$API/v1/tax-system/uk/records/src-parliament-tax-procedure" | jq \
+  '{collection, corpusKey, canonicalUrl, id: .data.id, links}'
+curl --fail "$API/v1/tax-industry/uk/records/src-industry-regulation-response" | jq \
+  '{collection, corpusKey, canonicalUrl, id: .data.id, links}'
+curl --fail "$API/v1/charities/uk/records/src-charities-act-2011" | jq \
+  '{collection, corpusKey, canonicalUrl, id: .data.id, links}'
 ```
 
 Both text manifests must be byte-identical and point to `/v1/wake`, `/v1/health`,
-`/v1/open-data`, the charity accountability contract and `/openapi.json`. The canonical wake and
+`/v1/open-data`, the release ledger and feeds, the charity accountability contract,
+`/openapi-public.json`, the dataset slices and `/openapi.json`. The canonical wake and
 the JSON-negotiated root must have identical bodies and ETags; a browser-shaped root request must
 remain `404`. The wake access statement covers only the doorway and listed TaxSorted public read
 routes: no account, authentication, session, cookie or write. The external GitHub correction
@@ -328,6 +347,23 @@ must identify schema `taxsorted.charity-error/1`, name its method/path, keep
 `Cache-Control: no-store`, state `walls_intact: true` and return bounded
 `next_actions`; it must not silently discard the filter or guess a nearby record. Record the
 deployed commit and the response checks before describing this surface as live.
+
+Also request one invalid query with `Accept: application/problem+json`. It must return the RFC
+9457 media type and fields while preserving the legacy `error` and recovery fields. Its
+`instance` must contain the path only, not query values. An explicit
+`Accept: application/json` must return the same additive body under the legacy media type.
+
+The canonical checkpoint source is `api/src/release-checkpoints.json`. Append a real new row;
+never edit or reorder a published prefix. The deployment job captures the live central ledger,
+requires it to be an exact prefix of that file, and repeats the comparison after deployment.
+First-release detection uses the push event's pre-push main SHA, so a multi-commit push cannot
+confuse it. If the first deployment fails after the file lands, a later automatic push fails
+closed while live still returns `404`; after verifying that no ledger was ever published, rerun
+the manual workflow once with `allow_unpublished_release_ledger` enabled. Never use that input to
+replace a ledger that was previously live.
+The first four rows are observed baselines, not reconstructed record events. There is no
+immutable archive yet, so `currentGraph` is a mutable convenience link and
+`immutableSnapshot` must remain `null` until a real content-addressed or versioned object exists.
 
 ## Public-funding graph
 

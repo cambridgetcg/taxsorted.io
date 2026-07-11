@@ -9,6 +9,45 @@ import {
   type UkTaxIndustry,
 } from "../uk-tax-industry.js";
 
+const problemTitles = {
+  invalid_filter: "Invalid filter",
+  invalid_page: "Invalid page",
+  not_found: "Resource not found",
+  publication_review_pending: "Publication review pending",
+  query_too_long: "Query too long",
+  repeated_filter: "Repeated filter",
+  unknown_filter: "Unknown filter",
+  unknown_query_parameter: "Unknown query parameter",
+} as const;
+
+async function expectPublicProblem(
+  response: Response,
+  expected: {
+    error: keyof typeof problemTitles;
+    status: 400 | 404 | 503;
+    instance: string;
+    extensions?: Record<string, unknown>;
+  }
+) {
+  expect(response.status).toBe(expected.status);
+  expect(response.headers.get("content-type")).toContain(
+    "application/problem+json"
+  );
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  const body = await response.json();
+  expect(body).toMatchObject({
+    type: `https://api.taxsorted.io/problems/${expected.error}`,
+    title: problemTitles[expected.error],
+    status: expected.status,
+    detail: expect.any(String),
+    instance: expected.instance,
+    error: expected.error,
+    nextActions: expect.any(Array),
+    ...expected.extensions,
+  });
+  return body;
+}
+
 function mount(publicDataEnabled: boolean | "route-default" = true) {
   const app = new Hono();
   let sessionCalls = 0;
@@ -187,7 +226,7 @@ describe("public UK tax-industry API", () => {
 
     const invalid = await app.request("/v1/tax-industry/uk/roles?catgory=tax-advice");
     expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toEqual({
+    expect(await invalid.json()).toMatchObject({
       error: "unknown_filter",
       filters: ["catgory"],
     });
@@ -197,7 +236,7 @@ describe("public UK tax-industry API", () => {
       "/v1/tax-industry/uk/institutions?category=tax-advice"
     );
     expect(irrelevant.status).toBe(400);
-    expect(await irrelevant.json()).toEqual({
+    expect(await irrelevant.json()).toMatchObject({
       error: "unknown_filter",
       filters: ["category"],
     });
@@ -216,7 +255,7 @@ describe("public UK tax-industry API", () => {
       "/v1/tax-industry/uk/roles?category=tax-advice&category=tax-compliance"
     );
     expect(repeated.status).toBe(400);
-    expect(await repeated.json()).toEqual({
+    expect(await repeated.json()).toMatchObject({
       error: "repeated_filter",
       filters: ["category"],
     });
@@ -236,6 +275,148 @@ describe("public UK tax-industry API", () => {
     );
     expect(invalidEnum.status).toBe(400);
     expect(await invalidEnum.json()).toMatchObject({ error: "invalid_filter" });
+  });
+
+  it("uses one backward-compatible Problem Details contract for every public error lane", async () => {
+    const { app } = mount();
+    const longQuery = "x".repeat(101);
+    const cases = [
+      {
+        url: "/v1/tax-industry/uk/manifest?ignored=true",
+        error: "unknown_query_parameter",
+        status: 400,
+        extensions: { parameters: ["ignored"] },
+      },
+      {
+        url: "/v1/tax-industry/uk/exports/roles/xml",
+        error: "not_found",
+        status: 404,
+      },
+      {
+        url: "/v1/tax-industry/uk/roles?catgory=tax-advice",
+        error: "unknown_filter",
+        status: 400,
+        extensions: { filters: ["catgory"] },
+      },
+      {
+        url: "/v1/tax-industry/uk/roles?category=tax-advice&category=tax-compliance",
+        error: "repeated_filter",
+        status: 400,
+        extensions: { filters: ["category"] },
+      },
+      {
+        url: `/v1/tax-industry/uk/roles?q=${longQuery}`,
+        error: "query_too_long",
+        status: 400,
+        extensions: { maximum: 100 },
+      },
+      {
+        url: "/v1/tax-industry/uk/roles?limit=0",
+        error: "invalid_page",
+        status: 400,
+        extensions: {
+          limits: { limit: [1, 100], offset: "0 or greater" },
+        },
+      },
+      {
+        url: "/v1/tax-industry/uk/roles?qualificationId=qualification-not-real",
+        error: "invalid_filter",
+        status: 400,
+        extensions: {
+          filter: "qualificationId",
+          value: "qualification-not-real",
+        },
+      },
+      {
+        url: "/v1/tax-industry/uk/roles/role-not-real",
+        error: "not_found",
+        status: 404,
+        extensions: { collection: "roles", id: "role-not-real" },
+      },
+      {
+        url: "/v1/tax-industry/uk/records/record-not-real",
+        error: "not_found",
+        status: 404,
+        extensions: {
+          message: "No UK tax-industry record has this stable dataset ID.",
+          id: "record-not-real",
+        },
+      },
+      {
+        url: "/v1/tax-industry/uk/not-a-route",
+        error: "not_found",
+        status: 404,
+      },
+    ] as const;
+
+    for (const candidate of cases) {
+      await expectPublicProblem(await app.request(candidate.url), {
+        error: candidate.error,
+        status: candidate.status,
+        instance: new URL(candidate.url, "https://api.taxsorted.io").pathname,
+        ...("extensions" in candidate
+          ? { extensions: candidate.extensions as Record<string, unknown> }
+          : {}),
+      });
+    }
+
+    const closed = await mount(false).app.request(
+      "/v1/tax-industry/uk/graph"
+    );
+    await expectPublicProblem(closed, {
+      error: "publication_review_pending",
+      status: 503,
+      instance: "/v1/tax-industry/uk/graph",
+      extensions: {
+        message:
+          "The reviewed source ledger and gap register remain public while the full industry map is closed.",
+        sources: "/v1/tax-industry/uk/sources",
+        gaps: "/v1/tax-industry/uk/gaps",
+      },
+    });
+  });
+
+  it("resolves a stable ID without making the caller guess its collection", async () => {
+    const { app } = mount();
+    const role = ukTaxIndustry.roles[0];
+    const resolved = await app.request(
+      `/v1/tax-industry/uk/records/${role.id}`
+    );
+    expect(resolved.status).toBe(200);
+    expect(resolved.headers.get("content-location")).toBe(
+      `/v1/tax-industry/uk/records/${role.id}`
+    );
+    expect(resolved.headers.get("link")).toContain(
+      `</v1/tax-industry/uk/roles/${role.id}>; rel="canonical"`
+    );
+    expect(await resolved.json()).toMatchObject({
+      collection: "roles",
+      corpusKey: "roles",
+      canonicalUrl: `/v1/tax-industry/uk/roles/${role.id}`,
+      data: { id: role.id },
+      links: {
+        self: `/v1/tax-industry/uk/records/${role.id}`,
+        canonical: `/v1/tax-industry/uk/roles/${role.id}`,
+      },
+    });
+
+    const missing = await app.request(
+      "/v1/tax-industry/uk/records/record-not-real"
+    );
+    expect(missing.status).toBe(404);
+    expect(await missing.json()).toMatchObject({
+      error: "not_found",
+      nextActions: [{ href: "/v1/tax-industry/uk" }],
+    });
+
+    const queried = await app.request(
+      `/v1/tax-industry/uk/records/${role.id}?expand=true`
+    );
+    expect(queried.status).toBe(400);
+    expect(await queried.json()).toMatchObject({
+      error: "unknown_query_parameter",
+      parameters: ["expand"],
+    });
   });
 
   it("filters nested pathway steps and only returns matching records", async () => {
@@ -515,6 +696,37 @@ describe("public UK tax-industry API", () => {
     expect(existing.status).toBe(503);
     expect(missing.status).toBe(503);
     expect(await missing.json()).toMatchObject({ error: "publication_review_pending" });
+
+    const publicSource = await app.request(
+      `/v1/tax-industry/uk/records/${ukTaxIndustry.sources[0].id}`
+    );
+    const protectedRole = await app.request(
+      `/v1/tax-industry/uk/records/${ukTaxIndustry.roles[0].id}`
+    );
+    const protectedUnknown = await app.request(
+      "/v1/tax-industry/uk/records/record-not-real"
+    );
+    expect(publicSource.status).toBe(200);
+    expect(protectedRole.status).toBe(503);
+    expect(protectedUnknown.status).toBe(503);
+    expect(protectedRole.headers.get("content-type")).toBe(
+      protectedUnknown.headers.get("content-type"),
+    );
+    expect(protectedRole.headers.get("cache-control")).toBe(
+      protectedUnknown.headers.get("cache-control"),
+    );
+    const { instance: _knownInstance, ...knownProblem } =
+      await protectedRole.json();
+    const { instance: _unknownInstance, ...unknownProblem } =
+      await protectedUnknown.json();
+    expect(unknownProblem).toEqual(knownProblem);
+
+    const protectedHead = await app.request(
+      `/v1/tax-industry/uk/records/${ukTaxIndustry.roles[0].id}`,
+      { method: "HEAD" },
+    );
+    expect(protectedHead.status).toBe(503);
+    expect(await protectedHead.text()).toBe("");
 
     const unknown = await app.request("/v1/tax-industry/uk/not-a-route");
     expect(unknown.status).toBe(404);

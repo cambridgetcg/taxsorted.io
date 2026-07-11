@@ -22,6 +22,7 @@ import {
   publicPoliticalFunding,
   relationshipEvidenceLanes,
 } from "../uk-politics-system.js";
+import { problemDetails } from "../problem-details.js";
 
 function cachedJson(c: Context, body: unknown, maxAge = 3600) {
   c.header("Cache-Control", `public, max-age=${maxAge}, stale-while-revalidate=${maxAge * 6}`);
@@ -133,15 +134,23 @@ export function createUkPoliticsSystemRoutes() {
   routes.get("/power/offices/:officeId", (c) => {
     const assessment = findOfficePowerAssessment(c.req.param("officeId"));
     if (!assessment) {
-      c.header("Cache-Control", "no-store");
-      return c.json(
-        {
-          error: "office_power_assessment_not_found",
-          message: "No assessment with that namespaced office ID is published in this method version.",
+      const detail =
+        "No assessment with that namespaced office ID is published in this method version.";
+      return problemDetails(c, 404, {
+        error: "office_power_assessment_not_found",
+        detail,
+        extensions: {
+          message: detail,
           methodPath: "/v1/politics/uk/power/method",
         },
-        404
-      );
+        nextActions: [
+          {
+            method: "GET",
+            href: "/v1/politics/uk/power/offices",
+            description: "List the published office power assessments.",
+          },
+        ],
+      });
     }
     return cachedJson(c, {
       assessment,

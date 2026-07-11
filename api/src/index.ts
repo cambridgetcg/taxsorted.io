@@ -8,6 +8,7 @@ import { migrate } from "./db.js";
 import { registerDeveloperApi } from "./developer-api.js";
 import { apiErrorHandler } from "./error-handler.js";
 import { requestId } from "./request-id.js";
+import { noSuchDoorProblem } from "./problem-details.js";
 import { session } from "./session.js";
 import { entities } from "./routes/entities.js";
 import { connect } from "./routes/connect.js";
@@ -22,6 +23,7 @@ import { createUkTaxSystemRoutes } from "./routes/uk-tax-system.js";
 import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
 import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
 import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
+import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
 
 const app = new OpenAPIHono();
 
@@ -49,6 +51,10 @@ app.get("/v1/health", (c) =>
 
 // Public reference data must not create a taxpayer session or set identity
 // cookies. Route it before the /v1/* session rail for that reason.
+app.route(
+  "/v1/open-data/releases",
+  createReleaseDiscoveryRoutes(openDataRouteOptions)
+);
 app.route(
   "/v1/open-data",
   createOpenDataRoutes(openDataRouteOptions)
@@ -109,7 +115,7 @@ app.route("/v1/itsa", itsa);
 app.route("/v1/itsa", itsaSubmit);
 app.route("/v1/account", account);
 
-app.notFound((c) => c.json({ error: "no_such_door" }, 404));
+app.notFound(noSuchDoorProblem);
 app.onError(apiErrorHandler);
 
 assertBootConfig();

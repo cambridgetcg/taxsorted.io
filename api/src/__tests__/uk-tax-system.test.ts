@@ -9,6 +9,45 @@ import {
   type UkTaxSystem,
 } from "../uk-tax-system.js";
 
+const problemTitles = {
+  invalid_filter: "Invalid filter",
+  invalid_page: "Invalid page",
+  not_found: "Resource not found",
+  publication_review_pending: "Publication review pending",
+  query_too_long: "Query too long",
+  repeated_filter: "Repeated filter",
+  unknown_filter: "Unknown filter",
+  unknown_query_parameter: "Unknown query parameter",
+} as const;
+
+async function expectPublicProblem(
+  response: Response,
+  expected: {
+    error: keyof typeof problemTitles;
+    status: 400 | 404 | 503;
+    instance: string;
+    extensions?: Record<string, unknown>;
+  }
+) {
+  expect(response.status).toBe(expected.status);
+  expect(response.headers.get("content-type")).toContain(
+    "application/problem+json"
+  );
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  const body = await response.json();
+  expect(body).toMatchObject({
+    type: `https://api.taxsorted.io/problems/${expected.error}`,
+    title: problemTitles[expected.error],
+    status: expected.status,
+    detail: expect.any(String),
+    instance: expected.instance,
+    error: expected.error,
+    nextActions: expect.any(Array),
+    ...expected.extensions,
+  });
+  return body;
+}
+
 function mount(publicDataEnabled: boolean | "route-default" = true) {
   const app = new Hono();
   let sessionCalls = 0;
@@ -153,7 +192,7 @@ describe("public UK tax-system API", () => {
 
     const invalid = await app.request("/v1/tax-system/uk/actors?sectro=public");
     expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toEqual({
+    expect(await invalid.json()).toMatchObject({
       error: "unknown_filter",
       filters: ["sectro"],
     });
@@ -161,7 +200,7 @@ describe("public UK tax-system API", () => {
 
     const irrelevant = await app.request("/v1/tax-system/uk/actors?lane=hmrc-main");
     expect(irrelevant.status).toBe(400);
-    expect(await irrelevant.json()).toEqual({
+    expect(await irrelevant.json()).toMatchObject({
       error: "unknown_filter",
       filters: ["lane"],
     });
@@ -170,7 +209,7 @@ describe("public UK tax-system API", () => {
       "/v1/tax-system/uk/actors?sector=public&sector=private"
     );
     expect(repeated.status).toBe(400);
-    expect(await repeated.json()).toEqual({
+    expect(await repeated.json()).toMatchObject({
       error: "repeated_filter",
       filters: ["sector"],
     });
@@ -199,6 +238,148 @@ describe("public UK tax-system API", () => {
     );
     expect(invalidEnum.status).toBe(400);
     expect(await invalidEnum.json()).toMatchObject({ error: "invalid_filter" });
+  });
+
+  it("uses one backward-compatible Problem Details contract for every public error lane", async () => {
+    const { app } = mount();
+    const longQuery = "x".repeat(101);
+    const cases = [
+      {
+        url: "/v1/tax-system/uk/manifest?ignored=true",
+        error: "unknown_query_parameter",
+        status: 400,
+        extensions: { parameters: ["ignored"] },
+      },
+      {
+        url: "/v1/tax-system/uk/exports/actors/xml",
+        error: "not_found",
+        status: 404,
+      },
+      {
+        url: "/v1/tax-system/uk/actors?sectro=public",
+        error: "unknown_filter",
+        status: 400,
+        extensions: { filters: ["sectro"] },
+      },
+      {
+        url: "/v1/tax-system/uk/actors?sector=public&sector=private",
+        error: "repeated_filter",
+        status: 400,
+        extensions: { filters: ["sector"] },
+      },
+      {
+        url: `/v1/tax-system/uk/actors?q=${longQuery}`,
+        error: "query_too_long",
+        status: 400,
+        extensions: { maximum: 100 },
+      },
+      {
+        url: "/v1/tax-system/uk/actors?limit=0",
+        error: "invalid_page",
+        status: 400,
+        extensions: {
+          limits: { limit: [1, 100], offset: "0 or greater" },
+        },
+      },
+      {
+        url: "/v1/tax-system/uk/relationships?actorId=actor-not-real",
+        error: "invalid_filter",
+        status: 400,
+        extensions: { filter: "actorId", value: "actor-not-real" },
+      },
+      {
+        url: "/v1/tax-system/uk/permissions/permission-not-real",
+        error: "not_found",
+        status: 404,
+        extensions: {
+          collection: "permissions",
+          id: "permission-not-real",
+        },
+      },
+      {
+        url: "/v1/tax-system/uk/records/record-not-real",
+        error: "not_found",
+        status: 404,
+        extensions: {
+          message: "No UK tax-system record has this stable dataset ID.",
+          id: "record-not-real",
+        },
+      },
+      {
+        url: "/v1/tax-system/uk/not-a-route",
+        error: "not_found",
+        status: 404,
+      },
+    ] as const;
+
+    for (const candidate of cases) {
+      await expectPublicProblem(await app.request(candidate.url), {
+        error: candidate.error,
+        status: candidate.status,
+        instance: new URL(candidate.url, "https://api.taxsorted.io").pathname,
+        ...("extensions" in candidate
+          ? { extensions: candidate.extensions as Record<string, unknown> }
+          : {}),
+      });
+    }
+
+    const closed = await mount(false).app.request(
+      "/v1/tax-system/uk/graph"
+    );
+    await expectPublicProblem(closed, {
+      error: "publication_review_pending",
+      status: 503,
+      instance: "/v1/tax-system/uk/graph",
+      extensions: {
+        message:
+          "The reviewed source ledger and gap register remain public while the full graph is closed.",
+        sources: "/v1/tax-system/uk/sources",
+        gaps: "/v1/tax-system/uk/gaps",
+      },
+    });
+  });
+
+  it("resolves a stable ID without making the caller guess its collection", async () => {
+    const { app } = mount();
+    const actor = ukTaxSystem.actors[0];
+    const resolved = await app.request(
+      `/v1/tax-system/uk/records/${actor.id}`
+    );
+    expect(resolved.status).toBe(200);
+    expect(resolved.headers.get("content-location")).toBe(
+      `/v1/tax-system/uk/records/${actor.id}`
+    );
+    expect(resolved.headers.get("link")).toContain(
+      `</v1/tax-system/uk/actors/${actor.id}>; rel="canonical"`
+    );
+    expect(await resolved.json()).toMatchObject({
+      collection: "actors",
+      corpusKey: "actors",
+      canonicalUrl: `/v1/tax-system/uk/actors/${actor.id}`,
+      data: { id: actor.id },
+      links: {
+        self: `/v1/tax-system/uk/records/${actor.id}`,
+        canonical: `/v1/tax-system/uk/actors/${actor.id}`,
+      },
+    });
+
+    const missing = await app.request(
+      "/v1/tax-system/uk/records/record-not-real"
+    );
+    expect(missing.status).toBe(404);
+    expect(await missing.json()).toMatchObject({
+      error: "not_found",
+      nextActions: [{ href: "/v1/tax-system/uk" }],
+    });
+
+    const queried = await app.request(
+      `/v1/tax-system/uk/records/${actor.id}?expand=true`
+    );
+    expect(queried.status).toBe(400);
+    expect(await queried.json()).toMatchObject({
+      error: "unknown_query_parameter",
+      parameters: ["expand"],
+    });
   });
 
   it("uses exact representation ETags after route and query validation", async () => {
@@ -442,6 +623,37 @@ describe("public UK tax-system API", () => {
     expect(existing.status).toBe(503);
     expect(missing.status).toBe(503);
 
+    const publicSource = await app.request(
+      `/v1/tax-system/uk/records/${ukTaxSystem.sources[0].id}`
+    );
+    const protectedActor = await app.request(
+      `/v1/tax-system/uk/records/${ukTaxSystem.actors[0].id}`
+    );
+    const protectedUnknown = await app.request(
+      "/v1/tax-system/uk/records/record-not-real"
+    );
+    expect(publicSource.status).toBe(200);
+    expect(protectedActor.status).toBe(503);
+    expect(protectedUnknown.status).toBe(503);
+    expect(protectedActor.headers.get("content-type")).toBe(
+      protectedUnknown.headers.get("content-type"),
+    );
+    expect(protectedActor.headers.get("cache-control")).toBe(
+      protectedUnknown.headers.get("cache-control"),
+    );
+    const { instance: _knownInstance, ...knownProblem } =
+      await protectedActor.json();
+    const { instance: _unknownInstance, ...unknownProblem } =
+      await protectedUnknown.json();
+    expect(unknownProblem).toEqual(knownProblem);
+
+    const protectedHead = await app.request(
+      `/v1/tax-system/uk/records/${ukTaxSystem.actors[0].id}`,
+      { method: "HEAD" },
+    );
+    expect(protectedHead.status).toBe(503);
+    expect(await protectedHead.text()).toBe("");
+
     const unknown = await app.request("/v1/tax-system/uk/not-a-route");
     expect(unknown.status).toBe(404);
     expect(sessionCalls()).toBe(0);
@@ -454,7 +666,7 @@ describe("public UK tax-system API", () => {
     );
     expect(response.status).toBe(404);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(await response.json()).toEqual({
+    expect(await response.json()).toMatchObject({
       error: "not_found",
       collection: "permissions",
       id: "permission-not-real",

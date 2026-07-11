@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Hono } from "hono";
 import { apiCors, isPublicCivicPath } from "../cors.js";
 import { canonicalJson } from "../open-data.js";
+import { noSuchDoorProblem } from "../problem-details.js";
 import {
   agentManifestText,
   buildAgentWakePayload,
@@ -30,7 +31,7 @@ function mount() {
     await next();
   });
   app.get("/v1/probe", (c) => c.json({ reachable: true }));
-  app.notFound((c) => c.json({ error: "no_such_door" }, 404));
+  app.notFound(noSuchDoorProblem);
   return { app, sessionCalls: () => sessionCalls };
 }
 
@@ -90,6 +91,15 @@ describe("agent interface", () => {
       "charity-accountability-status: schema-only-not-admitted",
     );
     expect(body).toContain("charity-accountability-records: none");
+    expect(body).toContain(
+      "openapi-public: GET https://api.taxsorted.io/openapi-public.json",
+    );
+    expect(body).toContain(
+      "release-ledger: GET https://api.taxsorted.io/v1/open-data/releases",
+    );
+    expect(body).toContain(
+      "format-selection: follow each export index's explicit representation URLs",
+    );
     expect(body).toContain("xenia-credit: XENIA by Yu and Fable");
     expect(body).toContain("xenia-conformance-claim: none");
     expect(body).toContain(
@@ -176,6 +186,22 @@ describe("agent interface", () => {
       schema: catalog.schema,
       etag: expect.stringMatching(/^"sha256-/),
     });
+    expect(body.resources.openApi).toEqual({
+      publicHref: "/openapi-public.json",
+      fullHref: "/openapi.json",
+      datasetSlices: {
+        taxSystem: "/openapi/tax-system-uk.json",
+        taxIndustry: "/openapi/tax-industry-uk.json",
+        charities: "/openapi/charities-uk.json",
+        publicFunding: "/openapi/public-funding-uk.json",
+        politics: "/openapi/politics-uk.json",
+      },
+    });
+    expect(body.resources.releases).toEqual({
+      ledger: "/v1/open-data/releases",
+      jsonFeed: "/v1/open-data/releases/feed.json",
+      atom: "/v1/open-data/releases/feed.atom",
+    });
     expect(body.resources.charityAccountability).toEqual({
       framework: "/v1/charities/uk/accountability",
       schema: "/v1/charities/uk/accountability/schema",
@@ -198,6 +224,15 @@ describe("agent interface", () => {
         expect.objectContaining({ id: "official-sources" }),
         expect.objectContaining({ id: "known-gaps" }),
         expect.objectContaining({ id: "data-contracts" }),
+        expect.objectContaining({
+          id: "release-history",
+          resources: expect.arrayContaining([
+            {
+              resource: "releaseLedger",
+              href: "/v1/open-data/releases",
+            },
+          ]),
+        }),
       ]),
     );
     expect(body.nextActions).toEqual(
@@ -211,6 +246,10 @@ describe("agent interface", () => {
         expect.objectContaining({
           id: "inspect-charity-accountability-contract",
           href: "/v1/charities/uk/accountability",
+        }),
+        expect.objectContaining({
+          id: "watch-release-checkpoints",
+          href: "/v1/open-data/releases",
         }),
       ]),
     );
@@ -239,7 +278,18 @@ describe("agent interface", () => {
       headers: { Accept: "text/html" },
     });
     expect(ordinary.status).toBe(404);
-    expect(await ordinary.json()).toEqual({ error: "no_such_door" });
+    expect(ordinary.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(await ordinary.json()).toMatchObject({
+      type: "https://api.taxsorted.io/problems/no_such_door",
+      title: "Resource not found",
+      status: 404,
+      detail: "No public API route matches this request.",
+      instance: "/",
+      error: "no_such_door",
+      nextActions: [{ method: "GET", href: "/agent.txt" }],
+    });
 
     const rejectedJson = await app.request("/", {
       headers: { Accept: "application/json;q=0, text/html" },
@@ -279,8 +329,17 @@ describe("agent interface", () => {
 
     expect(response.status).toBe(400);
     expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("content-type")).toContain(
+      "application/problem+json",
+    );
+    expect(response.headers.get("vary")).toContain("Accept");
     expect(response.headers.get("etag")).toBeNull();
-    expect(body).toEqual({
+    expect(body).toMatchObject({
+      type: "https://api.taxsorted.io/problems/unknown_query_parameter",
+      title: "Unknown query parameter",
+      status: 400,
+      detail: "This doorway does not use query parameters.",
+      instance: "/v1/wake",
       schema: "taxsorted.agent-error/1",
       error: "unknown_query_parameter",
       message: "This doorway does not use query parameters.",
@@ -309,6 +368,22 @@ describe("agent interface", () => {
     });
     expect(headError.status).toBe(400);
     expect(await headError.text()).toBe("");
+
+    const legacyMediaType = await app.request(
+      "/v1/wake?token=must-not-be-reflected",
+      { headers: { Accept: "application/json" } },
+    );
+    expect(legacyMediaType.headers.get("content-type")).toContain(
+      "application/json",
+    );
+    expect(legacyMediaType.headers.get("content-type")).not.toContain(
+      "application/problem+json",
+    );
+    expect(await legacyMediaType.json()).toMatchObject({
+      error: "unknown_query_parameter",
+      instance: "/v1/wake",
+      parameters: ["token"],
+    });
   });
 
   it("rejects writes with an instructional 405 and leaves downstream routes reachable", async () => {
@@ -359,6 +434,11 @@ describe("agent interface", () => {
     });
     expect(nearMatch.status).toBe(404);
     expect(nearMatch.headers.get("access-control-allow-origin")).not.toBe("*");
+    expect(await nearMatch.json()).toMatchObject({
+      status: 404,
+      instance: "/v1/wake-up",
+      error: "no_such_door",
+    });
   });
 
   it("keeps deterministic exact bytes for equivalent options", () => {

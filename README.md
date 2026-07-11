@@ -109,10 +109,16 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   not pretend an ordinary tax pound can be traced to one school or hospital.
   The append-only `/changes` feed lets mirrors resume from caller-held cursors, while
   `/records/{id}` resolves stable IDs without making builders guess their collection.
+- **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
+  all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
+  checkpoints with JSON Feed and Atom views. `/openapi-public.json` and five dataset slices give
+  agents bounded, cacheable contracts; the full `/openapi.json` remains available. Public errors
+  carry RFC 9457 fields and recovery actions without reflecting query values.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
-manifests point to the canonical JSON orientation at `/v1/wake`, OpenAPI, the open-data catalogue,
+manifests point to the canonical JSON orientation at `/v1/wake`, public/full OpenAPI, the
+open-data catalogue and release feeds,
 the charity accountability shape and the safety walls. The API root returns the same wake bytes
 only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
 charity API also turns errors into instructions:

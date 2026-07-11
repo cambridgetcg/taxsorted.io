@@ -1,0 +1,82 @@
+[
+  {
+    "id": "urn:taxsorted:release-checkpoint:uk-tax-system:2026-07-10.2",
+    "kind": "baseline-checkpoint",
+    "datasetId": "uk-tax-system",
+    "title": "Who makes, feeds, runs, challenges and enforces the UK tax system",
+    "version": "2026-07-10.2",
+    "evidenceReviewedOn": "2026-07-10",
+    "observedPublicOn": "2026-07-11",
+    "publicationStatusAtCheckpoint": "open",
+    "assertionScope": "dataset-release-snapshot",
+    "recordChangeClaims": "none",
+    "digest": "sha256:400bbe40cad2cfad3a755cb248263822e53d633c22ceb42f2f7d4b84ecd0cb99",
+    "links": {
+      "manifest": "/v1/tax-system/uk/manifest",
+      "currentGraph": "/v1/tax-system/uk/graph",
+      "immutableSnapshot": null,
+      "schema": "/v1/tax-system/uk/schema",
+      "exports": "/v1/tax-system/uk/exports"
+    }
+  },
+  {
+    "id": "urn:taxsorted:release-checkpoint:uk-tax-industry:2026-07-10.2",
+    "kind": "baseline-checkpoint",
+    "datasetId": "uk-tax-industry",
+    "title": "How entry, status and money work in the UK tax-services industry",
+    "version": "2026-07-10.2",
+    "evidenceReviewedOn": "2026-07-10",
+    "observedPublicOn": "2026-07-11",
+    "publicationStatusAtCheckpoint": "open",
+    "assertionScope": "dataset-release-snapshot",
+    "recordChangeClaims": "none",
+    "digest": "sha256:df9dd5d816db517b240e19f5040fe9392f18b972979d4fda9a07f5e53fabc959",
+    "links": {
+      "manifest": "/v1/tax-industry/uk/manifest",
+      "currentGraph": "/v1/tax-industry/uk/graph",
+      "immutableSnapshot": null,
+      "schema": "/v1/tax-industry/uk/schema",
+      "exports": "/v1/tax-industry/uk/exports"
+    }
+  },
+  {
+    "id": "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-10.1",
+    "kind": "baseline-checkpoint",
+    "datasetId": "uk-charities-sector",
+    "title": "How UK charity status, tax, finance, control, public data and help routes fit together",
+    "version": "2026-07-10.1",
+    "evidenceReviewedOn": "2026-07-10",
+    "observedPublicOn": "2026-07-11",
+    "publicationStatusAtCheckpoint": "open",
+    "assertionScope": "dataset-release-snapshot",
+    "recordChangeClaims": "none",
+    "digest": "sha256:4eed877df84c29e49991ca5eaf82dc2eda711d59785bfe5c774329e08b5d69d4",
+    "links": {
+      "manifest": "/v1/charities/uk/manifest",
+      "currentGraph": "/v1/charities/uk/graph",
+      "immutableSnapshot": null,
+      "schema": "/v1/charities/uk/schema",
+      "exports": "/v1/charities/uk/exports"
+    }
+  },
+  {
+    "id": "urn:taxsorted:release-checkpoint:uk-public-funding:2026-07-10.1",
+    "kind": "baseline-checkpoint",
+    "datasetId": "uk-public-funding",
+    "title": "How UK public money reaches health, education and the next generation",
+    "version": "2026-07-10.1",
+    "evidenceReviewedOn": "2026-07-10",
+    "observedPublicOn": "2026-07-11",
+    "publicationStatusAtCheckpoint": "open",
+    "assertionScope": "dataset-release-snapshot",
+    "recordChangeClaims": "none",
+    "digest": "sha256:8100d03e8d1d095ea2d3eea1cd237424d3b0bf11e13901018fdd52f55ec0d801",
+    "links": {
+      "manifest": "/v1/public-funding/uk/manifest",
+      "currentGraph": "/v1/public-funding/uk/graph",
+      "immutableSnapshot": null,
+      "schema": "/v1/public-funding/uk/schema",
+      "exports": "/v1/public-funding/uk/exports"
+    }
+  }
+]

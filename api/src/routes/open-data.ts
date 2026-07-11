@@ -19,6 +19,8 @@ import {
   politicsOpenDatasets,
   type PoliticsBulkPublicationApproval,
 } from "../uk-politics-datasets.js";
+import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
+import { problemDetails } from "../problem-details.js";
 
 const catalogPath = "/v1/open-data";
 const rightsPath = `${catalogPath}/rights`;
@@ -53,7 +55,8 @@ function catalogHeaders(
       `<${contentLocation}>; rel="canonical"`,
       `<${licenseLocation}>; rel="license"`,
       `<${correctionsUrl}>; rel="help"`,
-      `</openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi-public.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+      `</openapi.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Full API"`,
       `</agent.txt>; rel="related"; type="text/plain"; title="Agent discovery"`,
     ].join(", ")
   );
@@ -124,6 +127,8 @@ function dataset(
       schema: `${root}/schema`,
       dictionary: `${root}/dictionary`,
       exports: `${root}/exports`,
+      recordResolver: `${root}/records/{id}`,
+      releaseLedger: releaseDiscoveryHandles.ledger,
       sources: `${root}/sources`,
       ...(id === "uk-charities-sector"
         ? {
@@ -135,7 +140,6 @@ function dataset(
       ...(id === "uk-public-funding"
         ? {
             changes: `${root}/changes`,
-            recordResolver: `${root}/records/{id}`,
           }
         : {}),
       gaps: `${root}/gaps`,
@@ -175,11 +179,25 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
       cors: "*",
       formats: ["json", "ndjson", "csv"],
       openApi: "/openapi.json",
+      openApiPublic: "/openapi-public.json",
+      openApiSlices: {
+        taxSystem: "/openapi/tax-system-uk.json",
+        taxIndustry: "/openapi/tax-industry-uk.json",
+        charities: "/openapi/charities-uk.json",
+        publicFunding: "/openapi/public-funding-uk.json",
+        politics: "/openapi/politics-uk.json",
+      },
       agentDiscovery: "/agent.txt",
       rateLimits:
         "No application-level rate limit is currently applied to these static public routes. Hosting and network abuse protections may still act. Prefer one bulk export over many item requests.",
       availability:
         "Best effort; no uptime service level is promised. The data, schemas and code can be mirrored or self-hosted.",
+    },
+    releaseDiscovery: {
+      ...releaseDiscoveryHandles,
+      scope:
+        "Dataset-release baselines and forward checkpoints only; no retrospective record events or invented publication times.",
+      canonical: releaseDiscoveryHandles.ledger,
     },
     reuse: {
       taxSortedCurationLicence: contentLicence,
@@ -188,7 +206,7 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
         "The curation licence covers TaxSorted's normalised corpus and written summaries. Linked source material keeps its own licence and reuse terms; source ledgers record the information TaxSorted has confirmed and leave uncertainty explicit.",
       noKeyRequired: true,
       mirroring:
-        "Use each resource ETag with If-None-Match. A 304 response means that exact representation is unchanged.",
+        "Use each resource ETag with If-None-Match. A 304 response means that exact representation is unchanged. Poll the central release ledger to discover declared dataset checkpoints.",
       corrections: correctionsUrl,
     },
     datasets: [
@@ -357,11 +375,22 @@ export function createOpenDataRoutes(options: OpenDataRouteOptions = {}) {
   app.get("/", (c) => {
     const parameters = [...new URL(c.req.url).searchParams.keys()];
     if (parameters.length) {
-      c.header("Cache-Control", "no-store");
-      return c.json(
-        { error: "unknown_query_parameter", parameters: [...new Set(parameters)].sort() },
-        400
-      );
+      const detail = "The open-data catalogue does not use query parameters.";
+      return problemDetails(c, 400, {
+        error: "unknown_query_parameter",
+        detail,
+        extensions: {
+          message: detail,
+          parameters: [...new Set(parameters)].sort(),
+        },
+        nextActions: [
+          {
+            method: "GET",
+            href: catalogPath,
+            description: "Retry the catalogue without a query string.",
+          },
+        ],
+      });
     }
     catalogHeaders(c, etag);
     if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
@@ -373,11 +402,22 @@ export function createOpenDataRoutes(options: OpenDataRouteOptions = {}) {
   app.get("/rights", (c) => {
     const parameters = [...new URL(c.req.url).searchParams.keys()];
     if (parameters.length) {
-      c.header("Cache-Control", "no-store");
-      return c.json(
-        { error: "unknown_query_parameter", parameters: [...new Set(parameters)].sort() },
-        400
-      );
+      const detail = "The open-data rights statement does not use query parameters.";
+      return problemDetails(c, 400, {
+        error: "unknown_query_parameter",
+        detail,
+        extensions: {
+          message: detail,
+          parameters: [...new Set(parameters)].sort(),
+        },
+        nextActions: [
+          {
+            method: "GET",
+            href: rightsPath,
+            description: "Retry the rights statement without a query string.",
+          },
+        ],
+      });
     }
     catalogHeaders(c, rightsEtag, rightsPath, contentLicence.url);
     if (ifNoneMatchMatches(c.req.header("If-None-Match"), rightsEtag)) {
@@ -387,8 +427,18 @@ export function createOpenDataRoutes(options: OpenDataRouteOptions = {}) {
   });
 
   app.all("*", (c) => {
-    c.header("Cache-Control", "no-store");
-    return c.json({ error: "not_found" }, 404);
+    const detail = "No open-data catalogue resource matches this path.";
+    return problemDetails(c, 404, {
+      error: "not_found",
+      detail,
+      nextActions: [
+        {
+          method: "GET",
+          href: catalogPath,
+          description: "Discover the public dataset and release handles.",
+        },
+      ],
+    });
   });
 
   return app;

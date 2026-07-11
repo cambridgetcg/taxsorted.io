@@ -19,6 +19,7 @@ import {
   integrityCorrectionMethod,
   observableOfficialLanguageMethod,
 } from "../uk-integrity-system.js";
+import { problemDetails, type ProblemNextAction } from "../problem-details.js";
 
 const CONTRACTS_FINDER = "https://www.contractsfinder.service.gov.uk";
 const POLICE_DATA = "https://data.police.uk";
@@ -63,8 +64,38 @@ function noStoreJson(
   body: unknown,
   status: 400 | 404 | 422 | 502 | 503 | 504 = 503
 ) {
-  c.header("Cache-Control", "no-store");
-  return c.json(body, status);
+  const extensions =
+    typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>)
+      : {};
+  const error =
+    typeof extensions.error === "string" ? extensions.error : "request_failed";
+  const detail =
+    typeof extensions.message === "string"
+      ? extensions.message
+      : "The requested UK public-integrity resource could not be served.";
+  const suppliedActions = Array.isArray(extensions.nextActions)
+    ? extensions.nextActions.filter(
+        (action): action is ProblemNextAction =>
+          typeof action === "object" && action !== null,
+      )
+    : [];
+  return problemDetails(c, status, {
+    error,
+    detail,
+    extensions,
+    nextActions:
+      suppliedActions.length > 0
+        ? suppliedActions
+        : [
+            {
+              method: "GET",
+              href: "/v1/politics/uk/integrity",
+              description:
+                "Read the public-integrity scope, sources and bounded routes.",
+            },
+          ],
+  });
 }
 
 function personalJson(c: Context, body: unknown) {
