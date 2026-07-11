@@ -31,7 +31,10 @@ required before the return can be submitted. The annual return and payment rules
 **Tax expert foundation:** `/uk/tax-expert` publishes an honest coverage map and a local-only
 MTD Income Tax readiness expert. The API exposes the same understanding as
 `taxsorted.tax-answer/1`: explicit facts and unknowns, applicability, reasoning, source kind and
-legal force, confidence basis, escalation and data use. The authenticated assessment sits beside
+legal force, confidence basis, escalation and data use. Its shared why graph traces the reached
+path from conclusion to facts, binding rules, claims, sources, institutions, consequences and
+explicit gaps in challenge routing without copying supplied case values into graph text. The
+authenticated assessment sits beside
 the source-backed SDLT calculator; both use strict bounded requests and never guess zero. See
 [`docs/API.md`](docs/API.md), `GET /v1/uk/tax-expert` and `GET /openapi.json`.
 
@@ -87,6 +90,11 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   names its authenticated `POST`, workspace scope, input/storage boundary and OpenAPI contract
   without changing the doorway's read-only access claim. The design is inspired by XENIA; no
   conformance claim or agent identity/session is created.
+- **Shared why graph**: sessionless `GET /v1/why-graph`, its structural schema at
+  `/v1/why-graph/schema` and task-sized `/openapi/why-graph.json` publish the connective contract
+  used by the MTD expert. The graph is a derived traversal index, not a second source of truth or
+  ingestion route. It separates who acts, who administers and who makes an official decision;
+  a TaxSorted result is not an HMRC decision and missing enforcement or appeal coverage remains a gap.
 - **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
   bodies behind an explicit production-publication switch, covering the
   authority chain, collection lanes, accounts, infrastructure, private collaborators,
@@ -123,7 +131,7 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
   all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
   checkpoints with JSON Feed and Atom views. `/openapi-public.json`, five dataset slices, a
-  separate observer-accountability framework slice and one secured tax-expert task slice give
+  separate observer-accountability and why-graph framework slices and one secured tax-expert task slice give
   agents bounded, cacheable contracts; the full `/openapi.json` remains available. Public errors
   carry RFC 9457 fields and recovery actions without reflecting query values.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
@@ -131,7 +139,7 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
 manifests point to the canonical JSON orientation at `/v1/wake`, public/full OpenAPI, the
 open-data catalogue and release feeds,
-the charity and observer accountability shapes, the separately credentialed tax-expert task and
+the charity and observer accountability shapes, the why-graph contract, the separately credentialed tax-expert task and
 the safety walls. The API root returns the same wake bytes
 only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
 charity API also turns errors into instructions:

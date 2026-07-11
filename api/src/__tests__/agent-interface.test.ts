@@ -118,6 +118,18 @@ describe("agent interface", () => {
       "openapi-public: GET https://api.taxsorted.io/openapi-public.json",
     );
     expect(body).toContain(
+      "why-graph-framework: GET https://api.taxsorted.io/v1/why-graph",
+    );
+    expect(body).toContain(
+      "why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema",
+    );
+    expect(body).toContain(
+      "why-graph-openapi: GET https://api.taxsorted.io/openapi/why-graph.json",
+    );
+    expect(body).toContain(
+      "why-graph-writes: none; read-only framework with no ingestion route",
+    );
+    expect(body).toContain(
       "release-ledger: GET https://api.taxsorted.io/v1/open-data/releases",
     );
     expect(body).toContain(
@@ -221,6 +233,7 @@ describe("agent interface", () => {
       },
       frameworkSlices: {
         accountability: "/openapi/accountability-uk.json",
+        whyGraph: "/openapi/why-graph.json",
       },
       taskSlices: {
         taxExpert: "/openapi/tax-expert-uk.json",
@@ -242,6 +255,35 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.whyGraph).toEqual({
+      framework: "/v1/why-graph",
+      schema: "/v1/why-graph/schema",
+      openApi: "/openapi/why-graph.json",
+      graphSchema: "taxsorted.why-graph/1",
+      status: "first-adopter",
+      firstAdopter: {
+        endpoint: "/v1/uk/tax-expert/mtd-income-tax/assessments",
+        responsePath: "/reasoning/whyGraph",
+        capabilityVersion: "2026-07-11.5",
+        runtimeEmitted: true,
+        wireSchemaOptionalForForwardCompatibleV1Readers: true,
+      },
+      access: {
+        methods: ["GET", "HEAD", "OPTIONS"],
+        authentication: "none",
+        account: "none",
+        session: "none",
+        cookies: "none",
+        writes: "none",
+        cors: "*",
+      },
+      boundaries: {
+        createsGraphRecords: false,
+        changesExternalState: false,
+        infersOfficialAppealRights: false,
+        graphIsDerivedNotCanonical: true,
+      },
     });
     expect(body.resources.taxExpert).toEqual({
       humanHref: "https://taxsorted.io/uk/tax-expert",
@@ -349,6 +391,11 @@ describe("agent interface", () => {
         expect.objectContaining({
           id: "watch-release-checkpoints",
           href: "/v1/open-data/releases",
+        }),
+        expect.objectContaining({
+          id: "inspect-why-graph-contract",
+          method: "GET",
+          href: "/v1/why-graph",
         }),
         expect.objectContaining({
           id: "inspect-tax-expert-task-contract",

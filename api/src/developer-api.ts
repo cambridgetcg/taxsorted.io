@@ -16,6 +16,10 @@ import {
   releaseLedgerPath,
 } from "./release-discovery-contract.js";
 import { ukTaxExpertRoutes } from "./routes/tax-expert.js";
+import {
+  WhyGraphFrameworkSchema,
+  WhyGraphJsonSchemaDocumentSchema,
+} from "./why-graph.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 const OPENAPI_MEDIA_TYPE = "application/vnd.oai.openapi+json;version=3.1";
@@ -28,6 +32,7 @@ interface OpenApiSliceDefinition {
   title: string;
   description: string;
   allowSecuredOperations?: boolean;
+  componentReferences?: readonly string[];
   matchesPath: (path: string) => boolean;
 }
 
@@ -78,6 +83,11 @@ const openApiTags = [
     description:
       "Evidence-backed tax capability discovery and bounded deterministic assessments.",
   },
+  {
+    name: "Explanation contracts",
+    description:
+      "Shared, read-only contracts for tracing conclusions to support, responsibility, effects, challenge routes and explicit gaps.",
+  },
 ] as const;
 
 const publicApiPathPrefixes = [
@@ -88,6 +98,7 @@ const publicApiPathPrefixes = [
   "/v1/public-funding/uk",
   "/v1/politics/uk",
   "/v1/accountability/uk",
+  "/v1/why-graph",
 ] as const;
 
 const publicAgentPaths = new Set([
@@ -160,6 +171,15 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     description:
       "Task-sized contract for the watching-the-watchers framework and candidate schema.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/accountability/uk"),
+  },
+  {
+    id: "why-graph",
+    path: "/openapi/why-graph.json",
+    title: "TaxSorted Why Graph API",
+    description:
+      "Task-sized contract for the shared explanation graph framework and structural schema.",
+    componentReferences: ["#/components/schemas/WhyGraph"],
+    matchesPath: (path) => hasPathPrefix(path, "/v1/why-graph"),
   },
   {
     id: "tax-expert-uk",
@@ -821,7 +841,10 @@ const AgentWake = z
           publicFunding: z.string(),
           politics: z.string(),
         }),
-        frameworkSlices: z.object({ accountability: z.string() }),
+        frameworkSlices: z.object({
+          accountability: z.string(),
+          whyGraph: z.string().optional(),
+        }),
         taskSlices: z.object({ taxExpert: z.string() }).optional(),
       }),
       releases: z.object({
@@ -851,6 +874,43 @@ const AgentWake = z
         status: z.literal("schema-only-not-admitted"),
         recordsAvailable: z.literal(false),
       }),
+      whyGraph: z
+        .object({
+          framework: z.string(),
+          schema: z.string(),
+          openApi: z.string(),
+          graphSchema: z.literal("taxsorted.why-graph/1"),
+          status: z.literal("first-adopter"),
+          firstAdopter: z.object({
+            endpoint: z.literal(
+              "/v1/uk/tax-expert/mtd-income-tax/assessments",
+            ),
+            responsePath: z.literal("/reasoning/whyGraph"),
+            capabilityVersion: z.literal("2026-07-11.5"),
+            runtimeEmitted: z.literal(true),
+            wireSchemaOptionalForForwardCompatibleV1Readers: z.literal(true),
+          }),
+          access: z.object({
+            methods: z.tuple([
+              z.literal("GET"),
+              z.literal("HEAD"),
+              z.literal("OPTIONS"),
+            ]),
+            authentication: z.literal("none"),
+            account: z.literal("none"),
+            session: z.literal("none"),
+            cookies: z.literal("none"),
+            writes: z.literal("none"),
+            cors: z.literal("*"),
+          }),
+          boundaries: z.object({
+            createsGraphRecords: z.literal(false),
+            changesExternalState: z.literal(false),
+            infersOfficialAppealRights: z.literal(false),
+            graphIsDerivedNotCanonical: z.literal(true),
+          }),
+        })
+        .optional(),
       taxExpert: z
         .object({
           humanHref: z.string().url(),
@@ -3121,6 +3181,80 @@ function registerObserverAccountabilityOpenApi(app: OpenAPIHono) {
   }
 }
 
+function registerWhyGraphOpenApi(app: OpenAPIHono) {
+  const routes = [
+    {
+      path: "/v1/why-graph",
+      operationId: "getWhyGraphFramework",
+      summary: "Read the shared why-graph framework",
+      description:
+        "Sessionless framework for traversing a conclusion toward reached reasoning, exact fact selectors, rules, claims, sources, institutions, consequences, challenge routes and explicit gaps. It creates no graph records and changes no external state.",
+      schema: WhyGraphFrameworkSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/why-graph/schema",
+      operationId: "getWhyGraphSchema",
+      summary: "Read the structural why-graph JSON Schema",
+      description:
+        "Strict structural JSON Schema for taxsorted.why-graph/1. Runtime graph, domain and source-admission invariants remain separate checks; schema validity is not proof of authority or correctness.",
+      schema: WhyGraphJsonSchemaDocumentSchema,
+      mediaType: "application/schema+json",
+    },
+  ] as const;
+
+  for (const route of routes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current static representation.",
+          headers: publicResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+          content: problemContent,
+        },
+        405: {
+          description: "The framework is read-only and has no ingestion route.",
+          content: problemContent,
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: `head${route.operationId.slice(3)}`,
+      summary: `Check ${route.summary.slice(5).toLowerCase()}`,
+      description: "Returns the GET representation's validators and links without its body.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        400: { description: "Static resources do not accept query parameters." },
+      },
+    });
+  }
+}
+
 function registerPublicFundingOpenApi(app: OpenAPIHono) {
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -4279,6 +4413,9 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/accountability/uk")) {
     return "UK observer accountability";
   }
+  if (hasPathPrefix(path, "/v1/why-graph")) {
+    return "Explanation contracts";
+  }
   if (hasPathPrefix(path, "/v1/uk/tax-expert")) return "UK tax expert";
   throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
 }
@@ -4330,6 +4467,7 @@ function decodeJsonPointerToken(value: string): string {
 function retainReferencedComponents(
   sourceComponents: unknown,
   selectedPaths: JsonObject,
+  additionalReferences: readonly string[] = [],
 ): JsonObject | undefined {
   if (!isJsonObject(sourceComponents)) return undefined;
 
@@ -4337,6 +4475,7 @@ function retainReferencedComponents(
   const visited = new Set<string>();
   const retained: JsonObject = {};
   collectComponentReferences(selectedPaths, pending);
+  for (const reference of additionalReferences) pending.add(reference);
 
   while (pending.size > 0) {
     const reference = pending.values().next().value as string;
@@ -4461,6 +4600,7 @@ function createOpenApiSlice(
   const retainedComponents = retainReferencedComponents(
     sourceDocument.components,
     selectedPaths,
+    definition.componentReferences,
   );
   const slice: JsonObject = {
     openapi: sourceDocument.openapi,
@@ -4488,6 +4628,9 @@ function createOpenApiSlice(
     },
   };
   if (retainedComponents) slice.components = retainedComponents;
+  if (definition.componentReferences?.length) {
+    slice["x-taxsorted-shared-components"] = [...definition.componentReferences];
+  }
   return slice;
 }
 
@@ -4691,6 +4834,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
   registerObserverAccountabilityOpenApi(app);
+  registerWhyGraphOpenApi(app);
   registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);
   registerStableRecordResolversOpenApi(app);

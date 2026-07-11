@@ -77,6 +77,249 @@ describe("MTD Income Tax expert", () => {
     expect(result.answer?.obligations.map((item) => item.dueDate)).toContain("2026-08-07");
   });
 
+  it("emits a canonical why graph without copying supplied financial values", () => {
+    const input = request();
+    input.income.taxYears["2024-25"].selfEmploymentGrossPence = 987_654_321;
+    const result = assess(input);
+    const graph = result.reasoning.whyGraph;
+
+    expect(graph.schema).toBe("taxsorted.why-graph/1");
+    expect(graph.context).toMatchObject({
+      authority: "taxsorted-analysis",
+      effect: "advisory",
+      externalStateChange: false,
+    });
+    expect(JSON.stringify(graph)).not.toContain("987654321");
+    expect(graph.nodes.map((node) => node.id)).toEqual(
+      [...graph.nodes.map((node) => node.id)].sort(),
+    );
+    expect(graph.edges.map((edge) => edge.id)).toEqual(
+      [...graph.edges.map((edge) => edge.id)].sort(),
+    );
+    expect(result.applicability.ruleIds).not.toContain("HMRC-MTD-exemptions");
+    expect(graph.coverage.gapNodeIds).toContain(
+      "gap:official-enforcement-and-review-route",
+    );
+    expect(graph.nodes.find((node) => node.id === "route:taxsorted-correction")?.description)
+      .toMatch(/GitHub account.*Never paste financial.*confidential client material/i);
+  });
+
+  it("does not make unreached threshold, exemption or obligation steps look applied", () => {
+    const input = request();
+    input.person.relevantReturnPosition = "not-required";
+    const result = assess(input);
+    const graph = result.reasoning.whyGraph;
+
+    expect(
+      graph.nodes
+        .filter((node) => node.kind === "reasoning-step")
+        .map((node) => node.id),
+    ).toEqual(["reasoning:entry-conditions"]);
+    expect(result.applicability.ruleIds).toEqual(["SI-2026-336-reg-5"]);
+    expect(graph.nodes.some((node) => node.id === "rule:si-2026-336-reg-25")).toBe(false);
+    expect(result.reasoning.steps).toEqual([
+      expect.objectContaining({
+        id: "entry-conditions",
+        factPaths: ["person.relevantReturnPosition"],
+        claimIds: ["mtd-entry-law"],
+      }),
+    ]);
+    expect(graph.nodes.some((node) => node.id === "claim:mtd-cessation-law")).toBe(false);
+  });
+
+  it("puts the exact no-NINO provision on the decisive exemption path", () => {
+    const input = request();
+    input.person.hadNationalInsuranceNumberAtStartOf2026To27 = false;
+    const result = assess(input);
+    const graph = result.reasoning.whyGraph;
+
+    expect(result.answer?.decision).toBe("exempt");
+    expect(result.applicability.ruleIds).toContain("SI-2026-336-reg-35");
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "rule:si-2026-336-reg-35",
+        kind: "rule",
+        state: "decisive",
+      }),
+    ]));
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "rule:si-2026-336-reg-35",
+        relation: "legal-authority-from",
+        to: "source:uksi-2026-336",
+      }),
+    ]));
+  });
+
+  it("separates the caller's exemption action from HMRC's decision authority", () => {
+    const input = request();
+    input.exemption.digitalExclusion = "application-pending";
+    const result = assess(input);
+    const graph = result.reasoning.whyGraph;
+
+    expect(result.answer?.decision).toBe("hmrc_decision_needed");
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "route:check-exemptions",
+        relation: "performed-by",
+        to: "party-role:caller",
+      }),
+      expect.objectContaining({
+        from: "route:check-exemptions",
+        relation: "decision-made-by",
+        to: "institution:hmrc",
+      }),
+    ]));
+    expect(graph.nodes.some((node) => node.id === "route:official-decision-review")).toBe(false);
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: graph.rootNodeId,
+        relation: "limited-by",
+        to: "gap:official-enforcement-and-review-route",
+      }),
+    ]));
+    expect(
+      graph.edges
+        .filter((edge) => (
+          edge.from === "gap:exemption_application_pending"
+          && edge.relation === "addressed-by"
+        ))
+        .map((edge) => edge.to),
+    ).toEqual(["route:check-exemptions"]);
+    expect(result.applicability.ruleIds).toEqual(expect.arrayContaining([
+      "SI-2026-336-reg-5",
+      "SI-2026-336-reg-21",
+      "SI-2026-336-reg-22",
+      "SI-2026-336-reg-25",
+      "SI-2026-336-reg-26",
+      "SI-2026-336-reg-27",
+    ]));
+    for (const ruleId of [
+      "SI-2026-336-reg-18",
+      "SI-2026-336-reg-19",
+      "SI-2026-336-reg-20",
+    ]) expect(result.applicability.ruleIds).not.toContain(ruleId);
+  });
+
+  it("keeps applied rules separate from considered rules and grounds actual obligations", () => {
+    const result = assess();
+    const graph = result.reasoning.whyGraph;
+    expect(result.applicability.ruleIds).toEqual([
+      "SI-2026-336-reg-12",
+      "SI-2026-336-reg-15",
+      "SI-2026-336-reg-21",
+      "SI-2026-336-reg-22",
+      "SI-2026-336-reg-25",
+      "SI-2026-336-reg-26",
+      "SI-2026-336-reg-27",
+      "SI-2026-336-reg-5",
+      "SI-2026-336-reg-7",
+      "SI-2026-336-reg-8",
+      "SI-2026-336-reg-9",
+    ]);
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-18");
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "rule:si-2026-336-reg-18", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-7", state: "decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-8", state: "decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-9", state: "decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-15", state: "decisive" }),
+    ]));
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "consequence:obligation:keep-digital-records",
+        relation: "grounded-in",
+        to: "rule:si-2026-336-reg-15",
+      }),
+      expect.objectContaining({
+        from: "consequence:obligation:quarterly-update-1",
+        relation: "grounded-in",
+        to: "rule:si-2026-336-reg-9",
+      }),
+      expect.objectContaining({
+        from: "consequence:obligation:submit-mtd-tax-return",
+        relation: "grounded-in",
+        to: "rule:si-2026-336-reg-8",
+      }),
+      expect.objectContaining({
+        from: "consequence:obligation:quarterly-update-1",
+        relation: "responsibility-held-by",
+        to: "party-role:relevant-person",
+      }),
+      expect.objectContaining({
+        from: "consequence:obligation:quarterly-update-1",
+        relation: "limited-by",
+        to: "gap:actual-performer-and-agent-authority",
+      }),
+    ]));
+    expect(graph.edges).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "consequence:obligation:quarterly-update-1",
+        relation: "performed-by",
+        to: "party-role:caller",
+      }),
+    ]));
+  });
+
+  it("does not attach MTD obligation rules to an exempt answer", () => {
+    const input = request();
+    input.person.hadNationalInsuranceNumberAtStartOf2026To27 = false;
+    const result = assess(input);
+    expect(result.answer?.decision).toBe("exempt");
+    expect(result.applicability.ruleIds).toContain("SI-2026-336-reg-35");
+    for (const ruleId of [
+      "SI-2026-336-reg-8",
+      "SI-2026-336-reg-9",
+      "SI-2026-336-reg-7",
+      "SI-2026-336-reg-14",
+      "SI-2026-336-reg-15",
+    ]) expect(result.applicability.ruleIds).not.toContain(ruleId);
+    expect(result.reasoning.whyGraph.nodes.some((node) => (
+      [
+        "rule:si-2026-336-reg-7",
+        "rule:si-2026-336-reg-8",
+        "rule:si-2026-336-reg-9",
+        "rule:si-2026-336-reg-14",
+        "rule:si-2026-336-reg-15",
+      ].includes(node.id)
+    ))).toBe(false);
+  });
+
+  it("keeps alternative SA109 provisions considered behind an exact-basis gap", () => {
+    const input = request();
+    input.exemption.returnIndicators = ["sa109-residence"];
+    const result = assess(input);
+    const graph = result.reasoning.whyGraph;
+    expect(result.answer?.decision).toBe("exempt");
+    expect(result.applicability.ruleIds).toContain("SI-2026-336-reg-39");
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-41");
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-43");
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "rule:si-2026-336-reg-39", state: "decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-41", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-43", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "gap:exact-exemption-provision", state: "not-mapped" }),
+    ]));
+  });
+
+  it("attributes the instrument to its real publisher and does not infer Parliament", () => {
+    const graph = assess().reasoning.whyGraph;
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "institution:kings-printer",
+        label: "King's Printer of Acts of Parliament",
+      }),
+    ]));
+    expect(graph.nodes.some((node) => node.id === "institution:uk-parliament")).toBe(false);
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "source:uksi-2026-336",
+        relation: "published-by",
+        to: "institution:kings-printer",
+      }),
+    ]));
+  });
+
   it("includes foreign property for a UK resident", () => {
     const input = request();
     input.income.taxYears["2024-25"] = {
@@ -170,6 +413,14 @@ describe("MTD Income Tax expert", () => {
     const result = assess(input);
     expect(result.status).toBe("needs_professional_review");
     expect(result.answer?.reasonCodes).toContain("RETURN_AMENDMENT_REVIEW");
+    expect(result.applicability.ruleIds).toEqual(expect.arrayContaining([
+      "SI-2026-336-reg-5",
+      "SI-2026-336-reg-25",
+      "SI-2026-336-reg-26",
+      "SI-2026-336-reg-27",
+    ]));
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-21");
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-22");
   });
 
   it("stops for annualisation or another special rule before a below-threshold conclusion", () => {
@@ -235,7 +486,7 @@ describe("MTD Income Tax expert", () => {
     const result = assess(input);
     expect(result.answer?.decision).toBe("hmrc_decision_needed");
     expect(result.escalation.nextActions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ responsibleParty: "HMRC" }),
+      expect.objectContaining({ id: "check-exemptions", responsibleParty: "caller" }),
     ]));
   });
 
@@ -256,6 +507,17 @@ describe("MTD Income Tax expert", () => {
     expect(exempt.answer?.decision).toBe("exempt");
     expect(exempt.facts.provided).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: "exemption.otherExemptionApplication", value: "hmrc-approved-for-2026-27" }),
+    ]));
+    expect(exempt.applicability.ruleIds).not.toContain("SI-2026-336-reg-39");
+    expect(exempt.applicability.ruleIds).not.toContain("SI-2026-336-reg-45");
+    expect(exempt.applicability.ruleIds).not.toContain("SI-2026-336-reg-31");
+    expect(exempt.applicability.ruleIds).not.toContain("SI-2026-336-reg-36");
+    expect(exempt.reasoning.whyGraph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "rule:si-2026-336-reg-31", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-36", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-39", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-45", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "gap:exact-exemption-provision", state: "not-mapped" }),
     ]));
   });
 
@@ -301,6 +563,29 @@ describe("MTD Income Tax expert", () => {
     const result = assess(input);
     expect(result.status).toBe("needs_facts");
     expect(result.escalation.factsNeeded).toContain("reporting.updatePeriod");
+    expect(result.answer?.obligations).toEqual([]);
+    expect(result.reasoning.steps.find((step) => step.id === "obligations")).toMatchObject({
+      factPaths: ["income.lastRelevantActivityCessationDate", "reporting.updatePeriod"],
+      claimIds: expect.arrayContaining([
+        "mtd-annual-return-obligation",
+        "mtd-cessation-law",
+        "mtd-quarterly-obligations",
+      ]),
+    });
+    expect(result.applicability.ruleIds).toEqual(expect.arrayContaining([
+      "SI-2026-336-reg-6",
+      "SI-2026-336-reg-7",
+      "SI-2026-336-reg-8",
+      "SI-2026-336-reg-9",
+      "SI-2026-336-reg-14",
+      "SI-2026-336-reg-15",
+    ]));
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-12");
+    expect(result.applicability.ruleIds).not.toContain("SI-2026-336-reg-13");
+    expect(result.reasoning.whyGraph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: "rule:si-2026-336-reg-12", state: "checked-not-decisive" }),
+      expect.objectContaining({ id: "rule:si-2026-336-reg-13", state: "checked-not-decisive" }),
+    ]));
   });
 
   it("does not invent an exact per-source workload from a simple business count", () => {
@@ -333,6 +618,10 @@ describe("MTD Income Tax expert", () => {
     const result = assess(input, "2026-08-12");
     expect(result.status).toBe("needs_professional_review");
     expect(result.answer?.decision).toBe("source_review_required");
+    const graph = result.reasoning.whyGraph;
+    expect(graph.edges.some((edge) => (
+      edge.from === "gap:source_review_overdue" && edge.relation === "supported-by"
+    ))).toBe(true);
   });
 
   it("does not use the current ruleset for a caller-selected future date", () => {
@@ -342,6 +631,13 @@ describe("MTD Income Tax expert", () => {
     expect(result.status).toBe("unsupported");
     expect(result.answer?.decision).toBe("outside_supported_date");
     expect(result.answer?.reasonCodes).toContain("AS_OF_DATE_IN_FUTURE");
+    expect(result.reasoning.whyGraph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: "gap:as_of_date_in_future",
+        relation: "uses-fact",
+        to: "fact:provided:asOfDate",
+      }),
+    ]));
   });
 
   it("rejects invalid engine-boundary values", () => {
@@ -369,6 +665,94 @@ describe("MTD Income Tax expert", () => {
     expect(lawClaim).toBeDefined();
     lawClaim!.sourceIds = ["hmrc-mtd-before-you-start"];
     expect(() => assertTaxAnswerInvariants(unsafe)).toThrow(/non-binding source as law/i);
+  });
+
+  it("requires binding authority for every applied rule", () => {
+    const unsafe = structuredClone(assess());
+    const authority = unsafe.reasoning.whyGraph.edges.find((edge) => (
+      edge.from === "rule:si-2026-336-reg-25"
+      && edge.relation === "legal-authority-from"
+    ));
+    expect(authority).toBeDefined();
+    authority!.to = "source:hmrc-mtd-before-you-start";
+    authority!.id = `edge:${authority!.from}:${authority!.relation}:${authority!.to}`;
+    unsafe.reasoning.whyGraph.edges.sort((left, right) => left.id < right.id ? -1 : 1);
+    expect(() => assertTaxAnswerInvariants(unsafe)).toThrow(/non-binding material/i);
+  });
+
+  it("resolves native obligations, applied rules and consequence grounding", () => {
+    const missingObligation = structuredClone(assess());
+    missingObligation.answer!.obligations = missingObligation.answer!.obligations.filter(
+      (obligation) => obligation.id !== "quarterly-update-1",
+    );
+    expect(() => assertTaxAnswerInvariants(missingObligation)).toThrow(/missing obligation/i);
+
+    const consideredAsApplied = structuredClone(assess());
+    consideredAsApplied.applicability.ruleIds.push("SI-2026-336-reg-18");
+    consideredAsApplied.applicability.ruleIds.sort();
+    expect(() => assertTaxAnswerInvariants(consideredAsApplied)).toThrow(/must equal.*applied/i);
+
+    const ungrounded = structuredClone(assess());
+    ungrounded.reasoning.whyGraph.edges = ungrounded.reasoning.whyGraph.edges.filter((edge) => !(
+      edge.from === "consequence:obligation:keep-digital-records"
+      && edge.relation === "grounded-in"
+    ));
+    expect(() => assertTaxAnswerInvariants(ungrounded)).toThrow(/needs claim or rule grounding/i);
+
+    const relabelledFact = structuredClone(assess());
+    const providedFact = relabelledFact.reasoning.whyGraph.nodes.find((node) => (
+      node.id === "fact:provided:person.relevantReturnPosition"
+    ));
+    expect(providedFact?.record?.kind).toBe("response-record");
+    if (providedFact?.record?.kind === "response-record") {
+      providedFact.record.collection = "facts.derived";
+    }
+    expect(() => assertTaxAnswerInvariants(relabelledFact)).toThrow(/references missing fact/i);
+
+    const contradictoryRule = structuredClone(assess());
+    const considered = contradictoryRule.reasoning.whyGraph.nodes.find((node) => (
+      node.id === "rule:si-2026-336-reg-18"
+    ));
+    expect(considered).toBeDefined();
+    considered!.state = "decisive";
+    expect(() => assertTaxAnswerInvariants(contradictoryRule)).toThrow(/considers-rule.*checked-not-decisive/i);
+  });
+
+  it("rejects ambiguous native selectors and a null penalty target", () => {
+    const duplicateStep = structuredClone(assess());
+    duplicateStep.reasoning.steps.push(structuredClone(duplicateStep.reasoning.steps[0]));
+    expect(() => assertTaxAnswerInvariants(duplicateStep)).toThrow(/reasoning step IDs must be unique/i);
+
+    const pendingInput = request();
+    pendingInput.exemption.digitalExclusion = "application-pending";
+    const duplicateAction = structuredClone(assess(pendingInput));
+    duplicateAction.escalation.nextActions.push(structuredClone(duplicateAction.escalation.nextActions[0]));
+    expect(() => assertTaxAnswerInvariants(duplicateAction)).toThrow(/next-action IDs must be unique/i);
+
+    const duplicateObligation = structuredClone(assess());
+    duplicateObligation.answer!.obligations.push(structuredClone(duplicateObligation.answer!.obligations[0]));
+    expect(() => assertTaxAnswerInvariants(duplicateObligation)).toThrow(/native obligation IDs must be unique/i);
+
+    const duplicateReason = structuredClone(assess());
+    duplicateReason.answer!.reasonCodes.push(duplicateReason.answer!.reasonCodes[0]);
+    expect(() => assertTaxAnswerInvariants(duplicateReason)).toThrow(/native reason codes must be unique/i);
+
+    const nullPenalty = structuredClone(assess());
+    (nullPenalty.answer as unknown as { penaltyPosition: unknown }).penaltyPosition = null;
+    expect(() => assertTaxAnswerInvariants(nullPenalty)).toThrow(/invalid penalty selector/i);
+  });
+
+  it("does not turn a TaxSorted conclusion into an official HMRC decision", () => {
+    const unsafe = structuredClone(assess());
+    unsafe.reasoning.whyGraph.edges.push({
+      id: "edge:conclusion:mtd-income-tax-readiness:decision-made-by:institution:hmrc",
+      from: unsafe.reasoning.whyGraph.rootNodeId,
+      relation: "decision-made-by",
+      to: "institution:hmrc",
+      explanation: "Invalid official-decision claim.",
+    });
+    unsafe.reasoning.whyGraph.edges.sort((left, right) => left.id < right.id ? -1 : 1);
+    expect(() => assertTaxAnswerInvariants(unsafe)).toThrow(/cannot name an official decision-maker/i);
   });
 
   it("rejects determined envelopes without coverage, evidence or reasoning", () => {

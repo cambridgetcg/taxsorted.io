@@ -46,6 +46,14 @@ describe("MTD expert browser check", () => {
     expect(screen.getAllByText("£50,000.01").length).toBeGreaterThan(0);
     expect(screen.getAllByText("7 August 2026").length).toBeGreaterThan(0);
     expect(screen.getByText(/no penalties for missing a 2026-27 quarterly-update deadline/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/show reasoning and official receipts/i));
+    expect(screen.getByRole("heading", { name: /trace this answer/i })).toBeInTheDocument();
+    expect(screen.getByText("Digital start date")).toBeInTheDocument();
+    expect(screen.getByText(/exact enforcement and official challenge route not mapped/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /machine contract/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/why-graph",
+    );
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -64,10 +72,10 @@ describe("MTD expert browser check", () => {
     fireEvent.click(screen.getByRole("button", { name: /understand my position/i }));
     expect(screen.getByRole("heading", { name: /use the required 2024\/25 return figures/i })).toBeInTheDocument();
     expect(screen.getByText(/smallest facts needed next/i)).toBeInTheDocument();
-    expect(screen.getByText((_, element) =>
+    expect(screen.getAllByText((_, element) =>
       element?.tagName === "LI" &&
       element.textContent?.includes("2024-25 gross UK-return self-employment income") === true,
-    )).toBeInTheDocument();
+    ).length).toBeGreaterThan(0);
   });
 
   it("blocks malformed money before the engine runs", () => {

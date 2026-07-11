@@ -10,6 +10,10 @@ import {
   type TaxSource,
   type UnknownTaxFact,
 } from "./contract";
+import {
+  buildMtdWhyGraph,
+  type MtdWhyReasonCode,
+} from "./mtd-why-graph";
 
 export type KnownAnswer = boolean | "unknown";
 export type KnownPence = Pence | "unknown";
@@ -134,7 +138,7 @@ export interface MtdObligation {
 export interface MtdIncomeTaxDecision {
   decision: MtdExpertDecision;
   headline: string;
-  reasonCodes: string[];
+  reasonCodes: MtdWhyReasonCode[];
   currentPhase: MtdThresholdPhase;
   phases: MtdThresholdPhase[];
   obligations: MtdObligation[];
@@ -157,21 +161,26 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
   {
     id: "uksi-2026-336",
     title: "The Income Tax (Digital Obligations) Regulations 2026",
-    publisher: "UK Parliament",
+    publisher: "King's Printer of Acts of Parliament",
     url: "https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf",
     kind: "secondary-legislation",
     legalForce: "binding-law",
     status: "in-force",
-    citation: "SI 2026/336, regulations 5, 6, 9, 14 and 25 to 27",
+    citation:
+      "SI 2026/336, regulations 5 to 9, 12 to 15, 18 to 22, 25 to 36 and 38 to 45",
     territorialExtent: ["United Kingdom"],
-    effectiveFrom: "2026-04-06",
+    effectiveFrom: "2026-04-01",
     effectiveTo: null,
     retrievedOn,
     reviewDueOn,
     supports: [
       "Entry depends on being required to deliver the relevant return, not actual filing.",
+      "The tax years for which digital obligations apply after the digital start date.",
+      "The operative 2026/27 threshold exemption and its qualifying-income definitions.",
+      "Compatible-software returns, quarterly periods and deadlines, and digital recordkeeping.",
       "Cessation notice and final quarterly-update rules.",
       "Qualifying-income determination, amendment timing and phased thresholds.",
+      "Exclusion notices, no-NINO exemptions, specified return circumstances and Commissioners' exemption directions.",
     ],
     doesNotProve: ["That a person's return facts, residence, exemption evidence or cessation dates are complete."],
   },
@@ -572,7 +581,7 @@ interface DecisionWork {
   decision: MtdExpertDecision;
   status: TaxAnswerStatus;
   headline: string;
-  reasonCodes: string[];
+  reasonCodes: MtdWhyReasonCode[];
   materialPaths: Set<string>;
   escalationRequired: boolean;
 }
@@ -581,7 +590,7 @@ function decision(
   decisionValue: MtdExpertDecision,
   status: TaxAnswerStatus,
   headline: string,
-  reasonCodes: string[],
+  reasonCodes: MtdWhyReasonCode[],
   materialPaths: Set<string>,
   escalationRequired: boolean,
 ): DecisionWork {
@@ -753,7 +762,7 @@ function nextActionsFor(work: DecisionWork, input: MtdIncomeTaxExpertRequest): T
       id: "check-exemptions",
       label: "Check the actual return pages and current HMRC exemption route",
       href: "https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax",
-      responsibleParty: work.decision === "hmrc_decision_needed" ? "HMRC" : "caller",
+      responsibleParty: "caller",
     });
   }
   if (work.reasonCodes.includes("REQUIRED_RETURN_NOT_SUBMITTED")) {
@@ -848,6 +857,34 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
       sourceIds: ["uksi-2026-336"],
     },
     {
+      id: "mtd-exclusion-notice-law",
+      statement: "A Commissioners-issued exclusion notice disapplies the covered digital obligations for its stated period.",
+      kind: "law",
+      support: "direct",
+      sourceIds: ["uksi-2026-336"],
+    },
+    {
+      id: "mtd-no-nino-exemption-law",
+      statement: "An individual without a National Insurance number on 5 April before the digital-obligation year is outside those digital obligations for that year.",
+      kind: "law",
+      support: "direct",
+      sourceIds: ["uksi-2026-336"],
+    },
+    {
+      id: "mtd-return-circumstance-exemption-law",
+      statement: "Specified prior-return circumstances and claims can disapply digital obligations, including temporary 2026/27 exemptions.",
+      kind: "law",
+      support: "direct",
+      sourceIds: ["uksi-2026-336"],
+    },
+    {
+      id: "mtd-approved-other-exemption-law",
+      statement: "The Regulations provide application and direction routes through which HMRC can recognise another exemption covering 2026/27.",
+      kind: "law",
+      support: "direct",
+      sourceIds: ["uksi-2026-336"],
+    },
+    {
       id: "mtd-exemptions-position",
       statement: "Some return claims or pages and absence of a National Insurance number create automatic exemptions; HMRC decides digital-exclusion applications.",
       kind: "hmrc-position",
@@ -867,6 +904,13 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
       kind: "hmrc-position",
       support: "direct",
       sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-quarterly-updates", "hmrc-mtd-circumstances-change"],
+    },
+    {
+      id: "mtd-annual-return-obligation",
+      statement: "An in-scope person uses compatible software to submit the MTD Income Tax return for the digital-obligation year.",
+      kind: "hmrc-position",
+      support: "direct",
+      sourceIds: ["hmrc-mtd-before-you-start"],
     },
     {
       id: "mtd-2026-27-penalty-position",
@@ -1018,12 +1062,43 @@ export function assessMtdIncomeTax(
     },
   ];
 
+  const capabilityVersion = "2026-07-11.5";
   const penalty = penaltyPosition("2026-27");
+  const answerPenaltyPosition = {
+    applies: showDigitalObligations,
+    conditional: digitalObligationsConditional,
+    quarterlyPenaltyPoints2026To27: false as const,
+    quarterlyUpdatesStillRequired: showDigitalObligations,
+    note: showDigitalObligations
+      ? penalty.note
+      : "No MTD quarterly-update penalty position is attached to this out-of-scope, exempt or unresolved assessment.",
+    sourceIds: showDigitalObligations ? ["hmrc-mtd-penalties"] : [],
+  };
+  const nextActions = nextActionsFor(work, input);
+  const why = buildMtdWhyGraph({
+    capabilityVersion,
+    status: work.status,
+    decision: work.decision,
+    headline: work.headline,
+    reasonCodes: work.reasonCodes,
+    effectiveDate: input.asOfDate,
+    evaluatedOn,
+    knowledgeAsOf: retrievedOn,
+    facts: { provided, derived, unknown: unknownFacts },
+    steps,
+    claims,
+    sources: [...MTD_INCOME_TAX_SOURCES],
+    obligations,
+    penaltyPosition: answerPenaltyPosition,
+    nextActions,
+    returnIndicators: input.exemption.returnIndicators,
+    updatePeriod: input.reporting.updatePeriod,
+  });
   const answer: TaxAnswer<MtdIncomeTaxDecision> = {
     schema: "taxsorted.tax-answer/1",
     capability: {
       id: "uk.mtd-income-tax.readiness",
-      version: "2026-07-11.3",
+      version: capabilityVersion,
       jurisdiction: "United Kingdom",
       taxType: "Making Tax Digital for Income Tax",
       task: "classify",
@@ -1037,7 +1112,7 @@ export function assessMtdIncomeTax(
       territories: ["United Kingdom"],
       taxpayerTypes: ["individual sole trader", "individual landlord"],
       covered: !["professional_review_needed", "outside_supported_date", "source_review_required"].includes(work.decision),
-      ruleIds: ["SI-2026-336-reg-5", "SI-2026-336-reg-6", "SI-2026-336-reg-9", "SI-2026-336-reg-14", "SI-2026-336-reg-25-to-27", "HMRC-MTD-exemptions"],
+      ruleIds: why.ruleIds,
     },
     facts: { provided, derived, unknown: unknownFacts, assumptions: [] },
     answer: {
@@ -1047,16 +1122,7 @@ export function assessMtdIncomeTax(
       currentPhase,
       phases,
       obligations,
-      penaltyPosition: {
-        applies: showDigitalObligations,
-        conditional: digitalObligationsConditional,
-        quarterlyPenaltyPoints2026To27: false,
-        quarterlyUpdatesStillRequired: showDigitalObligations,
-        note: showDigitalObligations
-          ? penalty.note
-          : "No MTD quarterly-update penalty position is attached to this out-of-scope, exempt or unresolved assessment.",
-        sourceIds: showDigitalObligations ? ["hmrc-mtd-penalties"] : [],
-      },
+      penaltyPosition: answerPenaltyPosition,
       excludedIncomeTypes: ["employment (PAYE)", "individual partnership profit share", "dividends", "State Pension", "private pensions"],
       boundaries: [
         "Gross income means before expenses; it is not profit.",
@@ -1067,7 +1133,7 @@ export function assessMtdIncomeTax(
         "TaxSorted does not approve exemptions, sign anyone up or calculate the final Income Tax bill.",
       ],
     },
-    reasoning: { steps },
+    reasoning: { steps: why.steps, whyGraph: why.graph },
     evidence: { claims, sources: [...MTD_INCOME_TAX_SOURCES] },
     confidence: {
       level: work.status === "determined" ? (work.decision === "exempt" ? "medium" : "high") : "low",
@@ -1084,7 +1150,7 @@ export function assessMtdIncomeTax(
       required: work.escalationRequired,
       reasonCodes: work.escalationRequired ? work.reasonCodes : [],
       factsNeeded: [...work.materialPaths],
-      nextActions: nextActionsFor(work, input),
+      nextActions,
     },
     dataUse: {
       stored: false,

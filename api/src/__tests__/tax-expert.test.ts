@@ -122,6 +122,23 @@ describe("UK tax expert API", () => {
       ],
     ).toEqual(["tax-expert:assess"]);
     expect(
+      document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
+        "x-taxsorted-why-graph"
+      ],
+    ).toEqual(expect.objectContaining({
+      schema: "taxsorted.why-graph/1",
+      responseJsonPointer: "/reasoning/whyGraph",
+      currentlyEmitted: true,
+    }));
+    expect(
+      document.components.schemas.MtdIncomeTaxAssessmentResponse.properties
+        .reasoning.properties.whyGraph.$ref,
+    ).toBe("#/components/schemas/WhyGraph");
+    expect(
+      document.components.schemas.MtdIncomeTaxAssessmentResponse.properties
+        .reasoning.required,
+    ).not.toContain("whyGraph");
+    expect(
       document.components.schemas.MtdIncomeTaxAssessmentRequest
         .properties.exemption.properties.returnIndicators.anyOf[0].uniqueItems,
     ).toBe(true);
@@ -192,6 +209,31 @@ describe("UK tax expert API", () => {
     expect(body.answer.obligations).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "quarterly-update-1", condition: null }),
       expect.objectContaining({ id: "pay-self-assessment-tax", conditional: false }),
+    ]));
+    expect(body.reasoning.whyGraph).toMatchObject({
+      schema: "taxsorted.why-graph/1",
+      context: {
+        authority: "taxsorted-analysis",
+        effect: "advisory",
+        externalStateChange: false,
+      },
+      valueHandling: {
+        factValues: "case-financial-and-identity-fact-values-not-copied-into-graph",
+      },
+    });
+    expect(JSON.stringify(body.reasoning.whyGraph)).not.toContain("5000001");
+    expect(body.reasoning.whyGraph.coverage.gapNodeIds).toContain(
+      "gap:official-enforcement-and-review-route",
+    );
+    expect(body.reasoning.whyGraph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        relation: "responsibility-held-by",
+        to: "party-role:relevant-person",
+      }),
+      expect.objectContaining({
+        relation: "limited-by",
+        to: "gap:actual-performer-and-agent-authority",
+      }),
     ]));
   });
 

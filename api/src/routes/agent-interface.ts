@@ -13,6 +13,11 @@ import {
   type OpenDataRouteOptions,
 } from "./open-data.js";
 import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
+import {
+  whyGraphBasePath,
+  whyGraphOpenApiPath,
+  whyGraphSchemaPath,
+} from "./why-graph.js";
 
 const apiOrigin = "https://api.taxsorted.io";
 const humanOrigin = "https://taxsorted.io";
@@ -61,6 +66,10 @@ open-data: GET ${apiOrigin}${catalogPath}
 rights: GET ${apiOrigin}${rightsPath}
 openapi-public: GET ${apiOrigin}/openapi-public.json
 openapi-full: GET ${apiOrigin}/openapi.json
+why-graph-framework: GET ${apiOrigin}${whyGraphBasePath}
+why-graph-schema: GET ${apiOrigin}${whyGraphSchemaPath}
+why-graph-openapi: GET ${apiOrigin}${whyGraphOpenApiPath}
+why-graph-writes: none; read-only framework with no ingestion route
 health: GET ${apiOrigin}/v1/health
 release-ledger: GET ${apiOrigin}${releaseDiscoveryHandles.ledger}
 release-json-feed: GET ${apiOrigin}${releaseDiscoveryHandles.jsonFeed}
@@ -389,6 +398,7 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         },
         frameworkSlices: {
           accountability: "/openapi/accountability-uk.json",
+          whyGraph: whyGraphOpenApiPath,
         },
         taskSlices: {
           taxExpert: taxExpertOpenApiPath,
@@ -416,6 +426,35 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
+      },
+      whyGraph: {
+        framework: whyGraphBasePath,
+        schema: whyGraphSchemaPath,
+        openApi: whyGraphOpenApiPath,
+        graphSchema: "taxsorted.why-graph/1",
+        status: "first-adopter",
+        firstAdopter: {
+          endpoint: taxExpertAssessmentPath,
+          responsePath: "/reasoning/whyGraph",
+          capabilityVersion: "2026-07-11.5",
+          runtimeEmitted: true,
+          wireSchemaOptionalForForwardCompatibleV1Readers: true,
+        },
+        access: {
+          methods: ["GET", "HEAD", "OPTIONS"],
+          authentication: "none",
+          account: "none",
+          session: "none",
+          cookies: "none",
+          writes: "none",
+          cors: "*",
+        },
+        boundaries: {
+          createsGraphRecords: false,
+          changesExternalState: false,
+          infersOfficialAppealRights: false,
+          graphIsDerivedNotCanonical: true,
+        },
       },
       taxExpert: {
         humanHref: `${humanOrigin}/uk/tax-expert`,
@@ -578,6 +617,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read the reciprocal watching-the-watchers protocol, official source doors, hard walls and zero-row candidate contract.",
+      },
+      {
+        id: "inspect-why-graph-contract",
+        method: "GET",
+        href: whyGraphBasePath,
+        accepts: ["application/json"],
+        description:
+          "Read how conclusions connect to reached reasoning, facts, rules, sources, institutions, consequences, challenge routes and explicit gaps.",
       },
       {
         id: "inspect-tax-expert-task-contract",

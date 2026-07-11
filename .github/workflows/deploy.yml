@@ -199,6 +199,7 @@ jobs:
             /openapi/public-funding-uk.json \
             /openapi/politics-uk.json \
             /openapi/accountability-uk.json \
+            /openapi/why-graph.json \
             /openapi/tax-expert-uk.json \
             /v1/open-data \
             /v1/open-data/releases \
@@ -215,6 +216,8 @@ jobs:
             /v1/charities/uk/accountability/schema \
             /v1/accountability/uk \
             /v1/accountability/uk/schema \
+            /v1/why-graph \
+            /v1/why-graph/schema \
             /v1/uk/tax-expert \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
@@ -249,6 +252,18 @@ jobs:
             'observer-accountability-status: schema-only-not-admitted' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'observer-accountability-records: none' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'why-graph-framework: GET https://api.taxsorted.io/v1/why-graph' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'why-graph-openapi: GET https://api.taxsorted.io/openapi/why-graph.json' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'why-graph-writes: none; read-only framework with no ingestion route' \
+            "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert' \
             "${api_agent_manifest}"
@@ -382,6 +397,72 @@ jobs:
               (.properties | has("investigationActions")) and
               (.properties | has("institutionalResponses")) and
               (.properties | has("coverageGaps"))' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/why-graph | \
+            jq --exit-status '
+              .schema == "taxsorted.why-graph-framework/1" and
+              .graphSchema == "taxsorted.why-graph/1" and
+              .status == "first-adopter-live" and
+              .adoption.status == "first-adopter" and
+              .adoption.endpoint == "/v1/uk/tax-expert/mtd-income-tax/assessments" and
+              .adoption.responsePath == "/reasoning/whyGraph" and
+              .adoption.capabilityVersion == "2026-07-11.5" and
+              .routes.framework == "/v1/why-graph" and
+              .routes.schema == "/v1/why-graph/schema" and
+              .routes.openApi == "/openapi/why-graph.json" and
+              .representation.current == "bounded-typed-json-adjacency" and
+              ([.recordReferences[].kind] | sort) == ["dataset-record", "external-resource", "response-record"] and
+              (.canonicalTruth | contains("derived connective layer")) and
+              (.boundaries | any(contains("No ingestion")))' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/why-graph/schema | \
+            jq --exit-status '
+              .["$id"] == "https://api.taxsorted.io/v1/why-graph/schema" and
+              .additionalProperties == false and
+              .properties.schema.const == "taxsorted.why-graph/1" and
+              .properties.nodes.minItems == 1 and
+              .properties.nodes.maxItems == 250 and
+              .properties.edges.maxItems == 1000 and
+              .["x-taxsorted-validation-scope"] == "structural-shape-only" and
+              (.["x-taxsorted-runtime-invariants"] | length) > 0' >/dev/null
+
+          why_write_headers="${RUNNER_TEMP}/why-graph-write.headers"
+          why_write_body="${RUNNER_TEMP}/why-graph-write.json"
+          why_write_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --request POST \
+            --dump-header "${why_write_headers}" --output "${why_write_body}" \
+            --write-out '%{http_code}' \
+            https://api.taxsorted.io/v1/why-graph)
+          test "${why_write_status}" = '405'
+          awk 'tolower($1) == "allow:" { gsub("\\r", "", $0); found = ($0 ~ /GET, HEAD, OPTIONS$/) } END { exit !found }' \
+            "${why_write_headers}"
+          awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+            "${why_write_headers}"
+          jq --exit-status '
+            .error == "method_not_allowed" and
+            .graphCreated == false and
+            .externalStateChanged == false
+          ' "${why_write_body}" >/dev/null
+
+          why_cors_headers="${RUNNER_TEMP}/why-graph-cors.headers"
+          why_cors_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --request OPTIONS \
+            --header 'Origin: https://builder.example' \
+            --header 'Access-Control-Request-Method: GET' \
+            --dump-header "${why_cors_headers}" --output /dev/null \
+            --write-out '%{http_code}' \
+            https://api.taxsorted.io/v1/why-graph)
+          test "${why_cors_status}" = '204'
+          awk 'tolower($1) == "access-control-allow-origin:" { gsub("\\r", "", $2); found = ($2 == "*") } END { exit !found }' \
+            "${why_cors_headers}"
+          awk 'tolower($1) == "access-control-allow-methods:" { line = tolower($0); sub(/^[^:]+:[[:space:]]*/, "", line); gsub(/[[:space:]\\r]/, "", line); found = (line == "get,head,options") } END { exit !found }' \
+            "${why_cors_headers}"
           publication_status=$(curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/charities/uk | \
@@ -423,6 +504,7 @@ jobs:
             .resources.openApi.publicHref == "/openapi-public.json" and
             .resources.openApi.datasetSlices.charities == "/openapi/charities-uk.json" and
             .resources.openApi.frameworkSlices.accountability == "/openapi/accountability-uk.json" and
+            .resources.openApi.frameworkSlices.whyGraph == "/openapi/why-graph.json" and
             .resources.openApi.taskSlices.taxExpert == "/openapi/tax-expert-uk.json" and
             .access.linkedTaskAccessDeclaredSeparately == true and
             .access.methods == ["GET", "HEAD", "OPTIONS"] and
@@ -443,6 +525,24 @@ jobs:
             .resources.taxExpert.assessment.browserCorsAuthorizationHeaderAllowed == false and
             .resources.taxExpert.assessment.idempotency == "not-declared" and
             .resources.taxExpert.assessment.errorContract.requestFactValuesEchoedInErrors == false and
+            .resources.whyGraph.framework == "/v1/why-graph" and
+            .resources.whyGraph.schema == "/v1/why-graph/schema" and
+            .resources.whyGraph.openApi == "/openapi/why-graph.json" and
+            .resources.whyGraph.graphSchema == "taxsorted.why-graph/1" and
+            .resources.whyGraph.status == "first-adopter" and
+            .resources.whyGraph.firstAdopter.endpoint == "/v1/uk/tax-expert/mtd-income-tax/assessments" and
+            .resources.whyGraph.firstAdopter.responsePath == "/reasoning/whyGraph" and
+            .resources.whyGraph.firstAdopter.capabilityVersion == "2026-07-11.5" and
+            .resources.whyGraph.firstAdopter.runtimeEmitted == true and
+            .resources.whyGraph.firstAdopter.wireSchemaOptionalForForwardCompatibleV1Readers == true and
+            .resources.whyGraph.access.methods == ["GET", "HEAD", "OPTIONS"] and
+            .resources.whyGraph.access.authentication == "none" and
+            .resources.whyGraph.access.writes == "none" and
+            .resources.whyGraph.boundaries.createsGraphRecords == false and
+            .resources.whyGraph.boundaries.changesExternalState == false and
+            .resources.whyGraph.boundaries.infersOfficialAppealRights == false and
+            .resources.whyGraph.boundaries.graphIsDerivedNotCanonical == true and
+            (.nextActions | any(.id == "inspect-why-graph-contract" and .href == "/v1/why-graph")) and
             .resources.releases.ledger == "/v1/open-data/releases" and
             .resources.releases.jsonFeed == "/v1/open-data/releases/feed.json" and
             .resources.releases.atom == "/v1/open-data/releases/feed.atom" and
@@ -459,6 +559,27 @@ jobs:
 
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/openapi/why-graph.json | \
+            jq --exit-status '
+              .openapi == "3.1.0" and
+              .["x-taxsorted-slice"].id == "why-graph" and
+              .["x-taxsorted-shared-components"] == ["#/components/schemas/WhyGraph"] and
+              (.paths | keys | sort) == [
+                "/v1/why-graph",
+                "/v1/why-graph/schema"
+              ] and
+              ([.paths[] | (keys | sort)] | all(. == ["get", "head"])) and
+              .paths["/v1/why-graph"].get.security == [] and
+              .paths["/v1/why-graph"].head.security == [] and
+              .paths["/v1/why-graph/schema"].get.security == [] and
+              .paths["/v1/why-graph/schema"].head.security == [] and
+              .components.schemas.WhyGraph.additionalProperties == false and
+              .components.schemas.WhyGraph.properties.nodes.minItems == 1 and
+              .components.schemas.WhyGraph.properties.nodes.maxItems == 250 and
+              .components.schemas.WhyGraph.properties.edges.maxItems == 1000' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/openapi/tax-expert-uk.json | \
             jq --exit-status '
               .openapi == "3.1.0" and
@@ -470,7 +591,15 @@ jobs:
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.operationId == "assessMtdIncomeTaxReadiness" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security == [{"WorkspaceKey": []}] and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-required-workspace-scopes"] == ["tax-expert:assess"] and
+              .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-why-graph"] == {
+                "schema": "taxsorted.why-graph/1",
+                "responseJsonPointer": "/reasoning/whyGraph",
+                "scope": "reached-result-trace-not-complete-law-map",
+                "currentlyEmitted": true
+              } and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.requestBody.required == true and
+              .components.schemas.MtdIncomeTaxAssessmentResponse.properties.reasoning.properties.whyGraph["$ref"] == "#/components/schemas/WhyGraph" and
+              ((.components.schemas.MtdIncomeTaxAssessmentResponse.properties.reasoning.required | index("whyGraph")) | not) and
               .components.securitySchemes.WorkspaceKey.type == "http" and
               .components.securitySchemes.WorkspaceKey.scheme == "bearer"
             ' >/dev/null

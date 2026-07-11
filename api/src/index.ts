@@ -25,6 +25,7 @@ import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
 import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
 import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
 import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accountability.js";
+import { createWhyGraphRoutes } from "./routes/why-graph.js";
 
 const app = new OpenAPIHono();
 
@@ -101,6 +102,7 @@ app.route(
   "/v1/accountability/uk",
   createUkObserverAccountabilityRoutes()
 );
+app.route("/v1/why-graph", createWhyGraphRoutes());
 
 // Machine routes use workspace keys and never create browser sessions.
 // Register them before the explicit browser-session allowlist below.

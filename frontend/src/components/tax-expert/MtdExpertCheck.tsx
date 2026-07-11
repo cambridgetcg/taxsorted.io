@@ -480,6 +480,14 @@ function AssessmentResult({
 }) {
   const answer = result.answer!;
   const materialUnknowns = result.facts.unknown.filter((item) => item.material);
+  const whyGraph = result.reasoning.whyGraph;
+  const decisiveReasoning = whyGraph.nodes.filter(
+    (node) => node.kind === "reasoning-step" && node.state === "decisive",
+  );
+  const decisiveRules = whyGraph.nodes.filter(
+    (node) => node.kind === "rule" && node.state === "decisive",
+  );
+  const graphGaps = whyGraph.nodes.filter((node) => node.kind === "gap");
   return (
     <section className={`rounded-3xl border p-6 sm:p-8 ${statusClass(result.status)}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -595,6 +603,42 @@ function AssessmentResult({
 
       <details className="mt-5 rounded-2xl border border-line bg-white p-5">
         <summary className="cursor-pointer font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">Show reasoning and official receipts</summary>
+        <div className="mt-5 rounded-2xl border border-line bg-paper p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-ink">Trace this answer</h3>
+              <p className="mt-1 max-w-3xl text-sm text-ink-soft">This path is TaxSorted analysis, not an HMRC decision. It shows what was decisive, what source gives a rule authority, and where enforcement or appeal routing is still unmapped.</p>
+            </div>
+            <a href="https://api.taxsorted.io/v1/why-graph" target="_blank" rel="noreferrer noopener" className="text-sm font-medium text-accent hover:text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">Machine contract</a>
+          </div>
+          <h4 className="mt-5 text-sm font-semibold text-ink">Decisive reasoning</h4>
+          {decisiveReasoning.length > 0 ? (
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-ink-soft">
+              {decisiveReasoning.map((node) => <li key={node.id}>{node.label}</li>)}
+            </ol>
+          ) : (
+            <p className="mt-2 text-sm text-ink-soft">No reasoning step is labelled decisive because this result is not determined.</p>
+          )}
+          <h4 className="mt-5 text-sm font-semibold text-ink">Binding rules on that path</h4>
+          {decisiveRules.length > 0 ? (
+            <ul className="mt-2 space-y-2 text-sm text-ink-soft">
+              {decisiveRules.map((node) => (
+                <li key={node.id}>
+                  {node.record?.kind === "external-resource" || node.record?.kind === "dataset-record" ? (
+                    <a href={node.record.href} target="_blank" rel="noreferrer noopener" className="font-medium text-accent hover:text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">{node.label}</a>
+                  ) : <span className="font-medium text-ink">{node.label}</span>}
+                  <span className="ml-2">{node.description}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-ink-soft">No binding rule is labelled applied because this result is not determined.</p>
+          )}
+          <h4 className="mt-5 text-sm font-semibold text-ink">Visible gaps and boundaries</h4>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-soft">
+            {graphGaps.map((node) => <li key={node.id}><strong className="text-ink">{node.label}:</strong> {node.description}</li>)}
+          </ul>
+        </div>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-ink-soft">
           {result.reasoning.steps.map((step) => <li key={step.id}>{step.statement}</li>)}
         </ol>

@@ -19,6 +19,14 @@ The machine contract is `taxsorted.tax-answer/1`. Its canonical TypeScript shape
 invariants live in `engine/jurisdictions/uk/expert/contract.ts`. Product coverage lives in
 `engine/jurisdictions/uk/expert/capabilities.ts`. The public page is `/uk/tax-expert`; the public
 machine registry is `GET /v1/uk/tax-expert`.
+Successful MTD answers also emit the shared `taxsorted.why-graph/1` at
+`/reasoning/whyGraph`. Its public framework, structural schema and task-sized OpenAPI live at
+`GET /v1/why-graph`, `GET /v1/why-graph/schema` and `GET /openapi/why-graph.json`.
+The graph contains the reached result trace rather than wrapping every possible reasoning step.
+It points to fact records without copying financial values, separates binding provisions from
+guidance, and keeps action ownership, administration and official decision authority distinct.
+An exact enforcement or appeal route needs an actual official decision; absence of one is a named
+gap, not an inferred right or proof that no route exists.
 The agent doorway also points to the public task contract at
 `GET /openapi/tax-expert-uk.json`. That contract keeps the public registry `GET` separate from
 the credentialed design-partner assessment `POST`, including its workspace scope, financial-fact
@@ -62,7 +70,7 @@ review date, supported claims and limits, live beside the rules in
 
 The admitted official sources are:
 
-- [Income Tax (Digital Obligations) Regulations 2026](https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf) — regulations 5, 6, 9, 14 and 25 to 27
+- [Income Tax (Digital Obligations) Regulations 2026](https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf) — regulations 5 to 9, 12 to 15, 18 to 22, 25 to 36 and 38 to 45
 - [HMRC: before you use MTD Income Tax](https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/before-you-use-this-guide)
 - [HMRC: work out qualifying income](https://www.gov.uk/guidance/work-out-your-qualifying-income-for-making-tax-digital-for-income-tax)
 - [HMRC: exemptions](https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax)
@@ -74,6 +82,21 @@ The admitted official sources are:
 HMRC guidance is labelled as an official explanation, not binding law. The regulations are labelled
 as secondary legislation. A source URL alone is not treated as proof that a particular person's
 facts satisfy a rule.
+
+The first why-graph pass re-read the made instrument and admitted the previously missing operative
+authority: regulations 21 and 22 for the 2026/27 threshold exemption; regulations 7 to 9 and 12 to 15
+for actual digital obligations and their timing; regulations 18 to 20 for exclusion notices; and
+regulations 28 to 36 and 38 to 45 for described, no-NINO, temporary and directed exemptions. A
+no-NINO result reaches regulation 35 on its applied path. For a supplied SA109 page, regulation 39
+is the shared temporary-exemption provision; regulations 41 and 43 remain considered alternatives
+behind an exact-basis gap because the page alone does not select the narrower condition. An
+unspecified other HMRC approval likewise leaves regulations 31, 36, 39 and 45 considered, not
+simultaneously applied. Every `applies-rule` node must carry its own binding source edge; unrelated
+legislation elsewhere in the response cannot satisfy that invariant.
+
+The instrument's official metadata names the King's Printer of Acts of Parliament as publisher,
+and its enacting text says the Commissioners for HMRC made it. It was laid before the House of
+Commons; the graph does not relabel Parliament as maker or publisher.
 
 ## Coverage path
 

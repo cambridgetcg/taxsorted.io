@@ -269,7 +269,7 @@ recall a downloaded or public-repository copy. Correct and re-review the source 
 the stop; never re-enable on a timer. This switch does not affect calculations, accounts, HMRC
 filing, the tax-system graph or the tax-industry graph.
 
-### Charity accountability and agent-door release check
+### Charity accountability, why graph and agent-door release check
 
 After an authorised deployment, verify the two schema-only routes independently of the sector
 publication switch:
@@ -283,6 +283,20 @@ curl --fail "$API/v1/charities/uk/accountability/schema" | jq \
   '{"$id": .["$id"], title, description}'
 curl --fail --head "$API/v1/charities/uk/accountability"
 curl --fail --head "$API/v1/charities/uk/accountability/schema"
+
+curl --fail "$API/v1/why-graph" | jq \
+  '{schema, graphSchema, status, direction, canonicalTruth, representation, recordReferences, adoption, routes, boundaries}'
+curl --fail "$API/v1/why-graph/schema" | jq \
+  '{"$id": .["$id"], title, description,
+    validationScope: .["x-taxsorted-validation-scope"],
+    runtimeInvariantCount: (.["x-taxsorted-runtime-invariants"] | length)}'
+curl --fail --head "$API/v1/why-graph"
+curl --fail --head "$API/v1/why-graph/schema"
+test "$(curl --silent --connect-timeout 10 --max-time 30 --output /dev/null --write-out '%{http_code}' --request POST "$API/v1/why-graph")" = 405
+curl --include --connect-timeout 10 --max-time 30 --request OPTIONS \
+  --header 'Origin: https://builder.example' \
+  --header 'Access-Control-Request-Method: GET' \
+  "$API/v1/why-graph"
 ```
 
 The first response must say `schema-only-not-admitted`, name two immediate blockers, expose nine
@@ -296,6 +310,19 @@ exactly identified organisation, period, scope key and definition, and metric ke
 When both records carry money, basis, measurement stage and amount date must also match.
 Run the zero-row example through the runtime validator because JSON Schema cannot check graph,
 digest, chronology, bridge, disclosure, arithmetic and release-chain refinements.
+
+The why-graph framework must say `first-adopter-live`, identify
+`taxsorted.why-graph/1`, point to the MTD assessment's `/reasoning/whyGraph`, and
+state that referenced native records remain canonical. Its structural schema is
+not evidence that a graph is legally correct: runtime graph, domain and source-admission
+checks remain separate. The framework is public and read-only. It must expose no ingestion
+route, create no stored graph records, change no external state and infer no official review or
+appeal right. An MTD graph traces only the reached result path, keeps financial and identity
+values out of graph labels and identifiers, separates the caller's action from HMRC's decision
+authority, and ends an unmapped enforcement, review or appeal link at an explicit gap.
+The POST check must return `405`, `Allow: GET, HEAD, OPTIONS`, `Cache-Control: no-store`,
+`graphCreated: false` and `externalStateChanged: false`. The preflight must allow wildcard public
+read access and must not advertise POST.
 
 Then verify machine discovery and root orientation:
 
@@ -318,13 +345,25 @@ do
 done
 curl --fail "$API/openapi/accountability-uk.json" | jq \
   '.openapi, .["x-taxsorted-slice"], (.paths | keys)'
+curl --fail "$API/openapi/why-graph.json" | jq \
+  '{openapi,
+    slice: .["x-taxsorted-slice"],
+    paths: (.paths | keys),
+    frameworkSecurity: .paths["/v1/why-graph"].get.security,
+    schemaSecurity: .paths["/v1/why-graph/schema"].get.security}'
 curl --fail "$API/openapi/tax-expert-uk.json" | jq \
   '{openapi,
     slice: .["x-taxsorted-slice"],
     manifestSecurity: .paths["/v1/uk/tax-expert"].get.security,
     assessment: (
       .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post |
-      {operationId, security, requiredScopes: .["x-taxsorted-required-workspace-scopes"]}
+      {operationId, security,
+       requiredScopes: .["x-taxsorted-required-workspace-scopes"],
+       whyGraph: .["x-taxsorted-why-graph"]}
+    ),
+    whyGraphWireFieldOptional: (
+      .components.schemas.MtdIncomeTaxAssessmentResponse.properties.reasoning.required |
+      index("whyGraph") | not
     )}'
 curl --fail "$API/v1/uk/tax-expert" | jq \
   '{schema, reviewedOn, capabilities, privacy, boundaries}'
@@ -343,9 +382,12 @@ curl --fail "$API/v1/charities/uk/records/src-charities-act-2011" | jq \
 
 Both text manifests must be byte-identical and point to `/v1/wake`, `/v1/health`,
 `/v1/open-data`, the release ledger and feeds, the charity accountability contract,
-`/openapi-public.json`, the dataset, framework and tax-expert task slices and `/openapi.json`.
+the why-graph framework, schema and OpenAPI slice, `/openapi-public.json`, the dataset,
+framework and tax-expert task slices and `/openapi.json`.
 The wake must place the tax-expert slice under `taskSlices`, never `datasetSlices` or
-`frameworkSlices`. Its assessment descriptor must preserve `POST`, `WorkspaceKey`,
+`frameworkSlices`, and the why-graph slice under `frameworkSlices`. Its `whyGraph` resource must
+repeat the public read-only boundary, derived-not-canonical status and first-adopter wire path.
+Its assessment descriptor must preserve `POST`, `WorkspaceKey`,
 `tax-expert:assess`, credentialed-design-partner availability, financial-fact sensitivity,
 workspace identification, no application fact/answer storage, no training, no filing or external
 submission, server-to-server use and undeclared idempotency. It must not imply public self-service

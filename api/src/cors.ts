@@ -34,6 +34,7 @@ const publicCivicBases = [
   "/v1/charities/uk",
   "/v1/public-funding/uk",
   "/v1/accountability/uk",
+  "/v1/why-graph",
 ];
 
 const publicAgentPaths = new Set([
@@ -55,6 +56,7 @@ const publicOpenApiPaths = new Set([
   "/openapi/politics-uk.json",
   "/openapi/accountability-uk.json",
   "/openapi/tax-expert-uk.json",
+  "/openapi/why-graph.json",
 ]);
 
 export function isPublicCivicPath(path: string) {

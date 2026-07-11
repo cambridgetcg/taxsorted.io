@@ -4,6 +4,7 @@ import {
   assessMtdIncomeTax,
   type MtdIncomeTaxExpertRequest,
 } from "@taxsorted/engine/uk/expert";
+import { WhyGraphSchema } from "../why-graph.js";
 
 const MAX_MONEY_PENCE = 1_000_000_000_000;
 
@@ -287,7 +288,13 @@ const MtdIncomeTaxAssessmentResponse = z.object({
     assumptions: z.array(TaxAssumption),
   }),
   answer: MtdDecision.nullable(),
-  reasoning: z.object({ steps: z.array(ReasoningStep) }),
+  reasoning: z.object({
+    steps: z.array(ReasoningStep),
+    // tax-answer/1 grows additively: current runtime answers always emit the
+    // graph. Forward-compatible readers accept the optional member; strict
+    // validators must refresh this OpenAPI/capability version.
+    whyGraph: WhyGraphSchema.optional(),
+  }),
   evidence: z.object({ claims: z.array(EvidenceClaim), sources: z.array(TaxSource) }),
   confidence: z.object({
     level: z.enum(["high", "medium", "low"]),
@@ -335,6 +342,12 @@ const assessmentRoute = createRoute({
   method: "post",
   path: "/mtd-income-tax/assessments",
   "x-taxsorted-required-workspace-scopes": ["tax-expert:assess"],
+  "x-taxsorted-why-graph": {
+    schema: "taxsorted.why-graph/1",
+    responseJsonPointer: "/reasoning/whyGraph",
+    scope: "reached-result-trace-not-complete-law-map",
+    currentlyEmitted: true,
+  },
   operationId: "assessMtdIncomeTaxReadiness",
   summary: "Assess MTD Income Tax readiness and 2026/27 deadlines",
   description: "Stateless classification from explicit Self Assessment, gross-income and exemption facts, the trusted server evaluation date and the admitted ruleset and source ledger. Unknown is never read as zero. The route does not sign up, file or persist case facts.",

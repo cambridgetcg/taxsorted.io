@@ -307,6 +307,15 @@ doorway's authority. Public errors add RFC 9457 fields and bounded recovery acti
 while retaining established endpoint fields; they do not silently loosen a filter or safety
 wall to make a request succeed. Problem instances omit query values.
 
+The shared why graph at `/v1/why-graph` is another orientation contract, not a new authority or
+data lake. It connects a conclusion to canonical answer or dataset records through a small set of
+plain verbs. It must show the reached path rather than decorate every answer with every possible
+rule; a binding rule on an unrelated branch cannot legitimise the conclusion. Financial and
+identity values stay in their canonical response records. Administration, action ownership and
+official decision power remain separate. If no actual notice supports an enforcement, review or
+appeal route, the graph ends at an explicit gap rather than guessing one. The framework has no
+ingestion route and cannot change filing, payment, exemption or appeal state.
+
 This narrow design was inspired by
 [XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), an agent-interaction and
 agent-experience framework published under CC BY-SA 4.0. The attribution is part of honest
@@ -376,6 +385,12 @@ currently a bounded query service rather than an ever-growing static archive.
   workspace key identifies the caller's workspace even though no name, NINO, UTR or address is
   requested. Request facts and generated answers are not written to application storage, and no
   signup, filing or external tax-state change occurs.
+- `/v1/why-graph`, `/v1/why-graph/schema` and `/openapi/why-graph.json` publish the shared,
+  sessionless explanation contract. The MTD assessment is its first adopter. Its v1 wire field is
+  optional for forward-compatible additive reading while current successful assessments always
+  emit it; strict validators must refresh the OpenAPI and capability version. The graph says
+  TaxSorted analysis is advisory, does not copy supplied case financial values into its text or IDs, and keeps
+  unmapped official enforcement and challenge routing visible.
 - The tax-system, tax-industry, charity-sector and public-funding graphs implement a discovery catalogue, structural schema,
   recursive field dictionary, complete JSON/NDJSON/CSV collection-export shapes and a
   mixed-rights statement without requiring a caller account. Their protected collection and
@@ -409,7 +424,7 @@ currently a bounded query service rather than an ever-growing static archive.
   correction route requires an account and cannot receive sensitive information.
 - Tax GET routes and the central catalogue have matching OpenAPI HEAD operations, including
   `If-None-Match` and the response validators returned by the implementation. A bounded public
-  OpenAPI document, five dataset slices and one observer-accountability slice are cacheable by exact-byte ETag; a
+  OpenAPI document, five dataset slices and observer-accountability and why-graph framework slices are cacheable by exact-byte ETag; a
   slice rejects any operation that does not explicitly declare itself sessionless.
 - The sessionless observer-accountability framework makes institutional observation reciprocal:
   every investigator or observer in a future engagement must have a sourced complaint, review,

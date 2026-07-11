@@ -111,14 +111,28 @@ describe("developer API boundary", () => {
     ).toHaveProperty("taskSlices");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.properties.frameworkSlices.properties,
+    ).toHaveProperty("whyGraph");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.properties.frameworkSlices.required,
+    ).not.toContain("whyGraph");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
         .openApi.required,
     ).not.toContain("taskSlices");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("taxExpert");
     expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("whyGraph");
+    expect(
       document.components.schemas.AgentWake.properties.resources.required,
     ).not.toContain("taxExpert");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.required,
+    ).not.toContain("whyGraph");
     expect(
       document.components.schemas.AgentWake.properties.access.properties,
     ).toMatchObject({
@@ -172,6 +186,35 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty(
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
     );
+    expect(document.paths).toHaveProperty("/v1/why-graph");
+    expect(document.paths).toHaveProperty("/v1/why-graph/schema");
+    expect(document.paths["/v1/why-graph"].get.security).toEqual([]);
+    expect(document.components.schemas.WhyGraph).toMatchObject({
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        nodes: { type: "array", minItems: 1, maxItems: 250 },
+        edges: { type: "array", maxItems: 1000 },
+      },
+    });
+    expect(
+      document.components.schemas.MtdIncomeTaxAssessmentResponse.properties
+        .reasoning.properties.whyGraph.$ref,
+    ).toBe("#/components/schemas/WhyGraph");
+    expect(
+      document.components.schemas.MtdIncomeTaxAssessmentResponse.properties
+        .reasoning.required,
+    ).not.toContain("whyGraph");
+    expect(
+      document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
+        "x-taxsorted-why-graph"
+      ],
+    ).toEqual({
+      schema: "taxsorted.why-graph/1",
+      responseJsonPointer: "/reasoning/whyGraph",
+      scope: "reached-result-trace-not-complete-law-map",
+      currentlyEmitted: true,
+    });
     expect(
       document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
         "x-taxsorted-required-workspace-scopes"
@@ -627,6 +670,7 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
+    expect(document.paths).toHaveProperty("/openapi/why-graph.json");
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
       tags: ["OpenAPI descriptions"],
@@ -678,6 +722,11 @@ describe("developer API boundary", () => {
         path: "/openapi/accountability-uk.json",
         id: "accountability-uk",
         prefix: "/v1/accountability/uk",
+      },
+      {
+        path: "/openapi/why-graph.json",
+        id: "why-graph",
+        prefix: "/v1/why-graph",
       },
       {
         path: "/openapi/tax-expert-uk.json",
@@ -798,6 +847,24 @@ describe("developer API boundary", () => {
       }
     }
 
+    const whyGraphDocument = await (
+      await app.request("/openapi/why-graph.json")
+    ).json();
+    expect(whyGraphDocument["x-taxsorted-shared-components"]).toEqual([
+      "#/components/schemas/WhyGraph",
+    ]);
+    expect(whyGraphDocument.components.schemas.WhyGraph).toMatchObject({
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        nodes: { type: "array", minItems: 1, maxItems: 250 },
+        edges: { type: "array", maxItems: 1000 },
+      },
+    });
+    for (const pathItem of Object.values(whyGraphDocument.paths)) {
+      expect(Object.keys(pathItem as object).sort()).toEqual(["get", "head"]);
+    }
+
     const publicDocument = await (
       await app.request("/openapi-public.json")
     ).json();
@@ -807,6 +874,8 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).toHaveProperty("/v1/open-data/releases");
     expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
     expect(publicDocument.paths).toHaveProperty("/v1/accountability/uk");
+    expect(publicDocument.paths).toHaveProperty("/v1/why-graph");
+    expect(publicDocument.paths).toHaveProperty("/v1/why-graph/schema");
     expect(publicDocument.paths).toHaveProperty(
       "/v1/accountability/uk/schema",
     );

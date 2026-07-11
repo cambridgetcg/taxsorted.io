@@ -308,6 +308,54 @@ These are implementation facts in this workspace, not a deployment claim. After 
 authorised release, retrieve both manifest paths and follow every advertised URL on the
 public host before calling the door live.
 
+## Shared why graph — follow an answer to its receipts and limits
+
+The public why-graph framework is a sessionless, read-only explanation contract:
+
+```text
+GET /v1/why-graph
+GET /v1/why-graph/schema
+GET /openapi/why-graph.json
+```
+
+The task-sized OpenAPI keeps `#/components/schemas/WhyGraph` explicitly and names it in
+`x-taxsorted-shared-components`, even though the two public routes return the framework and the
+structural JSON Schema rather than a taxpayer graph instance.
+Version 1 uses bounded typed JSON adjacency because agents can consume it directly through ordinary
+JSON and OpenAPI. Stable IDs and naturally directed relations leave a clean later projection to
+JSON-LD or RDF; v1 does not make every caller resolve an external context.
+
+It defines `taxsorted.why-graph/1`. Start at `rootNodeId`, then follow edges outward from the
+conclusion. A reached reasoning step selects exact fact records by stable path, distinguishes a
+binding rule that was decisive from one merely checked, and connects claims and rules to admitted
+sources. Separate relations name who legally holds a duty, who performs an action, who administers
+the regime and who has power to make an official decision. Consequences, correction routes and
+known gaps remain part of the same traversal.
+
+The graph is connective tissue, not a replacement ontology. Referenced answer and public-dataset
+records remain canonical. Supplied case-level financial and identity fact values are not copied
+into graph text or IDs; fixed public rule parameters may still be named as rules.
+Fact nodes carry selectors back to the containing answer. Node and edge IDs are semantic, arrays
+are ASCII sorted, every endpoint must resolve, every node must be reachable from the conclusion
+and cycles fail runtime validation. JSON Schema checks only the structural part of that contract.
+
+The first adopter lives at `/reasoning/whyGraph` in successful MTD Income Tax assessments. The
+field is optional in the published `taxsorted.tax-answer/1` OpenAPI schema. This is additive for
+forward-compatible v1 readers; strict validators must refresh the OpenAPI document and capability
+version before accepting the new response member. The current MTD capability always emits it and
+declares that fact through an OpenAPI extension. Its graph contains only reached or explicitly
+blocking decision records, so a return-duty exit does not pretend that continuation or cessation
+facts were read, or that threshold, exemption and obligation stages ran.
+
+TaxSorted's conclusion has `authority: taxsorted-analysis`, `effect: advisory` and
+`externalStateChange: false`. Correcting TaxSorted's explanation is not an HMRC review. An exact
+statutory review, appeal, complaint, payment-support or enforcement route needs the actual official
+notice, decision type, date and jurisdiction. Until those facts exist and the route is mapped, the
+graph ends in `gap:official-enforcement-and-review-route`; it never invents an appeal right.
+The graph keeps the caller, relevant-person duty holder, administrator and official decision-maker
+separate. It does not invent an authorised-agent identity: who will actually perform a duty and any
+authority to act remain an explicit gap unless a future capability can prove them.
+
 ## UK tax expert — coverage and first deep path
 
 The public capability registry separates product depth into six honest stages:
@@ -402,6 +450,7 @@ The response uses `taxsorted.tax-answer/1`. It keeps these parts separate:
 - effective date, independent evaluation date, knowledge date, period, territory and rules;
 - provided, derived and unknown facts, plus any real assumptions;
 - answer and step-by-step reasoning;
+- an additive why graph showing the reached and decisive path without copying financial values;
 - claims and sources, with source kind and legal force separated;
 - confidence basis and blockers — explicitly not a probability;
 - escalation reasons, facts needed and useful next actions;
