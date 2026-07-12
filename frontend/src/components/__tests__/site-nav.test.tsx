@@ -6,6 +6,11 @@ import { SiteNav } from "../site-nav";
 // SiteNav reads i18n through useI18n, which has a safe English fallback when
 // rendered outside the provider — so no wrapper is needed here.
 describe("SiteNav", () => {
+  it("keeps the open Learn book in the primary navigation", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
+  });
+
   it("offers an Account link", () => {
     render(<SiteNav />);
     expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");

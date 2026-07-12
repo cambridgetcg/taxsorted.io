@@ -1,5 +1,6 @@
 import { configForTaxYear } from "./config";
 import type { UkCgtInput, UkCgtResult, UkIncomeTaxInput, UkIncomeTaxResult } from "./types";
+import { computeRestOfUkNonSavingsIncomeTaxPence } from "../personal/threshold-engine";
 
 function money(value: number) {
   if (!Number.isFinite(value)) return 0;
@@ -10,57 +11,42 @@ function roundPence(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+const toPence = (value: number): number => Math.round(money(value) * 100);
+const fromPence = (value: number): number => value / 100;
+
 export function personalAllowanceFor(adjustedNetIncome: number, taxYear: UkIncomeTaxInput["taxYear"] = "2026/27") {
-  const cfg = configForTaxYear(taxYear);
-  const income = money(adjustedNetIncome);
-  const excess = Math.max(0, income - cfg.personalAllowanceTaperStarts);
-  const lost = Math.min(cfg.personalAllowance, excess * cfg.personalAllowanceTaperRate);
+  configForTaxYear(taxYear);
+  const canonical = computeRestOfUkNonSavingsIncomeTaxPence({
+    totalIncomePence: toPence(adjustedNetIncome),
+    adjustedNetIncomePence: toPence(adjustedNetIncome),
+  });
   return {
-    allowance: roundPence(cfg.personalAllowance - lost),
-    lost: roundPence(lost),
+    allowance: fromPence(canonical.personalAllowancePence),
+    lost: fromPence(canonical.personalAllowanceLostPence),
   };
 }
 
 export function computeUkIncomeTax(input: UkIncomeTaxInput): UkIncomeTaxResult {
   const taxYear = input.taxYear ?? "2026/27";
-  const cfg = configForTaxYear(taxYear);
+  configForTaxYear(taxYear);
   const employmentIncome = money(input.employmentIncome);
-  const allowance = personalAllowanceFor(employmentIncome, taxYear);
-  const taxableIncome = Math.max(0, employmentIncome - allowance.allowance);
-
-  const basicSlice = Math.min(taxableIncome, cfg.basicRateLimitTaxable);
-  const higherSlice = Math.min(Math.max(0, taxableIncome - cfg.basicRateLimitTaxable), cfg.higherRateLimitTaxable - cfg.basicRateLimitTaxable);
-  const additionalSlice = Math.max(0, taxableIncome - cfg.higherRateLimitTaxable);
-
-  const basicTax = basicSlice * cfg.incomeRates.basic;
-  const higherTax = higherSlice * cfg.incomeRates.higher;
-  const additionalTax = additionalSlice * cfg.incomeRates.additional;
-  const totalIncomeTax = roundPence(basicTax + higherTax + additionalTax);
-
-  // Approximate marginal income-tax rate only, ignoring NI/student loans.
-  let marginalRateApprox: number = cfg.incomeRates.basic;
-  if (employmentIncome > cfg.personalAllowanceTaperStarts && allowance.allowance > 0) {
-    marginalRateApprox = cfg.incomeRates.higher * 1.5; // 40% on the £1 + 40% on lost £0.50 allowance
-  } else if (taxableIncome > cfg.higherRateLimitTaxable) {
-    marginalRateApprox = cfg.incomeRates.additional;
-  } else if (taxableIncome > cfg.basicRateLimitTaxable) {
-    marginalRateApprox = cfg.incomeRates.higher;
-  } else if (taxableIncome <= 0) {
-    marginalRateApprox = 0;
-  }
+  const canonical = computeRestOfUkNonSavingsIncomeTaxPence({
+    totalIncomePence: toPence(employmentIncome),
+  });
+  const totalIncomeTax = fromPence(canonical.totalIncomeTaxPence);
 
   return {
     taxYear,
     employmentIncome,
-    personalAllowance: allowance.allowance,
-    personalAllowanceLost: allowance.lost,
-    taxableIncome: roundPence(taxableIncome),
-    basicTax: roundPence(basicTax),
-    higherTax: roundPence(higherTax),
-    additionalTax: roundPence(additionalTax),
+    personalAllowance: fromPence(canonical.personalAllowancePence),
+    personalAllowanceLost: fromPence(canonical.personalAllowanceLostPence),
+    taxableIncome: fromPence(canonical.taxableIncomePence),
+    basicTax: fromPence(canonical.basicTaxPence),
+    higherTax: fromPence(canonical.higherTaxPence),
+    additionalTax: fromPence(canonical.additionalTaxPence),
     totalIncomeTax,
     effectiveRate: employmentIncome > 0 ? totalIncomeTax / employmentIncome : 0,
-    marginalRateApprox,
+    marginalRateApprox: canonical.marginalRateApprox,
   };
 }
 

@@ -5,21 +5,17 @@
 // pension contributions and Gift Aid extension of bands are out of scope (documented below).
 //
 // THE BAND-EDGE SUBTLETY: the basic/higher/additional rate bands apply to TAXABLE income (income
-// after Personal Allowance), not to total income. The taper (see below) shrinks the PA as
-// adjusted net income (ANI) rises above £100,000, but it does NOT move the band edges measured
-// on taxable income. Those edges are FIXED at 0–£37,700 (basicRateBand), £37,700–£112,570
-// (higher), above £112,570 (additional), where £112,570 = higherRateLimit(£125,140) minus the
-// FULL, untapered personalAllowance(£12,570) — never the tapered PA actually given to this
-// taxpayer. Recomputing the higher-band edge from the tapered PA would double-count the taper
-// (once in a shrunken PA, again in a shrunken band) and is wrong; see config.ts higherRateLimit /
-// personalAllowance citations for the statutory source.
+// after Personal Allowance). The higher-rate taxable band runs through £125,140; it is not
+// £125,140 minus the full Personal Allowance, because that allowance has already tapered to zero
+// at this income. This estimator delegates that shared calculation to uk/personal so the teaching
+// page and ITSA estimate cannot drift apart again.
 //
-// PA TAPER: pa = max(0, fullPA − floor(max(0, ani − taperThreshold) / 2)), integer pence, floor
-// division, capped at [0, fullPA] (the floor/max/min chain below cannot exceed fullPA since the
-// subtracted term is always >= 0).
+// PA TAPER: HMRC rounds the £1-for-every-£2 allowance reduction down to a whole pound, capped at
+// [0, fullPA]. Shared handling matters when ANI includes pounds-and-pence values.
 
 import type { Pence, TaxYear } from './types'
 import { configFor } from './config'
+import { computeRestOfUkNonSavingsIncomeTaxPence } from '../personal/threshold-engine'
 
 export interface EstimateInput {
   taxYear: TaxYear
@@ -69,26 +65,21 @@ export function estimateLiability(input: EstimateInput): Estimate {
     cite: config.paTaperThreshold.source,
   })
 
-  // --- Step 3: Personal Allowance after taper ---
-  const fullPa = config.personalAllowance.value
-  const taperThreshold = config.paTaperThreshold.value
-  const personalAllowance = Math.max(0, fullPa - Math.floor(Math.max(0, ani - taperThreshold) / 2))
+  // --- Steps 3 and 4: canonical Personal Allowance + rUK non-savings bands ---
+  const bandResult = computeRestOfUkNonSavingsIncomeTaxPence({
+    totalIncomePence: totalIncome,
+    adjustedNetIncomePence: ani,
+  })
+  const personalAllowance = bandResult.personalAllowancePence
   lines.push({ label: 'Personal Allowance (after taper)', amount: personalAllowance, cite: config.personalAllowance.source })
 
-  // --- Step 4: income tax bands on TAXABLE income (see file-header note on the fixed band edges) ---
-  const taxable = Math.max(0, totalIncome - personalAllowance)
-  const basicRateBandSize = config.basicRateBand.value
-  // Fixed edge, independent of taper: higherRateLimit − FULL personal allowance.
-  const higherRateBandTop = config.higherRateLimit.value - fullPa
-
-  const basicSlice = Math.min(taxable, basicRateBandSize)
-  const higherSlice = Math.min(Math.max(0, taxable - basicRateBandSize), higherRateBandTop - basicRateBandSize)
-  const additionalSlice = Math.max(0, taxable - higherRateBandTop)
-
-  const basicTax = round(basicSlice * config.basicRate.value)
-  const higherTax = round(higherSlice * config.higherRate.value)
-  const additionalTax = round(additionalSlice * config.additionalRate.value)
-  const incomeTax = basicTax + higherTax + additionalTax
+  const basicSlice = bandResult.basicRateSlicePence
+  const higherSlice = bandResult.higherRateSlicePence
+  const additionalSlice = bandResult.additionalRateSlicePence
+  const basicTax = bandResult.basicTaxPence
+  const higherTax = bandResult.higherTaxPence
+  const additionalTax = bandResult.additionalTaxPence
+  const incomeTax = bandResult.totalIncomeTaxPence
 
   if (basicSlice > 0) lines.push({ label: `Basic rate: ${poundsLabel(basicSlice)} @ ${config.basicRate.value * 100}%`, amount: basicTax, cite: config.basicRate.source })
   if (higherSlice > 0) lines.push({ label: `Higher rate: ${poundsLabel(higherSlice)} @ ${config.higherRate.value * 100}%`, amount: higherTax, cite: config.higherRate.source })

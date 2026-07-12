@@ -32,6 +32,7 @@ type Dict = Record<string, string>;
 
 const en: Dict = {
   "nav.home": "Home",
+  "nav.learn": "Learn",
   "nav.dashboard": "Dashboard",
   "nav.playbook": "UK tax game",
   "nav.politics": "UK politics",
@@ -123,6 +124,7 @@ export const dictionaries: Record<Locale, Dict> = {
   en,
   "zh-Hant": {
     ...en,
+    "nav.learn": "學習",
     "nav.dashboard": "儀表板",
     "nav.playbook": "英國稅遊戲",
     "nav.politics": "英國政治",
@@ -147,6 +149,7 @@ export const dictionaries: Record<Locale, Dict> = {
   },
   "zh-Hans": {
     ...en,
+    "nav.learn": "学习",
     "nav.dashboard": "仪表板",
     "nav.playbook": "英国税务游戏",
     "nav.politics": "英国政治",
@@ -171,6 +174,7 @@ export const dictionaries: Record<Locale, Dict> = {
   },
   pl: {
     ...en,
+    "nav.learn": "Nauka",
     "nav.dashboard": "Panel",
     "nav.playbook": "Gra podatkowa UK",
     "nav.politics": "Polityka UK",
@@ -191,6 +195,7 @@ export const dictionaries: Record<Locale, Dict> = {
   },
   hi: {
     ...en,
+    "nav.learn": "सीखें",
     "nav.dashboard": "डैशबोर्ड",
     "nav.playbook": "UK tax game",
     "nav.politics": "UK politics",
@@ -209,6 +214,7 @@ export const dictionaries: Record<Locale, Dict> = {
   },
   ur: {
     ...en,
+    "nav.learn": "سیکھیں",
     "nav.dashboard": "ڈیش بورڈ",
     "nav.playbook": "UK tax game",
     "nav.politics": "UK politics",

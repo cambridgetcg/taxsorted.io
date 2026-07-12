@@ -102,6 +102,12 @@ describe("UK tax expert API", () => {
     expect(body.schema).toBe("taxsorted.uk.tax-expert/1");
     expect(body.capabilities).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "uk.mtd-income-tax.readiness", status: "available" }),
+      expect.objectContaining({
+        id: "uk.personal-tax.thresholds",
+        status: "available",
+        stages: expect.arrayContaining(["classified", "calculated"]),
+        humanHref: "/uk/personal-tax#threshold-check",
+      }),
       expect.objectContaining({ id: "uk.corporation-tax", status: "planned" }),
     ]));
   });

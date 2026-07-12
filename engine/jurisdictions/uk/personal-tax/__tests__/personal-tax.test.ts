@@ -14,6 +14,13 @@ describe("UK personal tax teaching engine", () => {
     expect(result.marginalRateApprox).toBeCloseTo(0.60, 6);
   });
 
+  it("keeps £125,140 entirely out of the additional-rate slice", () => {
+    const result = computeUkIncomeTax({ employmentIncome: 125_140 });
+    expect(result.personalAllowance).toBe(0);
+    expect(result.additionalTax).toBe(0);
+    expect(result.totalIncomeTax).toBe(42_516);
+  });
+
   it("computes simple employment income tax for an £80k earner", () => {
     const result = computeUkIncomeTax({ employmentIncome: 80_000 });
     expect(result.personalAllowance).toBe(12_570);

@@ -1,8 +1,8 @@
 # UK tax expert — architecture of understanding
 
-**Last Updated:** 2026-07-11
-**Confidence:** High for the architecture and admitted MTD sources; capability depth varies by row
-**Status:** First deep path implemented; broader UK coverage mapped
+**Last Updated:** 2026-07-12
+**Confidence:** High for the architecture, admitted MTD sources and 2026/27 ANI threshold spine; capability depth varies by row
+**Status:** Two deep paths implemented; broader UK coverage mapped
 
 TaxSorted does not call a fluent text generator a tax expert. A professional answer must say:
 
@@ -98,6 +98,53 @@ The instrument's official metadata names the King's Printer of Acts of Parliamen
 and its enacting text says the Commissioners for HMRC made it. It was laid before the House of
 Commons; the graph does not relabel Parliament as maker or publisher.
 
+## Why the second deep path is adjusted net income
+
+Adjusted net income is one shared fact with several materially different consequences. The
+2026/27 threshold engine now computes that fact once from integer-pence inputs, preserving the
+exact quarter-pence created by a ×1.25 pension or Gift Aid gross-up, then applies it to:
+
+- the Personal Allowance reduction above £100,000;
+- the High Income Child Benefit Charge above £60,000, using its statutory partner definition and
+  stopping when partner income or the claimant in an equal-income tie is unknown, with statutory
+  whole-number percentages and final whole-pound charge rounding. The payment input is deliberately
+  a simplified full-year case: partnership, claimant, award or opt-out changes require
+  relevant-period checks;
+- Tax-Free Childcare's distinct household-partner rule, where exactly £100,000 passes and any
+  positive excess—including a sub-penny excess from gross-up—fails the income condition.
+
+The strict contract is `taxsorted.uk.personal-thresholds/1` in
+`engine/jurisdictions/uk/personal/threshold-engine.ts`. Missing total income stays missing;
+negative, unsafe and malformed machine inputs are rejected. Known partner ANI can use whole pence
+or the explicit scaled quarter-pence output, so piping one assessment into another cannot cross a
+boundary through display rounding. The browser-local checker is `/uk/personal-tax#threshold-check`.
+It does not send or store the figures.
+
+The older pounds-based planner helpers keep their forgiving public input behaviour for
+compatibility. Strict rejection and explicit unknowns belong to the versioned machine contract,
+so consolidation does not quietly turn an existing teaching import into a breaking API.
+
+The Tax-Free Childcare result deliberately classifies only the income condition. Child age and
+circumstances, minimum earnings, work, immigration status, approved childcare and conflicting
+support such as Universal Credit or childcare vouchers remain visible boundaries; a passing
+income result is never presented as full eligibility.
+
+The admitted official source doors are:
+
+- [HMRC adjusted net income method](https://www.gov.uk/guidance/adjusted-net-income)
+- [HMRC Tax Logic: Personal Allowance calculation](https://developer.service.hmrc.gov.uk/guides/tax-logic-service-guide/documentation/allowances-and-reliefs.html#personal-allowance) — whole-pound taper rounding method
+- [HMRC High Income Child Benefit Charge](https://www.gov.uk/child-benefit-tax-charge)
+- [HMRC Child Benefit calculator](https://www.gov.uk/child-benefit-tax-calculator) — 2026/27 full-year awards span 53 weekly entitlement points
+- [ITEPA 2003 section 681C: amount and rounding](https://www.legislation.gov.uk/ukpga/2003/1/section/681C)
+- [GOV.UK Tax-Free Childcare eligibility](https://www.gov.uk/tax-free-childcare/check-if-youre-eligible)
+- [HMRC Tax-Free Childcare ANI basis](https://www.gov.uk/hmrc-internal-manuals/tax-free-childcare-technical-manual/tfc11050)
+- [HMRC Tax-Free Childcare partner definition](https://www.gov.uk/hmrc-internal-manuals/tax-free-childcare-technical-manual/tfc06400)
+
+Consolidation also removed a duplicated band calculation that started the additional rate at
+£112,570 of taxable income. The canonical rest-of-UK engine now keeps the higher-rate band through
+£125,140, when the Personal Allowance is already fully tapered, and both the personal-tax teaching
+facade and ITSA estimator delegate to it. Regression cases pin £125,140 and £130,000.
+
 ## Coverage path
 
 Coverage follows taxpayer journeys rather than a flat list of tax names:
@@ -116,9 +163,9 @@ Coverage follows taxpayer journeys rather than a flat list of tax names:
 12. correct, dispute, appeal or cannot pay.
 
 The capability registry marks each path as mapped, explained, classified, calculated, prepared or
-filed. Missing stages stay visible. The next depth target after MTD readiness is one consolidated
-adjusted-net-income and threshold-interaction engine for Personal Allowance, HICBC and Tax-Free
-Childcare. It must consolidate the existing overlapping personal-tax modules, not add another one.
+filed. Missing stages stay visible. The adjusted-net-income target after MTD readiness is now
+implemented as the shared `uk/personal` spine; `uk/personal-tax` remains a compatibility facade for
+its older public import and result names.
 
 ## Safety walls
 

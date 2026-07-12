@@ -17,6 +17,9 @@ export function SiteNav() {
           <span className="hidden text-sm text-ink-soft sm:inline">{t("nav.tagline")}</span>
         </Link>
         <div className="flex w-full max-w-full flex-wrap items-center gap-x-4 gap-y-2 text-sm lg:w-auto lg:justify-end">
+          <Link href="/learn" className="text-ink-soft hover:text-ink">
+            {t("nav.learn")}
+          </Link>
           <Link href="/uk/tax-expert" className="font-medium text-accent hover:text-accent-deep">
             Tax expert
           </Link>

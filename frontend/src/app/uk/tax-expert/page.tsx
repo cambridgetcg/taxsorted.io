@@ -5,7 +5,7 @@ import { MtdExpertCheck } from "@/components/tax-expert/MtdExpertCheck";
 
 export const metadata: Metadata = {
   title: "UK tax expert — evidence, dates and honest boundaries | TaxSorted",
-  description: "Understand UK tax through explicit facts, effective-dated rules, official sources and useful escalation. First deep path: MTD Income Tax readiness.",
+  description: "Understand UK tax through explicit facts, effective-dated rules and official sources. Deep paths: MTD Income Tax readiness and adjusted-net-income threshold interactions.",
 };
 
 const statusLabel = {
@@ -30,9 +30,29 @@ export default function UkTaxExpertPage() {
 
       <section className="mt-12" aria-labelledby="first-deep-path">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Coverage first. Depth where time matters.</p>
-        <h2 id="first-deep-path" className="mt-2 text-3xl font-bold tracking-tight text-ink">First deep path: MTD Income Tax</h2>
+        <h2 id="first-deep-path" className="mt-2 text-3xl font-bold tracking-tight text-ink">Deep path one: MTD Income Tax</h2>
         <p className="mt-3 max-w-3xl text-ink-soft">The regime is live. For the first cohort, the first quarterly update deadline is 7 August 2026. This check uses the existing ITSA rules engine and stops automatically when its official-source review is overdue.</p>
         <div className="mt-7"><MtdExpertCheck /></div>
+      </section>
+
+      <section className="mt-16 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8" aria-labelledby="ani-deep-path">
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">One number. Three consequences.</p>
+        <h2 id="ani-deep-path" className="mt-2 text-3xl font-bold tracking-tight text-ink">Deep path two: adjusted net income</h2>
+        <p className="mt-3 max-w-3xl text-ink-soft">
+          The same evidence-backed ANI calculation now maps the Personal Allowance taper,
+          a simplified full-year Child Benefit charge and Tax-Free Childcare&apos;s distinct
+          household-partner income test.
+          Blank partner income remains unknown, exactly £100,000 stays inside the childcare
+          limit, and the checker runs entirely in the browser.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link href="/uk/personal-tax#threshold-check" className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-white hover:bg-accent-deep">
+            Map my £60k / £100k thresholds
+          </Link>
+          <a href="https://www.gov.uk/guidance/adjusted-net-income" className="rounded-full border border-line px-5 py-2 text-sm font-medium text-ink hover:bg-accent-soft">
+            Read HMRC&apos;s ANI method
+          </a>
+        </div>
       </section>
 
       <section className="mt-16" aria-labelledby="coverage-map">

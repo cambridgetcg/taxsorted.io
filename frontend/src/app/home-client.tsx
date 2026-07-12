@@ -14,7 +14,7 @@ export function HomeClient() {
   const { t } = useI18n();
 
   const places = [
-    { name: t("home.place.uk"), status: "open" as const, href: "/dashboard" },
+    { name: t("home.place.uk"), status: "open" as const, href: "/learn" },
     { name: "UK tax expert", status: "open" as const, href: "/uk/tax-expert" },
     { name: t("home.place.personal"), status: "open" as const, href: "/uk/personal-tax" },
     { name: t("home.place.ireland"), status: "drawing" as const },

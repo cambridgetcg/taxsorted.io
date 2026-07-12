@@ -19,7 +19,7 @@ export interface UkTaxExpertCapability {
   review: { reviewedOn: string; owner: string };
 }
 
-const reviewedOn = "2026-07-11";
+const reviewedOn = "2026-07-12";
 
 /** Product coverage, not a claim that every UK tax rule is implemented. */
 export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
@@ -60,13 +60,13 @@ export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
   {
     id: "uk.personal-tax.thresholds",
     journey: "Income or family circumstances change",
-    title: "Personal tax thresholds and lawful planning",
-    status: "limited",
-    stages: ["mapped", "explained"],
-    scope: "2026/27 teaching and planning around adjusted net income, Personal Allowance, HICBC, pensions, dividends and CGT.",
-    exclusions: ["Filing-grade liability", "Scottish earned-income rates", "Residence and foreign income", "Trusts and estates"],
-    humanHref: "/uk/personal-tax",
-    review: { reviewedOn: "2026-07-03", owner: "TaxSorted UK tax rules" },
+    title: "Adjusted net income and threshold interactions",
+    status: "available",
+    stages: ["mapped", "explained", "classified", "calculated"],
+    scope: "A strict 2026/27 ANI spine for the Personal Allowance taper, a simplified full-year HICBC estimate and the separate Tax-Free Childcare household-partner income condition, with quarter-penny-exact boundaries and local-only checking.",
+    exclusions: ["Full Tax-Free Childcare eligibility", "Changing partner or claimant periods", "Filing-grade liability", "Scottish earned-income rates", "Residence or treaty classification", "Trust and estate calculations"],
+    humanHref: "/uk/personal-tax#threshold-check",
+    review: { reviewedOn, owner: "TaxSorted UK tax rules" },
   },
   {
     id: "uk.self-assessment.liability",

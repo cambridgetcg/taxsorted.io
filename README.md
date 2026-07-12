@@ -28,8 +28,10 @@ year-end return, aiming to be the first open-source software on HMRC's recognise
 2026-27 has no penalty for missing a quarterly-update deadline, but every required update is still
 required before the return can be submitted. The annual return and payment rules remain.
 
-**Tax expert foundation:** `/uk/tax-expert` publishes an honest coverage map and a local-only
-MTD Income Tax readiness expert. The API exposes the same understanding as
+**Tax expert foundation:** `/uk/tax-expert` publishes an honest coverage map and two local-only
+deep paths: MTD Income Tax readiness, plus one adjusted-net-income calculation shared by the
+Personal Allowance, HICBC and Tax-Free Childcare income condition. The API exposes the MTD
+understanding as
 `taxsorted.tax-answer/1`: explicit facts and unknowns, applicability, reasoning, source kind and
 legal force, confidence basis, escalation and data use. Its shared why graph traces the reached
 path from conclusion to facts, binding rules, claims, sources, institutions, consequences and
@@ -37,6 +39,10 @@ explicit gaps in challenge routing without copying supplied case values into gra
 authenticated assessment sits beside
 the source-backed SDLT calculator; both use strict bounded requests and never guess zero. See
 [`docs/API.md`](docs/API.md), `GET /v1/uk/tax-expert` and `GET /openapi.json`.
+
+The browser HICBC path is a simplified full-year-payment estimate. Relationship, claimant, award
+or payment opt-out changes need the Child Benefit amount split into relevant periods and checked
+against HMRC's full method. HICBC and Tax-Free Childcare partner definitions stay separate.
 
 See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 
@@ -189,8 +195,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 - `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers
 - `/uk/charities` — public page: conditional reliefs, regulators, money, control and help routes
 - `/uk/public-funding` — public page: where tax joins public funds and how health and education money moves
-- `/uk/personal-tax` — public page: 7 UK plays, official receipts, ordinary counter-moves
-- `/uk/tax-expert` — public page: honest UK coverage stages and a local-only MTD readiness assessment
+- `/uk/personal-tax` — public page: local ANI threshold checker, 7 UK plays, official receipts, ordinary counter-moves
+- `/uk/tax-expert` — public page: honest UK coverage stages and two local-only deep assessments
 - `regs/research/` — the MTD Income Tax regulatory corpus: mandate, API surface,
   recognition process, fraud-prevention headers, 2026-27 tax substance — every claim cited
 
@@ -214,6 +220,7 @@ lawful pressure points and records the caveats instead of inventing fake loophol
 - adjusted net income and reliefs
 - £100,000 Personal Allowance taper / effective 60% band
 - High Income Child Benefit Charge around £60,000–£80,000
+- Tax-Free Childcare's per-partner £100,000 income condition, without pretending to decide full eligibility
 - pension annual allowance, tapered annual allowance and MPAA warnings
 - dividend allowance and CGT annual exempt amount reminders
 - legal levers such as pension contributions, salary sacrifice, Gift Aid, ISA sheltering,

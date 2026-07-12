@@ -3,4 +3,5 @@
 
 export * from "./config";
 export * from "./types";
+export * from "./threshold-engine";
 export * from "./thresholds";

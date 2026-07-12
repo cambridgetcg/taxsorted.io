@@ -20,6 +20,12 @@ describe('2026-27 liability estimate (rUK)', () => {
     expect(e.personalAllowance).toBe(757000)
     expect(e.incomeTax).toBe(3343200)
   })
+  it('does not charge additional rate early at the £125,140 taper endpoint', () => {
+    const e = estimateLiability({ taxYear: '2026-27', tradingProfit: 12514000, propertyIncome: 0, propertyExpenses: 0, residentialFinanceCosts: 0 })
+    expect(e.personalAllowance).toBe(0)
+    expect(e.incomeTax).toBe(4251600)
+    expect(e.lines.some((line) => line.label.startsWith('Additional rate'))).toBe(false)
+  })
   it('landlord S24: £18,000 rents, £3,000 expenses, £5,000 residential finance → credit £1,000, no carry-forward', () => {
     const e = estimateLiability({ taxYear: '2026-27', tradingProfit: 0, propertyIncome: 1800000, propertyExpenses: 300000, residentialFinanceCosts: 500000, otherNonSavingsIncome: 3000000 })
     expect(e.s24Credit).toBe(100000)      // 20% × min(5000, 15000, ANI)

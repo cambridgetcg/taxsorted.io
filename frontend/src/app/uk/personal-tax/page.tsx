@@ -4,6 +4,7 @@ import Link from "next/link";
 import { compareUkIncomeAndGains, computeUkIncomeTax } from "@taxsorted/engine/uk/personal-tax";
 import { planUKPersonalTax } from "@taxsorted/engine/uk/personal";
 import { TaxPlayground } from "@/components/TaxPlayground";
+import { PersonalThresholdCheck } from "@/components/tax-expert/PersonalThresholdCheck";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { Locale as SiteLocale } from "@/i18n/dictionaries";
 import playbook from "../../../../../research/uk/personal-tax/playbook.json";
@@ -89,6 +90,8 @@ export default function UkPersonalTaxPage() {
         <Metric label={siteT("playbook.snapshot.isa")} value={gbp.format(playbook.snapshot.isaAnnualAllowance)} note={siteT("playbook.snapshot.isa.note")} />
         <Metric label={siteT("playbook.snapshot.cgt")} value={gbp.format(playbook.snapshot.cgtAnnualExemptAmount)} note={siteT("playbook.snapshot.cgt.note")} />
       </section>
+
+      <PersonalThresholdCheck />
 
       <section className="mt-10 rounded-3xl border border-line bg-white p-6 sm:p-8">
         <h2 className="text-2xl font-semibold text-ink">{t.sameMoneyTitle}</h2>
