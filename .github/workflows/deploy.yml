@@ -39,6 +39,8 @@ jobs:
       # Quality gate — every workspace's tests must pass before anything ships.
       - run: npm test
 
+      - run: npm run lint --workspace frontend
+
       - run: npm run typecheck
 
       - run: npm run validate:learn
@@ -50,6 +52,7 @@ jobs:
   # The API ships first. A failed or skipped API deploy must never leave a new
   # frontend pointing at an older API contract.
   deploy-api:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-build
     steps:
@@ -71,7 +74,7 @@ jobs:
             exit 1
           fi
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
 
       - name: Capture the published public-funding change prefix
         run: |
@@ -242,6 +245,15 @@ jobs:
               --retry 12 --retry-delay 5 --retry-all-errors \
               --output /dev/null "https://api.taxsorted.io${path}"
           done
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/health | \
+            jq --exit-status '
+              .ok == true and
+              .hmrc.configured == true and
+              .hmrc.env == "sandbox"
+            ' >/dev/null
 
           api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
           api_well_known_manifest="${RUNNER_TEMP}/api-well-known-agent.txt"
@@ -1022,7 +1034,7 @@ jobs:
           api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
           expected_agent_manifest="frontend/public/agent.txt"
           manifest_ready=false
-          for attempt in $(seq 1 12)
+          for _ in $(seq 1 12)
           do
             if curl --fail --silent --show-error --location \
               --connect-timeout 5 --max-time 10 \
@@ -1089,7 +1101,7 @@ jobs:
             page=${page_and_marker%%|*}
             marker=${page_and_marker#*|}
             page_ready=false
-            for attempt in $(seq 1 12)
+            for _ in $(seq 1 12)
             do
               if curl --fail --silent --show-error --location --output "$body" \
                 --connect-timeout 10 --max-time 30 \

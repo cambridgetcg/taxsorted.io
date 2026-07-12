@@ -1,6 +1,9 @@
 {
   "name": "taxsorted",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "workspaces": [
     "engine",
     "frontend",

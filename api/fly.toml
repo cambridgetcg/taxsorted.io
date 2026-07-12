@@ -21,8 +21,8 @@ primary_region = "lhr"
   # Public-funding bodies remain closed until the reviewed corpus passes the
   # release checks and a human explicitly enables the Fly secret. Sources,
   # gaps and release metadata remain readable while closed.
-  # GOV_VENDOR_PUBLIC_IP is deliberately NOT set here: it's the app's real
-  # egress IP, not a build-time constant we'd know without asking Fly, and
+  # GOV_VENDOR_PUBLIC_IP is deliberately NOT set here: it's the public ingress
+  # IP clients reach, not a build-time constant we'd know without asking Fly, and
   # this file is not the right place for a value that might need rotating.
   # Set it as a secret instead — see RUNBOOK.md "Fraud-prevention headers"
   # for how to fetch it (`fly ips list`) and apply it
@@ -37,6 +37,13 @@ primary_region = "lhr"
   auto_stop_machines = "suspend"
   auto_start_machines = true
   min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/v1/health"
+    timeout = "5s"
 
 [[vm]]
   size = "shared-cpu-1x"

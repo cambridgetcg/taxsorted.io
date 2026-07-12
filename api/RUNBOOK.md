@@ -540,7 +540,8 @@ permission to omit (it ships now), but to confirm our type=OTHER classification.
 ### GOV_VENDOR_PUBLIC_IP — how to fetch and apply it
 
 `Gov-Vendor-Public-IP` and `Gov-Vendor-Forwarded` both need the api's own
-public egress IP. Fetch it from Fly, then set it as a secret (never hardcode
+public ingress IP — the address a client's device reaches. Fetch it from Fly,
+then set it as a secret (never hardcode
 an IP in `fly.toml` — it's an operational value, not a build-time constant):
 
 ```bash
@@ -664,7 +665,7 @@ HMRC_CLIENT_ID=<client id> HMRC_CLIENT_SECRET=<client secret> \
   npm run validate:fraud-headers
 ```
 
-Optional: `GOV_VENDOR_PUBLIC_IP=<ip>` to test with the api's real egress IP —
+Optional: `GOV_VENDOR_PUBLIC_IP=<ip>` to test with the api's real public ingress IP —
 when unset, `Gov-Vendor-Public-IP` and `Gov-Vendor-Forwarded` are omitted from
 the request under test, same never-fabricate behaviour as production.
 Optional: `FRAUD_HEADERS_VALIDATE_API=<api>` to pick a different
