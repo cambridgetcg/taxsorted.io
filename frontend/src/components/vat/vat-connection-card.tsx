@@ -46,7 +46,6 @@ const STATUS_CONFIG = {
 export function VATConnectionCard({
   connection,
   entityId,
-  vrn,
   isLoading,
   onConnect,
   onDisconnect,

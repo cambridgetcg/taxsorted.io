@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Calendar, ArrowRight, Circle } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

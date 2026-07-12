@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Copy, Check, FileText, Clock, Send, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { cn, formatDate, formatReference, formatCurrency } from "@/lib/utils";
+import { cn, formatDate, formatReference } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

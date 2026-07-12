@@ -258,34 +258,56 @@ function EntityCockpit({
   const [vrnError, setVrnError] = useState<string | null>(null);
   const [vrnSaving, setVrnSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const { entity } = await api.getEntity(entityId);
-      setEntity(entity);
-      api.submissions(entityId).then((r) => setSubmissions(r.submissions)).catch(() => {});
-      if (entity.connected) {
-        setObligationsError(null);
-        try {
-          const data = await api.obligations(entityId);
-          setObligations(data.obligations ?? []);
-        } catch (e) {
-          setObligations([]);
-          setObligationsError(
-            e instanceof ApiError ? e.message : "Could not reach HMRC just now."
-          );
-        }
+  const applyEntity = useCallback(async (nextEntity: ApiEntity) => {
+    setEntity(nextEntity);
+    api.submissions(entityId).then((r) => setSubmissions(r.submissions)).catch(() => {});
+    if (nextEntity.connected) {
+      setObligationsError(null);
+      try {
+        const data = await api.obligations(entityId);
+        setObligations(data.obligations ?? []);
+      } catch (e) {
+        setObligations([]);
+        setObligationsError(
+          e instanceof ApiError ? e.message : "Could not reach HMRC just now."
+        );
       }
-    } catch {
-      setNotFound(true);
-    } finally {
-      setRefreshing(false);
     }
   }, [entityId]);
 
-  useEffect(() => {
-    load();
+  const load = useCallback(async () => {
+    try {
+      const { entity: nextEntity } = await api.getEntity(entityId);
+      await applyEntity(nextEntity);
+    } catch {
+      setNotFound(true);
+    }
+  }, [applyEntity, entityId]);
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load();
+    } finally {
+      setRefreshing(false);
+    }
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getEntity(entityId)
+      .then(({ entity: nextEntity }) => {
+        if (!cancelled) void applyEntity(nextEntity);
+      })
+      .catch(() => {
+        if (!cancelled) setNotFound(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyEntity, entityId]);
 
   if (notFound) {
     return (
@@ -315,7 +337,7 @@ function EntityCockpit({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={load} disabled={refreshing}>
+          <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -358,7 +380,7 @@ function EntityCockpit({
                       setVrnError(null);
                       try {
                         await api.setVrn(entity.id, vrnDraft.trim());
-                        await load();
+                        await refresh();
                       } catch (e) {
                         setVrnError(
                           e instanceof ApiError ? e.message : "Could not save — try again."
@@ -406,7 +428,7 @@ function EntityCockpit({
               className="underline hover:text-ink"
               onClick={async () => {
                 await api.disconnect(entity.id).catch(() => {});
-                await load();
+                await refresh();
               }}
             >
               Disconnect from HMRC

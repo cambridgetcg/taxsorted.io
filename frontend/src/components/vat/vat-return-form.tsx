@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle, Info, Loader2 } from "lucide-react";
 import { cn, formatDate, formatPeriod } from "@/lib/utils";
@@ -119,7 +119,7 @@ export function VATReturnForm({
   const filing = mode === "file";
   const router = useRouter();
 
-  const [formData, setFormData] = useState<Partial<VATReturnData>>({
+  const [formDataDraft, setFormData] = useState<Partial<VATReturnData>>({
     periodKey: obligation.periodKey,
     vatDueSales: 0,
     vatDueAcquisitions: 0,
@@ -136,15 +136,11 @@ export function VATReturnForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Boxes 3 and 5 are derived, never typed.
-  useEffect(() => {
-    const { totalVatDue, netVatDue } = calculateVATReturnTotals(formData);
-    setFormData((prev) => ({ ...prev, totalVatDue, netVatDue }));
-  }, [
-    formData.vatDueSales,
-    formData.vatDueAcquisitions,
-    formData.vatReclaimedCurrPeriod,
-  ]);
+  // Boxes 3 and 5 are derived, never typed or stored independently.
+  const formData = {
+    ...formDataDraft,
+    ...calculateVATReturnTotals(formDataDraft),
+  };
 
   // The plain answer + the calm "what this means" brief — straight from the engine.
   const summary = summarizeReturn(formData as VATReturnData, obligation.end);

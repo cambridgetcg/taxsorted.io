@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,31 +85,33 @@ const mockPayments: VATPayment[] = [
 interface VATPageClientProps { entityId: string; }
 
 export default function VATPortalPage({ entityId }: VATPageClientProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedEntityId, setLoadedEntityId] = useState<string | null>(null);
+  const isLoading = loadedEntityId !== entityId;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [connection, setConnection] = useState<VATConnection | null>(null);
   const [obligations, setObligations] = useState<VATObligation[]>([]);
   const [liabilities, setLiabilities] = useState<VATLiability[]>([]);
   const [payments, setPayments] = useState<VATPayment[]>([]);
 
-  // Load data
-  useEffect(() => {
-    loadData();
+  const applyData = useCallback(() => {
+    setConnection(mockConnection);
+    setObligations(mockObligations);
+    setLiabilities(mockLiabilities);
+    setPayments(mockPayments);
+    setLoadedEntityId(entityId);
   }, [entityId]);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Replace with actual API calls
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setConnection(mockConnection);
-      setObligations(mockObligations);
-      setLiabilities(mockLiabilities);
-      setPayments(mockPayments);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const loadData = useCallback(async () => {
+    // TODO: Replace with actual API calls
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    applyData();
+  }, [applyData]);
+
+  // Load data
+  useEffect(() => {
+    const timeoutId = setTimeout(applyData, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [applyData]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

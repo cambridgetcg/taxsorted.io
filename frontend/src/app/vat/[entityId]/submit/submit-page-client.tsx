@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VATReturnForm } from "@/components/vat";
 import { VatWizard } from "@/components/vat/vat-wizard";
-import type { VATObligation, VATReturnData } from "@taxsorted/engine/uk/vat";
+import type { VATObligation } from "@taxsorted/engine/uk/vat";
 import { cn, formatDate, formatPeriod } from "@/lib/utils";
 
 // Mock obligations - replace with actual API call
@@ -36,7 +36,9 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
   const searchParams = useSearchParams();
   const periodKey = searchParams.get("period");
 
-  const [isLoading, setIsLoading] = useState(true);
+  const requestKey = `${entityId}:${periodKey ?? ""}`;
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
+  const isLoading = loadedRequestKey !== requestKey;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -44,16 +46,14 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
   const [obligations, setObligations] = useState<VATObligation[]>([]);
   const [mode, setMode] = useState<"guided" | "manual">("guided");
 
-  // Load obligations
   useEffect(() => {
-    loadObligations();
-  }, [entityId]);
+    let cancelled = false;
 
-  const loadObligations = async () => {
-    setIsLoading(true);
-    try {
+    async function loadObligations() {
       // TODO: Replace with actual API call
       await new Promise((resolve) => setTimeout(resolve, 800));
+      if (cancelled) return;
+
       setObligations(mockObligations);
 
       // Find the selected obligation
@@ -64,12 +64,16 @@ export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
         // Default to first open obligation
         setObligation(mockObligations[0]);
       }
-    } finally {
-      setIsLoading(false);
+      setLoadedRequestKey(requestKey);
     }
-  };
 
-  const handleSubmit = async (data: VATReturnData) => {
+    void loadObligations();
+    return () => {
+      cancelled = true;
+    };
+  }, [periodKey, requestKey]);
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
 
