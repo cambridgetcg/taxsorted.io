@@ -872,7 +872,7 @@ jobs:
             exit 1
           fi
           jq --exit-status '
-            .schema == "taxsorted.uk.tax-answer/1" and
+            .schema == "taxsorted.tax-answer/1" and
             .reasoning.whyGraph.schema == "taxsorted.why-graph/1" and
             .reasoning.whyGraph.rootNodeId == "conclusion:mtd-income-tax-readiness" and
             .reasoning.whyGraph.context.subject == {
