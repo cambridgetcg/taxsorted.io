@@ -314,6 +314,7 @@ The public why-graph framework is a sessionless, read-only explanation contract:
 
 ```text
 GET /v1/why-graph
+GET /v1/why-graph/adopters
 GET /v1/why-graph/schema
 GET /openapi/why-graph.json
 ```
@@ -339,13 +340,22 @@ Fact nodes carry selectors back to the containing answer. Node and edge IDs are 
 are ASCII sorted, every endpoint must resolve, every node must be reachable from the conclusion
 and cycles fail runtime validation. JSON Schema checks only the structural part of that contract.
 
-The first adopter lives at `/reasoning/whyGraph` in successful MTD Income Tax assessments. The
+The adopter index names current producers and keeps their access boundaries separate. The first
+adopter lives at `/reasoning/whyGraph` in successful MTD Income Tax assessments. The
 field is optional in the published `taxsorted.tax-answer/1` OpenAPI schema. This is additive for
 forward-compatible v1 readers; strict validators must refresh the OpenAPI document and capability
 version before accepting the new response member. The current MTD capability always emits it and
 declares that fact through an OpenAPI extension. Its graph contains only reached or explicitly
 blocking decision records, so a return-duty exit does not pretend that continuation or cessation
 facts were read, or that threshold, exemption and obligation stages ran.
+
+The second adopter is the standalone public template
+`/v1/charities/uk/tax-treatments/{id}/why-graph`. It traces all nine substantive treatment fields
+through exact `sourceId + JSON Pointer` evidence declarations. A `dataset-record` reference still
+selects the whole canonical record; adopter `claimSelectors` carry the exact field pointers without
+inventing fragment semantics in WhyGraph/1. The current corpus has guidance rather than admitted
+primary-law records, so binding provisions, case applicability and official challenge routes remain
+explicit gaps. Guidance never becomes a rule node.
 
 TaxSorted's conclusion has `authority: taxsorted-analysis`, `effect: advisory` and
 `externalStateChange: false`. Correcting TaxSorted's explanation is not an HMRC review. An exact
@@ -716,6 +726,7 @@ GET /v1/charities/uk/graph
 GET /v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments}
 GET /v1/charities/uk/{obligations|funding|finance|control|help|pipeline|gaps}
 GET /v1/charities/uk/{collection}/{id}
+GET /v1/charities/uk/tax-treatments/{id}/why-graph
 GET /v1/charities/uk/manifest
 GET /v1/charities/uk/schema
 GET /v1/charities/uk/dictionary
@@ -749,6 +760,13 @@ official or organisation-level route a person can use to ask for help. `q`, `lim
 `offset` are bounded; exact filters are collection-specific and listed by the dictionary.
 There is deliberately no person, trustee-name, personal-contact, religion, denomination,
 recipient or donor filter.
+
+Each of the ten tax-treatment records has a deterministic explanation subresource. It keeps the
+treatment effect beside the circumstances in which tax, recovery or clawback may arise, preserves
+official-summary versus TaxSorted-analysis voice, and links only to sources whose evidence entry
+names the exact field pointer. It is not an organisation assessment. Stored graphs carry the corpus
+version, but their hrefs resolve the live dataset rather than an immutable historical snapshot;
+retain referenced records or compare versions before replaying an old graph.
 
 Relief is not described as a reward for religion or as blanket tax exemption. Advancement of
 religion is one possible charitable purpose, but charitable status still depends on the

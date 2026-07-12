@@ -187,6 +187,7 @@ describe("developer API boundary", () => {
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
     );
     expect(document.paths).toHaveProperty("/v1/why-graph");
+    expect(document.paths).toHaveProperty("/v1/why-graph/adopters");
     expect(document.paths).toHaveProperty("/v1/why-graph/schema");
     expect(document.paths["/v1/why-graph"].get.security).toEqual([]);
     expect(document.components.schemas.WhyGraph).toMatchObject({
@@ -344,6 +345,32 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}");
     expect(document.paths).toHaveProperty("/v1/charities/uk/{collection}/{id}");
     expect(document.paths).toHaveProperty("/v1/charities/uk/graph");
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/tax-treatments/{id}/why-graph",
+    );
+    expect(
+      document.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get
+        .responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/WhyGraph");
+    expect(
+      document.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get
+        .security,
+    ).toEqual([]);
+    expect(
+      document.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get
+        .responses[200].headers,
+    ).toMatchObject({
+      "X-Schema-Version": {
+        schema: { enum: ["taxsorted.why-graph/1"] },
+      },
+      "X-TaxSorted-Why-Graph-Adopter": {
+        schema: { enum: ["uk.charities.tax-treatment"] },
+      },
+    });
+    expect(
+      document.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].head
+        .security,
+    ).toEqual([]);
     expect(document.paths["/v1/charities/uk/map"].get.responses).toHaveProperty(
       "308",
     );
@@ -426,6 +453,9 @@ describe("developer API boundary", () => {
       document.paths["/v1/charities/uk/exports/{collection}/{format}"].head
         .responses[200].headers,
     ).toHaveProperty("Content-Disposition");
+    expect(
+      document.components.schemas.DictionaryCollection.properties,
+    ).toHaveProperty("whyGraphUrlTemplate");
     expect(
       document.paths["/v1/charities/uk/{collection}"].get.responses[400]
         .content["application/json"].schema.$ref
@@ -875,7 +905,11 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
     expect(publicDocument.paths).toHaveProperty("/v1/accountability/uk");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph");
+    expect(publicDocument.paths).toHaveProperty("/v1/why-graph/adopters");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph/schema");
+    expect(publicDocument.paths).toHaveProperty(
+      "/v1/charities/uk/tax-treatments/{id}/why-graph",
+    );
     expect(publicDocument.paths).toHaveProperty(
       "/v1/accountability/uk/schema",
     );

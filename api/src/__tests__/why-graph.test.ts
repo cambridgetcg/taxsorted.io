@@ -2,9 +2,12 @@ import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { apiCors, isPublicCivicPath } from "../cors";
 import { createWhyGraphRoutes } from "../routes/why-graph";
+import { ukCharities } from "../uk-charities";
 import {
+  WhyGraphAdoptersSchema,
   WhyGraphFrameworkSchema,
   WhyGraphSchema,
+  whyGraphAdopters,
   whyGraphFramework,
   whyGraphJsonSchemaDocument,
 } from "../why-graph";
@@ -20,9 +23,73 @@ describe("public why-graph framework", () => {
   it("is a public civic path without admitting prefix lookalikes", () => {
     expect(isPublicCivicPath("/v1/why-graph")).toBe(true);
     expect(isPublicCivicPath("/v1/why-graph/schema")).toBe(true);
+    expect(isPublicCivicPath("/v1/why-graph/adopters")).toBe(true);
     expect(isPublicCivicPath("/openapi/why-graph.json")).toBe(true);
     expect(isPublicCivicPath("/v1/why-graph-evil")).toBe(false);
     expect(isPublicCivicPath("/openapi/why-graph.json/evil")).toBe(false);
+  });
+
+  it("lists both adopters without changing the strict framework v1 body", async () => {
+    const response = await mount().request("/v1/why-graph/adopters");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-schema-version")).toBe(
+      "taxsorted.why-graph-adopters/1",
+    );
+    expect(response.headers.get("link")).toContain(
+      '</v1/why-graph/schema>; rel="describedby"',
+    );
+    const body = await response.json();
+    expect(body).toEqual(whyGraphAdopters);
+    expect(() => WhyGraphAdoptersSchema.parse(body)).not.toThrow();
+    expect(body.adopters).toEqual([
+      expect.objectContaining({
+        id: "uk.mtd-income-tax.readiness",
+        adoptionOrder: 1,
+        responsePath: "/reasoning/whyGraph",
+      }),
+      expect.objectContaining({
+        id: "uk.charities.tax-treatment",
+        adoptionOrder: 2,
+        endpoint: "/v1/charities/uk/tax-treatments/{id}/why-graph",
+        status: "live-when-dataset-open",
+      }),
+    ]);
+    const charityAdopter = body.adopters[1];
+    expect(charityAdopter.subjectVersion).toBe(ukCharities.meta.version);
+    expect(charityAdopter.claimSelectors).toHaveLength(9);
+    expect(charityAdopter.claimSelectors).toEqual(expect.arrayContaining([
+      { nodeId: "claim:reasoning", jsonPointer: "/reasoning" },
+      { nodeId: "claim:reasoning-status", jsonPointer: "/reasoningStatus" },
+    ]));
+    expect(body.boundaries.join(" ")).toMatch(/whole records.*claimSelectors/i);
+
+    const future = structuredClone(body);
+    future.adopters.push({
+      ...future.adopters[0],
+      id: "example.future-adopter",
+      adoptionOrder: 3,
+      releasedOn: "2026-07-13",
+    });
+    expect(() => WhyGraphAdoptersSchema.parse(future)).not.toThrow();
+
+    const etag = response.headers.get("etag")!;
+    const head = await mount().request("/v1/why-graph/adopters", {
+      method: "HEAD",
+    });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect(head.headers.get("etag")).toBe(etag);
+    const unchanged = await mount().request("/v1/why-graph/adopters", {
+      headers: { "If-None-Match": `W/${etag}` },
+    });
+    expect(unchanged.status).toBe(304);
+
+    expect((await mount().request("/v1/why-graph/adopters?status=live")).status)
+      .toBe(400);
+    const write = await mount().request("/v1/why-graph/adopters", {
+      method: "POST",
+    });
+    expect(write.status).toBe(405);
   });
 
   it("publishes a strict, sessionless framework and honest first adopter", async () => {

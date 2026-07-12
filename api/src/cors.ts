@@ -20,6 +20,7 @@ const publicCivicCors = cors({
     "X-Dataset-Id",
     "X-Dataset-Version",
     "X-Schema-Version",
+    "X-TaxSorted-Why-Graph-Adopter",
     "X-Record-Count",
     "X-Checksum-SHA256",
   ],

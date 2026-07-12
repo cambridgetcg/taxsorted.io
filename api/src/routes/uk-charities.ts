@@ -21,12 +21,19 @@ import { problemDetails } from "../problem-details.js";
 import {
   ukCharities,
   ukCharitiesSchema,
+  validateUkCharitiesGraph,
   type UkCharities,
 } from "../uk-charities.js";
 import {
   ukCharityAccountabilityFramework,
   ukCharityAccountabilitySchemaDocument,
 } from "../uk-charity-accountability.js";
+import {
+  buildUkCharityTaxWhyGraph,
+  UK_CHARITY_TAX_WHY_GRAPH_ADOPTER_ID,
+  UK_CHARITY_TAX_WHY_GRAPH_TEMPLATE,
+  ukCharityTaxWhyGraphPath,
+} from "../uk-charity-tax-why-graph.js";
 
 const basePath = "/v1/charities/uk";
 const datasetId = "uk-charities-sector";
@@ -301,6 +308,9 @@ function collectionDictionary(corpus: UkCharities) {
     count: itemsFor(corpus, name).length,
     identityField: "id",
     itemUrlTemplate: `${basePath}/${path}/{id}`,
+    ...(name === "taxTreatments"
+      ? { whyGraphUrlTemplate: UK_CHARITY_TAX_WHY_GRAPH_TEMPLATE }
+      : {}),
     queryUrl: `${basePath}/${path}`,
     queryFilters: [...commonQueryKeys, ...filterKeysByCollection[name]],
     schemaPointer: `https://api.taxsorted.io${basePath}/schema#/properties/${name}/items`,
@@ -781,7 +791,9 @@ export type UkCharitiesRouteOptions = {
 export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
   // One route instance is one immutable release. Copy caller-owned data before
   // computing representations so later mutation cannot split views or hashes.
-  const corpus = structuredClone(options.corpus ?? ukCharities);
+  const corpus = validateUkCharitiesGraph(
+    ukCharitiesSchema.parse(structuredClone(options.corpus ?? ukCharities)),
+  );
   const publicDataEnabled = options.publicDataEnabled ?? false;
   const emergencyStop = options.emergencyStop ?? false;
   const status = publicationStatus(publicDataEnabled, emergencyStop);
@@ -813,6 +825,18 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
   );
   const records = recordIndex(corpus);
   const exportRepresentations = new Map<string, { body: string; etag: string }>();
+  const taxTreatmentWhyGraphs = new Map<
+    string,
+    { body: string; etag: string }
+  >();
+
+  for (const treatment of corpus.taxTreatments) {
+    const body = canonicalJson(buildUkCharityTaxWhyGraph(corpus, treatment.id));
+    taxTreatmentWhyGraphs.set(treatment.id, {
+      body,
+      etag: representationEtag(body),
+    });
+  }
 
   for (const [path, name] of Object.entries(paths)) {
     const rows = itemsFor(corpus, name);
@@ -847,7 +871,6 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
     const protectedPath =
       collection === "graph" ||
       (collectionName !== undefined &&
-        (segments.length === 1 || segments.length === 2) &&
         !publicWhenClosed.has(collection)) ||
       protectedExport;
     const protectedResolver =
@@ -914,6 +937,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         export: `${basePath}/exports/{collection}/{json|ndjson|csv}`,
         accountability: `${basePath}/accountability`,
         accountabilitySchema: `${basePath}/accountability/schema`,
+        taxTreatmentWhyGraph: UK_CHARITY_TAX_WHY_GRAPH_TEMPLATE,
       },
       related: {
         openDataCatalog: "/v1/open-data",
@@ -976,6 +1000,7 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
       dictionary: `${basePath}/dictionary`,
       exports: `${basePath}/exports`,
       recordResolver: `${basePath}/records/{id}`,
+      taxTreatmentWhyGraph: UK_CHARITY_TAX_WHY_GRAPH_TEMPLATE,
       accountability: {
         status: ukCharityAccountabilityFramework.status,
         recordsAvailable: false,
@@ -1184,6 +1209,67 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
           .filter((candidate) => candidate !== format)
           .map((candidate) => links[candidate]),
         etag: prepared.etag,
+      }
+    );
+  });
+
+  app.get("/tax-treatments/:id/why-graph", (c) => {
+    const invalidQuery = rejectStaticQuery(c);
+    if (invalidQuery) return invalidQuery;
+    const id = c.req.param("id");
+    const prepared = taxTreatmentWhyGraphs.get(id);
+    if (!prepared) {
+      return instructionalError(
+        c,
+        404,
+        "not_found",
+        "No tax-treatment why graph exists for this exact dataset ID.",
+        { collection: "tax-treatments", id },
+        [
+          {
+            action: "list-tax-treatments",
+            method: "GET",
+            href: `${basePath}/tax-treatments`,
+            description: "Read the admitted tax-treatment IDs in this corpus version.",
+          },
+          {
+            action: "inspect-why-graph-contract",
+            method: "GET",
+            href: "/v1/why-graph",
+            description: "Read the shared explanation graph meanings and boundaries.",
+          },
+        ]
+      );
+    }
+    const canonicalPath = ukCharityTaxWhyGraphPath(id);
+    c.header("X-Schema-Version", "taxsorted.why-graph/1");
+    c.header("X-TaxSorted-Why-Graph-Adopter", UK_CHARITY_TAX_WHY_GRAPH_ADOPTER_ID);
+    return cacheableRepresentation(
+      c,
+      corpus,
+      prepared.body,
+      canonicalPath,
+      "application/json; charset=utf-8",
+      {
+        etag: prepared.etag,
+        includeSectorDescriptions: false,
+        related: [
+          {
+            href: `${basePath}/tax-treatments/${id}`,
+            type: "application/json",
+            title: "Canonical tax-treatment record",
+          },
+          {
+            href: "/v1/why-graph",
+            type: "application/json",
+            title: "Shared why-graph framework",
+          },
+          {
+            href: "/v1/why-graph/schema",
+            type: "application/schema+json",
+            title: "Why-graph structural schema",
+          },
+        ],
       }
     );
   });

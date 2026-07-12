@@ -13,7 +13,9 @@ import {
   type OpenDataRouteOptions,
 } from "./open-data.js";
 import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
+import { ukCharities } from "../uk-charities.js";
 import {
+  whyGraphAdoptersPath,
   whyGraphBasePath,
   whyGraphOpenApiPath,
   whyGraphSchemaPath,
@@ -67,6 +69,7 @@ rights: GET ${apiOrigin}${rightsPath}
 openapi-public: GET ${apiOrigin}/openapi-public.json
 openapi-full: GET ${apiOrigin}/openapi.json
 why-graph-framework: GET ${apiOrigin}${whyGraphBasePath}
+why-graph-adopters: GET ${apiOrigin}${whyGraphAdoptersPath}
 why-graph-schema: GET ${apiOrigin}${whyGraphSchemaPath}
 why-graph-openapi: GET ${apiOrigin}${whyGraphOpenApiPath}
 why-graph-writes: none; read-only framework with no ingestion route
@@ -79,6 +82,8 @@ charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
 charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
 charity-accountability-status: schema-only-not-admitted
 charity-accountability-records: none
+charity-tax-treatment-why-graph: GET ${apiOrigin}/v1/charities/uk/tax-treatments/{id}/why-graph
+charity-tax-treatment-why-graph-scope: sector record explanation only; no organisation or case facts
 observer-accountability: GET ${apiOrigin}${observerAccountabilityPath}
 observer-accountability-schema: GET ${apiOrigin}${observerAccountabilitySchemaPath}
 observer-accountability-status: schema-only-not-admitted
@@ -429,10 +434,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
       },
       whyGraph: {
         framework: whyGraphBasePath,
+        adopters: whyGraphAdoptersPath,
         schema: whyGraphSchemaPath,
         openApi: whyGraphOpenApiPath,
         graphSchema: "taxsorted.why-graph/1",
         status: "first-adopter",
+        adopterCount: 2,
+        legacyStatusMeaning:
+          "Compatibility marker that MTD was the first adopter; use the adopter index for all current producers.",
         firstAdopter: {
           endpoint: taxExpertAssessmentPath,
           responsePath: "/reasoning/whyGraph",
@@ -440,7 +449,21 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           runtimeEmitted: true,
           wireSchemaOptionalForForwardCompatibleV1Readers: true,
         },
+        secondAdopter: {
+          endpointTemplate:
+            "/v1/charities/uk/tax-treatments/{id}/why-graph",
+          subjectVersion: ukCharities.meta.version,
+          runtimeEmitted: true,
+          standaloneResource: true,
+          publicationControlledBy: "/v1/charities/uk",
+          organisationOrCaseFacts: false,
+        },
         access: {
+          appliesTo: [
+            whyGraphBasePath,
+            whyGraphAdoptersPath,
+            whyGraphSchemaPath,
+          ],
           methods: ["GET", "HEAD", "OPTIONS"],
           authentication: "none",
           account: "none",
@@ -625,6 +648,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read how conclusions connect to reached reasoning, facts, rules, sources, institutions, consequences, challenge routes and explicit gaps.",
+      },
+      {
+        id: "inspect-why-graph-adopters",
+        method: "GET",
+        href: whyGraphAdoptersPath,
+        accepts: ["application/json"],
+        description:
+          "List current graph-producing endpoints, native subject versions, access boundaries and adopter-owned semantic checks.",
       },
       {
         id: "inspect-tax-expert-task-contract",

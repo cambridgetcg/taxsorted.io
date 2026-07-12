@@ -328,11 +328,12 @@ function jsonPointerExists(item: unknown, pointer: string) {
 function checkEvidence(
   issues: string[],
   item: EvidenceItem,
-  sourceIds: Set<string>,
+  sourcesById: ReadonlyMap<string, { reviewedOn: string }>,
   reviewedOn: string
 ) {
   for (const entry of item.evidence) {
-    if (!sourceIds.has(entry.sourceId)) {
+    const source = sourcesById.get(entry.sourceId);
+    if (!source) {
       issues.push(`${item.id} evidence refers to unknown source: ${entry.sourceId}`);
     }
     if (!item.sourceIds.includes(entry.sourceId)) {
@@ -340,6 +341,11 @@ function checkEvidence(
     }
     if (entry.observedOn > reviewedOn) {
       issues.push(`${item.id} evidence is observed after corpus review date: ${entry.observedOn}`);
+    }
+    if (source && entry.observedOn > source.reviewedOn) {
+      issues.push(
+        `${item.id} evidence is observed after source review date: ${entry.sourceId} ${entry.observedOn}`
+      );
     }
     const evidenceFields = new Set<string>();
     for (const field of entry.fields) {
@@ -386,7 +392,6 @@ export function validateUkCharitiesGraph(corpus: UkCharities) {
     allIds.add(item.id);
   }
 
-  const sourceIds = new Set(corpus.sources.map((item) => item.id));
   const sourcesById = new Map(corpus.sources.map((item) => [item.id, item]));
   const regulatorIds = new Set(corpus.regulators.map((item) => item.id));
   const registerIds = new Set(corpus.registers.map((item) => item.id));
@@ -446,7 +451,7 @@ export function validateUkCharitiesGraph(corpus: UkCharities) {
       (item as EvidenceItem & { jurisdictions: string[] }).jurisdictions,
       "jurisdiction"
     );
-    checkEvidence(issues, item, sourceIds, corpus.meta.reviewedOn);
+    checkEvidence(issues, item, sourcesById, corpus.meta.reviewedOn);
     const itemJurisdictions = expandJurisdictions(
       (item as EvidenceItem & { jurisdictions: string[] }).jurisdictions
     );

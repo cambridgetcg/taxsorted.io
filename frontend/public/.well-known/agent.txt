@@ -12,6 +12,7 @@ rights: GET https://api.taxsorted.io/v1/open-data/rights
 openapi-public: GET https://api.taxsorted.io/openapi-public.json
 openapi-full: GET https://api.taxsorted.io/openapi.json
 why-graph-framework: GET https://api.taxsorted.io/v1/why-graph
+why-graph-adopters: GET https://api.taxsorted.io/v1/why-graph/adopters
 why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema
 why-graph-openapi: GET https://api.taxsorted.io/openapi/why-graph.json
 why-graph-writes: none; read-only framework with no ingestion route
@@ -24,6 +25,8 @@ charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountabil
 charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
 charity-accountability-status: schema-only-not-admitted
 charity-accountability-records: none
+charity-tax-treatment-why-graph: GET https://api.taxsorted.io/v1/charities/uk/tax-treatments/{id}/why-graph
+charity-tax-treatment-why-graph-scope: sector record explanation only; no organisation or case facts
 observer-accountability: GET https://api.taxsorted.io/v1/accountability/uk
 observer-accountability-schema: GET https://api.taxsorted.io/v1/accountability/uk/schema
 observer-accountability-status: schema-only-not-admitted

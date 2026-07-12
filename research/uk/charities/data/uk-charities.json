@@ -2,8 +2,8 @@
   "schema": "taxsorted.uk.charities/1",
   "meta": {
     "title": "How UK charity status, tax, finance, control, public data and help routes fit together",
-    "version": "2026-07-10.1",
-    "reviewedOn": "2026-07-10",
+    "version": "2026-07-12.1",
+    "reviewedOn": "2026-07-12",
     "jurisdiction": "United Kingdom",
     "coverage": [
       "The regulators and official register doors across all four UK nations, plus selected common legal forms with their jurisdiction shown.",
@@ -67,7 +67,7 @@
       "url": "https://www.gov.uk/government/publications/charitable-purposes/charitable-purposes",
       "authorityLevel": "statutory-regulator",
       "jurisdictions": ["England and Wales"],
-      "reviewedOn": "2026-07-10",
+      "reviewedOn": "2026-07-12",
       "reviewAfter": "2027-01-10",
       "status": "current",
       "reuseStatus": "confirmed",
@@ -266,7 +266,7 @@
       "url": "https://www.gov.uk/government/publications/charities-detailed-guidance-notes/annex-i-tax-exemptions-for-charities",
       "authorityLevel": "tax-authority-guidance",
       "jurisdictions": ["United Kingdom"],
-      "reviewedOn": "2026-07-10",
+      "reviewedOn": "2026-07-12",
       "reviewAfter": "2026-10-10",
       "lastUpdated": "2026-06-22",
       "status": "current",
@@ -292,7 +292,7 @@
       "url": "https://www.gov.uk/government/publications/charities-detailed-guidance-notes/annex-ii-non-charitable-expenditure",
       "authorityLevel": "tax-authority-guidance",
       "jurisdictions": ["United Kingdom"],
-      "reviewedOn": "2026-07-10",
+      "reviewedOn": "2026-07-12",
       "reviewAfter": "2026-10-10",
       "lastUpdated": "2026-06-22",
       "status": "current",
@@ -1803,23 +1803,23 @@
       "evidence": [
         {
           "sourceId": "src-charitable-purposes",
-          "fields": ["/eligibility", "/reasoning", "/notEquivalentTo"],
+          "fields": ["/eligibility", "/conditions", "/reasoning", "/notEquivalentTo"],
           "locator": "Public benefit and no automatic presumption",
-          "observedOn": "2026-07-10",
+          "observedOn": "2026-07-12",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-hmrc-tax-exemptions",
-          "fields": ["/taxType", "/position", "/benefit", "/conditions", "/reasoningStatus"],
+          "fields": ["/taxType", "/position", "/eligibility", "/benefit", "/conditions", "/whenTaxOrClawbackCanArise", "/reasoningStatus", "/reasoning", "/notEquivalentTo"],
           "locator": "Charitable-purpose condition across main exemptions",
-          "observedOn": "2026-07-10",
+          "observedOn": "2026-07-12",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-hmrc-non-charitable-expenditure",
-          "fields": ["/whenTaxOrClawbackCanArise"],
+          "fields": ["/conditions", "/whenTaxOrClawbackCanArise", "/reasoning"],
           "locator": "Restriction when resources are used non-charitably",
-          "observedOn": "2026-07-10",
+          "observedOn": "2026-07-12",
           "method": "editorial-analysis"
         }
       ],
@@ -1833,17 +1833,15 @@
         "Assets, income and gains remain directed to charitable purposes rather than private equity return."
       ],
       "whenTaxOrClawbackCanArise": [
-        "Non-qualifying income, trading, purchases or property remain taxable.",
-        "Non-charitable expenditure can restrict relief.",
-        "Specific property and claim reliefs have withdrawal, recovery or adjustment rules."
+        "Income and gains outside the applicable exemption conditions remain taxable.",
+        "Non-charitable expenditure can restrict relief."
       ],
       "reasoningStatus": "taxsorted-analysis",
       "reasoning": "TaxSorted analysis: the coherent policy bargain is public benefit plus locked charitable application in exchange for conditional relief. This is an inference from the linked framework, not a statutory quotation or claim that government endorses a religion.",
       "notEquivalentTo": [
         "Automatic relief because an organisation is religious.",
         "Government approval of a belief or doctrine.",
-        "Ownership of public money by trustees or members.",
-        "Proof that every charity creates equal public benefit."
+        "Proof that charity status alone satisfies a particular tax exemption's conditions."
       ]
     }
   ],

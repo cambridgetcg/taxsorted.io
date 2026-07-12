@@ -6,6 +6,7 @@
   "description": "One engine; every country is rules, dates and words plugged into it.",
   "exports": {
     "./why-graph": "./core/index.ts",
+    "./why-graph-test": "./core/testing/why-graph-adopter-contract.ts",
     "./uk/vat": "./jurisdictions/uk/vat/index.ts",
     "./uk/hmrc": "./jurisdictions/uk/hmrc/index.ts",
     "./uk/personal-tax": "./jurisdictions/uk/personal-tax/index.ts",

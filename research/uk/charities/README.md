@@ -1,6 +1,6 @@
 # UK charities — the bounded first map
 
-**Reviewed:** 10 July 2026
+**Reviewed:** 12 July 2026
 **Status:** sector-first human guide; no local charity-register mirror
 
 This directory explains where the official UK charity records live, why charity tax
@@ -54,6 +54,29 @@ primary-purpose trading, the small-trading exemption, ordinary taxable trading a
 through a subsidiary. HMRC's more detailed
 [trading note](https://www.gov.uk/government/publications/charities-detailed-guidance-notes/annex-iv-trading-and-business-activities-basic-principles)
 also keeps direct tax and VAT analysis separate.
+
+## Walk each tax statement as a graph
+
+Every current `taxTreatments` record has a standalone explanation at:
+
+```text
+GET /v1/charities/uk/tax-treatments/{id}/why-graph
+```
+
+The graph joins nine stable field claims to reviewed evidence through the exact source ID and JSON
+Pointer already declared by the corpus. Composite editorial fields name every reviewed source
+that collectively carries the proposition; one convenient source is not allowed to stand in for
+the whole argument. It keeps a neutral treatment effect beside the reverse tax, recovery or
+clawback path. It contains no organisation, person, contact, belief, transaction, amount or case
+assessment.
+
+The current corpus cites HMRC and government guidance, not admitted exact primary-law records.
+The graph therefore publishes `binding-provision-not-mapped` rather than promoting guidance to
+law. The next evidence release should admit receipt-specific ITA 2007 and CTA 2010 exemptions,
+TCGA 1992 section 256, the non-charitable-expenditure restrictions and their current Finance Act
+2026 amendments before adding any rule edge.
+The reviewed provision map and admission checklist are in
+[`CHARITY-TAX-LAW-GAP.md`](CHARITY-TAX-LAW-GAP.md).
 
 ## Control is not ordinary ownership
 

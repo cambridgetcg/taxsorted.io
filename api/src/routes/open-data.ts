@@ -135,6 +135,8 @@ function dataset(
             registers: `${root}/registers`,
             accountability: `${root}/accountability`,
             accountabilitySchema: `${root}/accountability/schema`,
+            taxTreatmentWhyGraph:
+              `${root}/tax-treatments/{id}/why-graph`,
           }
         : {}),
       ...(id === "uk-public-funding"

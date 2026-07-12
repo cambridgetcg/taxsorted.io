@@ -17,8 +17,10 @@ import {
 } from "./release-discovery-contract.js";
 import { ukTaxExpertRoutes } from "./routes/tax-expert.js";
 import {
+  WhyGraphAdoptersSchema,
   WhyGraphFrameworkSchema,
   WhyGraphJsonSchemaDocumentSchema,
+  WhyGraphSchema,
 } from "./why-graph.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
@@ -877,10 +879,13 @@ const AgentWake = z
       whyGraph: z
         .object({
           framework: z.string(),
+          adopters: z.string().optional(),
           schema: z.string(),
           openApi: z.string(),
           graphSchema: z.literal("taxsorted.why-graph/1"),
           status: z.literal("first-adopter"),
+          adopterCount: z.number().int().positive().max(100).optional(),
+          legacyStatusMeaning: z.string().optional(),
           firstAdopter: z.object({
             endpoint: z.literal(
               "/v1/uk/tax-expert/mtd-income-tax/assessments",
@@ -890,7 +895,18 @@ const AgentWake = z
             runtimeEmitted: z.literal(true),
             wireSchemaOptionalForForwardCompatibleV1Readers: z.literal(true),
           }),
+          secondAdopter: z.object({
+            endpointTemplate: z.literal(
+              "/v1/charities/uk/tax-treatments/{id}/why-graph",
+            ),
+            subjectVersion: z.string(),
+            runtimeEmitted: z.literal(true),
+            standaloneResource: z.literal(true),
+            publicationControlledBy: z.literal("/v1/charities/uk"),
+            organisationOrCaseFacts: z.literal(false),
+          }).optional(),
           access: z.object({
+            appliesTo: z.array(z.string()).optional(),
             methods: z.tuple([
               z.literal("GET"),
               z.literal("HEAD"),
@@ -1060,6 +1076,7 @@ const DictionaryCollection = z
     count: z.number().int().nonnegative(),
     identityField: z.literal("id"),
     itemUrlTemplate: z.string(),
+    whyGraphUrlTemplate: z.string().optional(),
     queryUrl: z.string(),
     queryFilters: z.array(z.string()),
     schemaPointer: z.string().url(),
@@ -1319,6 +1336,20 @@ const taxExportResponseHeaders = {
   "Content-Disposition": {
     description: "Versioned download filename.",
     schema: { type: "string" as const },
+  },
+};
+const charityWhyGraphResponseHeaders = {
+  ...publicResponseHeaders,
+  "X-Schema-Version": {
+    description: "Shared why-graph wire schema emitted by this resource.",
+    schema: { type: "string" as const, enum: ["taxsorted.why-graph/1"] },
+  },
+  "X-TaxSorted-Why-Graph-Adopter": {
+    description: "Domain adapter that admitted this derived graph.",
+    schema: {
+      type: "string" as const,
+      enum: ["uk.charities.tax-treatment"],
+    },
   },
 };
 const redirectResponseHeaders = {
@@ -2764,6 +2795,74 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
 
   app.openAPIRegistry.registerPath({
     method: "get",
+    path: "/v1/charities/uk/tax-treatments/{id}/why-graph",
+    operationId: "getUkCharityTaxTreatmentWhyGraph",
+    summary: "Trace one UK charity tax-treatment record",
+    description:
+      "Returns a raw taxsorted.why-graph/1 derived from one canonical sector tax-treatment record. Field-level evidence links resolve to the reviewed source ledger. Guidance remains guidance; exact binding provisions, case applicability, and case enforcement or challenge routes end in explicit gaps.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description:
+          "Deterministic explanation graph for the exact tax-treatment ID; no organisation or case facts are created.",
+        headers: charityWhyGraphResponseHeaders,
+        content: { "application/json": { schema: WhyGraphSchema } },
+      },
+      304: {
+        description: "This exact graph representation is unchanged.",
+        headers: charityWhyGraphResponseHeaders,
+      },
+      400: {
+        description: "Why-graph subresources do not accept query parameters.",
+        content: charityErrorContent,
+      },
+      404: {
+        description: "No tax-treatment record has this exact ID.",
+        content: charityErrorContent,
+      },
+      503: {
+        description:
+          "The charity tax-treatment collection is disabled or emergency-stopped; known and unknown IDs are intentionally indistinguishable.",
+        content: charityErrorContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/tax-treatments/{id}/why-graph",
+    operationId: "headUkCharityTaxTreatmentWhyGraph",
+    summary: "Check one UK charity tax-treatment why graph",
+    description:
+      "Returns the GET representation's validators and graph-adopter headers without a response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ id: z.string() }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current why-graph representation metadata.",
+        headers: charityWhyGraphResponseHeaders,
+      },
+      304: {
+        description: "This exact graph representation is unchanged.",
+        headers: charityWhyGraphResponseHeaders,
+      },
+      400: { description: "Why-graph subresources do not accept query parameters." },
+      404: { description: "No tax-treatment record has this exact ID." },
+      503: {
+        description:
+          "The collection is disabled or emergency-stopped; known and unknown IDs are intentionally indistinguishable.",
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
     path: "/v1/charities/uk/{collection}",
     operationId: "queryUkCharitiesCollection",
     summary: "Query the bounded UK charity-sector map",
@@ -3190,6 +3289,15 @@ function registerWhyGraphOpenApi(app: OpenAPIHono) {
       description:
         "Sessionless framework for traversing a conclusion toward reached reasoning, exact fact selectors, rules, claims, sources, institutions, consequences, challenge routes and explicit gaps. It creates no graph records and changes no external state.",
       schema: WhyGraphFrameworkSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/why-graph/adopters",
+      operationId: "getWhyGraphAdopters",
+      summary: "List live why-graph adopters",
+      description:
+        "Additive index of graph-producing endpoints, representations, access boundaries, native subject versions and adopter-owned semantic admission. The strict v1 framework document remains unchanged.",
+      schema: WhyGraphAdoptersSchema,
       mediaType: "application/json",
     },
     {

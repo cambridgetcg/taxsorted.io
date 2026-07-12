@@ -58,7 +58,7 @@ describe("uniform public release discovery", () => {
     }
   });
 
-  it("publishes exact current baselines without claiming record history", async () => {
+  it("publishes exact current checkpoints without claiming record history", async () => {
     const response = await mount().request("/v1/open-data/releases", {
       headers: { Origin: "https://builder.example" },
     });
@@ -80,7 +80,7 @@ describe("uniform public release discovery", () => {
     expect(body.semantics.archiveAvailability).toContain(
       "No immutable snapshot archive exists",
     );
-    expect(body.checkpoints).toHaveLength(4);
+    expect(body.checkpoints).toHaveLength(5);
     expect(
       body.checkpoints.every(
         (checkpoint: { links: { immutableSnapshot: unknown } }) =>
@@ -110,9 +110,9 @@ describe("uniform public release discovery", () => {
           "sha256:df9dd5d816db517b240e19f5040fe9392f18b972979d4fda9a07f5e53fabc959",
       },
       "uk-charities-sector": {
-        version: "2026-07-10.1",
+        version: "2026-07-12.1",
         digest:
-          "sha256:4eed877df84c29e49991ca5eaf82dc2eda711d59785bfe5c774329e08b5d69d4",
+          "sha256:9a7a2dd675f3cd86d544b0d3db5b65c278ab206796d7d55b944c8823a1324712",
       },
       "uk-public-funding": {
         version: "2026-07-10.1",
@@ -258,7 +258,7 @@ describe("uniform public release discovery", () => {
       ...openOptions,
       charitiesEmergencyStop: true,
     });
-    expect(ledger.checkpoints).toHaveLength(4);
+    expect(ledger.checkpoints).toHaveLength(5);
     expect(
       ledger.currentPublication.find(
         (dataset) => dataset.datasetId === "uk-charities-sector",
@@ -267,7 +267,7 @@ describe("uniform public release discovery", () => {
       publicationStatus: "emergency-stopped",
       fullDatasetAvailable: false,
       latestDeclaredCheckpointId:
-        "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-10.1",
+        "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-12.1",
     });
   });
 

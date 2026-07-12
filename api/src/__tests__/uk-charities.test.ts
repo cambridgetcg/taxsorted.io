@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { Hono } from "hono";
+import { assertAdmittedWhyGraph } from "@taxsorted/engine/why-graph";
 import { apiCors, isPublicCivicPath } from "../cors.js";
 import { createUkCharitiesRoutes } from "../routes/uk-charities.js";
 import { ukCharities } from "../uk-charities.js";
+import { WhyGraphSchema } from "../why-graph.js";
+import { ukCharityTaxWhyGraphAdopter } from "../uk-charity-tax-why-graph.js";
 
 function mount(
   publicDataEnabled: boolean | "route-default" = true,
@@ -75,6 +78,8 @@ describe("public UK charity-sector API", () => {
     expect(body.routes).toMatchObject({
       accountability: "/v1/charities/uk/accountability",
       accountabilitySchema: "/v1/charities/uk/accountability/schema",
+      taxTreatmentWhyGraph:
+        "/v1/charities/uk/tax-treatments/{id}/why-graph",
     });
     expect(body.counts).not.toHaveProperty("organisations");
     expect(body.counts).not.toHaveProperty("people");
@@ -112,6 +117,118 @@ describe("public UK charity-sector API", () => {
         .replace(/^"sha256-/, "sha256:")
         .replace(/"$/, "")
     );
+  });
+
+  it("serves deterministic why graphs for every tax treatment without a case or session", async () => {
+    const { app, sessionCalls } = mount();
+    const datasetHrefs = new Set<string>();
+    for (const treatment of ukCharities.taxTreatments) {
+      const path = `/v1/charities/uk/tax-treatments/${treatment.id}/why-graph`;
+      const response = await app.request(path, {
+        headers: {
+          Origin: "https://public-interest-stack.example",
+          Cookie: "ts_session=existing-browser-cookie",
+        },
+      });
+      const body = await response.json();
+      expect(response.status, treatment.id).toBe(200);
+      expect(response.headers.get("access-control-allow-origin"), treatment.id)
+        .toBe("*");
+      expect(response.headers.get("set-cookie"), treatment.id).toBeNull();
+      expect(response.headers.get("content-location"), treatment.id).toBe(path);
+      expect(response.headers.get("x-schema-version"), treatment.id)
+        .toBe("taxsorted.why-graph/1");
+      expect(response.headers.get("x-taxsorted-why-graph-adopter"), treatment.id)
+        .toBe("uk.charities.tax-treatment");
+      expect(response.headers.get("access-control-expose-headers"), treatment.id)
+        .toContain("X-TaxSorted-Why-Graph-Adopter");
+      expect(response.headers.get("link"), treatment.id).toContain(
+        `</v1/charities/uk/tax-treatments/${treatment.id}>; rel="related"`,
+      );
+      expect(response.headers.get("link"), treatment.id).toContain(
+        '</v1/why-graph/schema>; rel="related"; type="application/schema+json"',
+      );
+      const parsed = WhyGraphSchema.parse(body);
+      expect(() => assertAdmittedWhyGraph(
+        parsed,
+        { corpus: structuredClone(ukCharities), treatmentId: treatment.id },
+        ukCharityTaxWhyGraphAdopter,
+      ), treatment.id).not.toThrow();
+      expect(body).toMatchObject({
+        schema: "taxsorted.why-graph/1",
+        rootNodeId: `conclusion:tax-treatment:${treatment.id}`,
+        context: {
+          subject: {
+            id: `uk-charities-sector.taxTreatments.${treatment.id}`,
+            type: "dataset-record",
+            version: ukCharities.meta.version,
+          },
+          externalStateChange: false,
+        },
+      });
+      for (const node of body.nodes as Array<{
+        record: null | { kind: string; href?: string };
+      }>) {
+        if (node.record?.kind === "dataset-record" && node.record.href) {
+          datasetHrefs.add(node.record.href);
+        }
+      }
+    }
+    for (const href of datasetHrefs) {
+      expect((await app.request(href)).status, href).toBe(200);
+    }
+    const graphSourceIds = new Set(
+      ukCharities.taxTreatments.flatMap((treatment) => treatment.sourceIds),
+    );
+    for (const source of ukCharities.sources.filter(
+      (candidate) => graphSourceIds.has(candidate.id),
+    )) {
+      expect(source.reviewAfter >= "2026-07-12", source.id).toBe(true);
+    }
+    expect(sessionCalls()).toBe(0);
+
+    const treatment = ukCharities.taxTreatments[0];
+    const path = `/v1/charities/uk/tax-treatments/${treatment.id}/why-graph`;
+    const get = await app.request(path);
+    const etag = get.headers.get("etag")!;
+    const head = await app.request(path, { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect(head.headers.get("etag")).toBe(etag);
+    const unchanged = await app.request(path, {
+      headers: { "If-None-Match": `W/${etag}` },
+    });
+    expect(unchanged.status).toBe(304);
+    expect(await unchanged.text()).toBe("");
+
+    const queried = await app.request(`${path}?organisationId=anything`, {
+      headers: { "If-None-Match": etag },
+    });
+    expect(queried.status).toBe(400);
+    expect(queried.headers.get("cache-control")).toBe("no-store");
+    expect(await queried.json()).toMatchObject({
+      error: "unknown_query_parameter",
+      parameters: ["organisationId"],
+    });
+
+    const missing = await app.request(
+      "/v1/charities/uk/tax-treatments/treatment-not-real/why-graph",
+    );
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get("cache-control")).toBe("no-store");
+    expect(await missing.json()).toMatchObject({
+      error: "not_found",
+      collection: "tax-treatments",
+      id: "treatment-not-real",
+    });
+
+    const write = await app.request(path, { method: "POST" });
+    expect(write.status).toBe(404);
+    expect(write.headers.get("cache-control")).toBe("no-store");
+    expect(await write.json()).toMatchObject({
+      error: "not_found",
+      method: "POST",
+    });
   });
 
   it("publishes a schema-only words-and-actions contract without organisation rows", async () => {
@@ -452,6 +569,12 @@ describe("public UK charity-sector API", () => {
       identityField: "id",
       queryFilters: expect.arrayContaining(["type", "sourceId"]),
     });
+    expect(dictionaryBody.collections.find(
+      (collection: { pathName: string }) => collection.pathName === "tax-treatments",
+    )).toMatchObject({
+      whyGraphUrlTemplate:
+        "/v1/charities/uk/tax-treatments/{id}/why-graph",
+    });
 
     const index = await app.request("/v1/charities/uk/exports");
     const indexBody = await index.json();
@@ -550,6 +673,7 @@ describe("public UK charity-sector API", () => {
       "dictionary?ignored=true",
       "exports?ignored=true",
       "exports/sources/csv?status=current",
+      `tax-treatments/${ukCharities.taxTreatments[0].id}/why-graph?ignored=true`,
     ]) {
       for (const method of ["GET", "HEAD"]) {
         const response = await app.request(`/v1/charities/uk/${path}`, {
@@ -643,6 +767,32 @@ describe("public UK charity-sector API", () => {
     expect(publicSource.status).toBe(200);
     expect(protectedTreatment.status).toBe(503);
     expect(protectedUnknown.status).toBe(503);
+
+    const knownWhyGraph = await app.request(
+      `/v1/charities/uk/tax-treatments/${existingId}/why-graph`,
+    );
+    const unknownWhyGraph = await app.request(
+      "/v1/charities/uk/tax-treatments/treatment-not-real/why-graph",
+    );
+    expect(knownWhyGraph.status).toBe(503);
+    expect(unknownWhyGraph.status).toBe(503);
+    const {
+      instance: _knownGraphInstance,
+      path: _knownGraphPath,
+      ...knownGraphProblem
+    } = await knownWhyGraph.json();
+    const {
+      instance: _unknownGraphInstance,
+      path: _unknownGraphPath,
+      ...unknownGraphProblem
+    } = await unknownWhyGraph.json();
+    expect(unknownGraphProblem).toEqual(knownGraphProblem);
+    const stoppedGraphHead = await app.request(
+      `/v1/charities/uk/tax-treatments/${existingId}/why-graph`,
+      { method: "HEAD" },
+    );
+    expect(stoppedGraphHead.status).toBe(503);
+    expect(await stoppedGraphHead.text()).toBe("");
     expect(protectedTreatment.headers.get("content-type")).toBe(
       protectedUnknown.headers.get("content-type")
     );
@@ -701,6 +851,13 @@ describe("public UK charity-sector API", () => {
     expect(stopped.status).toBe(503);
     expect(stopped.headers.get("cache-control")).toBe("no-store");
     expect(await stopped.json()).toMatchObject({
+      error: "publication_emergency_stop",
+    });
+    const stoppedWhyGraph = await app.request(
+      `/v1/charities/uk/tax-treatments/${ukCharities.taxTreatments[0].id}/why-graph`,
+    );
+    expect(stoppedWhyGraph.status).toBe(503);
+    expect(await stoppedWhyGraph.json()).toMatchObject({
       error: "publication_emergency_stop",
     });
 

@@ -60,9 +60,14 @@ jobs:
       - name: Require Fly token
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          TAX_EXPERT_CANARY_API_KEY: ${{ secrets.TAX_EXPERT_CANARY_API_KEY }}
         run: |
           if [ -z "${FLY_API_TOKEN}" ]; then
             echo 'FLY_API_TOKEN is required for a main-branch release.' >&2
+            exit 1
+          fi
+          if [ -z "${TAX_EXPERT_CANARY_API_KEY}" ]; then
+            echo 'TAX_EXPERT_CANARY_API_KEY is required before the API can be deployed.' >&2
             exit 1
           fi
 
@@ -184,8 +189,14 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Smoke-test the deployed public contracts
+        env:
+          TAX_EXPERT_CANARY_API_KEY: ${{ secrets.TAX_EXPERT_CANARY_API_KEY }}
         run: |
           set -euo pipefail
+          if [ -z "${TAX_EXPERT_CANARY_API_KEY}" ]; then
+            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove the authenticated why-graph path.' >&2
+            exit 1
+          fi
           for path in \
             /v1/health \
             /agent.txt \
@@ -217,6 +228,7 @@ jobs:
             /v1/accountability/uk \
             /v1/accountability/uk/schema \
             /v1/why-graph \
+            /v1/why-graph/adopters \
             /v1/why-graph/schema \
             /v1/uk/tax-expert \
             /v1/public-funding/uk \
@@ -256,6 +268,9 @@ jobs:
             'why-graph-framework: GET https://api.taxsorted.io/v1/why-graph' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
+            'why-graph-adopters: GET https://api.taxsorted.io/v1/why-graph/adopters' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
             'why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
@@ -263,6 +278,9 @@ jobs:
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'why-graph-writes: none; read-only framework with no ingestion route' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'charity-tax-treatment-why-graph: GET https://api.taxsorted.io/v1/charities/uk/tax-treatments/{id}/why-graph' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert' \
@@ -419,6 +437,33 @@ jobs:
 
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/why-graph/adopters | \
+            jq --exit-status '
+              .schema == "taxsorted.why-graph-adopters/1" and
+              .graphSchema == "taxsorted.why-graph/1" and
+              (.adopters | length) == 2 and
+              (.adopters | any(
+                .id == "uk.mtd-income-tax.readiness" and
+                .adoptionOrder == 1 and
+                .representation == "embedded-response" and
+                .access == "workspace-key"
+              )) and
+              (.adopters | any(
+                .id == "uk.charities.tax-treatment" and
+                .adoptionOrder == 2 and
+                .status == "live-when-dataset-open" and
+                .representation == "standalone-resource" and
+                .endpoint == "/v1/charities/uk/tax-treatments/{id}/why-graph" and
+                .access == "public-sessionless" and
+                (.claimSelectors | length) == 9 and
+                (.claimSelectors | any(
+                  .nodeId == "claim:reasoning" and
+                  .jsonPointer == "/reasoning"
+                ))
+              ))' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/why-graph/schema | \
             jq --exit-status '
               .["$id"] == "https://api.taxsorted.io/v1/why-graph/schema" and
@@ -479,6 +524,132 @@ jobs:
               ;;
           esac
 
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/openapi/charities-uk.json | \
+            jq --exit-status '
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.security == [] and
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].head.security == [] and
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/WhyGraph" and
+              (.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses | has("503")) and
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].headers["X-Schema-Version"].schema.enum == ["taxsorted.why-graph/1"] and
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].headers["X-TaxSorted-Why-Graph-Adopter"].schema.enum == ["uk.charities.tax-treatment"]' >/dev/null
+
+          charity_recognition_path='/v1/charities/uk/tax-treatments/tax-hmrc-recognition/why-graph'
+          charity_analysis_path='/v1/charities/uk/tax-treatments/tax-public-benefit-bargain-analysis/why-graph'
+          if [ "${publication_status}" = 'open' ]; then
+            for specification in \
+              "${charity_recognition_path}|source-reported-claim" \
+              "${charity_analysis_path}|taxsorted-analysis"
+            do
+              graph_path=${specification%%|*}
+              expected_authority=${specification##*|}
+              graph_name=$(basename "$(dirname "${graph_path}")")
+              graph_headers="${RUNNER_TEMP}/${graph_name}.why-graph.headers"
+              graph_body="${RUNNER_TEMP}/${graph_name}.why-graph.json"
+              curl --fail --silent --show-error \
+                --connect-timeout 10 --max-time 30 \
+                --header 'Origin: https://builder.example' \
+                --dump-header "${graph_headers}" --output "${graph_body}" \
+                "https://api.taxsorted.io${graph_path}"
+              jq --exit-status --arg authority "${expected_authority}" '
+                .rootNodeId as $root |
+                .schema == "taxsorted.why-graph/1" and
+                .context.authority == $authority and
+                .context.effect == "advisory" and
+                .context.externalStateChange == false and
+                .context.subject.type == "dataset-record" and
+                .context.subject.version == "2026-07-12.1" and
+                .valueHandling.factValues == "case-financial-and-identity-fact-values-not-copied-into-graph" and
+                .nodes[0].id <= .nodes[-1].id and
+                ([
+                  "gap:binding-provision-not-mapped",
+                  "gap:case-applicability-not-assessed",
+                  "gap:case-enforcement-and-challenge-not-mapped"
+                ] - .coverage.gapNodeIds | length) == 0 and
+                ([.nodes[] | select(.kind == "rule")] | length) == 0 and
+                all(.nodes[]; (.record == null) or (.record.kind != "response-record")) and
+                ([.edges[] | select(.relation == "legal-authority-from")] | length) == 0 and
+                ((.nodes[] | select(.id == $root) | .record) as $record |
+                  $record.dataset == "uk-charities-sector" and
+                  $record.collection == "taxTreatments")
+              ' "${graph_body}" >/dev/null
+              awk 'tolower($1) == "x-schema-version:" { gsub("\r", "", $2); found = ($2 == "taxsorted.why-graph/1") } END { exit !found }' \
+                "${graph_headers}"
+              awk 'tolower($1) == "x-taxsorted-why-graph-adopter:" { gsub("\r", "", $2); found = ($2 == "uk.charities.tax-treatment") } END { exit !found }' \
+                "${graph_headers}"
+              awk 'tolower($1) == "access-control-allow-origin:" { gsub("\r", "", $2); found = ($2 == "*") } END { exit !found }' \
+                "${graph_headers}"
+              awk 'tolower($1) == "access-control-expose-headers:" && index(tolower($0), "x-taxsorted-why-graph-adopter") { found = 1 } END { exit !found }' \
+                "${graph_headers}"
+              if grep --ignore-case '^set-cookie:' "${graph_headers}" >/dev/null; then
+                echo "Charity why graph set a cookie: ${graph_path}" >&2
+                exit 1
+              fi
+
+              jq --raw-output '
+                .nodes[] |
+                select(.kind == "source" and .record.kind == "dataset-record") |
+                .record.href
+              ' "${graph_body}" | while IFS= read -r source_href; do
+                curl --fail --silent --show-error \
+                  --connect-timeout 10 --max-time 30 \
+                  "https://api.taxsorted.io${source_href}" | \
+                  jq --exit-status '
+                    .data.status == "current" and
+                    .data.reuseStatus == "confirmed" and
+                    .data.publicationMode == "normalised-summary" and
+                    .data.reviewAfter >= "2026-07-12"
+                  ' >/dev/null
+              done
+            done
+
+            jq --exit-status '
+              .coverage.gapNodeIds | index("gap:dataset:gap-public-benefit-analysis-territory") != null
+            ' "${RUNNER_TEMP}/tax-public-benefit-bargain-analysis.why-graph.json" >/dev/null
+
+            charity_head_headers="${RUNNER_TEMP}/charity-why-graph-head.headers"
+            curl --fail --silent --show-error --head \
+              --connect-timeout 10 --max-time 30 \
+              --dump-header "${charity_head_headers}" --output /dev/null \
+              "https://api.taxsorted.io${charity_recognition_path}"
+            charity_etag=$(awk 'tolower($1) == "etag:" { gsub("\r", "", $2); print $2; exit }' \
+              "${charity_head_headers}")
+            test -n "${charity_etag}"
+            charity_unchanged_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header "If-None-Match: ${charity_etag}" \
+              --output /dev/null --write-out '%{http_code}' \
+              "https://api.taxsorted.io${charity_recognition_path}")
+            test "${charity_unchanged_status}" = '304'
+
+            charity_write_headers="${RUNNER_TEMP}/charity-why-graph-write.headers"
+            charity_write_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 --request POST \
+              --dump-header "${charity_write_headers}" --output /dev/null \
+              --write-out '%{http_code}' \
+              "https://api.taxsorted.io${charity_recognition_path}")
+            test "${charity_write_status}" = '404'
+            awk 'tolower($1) == "cache-control:" { gsub("\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+              "${charity_write_headers}"
+          else
+            known_problem="${RUNNER_TEMP}/charity-why-graph-known-closed.json"
+            unknown_problem="${RUNNER_TEMP}/charity-why-graph-unknown-closed.json"
+            known_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --output "${known_problem}" --write-out '%{http_code}' \
+              "https://api.taxsorted.io${charity_recognition_path}")
+            unknown_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --output "${unknown_problem}" --write-out '%{http_code}' \
+              'https://api.taxsorted.io/v1/charities/uk/tax-treatments/not-a-treatment/why-graph')
+            test "${known_status}" = '503'
+            test "${unknown_status}" = '503'
+            diff --unified \
+              <(jq --sort-keys 'del(.instance, .path)' "${known_problem}") \
+              <(jq --sort-keys 'del(.instance, .path)' "${unknown_problem}")
+          fi
+
           wake_body="${RUNNER_TEMP}/wake.json"
           wake_headers="${RUNNER_TEMP}/wake.headers"
           root_body="${RUNNER_TEMP}/root-wake.json"
@@ -526,15 +697,22 @@ jobs:
             .resources.taxExpert.assessment.idempotency == "not-declared" and
             .resources.taxExpert.assessment.errorContract.requestFactValuesEchoedInErrors == false and
             .resources.whyGraph.framework == "/v1/why-graph" and
+            .resources.whyGraph.adopters == "/v1/why-graph/adopters" and
             .resources.whyGraph.schema == "/v1/why-graph/schema" and
             .resources.whyGraph.openApi == "/openapi/why-graph.json" and
             .resources.whyGraph.graphSchema == "taxsorted.why-graph/1" and
             .resources.whyGraph.status == "first-adopter" and
+            .resources.whyGraph.adopterCount == 2 and
             .resources.whyGraph.firstAdopter.endpoint == "/v1/uk/tax-expert/mtd-income-tax/assessments" and
             .resources.whyGraph.firstAdopter.responsePath == "/reasoning/whyGraph" and
             .resources.whyGraph.firstAdopter.capabilityVersion == "2026-07-11.5" and
             .resources.whyGraph.firstAdopter.runtimeEmitted == true and
             .resources.whyGraph.firstAdopter.wireSchemaOptionalForForwardCompatibleV1Readers == true and
+            .resources.whyGraph.secondAdopter.endpointTemplate == "/v1/charities/uk/tax-treatments/{id}/why-graph" and
+            .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-12.1" and
+            .resources.whyGraph.secondAdopter.runtimeEmitted == true and
+            .resources.whyGraph.secondAdopter.organisationOrCaseFacts == false and
+            .resources.whyGraph.access.appliesTo == ["/v1/why-graph", "/v1/why-graph/adopters", "/v1/why-graph/schema"] and
             .resources.whyGraph.access.methods == ["GET", "HEAD", "OPTIONS"] and
             .resources.whyGraph.access.authentication == "none" and
             .resources.whyGraph.access.writes == "none" and
@@ -543,6 +721,7 @@ jobs:
             .resources.whyGraph.boundaries.infersOfficialAppealRights == false and
             .resources.whyGraph.boundaries.graphIsDerivedNotCanonical == true and
             (.nextActions | any(.id == "inspect-why-graph-contract" and .href == "/v1/why-graph")) and
+            (.nextActions | any(.id == "inspect-why-graph-adopters" and .href == "/v1/why-graph/adopters")) and
             .resources.releases.ledger == "/v1/open-data/releases" and
             .resources.releases.jsonFeed == "/v1/open-data/releases/feed.json" and
             .resources.releases.atom == "/v1/open-data/releases/feed.atom" and
@@ -566,11 +745,14 @@ jobs:
               .["x-taxsorted-shared-components"] == ["#/components/schemas/WhyGraph"] and
               (.paths | keys | sort) == [
                 "/v1/why-graph",
+                "/v1/why-graph/adopters",
                 "/v1/why-graph/schema"
               ] and
               ([.paths[] | (keys | sort)] | all(. == ["get", "head"])) and
               .paths["/v1/why-graph"].get.security == [] and
               .paths["/v1/why-graph"].head.security == [] and
+              .paths["/v1/why-graph/adopters"].get.security == [] and
+              .paths["/v1/why-graph/adopters"].head.security == [] and
               .paths["/v1/why-graph/schema"].get.security == [] and
               .paths["/v1/why-graph/schema"].head.security == [] and
               .components.schemas.WhyGraph.additionalProperties == false and
@@ -625,6 +807,88 @@ jobs:
             .error == "invalid_api_key" and
             (.requestId | type == "string")
           ' "${expert_body}" >/dev/null
+
+          expert_canary_request="${RUNNER_TEMP}/tax-expert-canary-request.json"
+          expert_canary_headers="${RUNNER_TEMP}/tax-expert-canary.headers"
+          expert_canary_body="${RUNNER_TEMP}/tax-expert-canary.json"
+          jq --null-input '
+            {
+              schema: "taxsorted.uk.mtd-income-tax.request/1",
+              asOfDate: "2026-07-12",
+              person: {
+                relevantReturnPosition: "required-and-submitted",
+                hadNationalInsuranceNumberAtStartOf2026To27: true
+              },
+              income: {
+                taxYears: {
+                  "2024-25": {
+                    basis: "submitted-return",
+                    residence: "uk-resident",
+                    selfEmploymentGrossPence: 5000001,
+                    ukPropertyGrossPence: 0,
+                    foreignPropertyGrossPence: 0
+                  },
+                  "2025-26": {
+                    basis: "working-estimate",
+                    residence: "uk-resident",
+                    selfEmploymentGrossPence: 0,
+                    ukPropertyGrossPence: 0,
+                    foreignPropertyGrossPence: 0
+                  },
+                  "2026-27": {
+                    basis: "working-estimate",
+                    residence: "uk-resident",
+                    selfEmploymentGrossPence: 0,
+                    ukPropertyGrossPence: 0,
+                    foreignPropertyGrossPence: 0
+                  }
+                },
+                atLeastOneRelevantReturnActivityContinuedAtEntry: true,
+                lastRelevantActivityCessationDate: "at-least-one-continues",
+                relevantReturnWasAmended: false,
+                annualisationOrOtherSpecialRulesMayApply: false
+              },
+              exemption: {
+                returnIndicators: [],
+                digitalExclusion: "not-approved-or-pending",
+                otherExemptionApplication: "none"
+              },
+              reporting: { updatePeriod: "standard" }
+            }
+          ' >"${expert_canary_request}"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --request POST \
+            --header "Authorization: Bearer ${TAX_EXPERT_CANARY_API_KEY}" \
+            --header 'Content-Type: application/json' \
+            --data-binary "@${expert_canary_request}" \
+            --dump-header "${expert_canary_headers}" \
+            --output "${expert_canary_body}" \
+            https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments
+          awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+            "${expert_canary_headers}"
+          if grep --ignore-case '^set-cookie:' "${expert_canary_headers}" >/dev/null; then
+            echo 'Authenticated tax-expert canary set a browser cookie.' >&2
+            exit 1
+          fi
+          jq --exit-status '
+            .schema == "taxsorted.uk.tax-answer/1" and
+            .reasoning.whyGraph.schema == "taxsorted.why-graph/1" and
+            .reasoning.whyGraph.rootNodeId == "conclusion:mtd-income-tax-readiness" and
+            .reasoning.whyGraph.context.subject == {
+              id: "uk.mtd-income-tax.readiness",
+              type: "assessment",
+              version: "2026-07-11.5"
+            } and
+            .reasoning.whyGraph.context.effect == "advisory" and
+            .reasoning.whyGraph.context.externalStateChange == false and
+            .reasoning.whyGraph.valueHandling.factValues == "case-financial-and-identity-fact-values-not-copied-into-graph" and
+            ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) > 0 and
+            ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) > 0 and
+            (.reasoning.whyGraph.coverage.gapNodeIds | index("gap:official-enforcement-and-review-route") != null) and
+            .dataUse.stored == false and
+            .dataUse.usedForTraining == false
+          ' "${expert_canary_body}" >/dev/null
           expert_cors_headers="${RUNNER_TEMP}/tax-expert-cors.headers"
           expert_cors_status=$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \

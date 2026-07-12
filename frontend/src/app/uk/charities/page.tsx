@@ -272,14 +272,30 @@ export default function CharitiesPage() {
             </article>
           </div>
           <div className="border-t border-line px-6 py-5 sm:px-8">
-            <a
-              href="https://www.gov.uk/charities-and-tax"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
-            >
-              Check HMRC charities and tax guidance ↗
-            </a>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+              <a
+                href="https://www.gov.uk/charities-and-tax"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+              >
+                Check HMRC charities and tax guidance ↗
+              </a>
+              <a
+                href="https://api.taxsorted.io/v1/charities/uk/tax-treatments/tax-income-and-gains/why-graph"
+                className="text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+              >
+                Walk the income-and-gains why graph ↗
+              </a>
+            </div>
+            <p className="mt-4 max-w-4xl text-sm leading-6 text-ink-soft">
+              Every published tax treatment now has a machine-readable explanation trace.
+              It connects stable record fields to their exact reviewed sources, keeps the
+              possible benefit beside the reverse tax path, and names what is still missing.
+              The current corpus has HMRC guidance but no admitted primary-law records, so
+              the graph says “binding provision not mapped” instead of dressing guidance up
+              as legislation.
+            </p>
           </div>
         </div>
       </section>
@@ -610,6 +626,12 @@ export default function CharitiesPage() {
               className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
             >
               Register doors ↗
+            </a>
+            <a
+              href="https://api.taxsorted.io/v1/why-graph/adopters"
+              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
+            >
+              Why-graph adopters ↗
             </a>
           </div>
         </div>

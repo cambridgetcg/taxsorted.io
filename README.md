@@ -91,8 +91,9 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   without changing the doorway's read-only access claim. The design is inspired by XENIA; no
   conformance claim or agent identity/session is created.
 - **Shared why graph**: sessionless `GET /v1/why-graph`, its structural schema at
-  `/v1/why-graph/schema` and task-sized `/openapi/why-graph.json` publish the connective contract
-  used by the MTD expert. The graph is a derived traversal index, not a second source of truth or
+  `/v1/why-graph/schema`, adopter index at `/v1/why-graph/adopters` and task-sized
+  `/openapi/why-graph.json` publish the connective contract used by the MTD expert and charity
+  tax-treatment records. The graph is a derived traversal index, not a second source of truth or
   ingestion route. It separates who acts, who administers and who makes an official decision;
   a TaxSorted result is not an HMRC decision and missing enforcement or appeal coverage remains a gap.
 - **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
@@ -105,7 +106,9 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   market gates, lawful entry paths and the mechanics of structural barriers.
 - **Charity-sector graph**: sessionless `GET /v1/charities/uk` routes explain official UK
   registers, legal forms, conditional tax treatments, obligations, funding, finance and pay
-  disclosures, control structures and safe help routes. A schema-only accountability door at
+  disclosures, control structures and safe help routes. Every tax treatment has a deterministic
+  `/v1/charities/uk/tax-treatments/{id}/why-graph` trace with exact field evidence and explicit
+  law, case-applicability and challenge-route gaps. A schema-only accountability door at
   `/v1/charities/uk/accountability`, with its structural contract at
   `/v1/charities/uk/accountability/schema`, explains how a later words-and-actions ledger would
   keep attributed, human-reviewed paraphrases linked to reviewed source locators, expose source

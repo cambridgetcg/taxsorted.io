@@ -121,6 +121,12 @@ describe("agent interface", () => {
       "why-graph-framework: GET https://api.taxsorted.io/v1/why-graph",
     );
     expect(body).toContain(
+      "why-graph-adopters: GET https://api.taxsorted.io/v1/why-graph/adopters",
+    );
+    expect(body).toContain(
+      "charity-tax-treatment-why-graph: GET https://api.taxsorted.io/v1/charities/uk/tax-treatments/{id}/why-graph",
+    );
+    expect(body).toContain(
       "why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema",
     );
     expect(body).toContain(
@@ -258,10 +264,14 @@ describe("agent interface", () => {
     });
     expect(body.resources.whyGraph).toEqual({
       framework: "/v1/why-graph",
+      adopters: "/v1/why-graph/adopters",
       schema: "/v1/why-graph/schema",
       openApi: "/openapi/why-graph.json",
       graphSchema: "taxsorted.why-graph/1",
       status: "first-adopter",
+      adopterCount: 2,
+      legacyStatusMeaning:
+        "Compatibility marker that MTD was the first adopter; use the adopter index for all current producers.",
       firstAdopter: {
         endpoint: "/v1/uk/tax-expert/mtd-income-tax/assessments",
         responsePath: "/reasoning/whyGraph",
@@ -269,7 +279,21 @@ describe("agent interface", () => {
         runtimeEmitted: true,
         wireSchemaOptionalForForwardCompatibleV1Readers: true,
       },
+      secondAdopter: {
+        endpointTemplate:
+          "/v1/charities/uk/tax-treatments/{id}/why-graph",
+        subjectVersion: "2026-07-12.1",
+        runtimeEmitted: true,
+        standaloneResource: true,
+        publicationControlledBy: "/v1/charities/uk",
+        organisationOrCaseFacts: false,
+      },
       access: {
+        appliesTo: [
+          "/v1/why-graph",
+          "/v1/why-graph/adopters",
+          "/v1/why-graph/schema",
+        ],
         methods: ["GET", "HEAD", "OPTIONS"],
         authentication: "none",
         account: "none",
@@ -396,6 +420,11 @@ describe("agent interface", () => {
           id: "inspect-why-graph-contract",
           method: "GET",
           href: "/v1/why-graph",
+        }),
+        expect.objectContaining({
+          id: "inspect-why-graph-adopters",
+          method: "GET",
+          href: "/v1/why-graph/adopters",
         }),
         expect.objectContaining({
           id: "inspect-tax-expert-task-contract",

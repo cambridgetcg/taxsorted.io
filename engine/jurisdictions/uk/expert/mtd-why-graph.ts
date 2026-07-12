@@ -1,5 +1,4 @@
 import {
-  assertWhyGraphInvariants,
   canonicaliseWhyGraph,
   type WhyGraph,
   type WhyGraphEdge,
@@ -7,6 +6,11 @@ import {
   type WhyGraphNodeState,
   whyGraphEdge,
 } from "../../../core/why-graph";
+import {
+  assertAdmittedWhyGraph,
+  canonicalAdmissionJson,
+  type WhyGraphAdopter,
+} from "../../../core/why-graph-adopter";
 import type {
   EvidenceClaim,
   ReasoningStep,
@@ -534,6 +538,192 @@ function appliedObligationRules(
   ));
 }
 
+function expectedDecisiveRuleIds(input: MtdWhyGraphInput): Set<string> {
+  const ids = decisiveRuleIds(input);
+  const digitalObligations = input.obligations.filter(
+    (obligation) => obligationRules(obligation, input).length > 0,
+  );
+  for (const obligation of digitalObligations) {
+    if (obligation.conditional) continue;
+    for (const ruleId of appliedObligationRules(obligation, input)) ids.add(ruleId);
+  }
+
+  const reachedIndex = Math.max(
+    -1,
+    ...input.reasonCodes.map((code) => {
+      const step = reachedThrough[code];
+      return step === null ? -1 : stepOrder.indexOf(step);
+    }),
+    input.obligations.length > 0 ? stepOrder.indexOf("obligations") : -1,
+  );
+  if (reachedIndex >= stepOrder.indexOf("qualifying-income")) {
+    ids.add("SI-2026-336-reg-5");
+  }
+  if (reachedIndex >= stepOrder.indexOf("amendments-and-special-rules")) {
+    ids.add("SI-2026-336-reg-25");
+    ids.add("SI-2026-336-reg-26");
+    ids.add("SI-2026-336-reg-27");
+  }
+  if (
+    reachedIndex >= stepOrder.indexOf("exemptions")
+    || input.reasonCodes.includes("CESSATION_POSITION_UNKNOWN")
+  ) {
+    ids.add("SI-2026-336-reg-21");
+    ids.add("SI-2026-336-reg-22");
+  }
+  if (input.reasonCodes.includes("CESSATION_UPDATE_PERIOD_UNKNOWN")) {
+    for (const ruleId of [
+      "SI-2026-336-reg-6",
+      "SI-2026-336-reg-7",
+      "SI-2026-336-reg-8",
+      "SI-2026-336-reg-9",
+      "SI-2026-336-reg-14",
+      "SI-2026-336-reg-15",
+    ]) ids.add(ruleId);
+  }
+  return ids;
+}
+
+export type MtdWhyGraphNative = {
+  input: MtdWhyGraphInput;
+  ruleIds: string[];
+  steps: ReasoningStep[];
+};
+
+function assertExactSet(
+  actual: string[],
+  expected: string[],
+  label: string,
+  requireUnique = true,
+): void {
+  if (
+    requireUnique
+    && (new Set(actual).size !== actual.length || new Set(expected).size !== expected.length)
+  ) {
+    throw new Error(`${label} must be unique`);
+  }
+  const sortedActual = [...new Set(actual)].sort(ascii);
+  const sortedExpected = [...new Set(expected)].sort(ascii);
+  if (JSON.stringify(sortedActual) !== JSON.stringify(sortedExpected)) {
+    throw new Error(`${label} does not match the MTD semantic admission map`);
+  }
+}
+
+export const mtdWhyGraphAdopter: WhyGraphAdopter<MtdWhyGraphNative> = {
+  id: "uk.mtd-income-tax.readiness",
+  graphSchema: "taxsorted.why-graph/1",
+  assertDomainInvariants(graph, native) {
+    const { input } = native;
+    if (
+      graph.context.subject.id !== "uk.mtd-income-tax.readiness"
+      || graph.context.subject.type !== "assessment"
+      || graph.context.subject.version !== input.capabilityVersion
+      || graph.context.jurisdiction !== "United Kingdom"
+      || graph.context.effectiveDate !== input.effectiveDate
+      || graph.context.evaluatedOn !== input.evaluatedOn
+      || graph.context.knowledgeAsOf !== input.knowledgeAsOf
+      || graph.context.authority !== "taxsorted-analysis"
+      || graph.context.effect !== "advisory"
+      || graph.context.externalStateChange
+    ) {
+      throw new Error("MTD why graph context is outside its admitted capability envelope");
+    }
+
+    const nodes = new Map(graph.nodes.map((node) => [node.id, node]));
+    const root = nodes.get(graph.rootNodeId);
+    if (
+      graph.rootNodeId !== "conclusion:mtd-income-tax-readiness"
+      || root?.record?.kind !== "response-record"
+      || root.record.collection !== "answer"
+      || root.record.key !== "json-pointer"
+      || root.record.value !== "/answer/decision"
+    ) {
+      throw new Error("MTD why graph root does not select the admitted decision");
+    }
+
+    const expectedRuleIds = [...expectedDecisiveRuleIds(input)].sort(ascii);
+    assertExactSet(native.ruleIds, expectedRuleIds, "MTD decisive rule IDs");
+    const appliedRuleIds = graph.edges
+      .filter((edge) => edge.relation === "applies-rule")
+      .map((edge) => {
+        const record = nodes.get(edge.to)?.record;
+        if (record?.kind !== "dataset-record") {
+          throw new Error(`MTD applied rule ${edge.to} has no admitted legislation selector`);
+        }
+        return record.recordId;
+      });
+    assertExactSet(appliedRuleIds, expectedRuleIds, "MTD applied rules", false);
+
+    for (const node of graph.nodes.filter((candidate) => candidate.kind === "rule")) {
+      const record = node.record;
+      const admitted = record?.kind === "dataset-record"
+        ? rules.get(record.recordId)
+        : undefined;
+      if (
+        !admitted
+        || record?.kind !== "dataset-record"
+        || record.dataset !== "legislation.gov.uk"
+        || record.collection !== "uksi-2026-336.regulations"
+        || record.href !== admitted.href
+        || node.id !== `rule:${admitted.id.toLowerCase()}`
+      ) {
+        throw new Error(`MTD rule ${node.id} is outside the exact statutory admission map`);
+      }
+      const authorityEdges = graph.edges.filter(
+        (edge) => edge.from === node.id && edge.relation === "legal-authority-from",
+      );
+      const authorityRecord = authorityEdges.length === 1
+        ? nodes.get(authorityEdges[0].to)?.record
+        : null;
+      if (
+        authorityEdges.length !== 1
+        || authorityRecord?.kind !== "response-record"
+        || authorityRecord.value !== admitted.sourceId
+      ) {
+        throw new Error(`MTD rule ${node.id} does not use its admitted binding source`);
+      }
+    }
+
+    for (const obligation of input.obligations) {
+      const nodeId = `consequence:obligation:${semanticPart(obligation.id)}`;
+      const groundings = graph.edges
+        .filter((edge) => edge.from === nodeId && edge.relation === "grounded-in")
+        .map((edge) => edge.to);
+      const expected = [
+        ...obligationClaims(obligation).map((claimId) => `claim:${semanticPart(claimId)}`),
+        ...obligationRules(obligation, input).map(
+          (ruleId) => `rule:${ruleId.toLowerCase()}`,
+        ),
+      ];
+      assertExactSet(groundings, expected, `MTD obligation ${obligation.id} groundings`);
+    }
+
+    const penaltyGroundings = graph.edges
+      .filter((edge) => (
+        edge.from === "consequence:penalty-position:2026-27"
+        && edge.relation === "grounded-in"
+      ))
+      .map((edge) => edge.to);
+    assertExactSet(
+      penaltyGroundings,
+      input.penaltyPosition.sourceIds.length > 0
+        ? ["claim:mtd-2026-27-penalty-position"]
+        : [],
+      "MTD penalty groundings",
+    );
+    const expected = buildMtdWhyGraphUnchecked(input);
+    if (
+      canonicalAdmissionJson(graph) !== canonicalAdmissionJson(expected.graph)
+      || canonicalAdmissionJson(native.ruleIds) !== canonicalAdmissionJson(expected.ruleIds)
+      || canonicalAdmissionJson(native.steps) !== canonicalAdmissionJson(expected.steps)
+    ) {
+      throw new Error(
+        "MTD why graph differs from its exact adopter-owned semantic projection",
+      );
+    }
+  },
+};
+
 function tracedFactPaths(
   stepId: MtdStepId,
   input: MtdWhyGraphInput,
@@ -605,7 +795,7 @@ function stateRank(state: WhyGraphNodeState): number {
   ].indexOf(state);
 }
 
-export function buildMtdWhyGraph(input: MtdWhyGraphInput): {
+function buildMtdWhyGraphUnchecked(input: MtdWhyGraphInput): {
   graph: WhyGraph;
   ruleIds: string[];
   steps: ReasoningStep[];
@@ -619,7 +809,7 @@ export function buildMtdWhyGraph(input: MtdWhyGraphInput): {
       .filter((step): step is MtdStepId => step !== null),
   );
   const decisiveClaims = decisiveClaimIds(input);
-  const decisiveRules = decisiveRuleIds(input);
+  const decisiveRules = expectedDecisiveRuleIds(input);
   const digitalObligations = input.obligations.filter(
     (obligation) => obligationRules(obligation, input).length > 0,
   );
@@ -1344,12 +1534,26 @@ export function buildMtdWhyGraph(input: MtdWhyGraphInput): {
     },
   });
 
-  assertWhyGraphInvariants(graph);
-  return {
+  const result = {
     graph,
     ruleIds: [...includedRuleIds]
       .filter((ruleId) => decisiveRules.has(ruleId))
       .sort(ascii),
     steps: selectedSteps,
   };
+  return result;
+}
+
+export function buildMtdWhyGraph(input: MtdWhyGraphInput): {
+  graph: WhyGraph;
+  ruleIds: string[];
+  steps: ReasoningStep[];
+} {
+  const result = buildMtdWhyGraphUnchecked(input);
+  assertAdmittedWhyGraph(
+    result.graph,
+    { input, ruleIds: result.ruleIds, steps: result.steps },
+    mtdWhyGraphAdopter,
+  );
+  return result;
 }

@@ -11,6 +11,11 @@ import {
   WHY_GRAPH_RUNTIME_INVARIANTS,
   WHY_GRAPH_SUBJECT_TYPES,
 } from "@taxsorted/engine/why-graph";
+import { ukCharities } from "./uk-charities.js";
+import {
+  UK_CHARITY_TAX_WHY_GRAPH_RELEASED_ON,
+  UK_CHARITY_TAX_WHY_GRAPH_CLAIM_SELECTORS,
+} from "./uk-charity-tax-why-graph.js";
 
 const id = z.string().min(1).max(500).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/);
 const shortText = z.string().trim().min(1).max(1_000);
@@ -234,6 +239,98 @@ export const WhyGraphFrameworkSchema = z.object({
   }).strict(),
   boundaries: z.array(text).min(1).max(20),
 }).strict().openapi("WhyGraphFramework");
+
+export const whyGraphAdopters = {
+  schema: "taxsorted.why-graph-adopters/1",
+  graphSchema: "taxsorted.why-graph/1",
+  title: "TaxSorted why-graph adopter index",
+  updatedOn: "2026-07-12",
+  adopters: [
+    {
+      id: "uk.mtd-income-tax.readiness",
+      adoptionOrder: 1,
+      releasedOn: "2026-07-11",
+      status: "live",
+      representation: "embedded-response",
+      endpoint: "/v1/uk/tax-expert/mtd-income-tax/assessments",
+      methods: ["POST"],
+      responsePath: "/reasoning/whyGraph",
+      subjectType: "assessment",
+      subjectVersion: "2026-07-11.5",
+      access: "workspace-key",
+      publicationGate: null,
+      claimSelectors: null,
+      semanticAdmission:
+        "The MTD adapter checks exact statutory rule identities, binding source links, native response selectors and consequence grounding alongside the TaxAnswer invariants.",
+    },
+    {
+      id: "uk.charities.tax-treatment",
+      adoptionOrder: 2,
+      releasedOn: UK_CHARITY_TAX_WHY_GRAPH_RELEASED_ON,
+      status: "live-when-dataset-open",
+      representation: "standalone-resource",
+      endpoint: "/v1/charities/uk/tax-treatments/{id}/why-graph",
+      methods: ["GET", "HEAD"],
+      responsePath: null,
+      subjectType: "dataset-record",
+      subjectVersion: ukCharities.meta.version,
+      access: "public-sessionless",
+      publicationGate:
+        "The UK charity-sector publication switch and emergency stop control this subresource. Known and unknown IDs remain indistinguishable while closed.",
+      claimSelectors: UK_CHARITY_TAX_WHY_GRAPH_CLAIM_SELECTORS,
+      semanticAdmission:
+        "Exact treatment, source, gap, and field evidence identified by sourceId plus JSON Pointer are adapter-checked; evidence array positions are never identity. Guidance is not promoted to law, and missing binding provisions and case routes stay explicit gaps.",
+    },
+  ],
+  boundaries: [
+    "The adopter index describes current graph producers; it does not make their native records canonical inside this framework.",
+    "Each adopter owns domain meaning and source admission. Shared structural validity is necessary but not sufficient.",
+    "Publication state and authentication remain declared by the adopter endpoint and are not overridden here.",
+    "WhyGraph/1 dataset-record references select whole records. Adopter-specific claimSelectors expose exact field pointers without inventing fragment semantics in the shared contract.",
+  ],
+} as const;
+
+const semanticLabel = z.string().min(1).max(100)
+  .regex(/^[a-z0-9][a-z0-9-]*$/);
+const WhyGraphAdopterSchema = z.object({
+  id: z.string().min(1).max(180).regex(/^[a-z0-9][a-z0-9.-]*$/),
+  adoptionOrder: z.number().int().positive().max(1_000),
+  releasedOn: date,
+  status: semanticLabel,
+  representation: semanticLabel,
+  endpoint: z.string().min(1).max(500).regex(/^\//),
+  methods: z.array(z.string().regex(/^[A-Z]+$/)).min(1).max(10),
+  responsePath: z.string().nullable(),
+  subjectType: z.enum(WHY_GRAPH_SUBJECT_TYPES),
+  subjectVersion: z.string().min(1).max(100),
+  access: semanticLabel,
+  publicationGate: text.nullable(),
+  claimSelectors: z.array(z.object({
+    nodeId: id.max(180),
+    jsonPointer: z.string().min(1).max(500)
+      .regex(/^\/(?:[^~/]|~[01])*(?:\/(?:[^~/]|~[01])*)*$/),
+  }).strict()).max(100).nullable(),
+  semanticAdmission: text,
+}).strict();
+
+export const WhyGraphAdoptersSchema = z.object({
+  schema: z.literal("taxsorted.why-graph-adopters/1"),
+  graphSchema: z.literal("taxsorted.why-graph/1"),
+  title: z.string(),
+  updatedOn: date,
+  adopters: z.array(WhyGraphAdopterSchema).min(1).max(100)
+    .superRefine((adopters, context) => {
+      const ids = adopters.map((adopter) => adopter.id);
+      const orders = adopters.map((adopter) => adopter.adoptionOrder);
+      if (new Set(ids).size !== ids.length || new Set(orders).size !== orders.length) {
+        context.addIssue({ code: "custom", message: "Adopter IDs and orders must be unique" });
+      }
+      if (orders.some((order, index) => index > 0 && order <= orders[index - 1])) {
+        context.addIssue({ code: "custom", message: "Adopters must be ordered by adoptionOrder" });
+      }
+    }),
+  boundaries: z.array(text).min(1).max(10),
+}).strict().openapi("WhyGraphAdopters");
 
 export const whyGraphJsonSchemaDocument = {
   ...z.toJSONSchema(WhyGraphSchema),

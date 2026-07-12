@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
+  canonicaliseWhyGraph,
+  whyGraphEdge,
+} from "../../../../core/why-graph";
+import {
+  assertAdmittedWhyGraph,
+  canonicalAdmissionJson,
+} from "../../../../core/why-graph-adopter";
+import { runWhyGraphAdopterContract } from "../../../../core/testing/why-graph-adopter-contract";
+import {
   assessMtdIncomeTax,
   assertTaxAnswerInvariants,
   type MtdIncomeTaxExpertRequest,
 } from "../index";
+import {
+  mtdWhyGraphAdopter,
+  type MtdWhyGraphInput,
+  type MtdWhyGraphNative,
+} from "../mtd-why-graph";
 
 const EVALUATED_ON = "2026-07-11";
 
@@ -57,6 +71,163 @@ function assess(input = request(), evaluatedOn = EVALUATED_ON) {
   return assessMtdIncomeTax(input, { evaluatedOn });
 }
 
+function mtdAdopterFixture(): { graph: ReturnType<typeof assess>["reasoning"]["whyGraph"]; native: MtdWhyGraphNative } {
+  const requestBody = request();
+  const answer = assess(requestBody);
+  if (!answer.answer) throw new Error("MTD contract fixture needs an answer");
+  const input: MtdWhyGraphInput = {
+    capabilityVersion: answer.capability.version,
+    status: answer.status,
+    decision: answer.answer.decision,
+    headline: answer.answer.headline,
+    reasonCodes: answer.answer.reasonCodes,
+    effectiveDate: answer.applicability.effectiveDate,
+    evaluatedOn: answer.applicability.evaluatedOn,
+    knowledgeAsOf: answer.applicability.knowledgeAsOf,
+    facts: {
+      provided: answer.facts.provided,
+      derived: answer.facts.derived,
+      unknown: answer.facts.unknown,
+    },
+    steps: answer.reasoning.steps,
+    claims: answer.evidence.claims,
+    sources: answer.evidence.sources,
+    obligations: answer.answer.obligations,
+    penaltyPosition: answer.answer.penaltyPosition,
+    nextActions: answer.escalation.nextActions,
+    returnIndicators: requestBody.exemption.returnIndicators,
+    updatePeriod: requestBody.reporting.updatePeriod,
+  };
+  return {
+    graph: structuredClone(answer.reasoning.whyGraph),
+    native: {
+      input,
+      ruleIds: [...answer.applicability.ruleIds],
+      steps: structuredClone(answer.reasoning.steps),
+    },
+  };
+}
+
+runWhyGraphAdopterContract({
+  name: "MTD why-graph adopter mutation contract",
+  adopter: mtdWhyGraphAdopter,
+  makeFixture: mtdAdopterFixture,
+  cases: [
+    {
+      name: "root state cannot drift from the result",
+      layer: "domain",
+      mutate(fixture) {
+        fixture.graph.nodes.find(
+          (node) => node.id === fixture.graph.rootNodeId,
+        )!.state = "blocking";
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+    {
+      name: "binding source selector collection cannot drift",
+      layer: "domain",
+      mutate(fixture) {
+        const source = fixture.graph.nodes.find(
+          (node) => node.id === "source:uksi-2026-336",
+        )!;
+        if (source.record?.kind !== "response-record") throw new Error("fixture");
+        source.record.collection = "evidence.claims";
+        source.record.key = "id";
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+    {
+      name: "a duty holder cannot become the inferred actual performer",
+      layer: "domain",
+      mutate(fixture) {
+        const obligation = fixture.graph.nodes.find(
+          (node) => node.id.startsWith("consequence:obligation:"),
+        )!;
+        fixture.graph.edges.push(whyGraphEdge(
+          obligation.id,
+          "performed-by",
+          "party-role:relevant-person",
+          "The legal role does not prove who actually performs the task.",
+        ));
+        fixture.graph = canonicaliseWhyGraph(fixture.graph);
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+    {
+      name: "the official enforcement and review gap cannot disappear",
+      layer: "domain",
+      mutate(fixture) {
+        const gapId = "gap:official-enforcement-and-review-route";
+        fixture.graph.nodes = fixture.graph.nodes.filter((node) => node.id !== gapId);
+        fixture.graph.edges = fixture.graph.edges.filter(
+          (edge) => edge.from !== gapId && edge.to !== gapId,
+        );
+        fixture.graph.coverage.gapNodeIds =
+          fixture.graph.coverage.gapNodeIds.filter((id) => id !== gapId);
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+    {
+      name: "case identity cannot be inserted into protected root text",
+      layer: "domain",
+      mutate(fixture) {
+        fixture.graph.nodes.find(
+          (node) => node.id === fixture.graph.rootNodeId,
+        )!.description += " Taxpayer identity: Example Person.";
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+    {
+      name: "an unrelated real-shaped provision cannot become considered law",
+      layer: "domain",
+      mutate(fixture) {
+        fixture.graph.nodes.push({
+          id: "rule:si-2026-336-reg-10",
+          kind: "rule",
+          label: "Unadmitted regulation 10",
+          description: "SI 2026/336, regulation 10",
+          state: "checked-not-decisive",
+          record: {
+            kind: "dataset-record",
+            dataset: "legislation.gov.uk",
+            collection: "uksi-2026-336.regulations",
+            recordId: "SI-2026-336-reg-10",
+            href: "https://www.legislation.gov.uk/uksi/2026/336/regulation/10/made",
+          },
+        });
+        fixture.graph.edges.push(
+          whyGraphEdge(
+            "reasoning:exemptions",
+            "considers-rule",
+            "rule:si-2026-336-reg-10",
+            "This real-shaped provision is outside the admitted scenario map.",
+          ),
+          whyGraphEdge(
+            "rule:si-2026-336-reg-10",
+            "legal-authority-from",
+            "source:uksi-2026-336",
+            "The instrument exists, but that does not make this provision relevant.",
+          ),
+        );
+        fixture.graph = canonicaliseWhyGraph(fixture.graph);
+      },
+      error: /outside the exact statutory admission map|semantic projection/i,
+    },
+    {
+      name: "a reasoning node cannot select another existing step",
+      layer: "domain",
+      mutate(fixture) {
+        const reasoning = fixture.graph.nodes.find(
+          (node) => node.id === "reasoning:entry-conditions",
+        )!;
+        if (reasoning.record?.kind !== "response-record") throw new Error("fixture");
+        reasoning.record.value = "qualifying-income";
+      },
+      error: /exact adopter-owned semantic projection/i,
+    },
+  ],
+});
+
 describe("MTD Income Tax expert", () => {
   it("treats exactly £50,000 as not over the April 2026 threshold", () => {
     const input = request();
@@ -102,6 +273,16 @@ describe("MTD Income Tax expert", () => {
     );
     expect(graph.nodes.find((node) => node.id === "route:taxsorted-correction")?.description)
       .toMatch(/GitHub account.*Never paste financial.*confidential client material/i);
+  });
+
+  it("admits the same MTD graph after canonical wire key ordering", () => {
+    const fixture = mtdAdopterFixture();
+    const wireGraph = JSON.parse(canonicalAdmissionJson(fixture.graph));
+    expect(() => assertAdmittedWhyGraph(
+      wireGraph,
+      fixture.native,
+      mtdWhyGraphAdopter,
+    )).not.toThrow();
   });
 
   it("does not make unreached threshold, exemption or obligation steps look applied", () => {

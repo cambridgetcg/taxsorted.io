@@ -8,7 +8,7 @@ import {
 
 describe("UK charities corpus integrity", () => {
   it("loads a substantive UK-wide system map without organisation or people records", () => {
-    expect(ukCharities.meta.reviewedOn).toBe("2026-07-10");
+    expect(ukCharities.meta.reviewedOn).toBe("2026-07-12");
     expect(ukCharities.sources.length).toBeGreaterThanOrEqual(25);
     expect(ukCharities.regulators.length).toBeGreaterThanOrEqual(7);
     expect(ukCharities.registers.length).toBeGreaterThanOrEqual(6);
@@ -79,9 +79,15 @@ describe("UK charities corpus integrity", () => {
     expect(() => ukCharitiesSchema.parse(impossible)).toThrow(/invalid calendar date/);
 
     const future = structuredClone(ukCharities) as UkCharities;
-    future.sources[0].lastUpdated = "2026-07-11";
+    future.sources[0].lastUpdated = "2026-07-13";
     expect(() => validateUkCharitiesGraph(future)).toThrow(
       /lastUpdated is after corpus review date/
+    );
+
+    const afterSourceReview = structuredClone(ukCharities) as UkCharities;
+    afterSourceReview.regulators[0].evidence[0].observedOn = "2026-07-12";
+    expect(() => validateUkCharitiesGraph(afterSourceReview)).toThrow(
+      /evidence is observed after source review date/
     );
 
     const unknown = structuredClone(ukCharities) as unknown as Record<string, any>;

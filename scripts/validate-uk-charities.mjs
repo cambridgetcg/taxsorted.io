@@ -80,8 +80,8 @@ function expandJurisdictions(values) {
 }
 
 if (corpus.schema !== "taxsorted.uk.charities/1") fail("unexpected schema identifier");
-if (!corpus.meta || corpus.meta.reviewedOn !== "2026-07-10") {
-  fail("meta.reviewedOn must be the reviewed snapshot date 2026-07-10");
+if (!corpus.meta || corpus.meta.reviewedOn !== "2026-07-12") {
+  fail("meta.reviewedOn must be the reviewed snapshot date 2026-07-12");
 }
 for (const key of Object.keys(corpus)) {
   if (!expectedTopLevel.has(key)) fail(`unexpected top-level key: ${key}`);
@@ -154,6 +154,10 @@ for (const item of contentItems) {
     }
     if (!isCalendarDate(entry.observedOn) || entry.observedOn > corpus.meta.reviewedOn) {
       fail(`${item.id} has invalid or future evidence observedOn: ${entry.observedOn}`);
+    }
+    const evidenceSource = sourcesById.get(entry.sourceId);
+    if (evidenceSource && entry.observedOn > evidenceSource.reviewedOn) {
+      fail(`${item.id} evidence observed after source review: ${entry.sourceId} ${entry.observedOn}`);
     }
     unique(item.id, entry.fields ?? [], "evidence field pointer");
     for (const pointer of entry.fields ?? []) {

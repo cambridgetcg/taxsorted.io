@@ -27,11 +27,11 @@ not SDLT XML submission or HMRC recognition.
 - Next.js 16 (App Router, **static export** — no server runtime in frontend)
 - React 19, TypeScript, Tailwind CSS 4, Radix UI components
 - Vitest (testing — gates the CI build)
-- Deploy: **Cloudflare Pages**. CI (GitHub Actions) tests and builds every push; the
-  deploy step skips until the `CLOUDFLARE_API_TOKEN` secret is added, so deploys are
-  manual (`npm run deploy`) today. CI verified green by dispatch 2026-06-12 after its
-  first three runs (2026-06-06) startup-failed on a GitHub-side validation hiccup.
-- Backend (planned): Fly.io (lhr) + Postgres; the AWS/Aurora terraform plan is retired
+- Deploy: **Fly.io first, then Cloudflare Pages**. CI tests, validates, builds and deploys
+  every push to `main`; the frontend moves only after the API and its live contract checks
+  pass. CI was first verified green by dispatch 2026-06-12 after three earlier GitHub-side
+  startup failures.
+- Backend: Hono on Fly.io (`lhr`) + Postgres; the AWS/Aurora terraform plan is retired
 
 ## Project Structure
 - `frontend/` — Next.js web application

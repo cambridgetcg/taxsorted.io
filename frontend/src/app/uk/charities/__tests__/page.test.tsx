@@ -44,6 +44,11 @@ describe("UK charities page", () => {
       screen.getByRole("heading", { name: /charities pay no tax.*wrong map/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/non-qualifying income or non-charitable spending can be taxed/i)).toBeInTheDocument();
+    expect(screen.getByText(/binding provision not mapped/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /income-and-gains why graph/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/charities/uk/tax-treatments/tax-income-and-gains/why-graph",
+    );
     expect(screen.getByText(/trustees direct and steward a charity/i)).toBeInTheDocument();
     expect(screen.getByText(/calling all of that.*ownership.*hides/i)).toBeInTheDocument();
   });
@@ -143,6 +148,10 @@ describe("UK charities page", () => {
     expect(screen.getByRole("link", { name: /register doors/i })).toHaveAttribute(
       "href",
       "https://api.taxsorted.io/v1/charities/uk/registers",
+    );
+    expect(screen.getByRole("link", { name: /why-graph adopters/i })).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/why-graph/adopters",
     );
   });
 });

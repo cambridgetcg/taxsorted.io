@@ -1,6 +1,6 @@
 // One honest release ledger for TaxSorted's public datasets. The first four
-// entries establish current public baselines; they are not reconstructed
-// record-change events. Future releases append to release-checkpoints.json.
+// entries establish public baselines; later entries are forward checkpoints,
+// not reconstructed record-change events. New releases append to the JSON file.
 
 import { Hono, type Context } from "hono";
 import {

@@ -316,6 +316,13 @@ official decision power remain separate. If no actual notice supports an enforce
 appeal route, the graph ends at an explicit gap rather than guessing one. The framework has no
 ingestion route and cannot change filing, payment, exemption or appeal state.
 
+`/v1/why-graph/adopters` lists graph producers without merging their access contracts. Public UK
+charity tax-treatment graphs live at `/v1/charities/uk/tax-treatments/{id}/why-graph`; they use
+exact source IDs and field pointers, contain no organisation or case facts, and leave binding law,
+case applicability and official enforcement or challenge as named gaps until those records are
+separately admitted. The charity publication switch and emergency stop protect the complete
+tax-treatment namespace before ID lookup.
+
 This narrow design was inspired by
 [XENIA by Yu and Fable](https://github.com/cambridgetcg/xenia), an agent-interaction and
 agent-experience framework published under CC BY-SA 4.0. The attribution is part of honest
