@@ -1,11 +1,22 @@
 // Server component — generateStaticParams must live here (not in "use client" files)
-import VATPageClient from './vat-page-client';
+import type { Metadata } from "next";
+import VATPageClient from "./vat-page-client";
+
+export const metadata: Metadata = {
+  title: "Fictional VAT workspace",
+  description:
+    "A fixed browser-only VAT exhibit with no account or HMRC connection and no filing capability.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export function generateStaticParams() {
   return [
-    { entityId: 'ent_001' },
-    { entityId: 'ent_002' },
-    { entityId: 'ent_003' },
+    { entityId: "ent_001" },
+    { entityId: "ent_002" },
+    { entityId: "ent_003" },
   ];
 }
 

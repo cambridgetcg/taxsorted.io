@@ -1,240 +1,323 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VATReturnForm } from "@/components/vat";
-import { VatWizard } from "@/components/vat/vat-wizard";
-import type { VATObligation } from "@taxsorted/engine/uk/vat";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, CheckCircle2, Printer, RotateCcw } from "lucide-react";
+import {
+  ratesFor,
+  type VATObligation,
+  type VATReturnData,
+} from "@taxsorted/engine/uk/vat";
+import { DemoNotice } from "@/components/demo-notice";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, formatDate, formatPeriod } from "@/lib/utils";
+import { DetailedDraft } from "./detailed-draft";
+import { formatDraftBoxValue, presentVatDraft } from "./draft-presentation";
+import { GuidedDraft } from "./guided-draft";
 
-// Mock obligations - replace with actual API call
-const mockObligations: VATObligation[] = [
+// Fixed fixtures for this retired prototype route. They are never described
+// as obligations fetched from HMRC or attached to a real account.
+const EXAMPLE_PERIODS: VATObligation[] = [
   {
-    periodKey: "24A1",
-    start: "2024-01-01",
-    end: "2024-03-31",
-    due: "2024-05-07",
+    periodKey: "26A2",
+    start: "2026-04-01",
+    end: "2026-06-30",
+    due: "2026-08-07",
     status: "O",
   },
   {
-    periodKey: "24A2",
-    start: "2024-04-01",
-    end: "2024-06-30",
-    due: "2024-08-07",
+    periodKey: "26A3",
+    start: "2026-07-01",
+    end: "2026-09-30",
+    due: "2026-11-07",
     status: "O",
   },
 ];
 
-interface VATSubmitPageClientProps { entityId: string; }
+type DraftMode = "guided" | "detailed";
 
-export default function VATSubmitPage({ entityId }: VATSubmitPageClientProps) {
-  const searchParams = useSearchParams();
-  const periodKey = searchParams.get("period");
+interface VATSubmitPageClientProps {
+  entityId: string;
+}
 
-  const requestKey = `${entityId}:${periodKey ?? ""}`;
-  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null);
-  const isLoading = loadedRequestKey !== requestKey;
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [obligation, setObligation] = useState<VATObligation | null>(null);
-  const [obligations, setObligations] = useState<VATObligation[]>([]);
-  const [mode, setMode] = useState<"guided" | "manual">("guided");
+export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientProps) {
+  const periodKey = useSearchParams().get("period");
+  const [mode, setMode] = useState<DraftMode>("guided");
+  const [completed, setCompleted] = useState<{
+    periodKey: string;
+    data: VATReturnData;
+  } | null>(null);
+
+  const obligation = periodKey
+    ? EXAMPLE_PERIODS.find((item) => item.periodKey === periodKey) ?? null
+    : EXAMPLE_PERIODS[0];
+  const completedData =
+    completed && completed.periodKey === obligation?.periodKey ? completed.data : null;
+  const standardRatePercent = obligation ? ratesFor(obligation.end).standard * 100 : 20;
 
   useEffect(() => {
-    let cancelled = false;
+    if (completedData) document.getElementById("completion-heading")?.focus();
+  }, [completedData]);
 
-    async function loadObligations() {
-      // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      if (cancelled) return;
-
-      setObligations(mockObligations);
-
-      // Find the selected obligation
-      if (periodKey) {
-        const selected = mockObligations.find((o) => o.periodKey === periodKey);
-        setObligation(selected || null);
-      } else if (mockObligations.length > 0) {
-        // Default to first open obligation
-        setObligation(mockObligations[0]);
-      }
-      setLoadedRequestKey(requestKey);
-    }
-
-    void loadObligations();
-    return () => {
-      cancelled = true;
-    };
-  }, [periodKey, requestKey]);
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    setSubmitError(null);
-
-    try {
-      // TODO: Replace with actual API call
-      // const response = await submitVATReturn(vrn, data, { accessToken });
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Figures prepared and saved. No auto-redirect — let the user read the result and choose.
-      setSubmitSuccess(true);
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Failed to submit VAT return"
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+  const focusTab = (nextMode: DraftMode) => {
+    setMode(nextMode);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`${nextMode}-tab`)?.focus();
+    });
   };
 
-  // No obligation selected
-  if (!isLoading && !obligation) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={`/vat/${entityId}`}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to VAT Portal
-              </Link>
-            </Button>
-          </div>
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    let nextMode: DraftMode | null = null;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      nextMode = mode === "guided" ? "detailed" : "guided";
+    } else if (event.key === "Home") {
+      nextMode = "guided";
+    } else if (event.key === "End") {
+      nextMode = "detailed";
+    }
 
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>No period selected</AlertTitle>
-            <AlertDescription>
-              {obligations.length > 0 ? (
-                <>
-                  Please select a period to submit. Available periods:
-                  <ul className="mt-2 list-disc pl-4">
-                    {obligations.map((o) => (
-                      <li key={o.periodKey}>
-                        <Link
-                          href={`/vat/${entityId}/submit?period=${o.periodKey}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {formatPeriod(o.start, o.end)} (Due:{" "}
-                          {formatDate(o.due)})
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                "No open VAT obligations found. Please check your HMRC connection."
-              )}
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
+    if (!nextMode) return;
+    event.preventDefault();
+    focusTab(nextMode);
+  };
 
-  // Success state
-  if (submitSuccess) {
+  const completeDraft = (data: VATReturnData) => {
+    setCompleted({ periodKey: data.periodKey, data });
+  };
+
+  const returnToFigures = () => {
+    setCompleted(null);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`${mode}-tab`)?.focus();
+    });
+  };
+
+  if (!obligation) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-lg border border-green-200 bg-green-50 p-8 text-center">
-            <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-            <h1 className="mt-4 text-2xl font-bold text-green-800">
-              VAT Return Prepared
-            </h1>
-            <p className="mt-2 text-green-700">
-              Your return has been checked and saved. Sending to HMRC isn’t switched on in
-              this build yet — it prepares your figures, it doesn’t file them.
-            </p>
-            <p className="mt-1 text-sm text-green-600">
-              When HMRC submission is enabled, you’ll confirm and file from here.
-            </p>
-            <Button className="mt-6" asChild>
-              <Link href={`/vat/${entityId}`}>Back to VAT portal</Link>
-            </Button>
-          </div>
-        </div>
+      <div className="mx-auto min-h-[70vh] max-w-3xl px-4 py-10 sm:px-6">
+        <BackToExample entityId={entityId} />
+        <section className="mt-6 rounded-lg border border-line bg-white p-5" aria-labelledby="period-error-heading">
+          <h1 id="period-error-heading" className="text-xl font-semibold text-ink">
+            That fictional period is not available
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-ink-soft">
+            Choose one of these fixed examples. They are not HMRC obligations.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {EXAMPLE_PERIODS.map((item) => (
+              <li key={item.periodKey}>
+                <Link
+                  href={`/vat/${entityId}/submit?period=${item.periodKey}`}
+                  className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
+                >
+                  {formatPeriod(item.start, item.end)} · fictional due date {formatDate(item.due)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Back Link */}
-        <div className="mb-6">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/vat/${entityId}`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to VAT Portal
-            </Link>
-          </Button>
-        </div>
+    <>
+      {completedData ? (
+        <CompletionReview
+          data={completedData}
+          obligation={obligation}
+          onReturn={returnToFigures}
+        />
+      ) : null}
 
-        {/* Error Alert */}
-        {submitError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Submission Failed</AlertTitle>
-            <AlertDescription>{submitError}</AlertDescription>
-          </Alert>
-        )}
+      {/* Keep both calculators mounted while switching modes and reviewing. */}
+      <div hidden={Boolean(completedData)} className="min-h-[70vh] bg-paper">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+          <BackToExample entityId={entityId} />
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="space-y-6">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-96 w-full" />
-          </div>
-        ) : obligation ? (
-          <div className="space-y-6">
-            {/* Guided by default; the raw 9 boxes are there for those who want them. */}
-            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 text-sm">
+          <div className="mt-6 space-y-6">
+            <DemoNotice title="Fictional browser-only calculator">
+              This legacy page uses a fixed example period. It does not connect to an
+              account or HMRC, save a draft, or file a return.
+            </DemoNotice>
+
+            <header>
+              <p className="text-sm font-semibold text-accent">VAT example draft</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                Understand the figures before anything happens.
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">
+                Try a narrow {standardRatePercent}% estimate or enter a detailed nine-box
+                example. Every result stays in this browser tab and must be checked before
+                it is used elsewhere.
+              </p>
+            </header>
+
+            <div
+              className="inline-flex max-w-full rounded-lg border border-line bg-white p-1"
+              role="tablist"
+              aria-label="VAT example method"
+            >
               <button
+                id="guided-tab"
                 type="button"
+                role="tab"
+                aria-selected={mode === "guided"}
+                aria-controls="guided-panel"
+                tabIndex={mode === "guided" ? 0 : -1}
                 onClick={() => setMode("guided")}
+                onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "rounded-md px-3 py-1.5 font-medium transition-colors",
-                  mode === "guided" ? "bg-gray-900 text-white" : "text-gray-600 hover:text-gray-900"
+                  "min-h-11 rounded-md px-4 text-sm font-semibold",
+                  mode === "guided"
+                    ? "bg-accent text-white"
+                    : "text-ink-soft hover:bg-accent-soft hover:text-ink",
                 )}
               >
-                Guided
+                Quick {standardRatePercent}% estimate
               </button>
               <button
+                id="detailed-tab"
                 type="button"
-                onClick={() => setMode("manual")}
+                role="tab"
+                aria-selected={mode === "detailed"}
+                aria-controls="detailed-panel"
+                tabIndex={mode === "detailed" ? 0 : -1}
+                onClick={() => setMode("detailed")}
+                onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "rounded-md px-3 py-1.5 font-medium transition-colors",
-                  mode === "manual" ? "bg-gray-900 text-white" : "text-gray-600 hover:text-gray-900"
+                  "min-h-11 rounded-md px-4 text-sm font-semibold",
+                  mode === "detailed"
+                    ? "bg-accent text-white"
+                    : "text-ink-soft hover:bg-accent-soft hover:text-ink",
                 )}
               >
-                Enter the 9 boxes
+                Detailed boxes
               </button>
             </div>
 
-            {mode === "guided" ? (
-              <VatWizard
+            <div
+              id="guided-panel"
+              role="tabpanel"
+              aria-labelledby="guided-tab"
+              hidden={mode !== "guided"}
+            >
+              <GuidedDraft
+                key={`guided-${obligation.periodKey}`}
                 obligation={obligation}
-                onConfirm={handleSubmit}
-                isSubmitting={isSubmitting}
+                onComplete={completeDraft}
+                onUseDetailed={() => focusTab("detailed")}
               />
-            ) : (
-              <VATReturnForm
-                entityId={entityId}
+            </div>
+            <div
+              id="detailed-panel"
+              role="tabpanel"
+              aria-labelledby="detailed-tab"
+              hidden={mode !== "detailed"}
+            >
+              <DetailedDraft
+                key={`detailed-${obligation.periodKey}`}
                 obligation={obligation}
-                onSubmit={handleSubmit}
-                isSubmitting={isSubmitting}
+                onComplete={completeDraft}
               />
-            )}
+            </div>
           </div>
-        ) : null}
+        </div>
       </div>
-    </div>
+    </>
+  );
+}
+
+function CompletionReview({
+  data,
+  obligation,
+  onReturn,
+}: {
+  data: VATReturnData;
+  obligation: VATObligation;
+  onReturn: () => void;
+}) {
+  const presentation = presentVatDraft(data);
+
+  return (
+    <section
+      className="mx-auto min-h-[70vh] max-w-3xl px-4 py-10 sm:px-6"
+      aria-labelledby="completion-heading"
+    >
+      <div className="rounded-lg border border-line bg-accent-soft p-6 sm:p-10">
+        <div className="text-center">
+          <CheckCircle2 aria-hidden="true" className="mx-auto h-12 w-12 text-accent" />
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-accent">
+            Local calculation complete
+          </p>
+          <h1
+            id="completion-heading"
+            tabIndex={-1}
+            className="mt-2 text-3xl font-semibold tracking-tight text-ink"
+          >
+            Review the fictional VAT draft
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl leading-7 text-ink">
+            {presentation.headline} for {formatPeriod(obligation.start, obligation.end)}.
+          </p>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink-soft">
+            {presentation.detail} Fictional due date: {formatDate(obligation.due)}.
+          </p>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink-soft">
+            Nothing was saved, connected to an account, or sent to HMRC. Check every figure
+            against records and the current{" "}
+            <a
+              href="https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
+            >
+              HMRC VAT Return guidance
+            </a>{" "}
+            before using it in a real return.
+          </p>
+        </div>
+
+        <div className="mt-8 rounded-lg border border-line bg-white p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-ink">Nine draft boxes</h2>
+          <dl className="mt-3 divide-y divide-line">
+            {presentation.boxes.map((box) => (
+              <div key={box.box} className="flex items-start justify-between gap-4 py-3 text-sm">
+                <dt className="text-ink-soft">
+                  <span className="font-medium text-ink">Box {box.box}</span> · {box.label}
+                </dt>
+                <dd className="shrink-0 font-semibold text-ink">
+                  {formatDraftBoxValue(box.box, box.value)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row print:hidden">
+          <Button type="button" onClick={() => window.print()}>
+            <Printer aria-hidden="true" className="mr-2 h-4 w-4" />
+            Print or save as PDF
+          </Button>
+          <Button type="button" variant="outline" onClick={onReturn}>
+            <RotateCcw aria-hidden="true" className="mr-2 h-4 w-4" />
+            Return to the figures
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BackToExample({ entityId }: { entityId: string }) {
+  return (
+    <Link
+      href={`/vat/${entityId}`}
+      className={buttonVariants({ variant: "ghost", size: "sm" })}
+    >
+      <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
+      Back to the fictional VAT workspace
+    </Link>
   );
 }
