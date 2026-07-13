@@ -18,6 +18,7 @@ export function formatDate(date: Date | string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(d);
 }
 
@@ -28,7 +29,14 @@ export function formatReference(ref: string, maxLength = 12): string {
 
 /** A VAT period as "Jan – Mar 2024". One definition, imported everywhere. */
 export function formatPeriod(start: string, end: string): string {
-  const startMonth = new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(start));
-  const endMonth = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric" }).format(new Date(end));
+  const startMonth = new Intl.DateTimeFormat("en-GB", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(start));
+  const endMonth = new Intl.DateTimeFormat("en-GB", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(end));
   return `${startMonth} – ${endMonth}`;
 }

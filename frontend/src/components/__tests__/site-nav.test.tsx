@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { SiteNav } from "../site-nav";
 
 // SiteNav reads i18n through useI18n, which has a safe English fallback when
@@ -53,6 +53,52 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: "Accountability" })).toHaveAttribute(
       "href",
       "/uk/accountability",
+    );
+  });
+
+  it("exposes an accessible mobile disclosure without dropping links or language", () => {
+    render(<SiteNav />);
+
+    const menuButton = screen.getByRole("button", { name: "Open menu" });
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    expect(menuButton).toHaveAttribute("aria-controls", "primary-navigation-links");
+
+    fireEvent.click(menuButton);
+    expect(screen.getByRole("button", { name: "Close menu" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(screen.getByRole("link", { name: /^income tax \(mtd\)$/i })).toHaveAttribute(
+      "href",
+      "/itsa",
+    );
+    expect(screen.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
+  });
+
+  it("closes on Escape and returns focus to the disclosure button", () => {
+    render(<SiteNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    fireEvent.keyDown(document.getElementById("primary-navigation-links")!, {
+      key: "Escape",
+    });
+
+    const menuButton = screen.getByRole("button", { name: "Open menu" });
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    expect(menuButton).toHaveFocus();
+  });
+
+  it("collapses after a navigation choice", () => {
+    render(<SiteNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    const learnLink = screen.getByRole("link", { name: "Learn" });
+    learnLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    fireEvent.click(learnLink);
+
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
     );
   });
 });
