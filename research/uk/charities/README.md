@@ -1,6 +1,6 @@
 # UK charities — the bounded first map
 
-**Reviewed:** 12 July 2026
+**Reviewed:** 13 July 2026
 **Status:** sector-first human guide; no local charity-register mirror
 
 This directory explains where the official UK charity records live, why charity tax
@@ -70,13 +70,20 @@ the whole argument. It keeps a neutral treatment effect beside the reverse tax, 
 clawback path. It contains no organisation, person, contact, belief, transaction, amount or case
 assessment.
 
-The current corpus cites HMRC and government guidance, not admitted exact primary-law records.
-The graph therefore publishes `binding-provision-not-mapped` rather than promoting guidance to
-law. The next evidence release should admit receipt-specific ITA 2007 and CTA 2010 exemptions,
-TCGA 1992 section 256, the non-charitable-expenditure restrictions and their current Finance Act
-2026 amendments before adding any rule edge.
-The reviewed provision map and admission checklist are in
-[`CHARITY-TAX-LAW-GAP.md`](CHARITY-TAX-LAW-GAP.md).
+The non-charitable-expenditure treatment now carries a selected exact statutory spine: separate
+trust and company records for ITA 2007 sections 539–543 and 562–564 and CTA 2010 sections 492–496
+and 515–517. Every rule points to one exact current provision, the treatment fields it bears on,
+its taxpayer class, conditions, effective-date knowledge and what it does not prove. The graph
+marks those rules `checked-not-decisive`: it shows that the reasoning considered the law, never
+that a sector record applied it to a case.
+
+The other treatments still publish `binding-provision-not-mapped` rather than promoting guidance
+to law. The admitted spine also remains partial: the supplementary middle provisions, separate
+chargeable-gains attribution rules and case-specific return, assessment, payment, appeal and debt
+routes remain explicit gaps. Two narrow procedure records cover only the attribution-specification
+and conditional HMRC-determination powers in ITA section 542 and CTA section 495. Read
+[`CHARITY-TAX-LAW-GAP.md`](CHARITY-TAX-LAW-GAP.md) for the provision map and
+[`CHARITY-TAX-PROCEDURE-GAP.md`](CHARITY-TAX-PROCEDURE-GAP.md) for the procedure boundary.
 
 ## Control is not ordinary ownership
 
@@ -240,14 +247,15 @@ The bounded public route is:
 
 ```text
 GET https://api.taxsorted.io/v1/charities/uk
-GET https://api.taxsorted.io/v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments}
-GET https://api.taxsorted.io/v1/charities/uk/{obligations|funding|finance|control|help|pipeline|gaps}
+GET https://api.taxsorted.io/v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments|tax-rules}
+GET https://api.taxsorted.io/v1/charities/uk/{obligations|funding|finance|control|help|official-procedures|pipeline|gaps}
+GET https://api.taxsorted.io/v1/charities/uk/records/{id}
 GET https://api.taxsorted.io/v1/charities/uk/exports
 GET https://api.taxsorted.io/v1/charities/uk/exports/{collection}/{json|ndjson|csv}
 GET https://api.taxsorted.io/v1/charities/uk/dictionary
 GET https://api.taxsorted.io/v1/charities/uk/accountability
 GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
-GET https://api.taxsorted.io/openapi.json
+GET https://api.taxsorted.io/openapi/charities-uk.json
 ```
 
 The first route describes the sector map and its publication boundary. It is not a local

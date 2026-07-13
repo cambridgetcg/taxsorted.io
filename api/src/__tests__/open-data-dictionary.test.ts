@@ -8,11 +8,16 @@ describe("plain field dictionary", () => {
         rows: {
           items: {
             type: "object",
-            required: ["id", "actorIds", "status", "steps"],
+            required: ["id", "actorIds", "status", "profile", "selectors", "steps"],
             properties: {
               id: { type: "string" },
               actorIds: { type: "array", items: { type: "string" } },
               status: { type: "string", enum: ["open", "closed"] },
+              profile: { type: "string", const: "bounded" },
+              selectors: {
+                type: "array",
+                items: { type: "string", enum: ["notice", "period"] },
+              },
               note: { anyOf: [{ type: "string" }, { type: "null" }] },
               steps: {
                 type: "array",
@@ -67,6 +72,14 @@ describe("plain field dictionary", () => {
         required: false,
         nullable: true,
         meaning: "The note recorded for this row.",
+        }),
+        expect.objectContaining({
+          name: "profile",
+          allowedValues: ["bounded"],
+        }),
+        expect.objectContaining({
+          name: "selectors",
+          allowedValues: ["notice", "period"],
         }),
         expect.objectContaining({
           name: "steps[].actorId",

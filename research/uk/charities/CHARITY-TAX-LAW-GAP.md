@@ -1,14 +1,15 @@
 # UK charity tax law gap — exact route from guidance to binding provisions
 
-**Reviewed:** 12 July 2026
-**Status:** research map for the next evidence release; not yet admitted as API rule records
+**Reviewed:** 13 July 2026
+**Status:** selected non-charitable-expenditure spine admitted; wider tax-law map remains open
 
-The current charity-sector corpus accurately records HMRC and government guidance. It does not yet
-contain exact primary-law provision records. The public why graphs therefore stop at
-`gap:binding-provision-not-mapped`. They do not label guidance as law.
+The charity-sector corpus now contains its first exact primary-law rule records for one treatment:
+non-charitable expenditure. The selected trust and company provisions appear in `/tax-rules` and
+in that treatment's why graph. Every other treatment still stops at
+`gap:binding-provision-not-mapped`. Guidance is never labelled as law.
 
-This note names the primary-law spine needed to close that gap. It is not a claim that every listed
-section applies to every charity or receipt.
+This note records both the admitted slice and the larger spine still needed. It is not a claim that
+every listed section applies to every charity, receipt, expenditure item, return or notice.
 
 ## The chain that must stay separate
 
@@ -114,17 +115,18 @@ For charitable trusts:
   and specification machinery;
 - [section 543](https://www.legislation.gov.uk/ukpga/2007/3/section/543) defines categories of
   non-charitable expenditure;
-- the machinery continues through section 562, including investments, loans, overseas payments
-  and excess expenditure.
+- the machinery continues through [section 564](https://www.legislation.gov.uk/ukpga/2007/3/section/564),
+  including supplementary rules for investments, loans, overseas payments and excess expenditure.
 
 For charitable companies, the parallel chain is
-[CTA sections 492–515](https://www.legislation.gov.uk/ukpga/2010/4/section/492): sections 492–493
+[CTA sections 492–517](https://www.legislation.gov.uk/ukpga/2010/4/section/492): sections 492–493
 restrict and calculate the non-exempt amount, sections 494–495 attribute it, and section 496 defines
 non-charitable expenditure.
 
-This can ground `tax-non-charitable-expenditure` after admission. It does not establish that a
-particular payment is non-charitable, automatic deregistration, dishonesty, a return deadline,
-collection procedure or an appeal route.
+The admitted records cover ITA sections 539–543 and 562–564 and CTA sections 492–496 and 515–517.
+The supplementary middle provisions—ITA 544–561 and CTA 497–514—remain deliberately unmapped.
+This slice does not establish that a particular payment is non-charitable, automatic deregistration,
+dishonesty, a tax amount, a return deadline, an appeal right or a collection route.
 
 ## 4. Finance Act 2026 changes
 
@@ -136,7 +138,8 @@ The enacted charity package is [Finance Act 2026 sections 54–56](https://www.l
 | [section 55](https://www.legislation.gov.uk/ukpga/2026/11/section/55) | Changes approved-charitable-investment tests in ITA 558 and CTA 511 | investments made on or after 6 April 2026 |
 | [section 56 and Schedule 9](https://www.legislation.gov.uk/ukpga/2026/11/section/56) | Changes tainted-donation tests and later-period recovery machinery | relievable donations made on or after 6 April 2026, subject to transition |
 
-An earlier policy paper proposed a 1 April corporation-tax date. The enacted Act uses 6 April for
+An [earlier policy paper](https://www.gov.uk/government/publications/changes-to-charity-compliance-measures/changes-to-the-charity-compliance-measures)
+proposed a 1 April corporation-tax date. The enacted Act uses 6 April for
 these provisions; the Act controls. The same policy paper discussed sanctions for persistent tax
 non-compliance, but sections 54–56 do not enact a fourth charity sanctions measure. A graph must not
 invent one.
@@ -147,27 +150,29 @@ invent one.
 | --- | --- | --- |
 | `tax-hmrc-recognition` | FA 2010 Schedule 6; F(No.2)A 2023 section 344; territorially correct charity law | application and recognition process remains guidance |
 | `tax-income-and-gains` | ITA 521–538; CTA 471–491A; TCGA 256–256D | category, application and claim conditions must stay separate |
-| `tax-non-charitable-expenditure` | ITA 539–562; CTA 492–515 | does not supply filing, collection or appeal procedure |
+| `tax-non-charitable-expenditure` | Selected admission: ITA 539–543, 562–564; CTA 492–496, 515–517. Full chains: ITA 539–564; CTA 492–517 | supplementary middle, TCGA attribution and case procedure remain explicit gaps |
 | `tax-charity-trading` | ITA 524–530; CTA 478–484 | “ancillary” remains an HMRC interpretation |
 | `tax-trading-subsidiary` | ITA 558 and CTA 511 for the parent's investment slice | does not prove separate-company risk, tax or donation deductions |
 | `tax-gift-aid` | ITA Part 8 Chapter 2 plus FA 2026 section 56 and Schedule 9 | 2026 changes are not the complete Gift Aid regime |
 | `tax-public-benefit-bargain-analysis` | charity-purpose law plus the exemption and restriction provisions | “bargain” remains TaxSorted analysis |
 | VAT, rates and SDLT treatments | their separate exact statutory regimes | this direct-tax backbone cannot ground them |
 
-## 6. Safe pipeline to close the API gap
+## 6. Admission result and next pipeline
 
-1. Add reviewed `primary-law` source records with exact legislation.gov.uk provision URLs, extent,
-   effective dates, status and `doesNotProve` boundaries.
-2. Add stable provision records. A whole Act or HMRC guidance page is not an exact rule selector.
-3. Connect each treatment field to a provision only after a human checks the proposition, entity
-   type, receipt category, tax period, charitable-application condition and claim requirement.
-4. Model trust and company provisions separately. Do not use one as a synonym for the other.
-5. Carry the Finance Act 2026 transition dates and later amendments into applicability.
-6. Run adopter mutations that substitute another real provision, remove a condition, promote
-   guidance, or hide the non-charitable-expenditure reverse path.
-7. Only then replace `binding-provision-not-mapped` with exact `rule → legal-authority-from → source`
-   edges. Case assessment and official challenge gaps remain until a separate capability supplies
-   the necessary facts and procedural law.
+The selected slice completed these admission steps: exact current provision URLs; stable trust and
+company rule IDs; field and reasoning-step mappings; explicit dates or `null`; conditions and
+non-proofs; and adversarial tests for valid-provision substitution, guidance promotion, taxpayer
+class drift and invented application or enforcement.
 
-The gap is therefore concrete, not vague: the official law has been located, but it has not yet
-passed the corpus admission and field-proposition review required for public rule edges.
+The next slice must:
+
+1. admit the supplementary middle provisions one exact selector at a time;
+2. admit the separate chargeable-gains attribution spine;
+3. connect Finance Act 2026 transitions only where the commencement rule is exact;
+4. map return, amendment, enquiry, assessment, payment, appeal and debt procedures by taxpayer and
+   decision type, without inventing one universal HMRC route;
+5. preserve the treatment's case-applicability and case-enforcement gaps until that capability has
+   the actual facts, notice and dates it requires.
+
+The remaining gap is therefore concrete, not vague: a useful exact spine is public, while the
+unadmitted middle, gains and procedural law remains named and machine-readable as incomplete.

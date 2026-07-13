@@ -1,6 +1,6 @@
-# Method — UK charities bounded v1
+# Method — UK charities bounded sector map
 
-**Reviewed:** 10 July 2026
+**Reviewed:** 13 July 2026
 **Status:** operational method for the human guide; organisation mirror not admitted
 
 ## Purpose
@@ -227,6 +227,27 @@ conditions, exclusions, recognition requirement, relevant jurisdiction and revie
 Keep direct tax, VAT, business rates, PAYE and Gift Aid distinct. Keep a charity and its
 trading subsidiary distinct. A policy explanation and the operative legal rule are separate
 claims and may need different sources.
+
+This v2 slice admits one exact current section as the authority selector for each
+provision-level rule. A later regulation or schedule-paragraph slice needs a typed authority
+selector before admission. A whole Act, Part or guidance page cannot occupy that field. Keep a
+charitable trust under Income Tax separately from a charitable company under Corporation Tax.
+Map the provision to exact treatment fields and reasoning steps, state when applicability begins
+only where the source supports a date, and publish unknown effective dates as `null` rather than
+guessing.
+
+Rule summaries are labelled TaxSorted analysis of primary law. The primary-law source remains
+metadata-only and is not copied. A sector rule can be `checked-not-decisive` in an explanation
+graph; it cannot become an applied rule without case facts and a separate admitted capability.
+Mutation tests swap valid provisions, promote guidance, change taxpayer class and invent applied
+or enforcement edges. Each must fail.
+
+Official procedures are a separate collection. A procedure needs its taxpayer class, actual
+trigger, required case selectors, steps, time limit, payment effect, possible outcomes, responsible
+institution roles, exact legal basis and explicit non-proofs. Friendly guidance such as “HMRC can
+determine” must not erase a preceding requirement, notice or waiting period. The absence of a
+mapped appeal or debt route is a gap, not permission to infer one from an adjacent tax rule. The
+procedure prose is explicitly labelled TaxSorted analysis of primary law; it is not statutory text.
 
 ## Contact and help rule
 

@@ -3,6 +3,7 @@
 
 type SchemaNode = {
   type?: string | string[];
+  const?: unknown;
   enum?: unknown[];
   anyOf?: SchemaNode[];
   oneOf?: SchemaNode[];
@@ -79,7 +80,10 @@ function nodeTypes(node: SchemaNode): string[] {
 }
 
 function allowedValues(node: SchemaNode) {
-  const values = variants(node).flatMap((variant) => variant.enum ?? []);
+  const values = variants(node).flatMap((variant) => (
+    variant.enum
+    ?? (Object.hasOwn(variant, "const") ? [variant.const] : [])
+  ));
   return values.length ? [...new Set(values)] : undefined;
 }
 
@@ -129,7 +133,7 @@ export function fieldsFromJsonSchema(
       seen.add(path);
       const targets = references[path] ?? references[fieldName];
       const types = nodeTypes(node);
-      const values = allowedValues(node);
+      const values = allowedValues(node) ?? (node.items ? allowedValues(node.items) : undefined);
       const commonMeaning =
         prefix && ["id", "name", "title"].includes(fieldName)
           ? undefined

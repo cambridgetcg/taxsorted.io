@@ -387,6 +387,98 @@ describe("public UK charity-sector API", () => {
       )
     ).toBe(true);
 
+    const rule = ukCharities.taxRules.find(
+      (candidate) => candidate.taxpayerClass === "charitable-trust-income-tax"
+    )!;
+    const byRuleShape = await app.request(
+      "/v1/charities/uk/tax-rules?"
+        + new URLSearchParams({
+          taxTreatmentId: rule.taxTreatmentId,
+          taxpayerClass: rule.taxpayerClass,
+          ruleRole: rule.ruleRole,
+          regulatorId: rule.administeredByRegulatorIds[0],
+          sourceId: rule.authoritySourceId,
+        }).toString()
+    );
+    const ruleListBody = await byRuleShape.json();
+    expect(byRuleShape.status).toBe(200);
+    expect(ruleListBody.data).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: rule.id })])
+    );
+    expect(ruleListBody.data.every((item: typeof rule) => (
+      item.taxTreatmentId === rule.taxTreatmentId
+      && item.taxpayerClass === rule.taxpayerClass
+      && item.ruleRole === rule.ruleRole
+      && item.administeredByRegulatorIds.includes(rule.administeredByRegulatorIds[0])
+      && item.sourceIds.includes(rule.authoritySourceId)
+    ))).toBe(true);
+
+    const ruleDetail = await app.request(`/v1/charities/uk/tax-rules/${rule.id}`);
+    expect(ruleDetail.status).toBe(200);
+    expect(await ruleDetail.json()).toMatchObject({
+      data: {
+        id: rule.id,
+        summaryAuthority: "taxsorted-analysis-of-primary-law",
+      },
+      related: {
+        taxTreatment: { id: rule.taxTreatmentId },
+        authoritySource: {
+          id: rule.authoritySourceId,
+          authorityLevel: "primary-law",
+          publicationMode: "metadata-only",
+        },
+        administrators: [{ id: rule.administeredByRegulatorIds[0] }],
+      },
+    });
+
+    const procedure = ukCharities.officialProcedures[0];
+    const byProcedureShape = await app.request(
+      "/v1/charities/uk/official-procedures?"
+        + new URLSearchParams({
+          taxTreatmentId: procedure.taxTreatmentId,
+          taxpayerClass: procedure.taxpayerClass,
+          procedureType: procedure.procedureType,
+          taxRuleId: procedure.taxRuleIds[0],
+          regulatorId: procedure.handledByRegulatorIds[0],
+          sourceId: procedure.legalBasisSourceIds[0],
+        }).toString()
+    );
+    expect(byProcedureShape.status).toBe(200);
+    expect(await byProcedureShape.json()).toMatchObject({
+      data: [{
+        id: procedure.id,
+        applicability: "conditional-sector-map-case-selection-required",
+      }],
+      page: { total: 1, returned: 1 },
+    });
+
+    const procedureDetail = await app.request(
+      `/v1/charities/uk/official-procedures/${procedure.id}`
+    );
+    expect(procedureDetail.status).toBe(200);
+    expect(await procedureDetail.json()).toMatchObject({
+      data: {
+        id: procedure.id,
+        summaryAuthority: "taxsorted-analysis-of-primary-law",
+        requiredCaseSelectors: expect.arrayContaining([
+          "decision-type",
+          "hmrc-requirement-made-date",
+          "specification-notice-status",
+          "specification-notice-date-if-given",
+          "taxpayer-class",
+          "tax-period",
+        ]),
+      },
+      related: {
+        taxTreatment: { id: procedure.taxTreatmentId },
+        taxRules: [{ id: procedure.taxRuleIds[0] }],
+        legalBasis: [{ id: procedure.legalBasisSourceIds[0] }],
+        regulators: {
+          handling: [{ id: procedure.handledByRegulatorIds[0] }],
+        },
+      },
+    });
+
     const exactSource = await app.request(
       `/v1/charities/uk/sources?sourceId=${encodeURIComponent(ukCharities.sources[0].id)}`
     );
@@ -398,6 +490,7 @@ describe("public UK charity-sector API", () => {
     const search = await app.request(
       `/v1/charities/uk/regulators?q=${encodeURIComponent(regulator.id)}&offset=0&limit=100`
     );
+    expect(search.headers.get("cache-control")).toBe("no-store");
     expect((await search.json()).data).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: regulator.id })])
     );
@@ -462,6 +555,29 @@ describe("public UK charity-sector API", () => {
     });
   });
 
+  it("marks free-text searches no-store without relying on outer middleware", async () => {
+    const routes = createUkCharitiesRoutes({
+      corpus: ukCharities,
+      publicDataEnabled: true,
+    });
+    const path = `/regulators?q=${encodeURIComponent(ukCharities.regulators[0].id)}`;
+    const first = await routes.request(path);
+    expect(first.status).toBe(200);
+    expect(first.headers.get("cache-control")).toBe("no-store");
+    const etag = first.headers.get("etag")!;
+
+    const head = await routes.request(path, { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(head.headers.get("cache-control")).toBe("no-store");
+    expect(await head.text()).toBe("");
+
+    const unchanged = await routes.request(path, {
+      headers: { "If-None-Match": etag },
+    });
+    expect(unchanged.status).toBe(304);
+    expect(unchanged.headers.get("cache-control")).toBe("no-store");
+  });
+
   it("rejects unknown, irrelevant, repeated and invalid query values", async () => {
     const { app } = mount();
     for (const filter of [
@@ -519,6 +635,56 @@ describe("public UK charity-sector API", () => {
       filter: "fundingType",
     });
 
+    const badProcedureType = await app.request(
+      "/v1/charities/uk/official-procedures?procedureType=not-a-procedure"
+    );
+    expect(badProcedureType.status).toBe(400);
+    expect(await badProcedureType.json()).toMatchObject({
+      error: "invalid_filter",
+      filter: "procedureType",
+    });
+
+    for (const path of ["tax-rules", "official-procedures"]) {
+      for (const query of [
+        "q=",
+        "q=%20",
+        "limit=",
+        "limit=%20",
+        "offset=",
+        "offset=%20",
+      ]) {
+        const response = await app.request(`/v1/charities/uk/${path}?${query}`);
+        expect(response.status, `${path}?${query}`).toBe(400);
+        expect(await response.json(), `${path}?${query}`).toMatchObject({
+          error: "invalid_filter",
+          collection: path,
+        });
+      }
+    }
+
+    for (const query of [
+      "tax-rules?taxTreatmentId=",
+      "official-procedures?taxRuleId=%20",
+    ]) {
+      const response = await app.request(`/v1/charities/uk/${query}`);
+      expect(response.status, query).toBe(400);
+      expect(await response.json(), query).toMatchObject({
+        error: "invalid_filter",
+        collection: query.split("?", 1)[0],
+      });
+    }
+
+    for (const [path, filter] of [
+      ["tax-rules", "taxTreatmentId=tax-treatment-not-real"],
+      ["official-procedures", "taxRuleId=rule-not-real"],
+    ] as const) {
+      const response = await app.request(`/v1/charities/uk/${path}?${filter}`);
+      expect(response.status, `${path}?${filter}`).toBe(400);
+      expect(await response.json(), `${path}?${filter}`).toMatchObject({
+        error: "invalid_filter",
+      });
+    }
+
     const badPage = await app.request("/v1/charities/uk/sources?limit=101");
     expect(badPage.status).toBe(400);
     expect(await badPage.json()).toMatchObject({
@@ -549,6 +715,8 @@ describe("public UK charity-sector API", () => {
     expect(schema.status).toBe(200);
     expect(schema.headers.get("content-type")).toContain("application/schema+json");
     expect(schemaBody.properties).toHaveProperty("taxTreatments");
+    expect(schemaBody.properties).toHaveProperty("taxRules");
+    expect(schemaBody.properties).toHaveProperty("officialProcedures");
     expect(schemaBody.properties).not.toHaveProperty("people");
     expect(schemaBody.properties).not.toHaveProperty("organisations");
 
@@ -561,6 +729,7 @@ describe("public UK charity-sector API", () => {
       peopleRecords: false,
       personalReligionOrBeliefData: false,
     });
+    expect(dictionaryBody.conventions.search).toMatch(/Cache-Control: no-store/);
     const finance = dictionaryBody.collections.find(
       (collection: { pathName: string }) => collection.pathName === "finance"
     );
@@ -575,6 +744,79 @@ describe("public UK charity-sector API", () => {
       whyGraphUrlTemplate:
         "/v1/charities/uk/tax-treatments/{id}/why-graph",
     });
+    const taxRuleDictionary = dictionaryBody.collections.find(
+      (collection: { pathName: string }) => collection.pathName === "tax-rules",
+    );
+    expect(taxRuleDictionary).toMatchObject({
+      corpusKey: "taxRules",
+      queryFilters: expect.arrayContaining([
+        "taxTreatmentId",
+        "taxpayerClass",
+        "ruleRole",
+        "regulatorId",
+        "sourceId",
+      ]),
+      references: expect.objectContaining({
+        taxTreatmentId: "tax-treatments",
+        authoritySourceId: "sources",
+        administeredByRegulatorIds: "regulators",
+      }),
+    });
+    expect(
+      taxRuleDictionary.fields.find(
+        (field: { name: string }) => field.name === "treatmentFieldPointers",
+      ).allowedValues,
+    ).toEqual(expect.arrayContaining(["/conditions", "/reasoning"]));
+    expect(
+      taxRuleDictionary.fields.find(
+        (field: { name: string }) => field.name === "reasoningStepIds",
+      ).allowedValues,
+    ).toEqual(expect.arrayContaining(["classification", "source-reading"]));
+    expect(
+      taxRuleDictionary.fields.find(
+        (field: { name: string }) => field.name === "summaryAuthority",
+      ).allowedValues,
+    ).toEqual(["taxsorted-analysis-of-primary-law"]);
+    const procedureDictionary = dictionaryBody.collections.find(
+      (collection: { pathName: string }) => collection.pathName === "official-procedures",
+    );
+    expect(procedureDictionary).toMatchObject({
+      corpusKey: "officialProcedures",
+      queryFilters: expect.arrayContaining([
+        "taxTreatmentId",
+        "taxpayerClass",
+        "procedureType",
+        "taxRuleId",
+        "regulatorId",
+        "sourceId",
+      ]),
+      references: expect.objectContaining({
+        taxRuleIds: "tax-rules",
+        nextProcedureIds: "official-procedures",
+        legalBasisSourceIds: "sources",
+      }),
+    });
+    expect(
+      procedureDictionary.fields.find(
+        (field: { name: string }) => field.name === "procedureType",
+      ).allowedValues,
+    ).toEqual(["attribution-specification-determination"]);
+    expect(
+      procedureDictionary.fields.find(
+        (field: { name: string }) => field.name === "requiredCaseSelectors",
+      ).allowedValues,
+    ).toEqual(
+      expect.arrayContaining([
+        "hmrc-requirement-made-date",
+        "specification-notice-status",
+        "specification-notice-date-if-given",
+      ]),
+    );
+    expect(
+      procedureDictionary.fields.find(
+        (field: { name: string }) => field.name === "nextProcedureIds",
+      ).meaning,
+    ).toMatch(/empty list is not a claim/i);
 
     const index = await app.request("/v1/charities/uk/exports");
     const indexBody = await index.json();
@@ -586,6 +828,16 @@ describe("public UK charity-sector API", () => {
       available: true,
       count: ukCharities.sources.length,
     });
+    expect(indexBody.collections).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        pathName: "tax-rules",
+        count: ukCharities.taxRules.length,
+      }),
+      expect.objectContaining({
+        pathName: "official-procedures",
+        count: ukCharities.officialProcedures.length,
+      }),
+    ]));
 
     const json = await app.request("/v1/charities/uk/exports/sources/json");
     const ndjson = await app.request("/v1/charities/uk/exports/sources/ndjson");
