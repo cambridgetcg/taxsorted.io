@@ -16,14 +16,28 @@ const collectionNames = [
   "registers",
   "legalForms",
   "taxTreatments",
+  "taxRules",
   "obligations",
   "fundingMechanisms",
   "financeDisclosures",
   "controlModels",
   "helpRoutes",
+  "officialProcedures",
   "pipelineStages",
   "transparencyGaps",
 ];
+const admittedTaxRuleIds = new Set([
+  "rule-ita-2007-s539", "rule-ita-2007-s540", "rule-ita-2007-s541",
+  "rule-ita-2007-s542", "rule-ita-2007-s543", "rule-ita-2007-s562",
+  "rule-ita-2007-s563", "rule-ita-2007-s564", "rule-cta-2010-s492",
+  "rule-cta-2010-s493", "rule-cta-2010-s494", "rule-cta-2010-s495",
+  "rule-cta-2010-s496", "rule-cta-2010-s515", "rule-cta-2010-s516",
+  "rule-cta-2010-s517",
+]);
+const admittedOfficialProcedureIds = new Set([
+  "procedure-ita-2007-s542-attribution-specification",
+  "procedure-cta-2010-s495-attribution-specification",
+]);
 const expectedTopLevel = new Set(["schema", "meta", ...collectionNames]);
 const idPattern = /^[a-z0-9][a-z0-9-]*$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -79,9 +93,9 @@ function expandJurisdictions(values) {
   return expanded;
 }
 
-if (corpus.schema !== "taxsorted.uk.charities/1") fail("unexpected schema identifier");
-if (!corpus.meta || corpus.meta.reviewedOn !== "2026-07-12") {
-  fail("meta.reviewedOn must be the reviewed snapshot date 2026-07-12");
+if (corpus.schema !== "taxsorted.uk.charities/2") fail("unexpected schema identifier");
+if (!corpus.meta || corpus.meta.reviewedOn !== "2026-07-13") {
+  fail("meta.reviewedOn must be the reviewed snapshot date 2026-07-13");
 }
 for (const key of Object.keys(corpus)) {
   if (!expectedTopLevel.has(key)) fail(`unexpected top-level key: ${key}`);
@@ -185,9 +199,22 @@ const known = {
   register: new Set(corpus.registers.map((item) => item.id)),
   legalForm: new Set(corpus.legalForms.map((item) => item.id)),
   taxTreatment: new Set(corpus.taxTreatments.map((item) => item.id)),
+  taxRule: new Set(corpus.taxRules.map((item) => item.id)),
+  officialProcedure: new Set(corpus.officialProcedures.map((item) => item.id)),
   pipelineStage: new Set(corpus.pipelineStages.map((item) => item.id)),
   corpusItem: allIds,
 };
+for (const [label, actual, expected] of [
+  ["tax rule", known.taxRule, admittedTaxRuleIds],
+  ["official procedure", known.officialProcedure, admittedOfficialProcedureIds],
+]) {
+  for (const expectedId of expected) {
+    if (!actual.has(expectedId)) fail(`missing admitted ${label}: ${expectedId}`);
+  }
+  for (const actualId of actual) {
+    if (!expected.has(actualId)) fail(`unadmitted ${label}: ${actualId}`);
+  }
+}
 function refs(owner, values, target, label) {
   unique(owner, values, `${label} reference`);
   for (const value of values) {
@@ -200,12 +227,162 @@ for (const item of corpus.obligations) refs(item.id, item.regulatorIds, known.re
 for (const item of corpus.fundingMechanisms) {
   refs(item.id, item.taxTreatmentIds, known.taxTreatment, "tax treatment");
 }
+const exactPrimaryLawUrl = /^https:\/\/www\.legislation\.gov\.uk\/(?:ukpga|uksi|ukla|asp|asc|anaw|nia|nisi)\/[^?#]+\/(?:section|regulation|article|rule|schedule\/[^/]+\/paragraph)\/[^/?#]+(?:\/[^?#]+)*$/;
+for (const item of corpus.taxRules) {
+  if (item.taxTreatmentId !== "tax-non-charitable-expenditure") {
+    fail(`${item.id} is outside the admitted non-charitable-expenditure treatment`);
+  }
+  refs(item.id, [item.taxTreatmentId], known.taxTreatment, "tax treatment");
+  refs(item.id, item.administeredByRegulatorIds, known.regulator, "administering regulator");
+  for (const regulatorId of item.administeredByRegulatorIds) {
+    const regulator = corpus.regulators.find((candidate) => candidate.id === regulatorId);
+    if (regulator && regulator.kind !== "tax-authority") {
+      fail(`${item.id} administrator is not a tax authority: ${regulatorId}`);
+    }
+  }
+  const treatment = corpus.taxTreatments.find((candidate) => candidate.id === item.taxTreatmentId);
+  unique(item.id, item.treatmentFieldPointers ?? [], "treatment field pointer");
+  unique(item.id, item.reasoningStepIds ?? [], "reasoning step");
+  for (const pointer of item.treatmentFieldPointers ?? []) {
+    if (!treatment || !pointerExists(treatment, pointer)) {
+      fail(`${item.id} points to a missing treatment field: ${pointer}`);
+    }
+  }
+  const authority = sourcesById.get(item.authoritySourceId);
+  if (!item.sourceIds.includes(item.authoritySourceId)) {
+    fail(`${item.id} authority source missing from sourceIds: ${item.authoritySourceId}`);
+  }
+  if (
+    !authority || authority.authorityLevel !== "primary-law" ||
+    authority.status !== "current" || authority.reuseStatus !== "confirmed" ||
+    authority.publicationMode !== "metadata-only" ||
+    authority.publisher !== "legislation.gov.uk" || !exactPrimaryLawUrl.test(authority.url)
+  ) {
+    fail(`${item.id} authority is not an exact current primary-law provision`);
+  }
+  const citation = /^(.*) (\d{4}) s ([0-9A-Za-z]+)$/.exec(item.citation ?? "");
+  if (
+    !citation || !authority?.title.startsWith(`${citation[1]} ${citation[2]}, section ${citation[3]} `) ||
+    !authority.url.endsWith(`/section/${citation[3]}`)
+  ) {
+    fail(`${item.id} citation does not identify its exact authority source`);
+  }
+  if (
+    (item.citation?.startsWith("Income Tax Act ") && item.taxpayerClass !== "charitable-trust-income-tax") ||
+    (item.citation?.startsWith("Corporation Tax Act ") && item.taxpayerClass !== "charitable-company-corporation-tax")
+  ) {
+    fail(`${item.id} taxpayer class conflicts with its cited instrument`);
+  }
+  if (item.effectiveFrom && item.effectiveTo && item.effectiveFrom > item.effectiveTo) {
+    fail(`${item.id} effectiveFrom is after effectiveTo`);
+  }
+}
 for (const item of corpus.financeDisclosures) refs(item.id, item.registerIds, known.register, "register");
 for (const item of corpus.controlModels) refs(item.id, item.legalFormIds, known.legalForm, "legal form");
 for (const item of corpus.helpRoutes) {
   refs(item.id, item.registerIds, known.register, "register");
   refs(item.id, item.regulatorIds, known.regulator, "regulator");
   if (!item.serviceUrl?.startsWith("https://")) fail(`${item.id} serviceUrl must use HTTPS`);
+}
+for (const item of corpus.officialProcedures) {
+  if (item.taxTreatmentId !== "tax-non-charitable-expenditure") {
+    fail(`${item.id} is outside the admitted non-charitable-expenditure treatment`);
+  }
+  refs(item.id, [item.taxTreatmentId], known.taxTreatment, "tax treatment");
+  refs(item.id, item.taxRuleIds, known.taxRule, "tax rule");
+  refs(item.id, item.nextProcedureIds, known.officialProcedure, "official procedure");
+  refs(item.id, item.administeredByRegulatorIds, known.regulator, "administering regulator");
+  refs(item.id, item.handledByRegulatorIds, known.regulator, "handling regulator");
+  refs(item.id, item.decisionByRegulatorIds, known.regulator, "decision regulator");
+  for (const [role, regulatorIds] of [
+    ["administering", item.administeredByRegulatorIds],
+    ["handling", item.handledByRegulatorIds],
+    ["decision", item.decisionByRegulatorIds],
+  ]) {
+    if (regulatorIds.length === 0) fail(`${item.id} has no ${role} regulator`);
+  }
+  const treatment = corpus.taxTreatments.find((candidate) => candidate.id === item.taxTreatmentId);
+  unique(item.id, item.treatmentFieldPointers ?? [], "treatment field pointer");
+  for (const pointer of item.treatmentFieldPointers ?? []) {
+    if (!treatment || !pointerExists(treatment, pointer)) {
+      fail(`${item.id} points to a missing treatment field: ${pointer}`);
+    }
+  }
+  unique(item.id, item.requiredCaseSelectors ?? [], "required case selector");
+  const minimumSelectors = [
+    "decision-type",
+    "hmrc-requirement-made-date",
+    "specification-notice-status",
+    "specification-notice-date-if-given",
+    "taxpayer-class",
+    "tax-period",
+    "jurisdiction",
+  ];
+  for (const selector of minimumSelectors) {
+    if (!item.requiredCaseSelectors.includes(selector)) {
+      fail(`${item.id} omits required case selector: ${selector}`);
+    }
+  }
+  const linkedRules = item.taxRuleIds
+    .map((ruleId) => corpus.taxRules.find((candidate) => candidate.id === ruleId))
+    .filter(Boolean);
+  for (const rule of linkedRules) {
+    if (rule.taxTreatmentId !== item.taxTreatmentId || rule.taxpayerClass !== item.taxpayerClass) {
+      fail(`${item.id} links a tax rule from another treatment or taxpayer class: ${rule.id}`);
+    }
+  }
+  for (const nextProcedureId of item.nextProcedureIds) {
+    const nextProcedure = corpus.officialProcedures.find(
+      (candidate) => candidate.id === nextProcedureId,
+    );
+    if (
+      nextProcedure &&
+      (nextProcedure.taxTreatmentId !== item.taxTreatmentId ||
+        nextProcedure.taxpayerClass !== item.taxpayerClass)
+    ) {
+      fail(`${item.id} links a next procedure from another treatment or taxpayer class: ${nextProcedure.id}`);
+    }
+  }
+  const linkedAuthoritySourceIds = [...new Set(
+    linkedRules.map((rule) => rule.authoritySourceId),
+  )].sort();
+  const declaredLegalBasisSourceIds = [...item.legalBasisSourceIds].sort();
+  if (linkedAuthoritySourceIds.join("\u0000") !== declaredLegalBasisSourceIds.join("\u0000")) {
+    fail(`${item.id} legal bases do not exactly match linked tax rule authorities`);
+  }
+  const linkedTreatmentPointers = [...new Set(
+    linkedRules.flatMap((rule) => rule.treatmentFieldPointers),
+  )].sort();
+  const declaredTreatmentPointers = [...item.treatmentFieldPointers].sort();
+  if (linkedTreatmentPointers.join("\u0000") !== declaredTreatmentPointers.join("\u0000")) {
+    fail(`${item.id} treatment fields do not exactly match linked tax rules`);
+  }
+  const linkedAdministratorIds = [...new Set(
+    linkedRules.flatMap((rule) => rule.administeredByRegulatorIds),
+  )].sort();
+  for (const [role, regulatorIds] of [
+    ["administering", item.administeredByRegulatorIds],
+    ["handling", item.handledByRegulatorIds],
+    ["decision", item.decisionByRegulatorIds],
+  ]) {
+    if ([...regulatorIds].sort().join("\u0000") !== linkedAdministratorIds.join("\u0000")) {
+      fail(`${item.id} ${role} regulators do not exactly match linked tax rule administrators`);
+    }
+  }
+  if (item.nextProcedureIds.includes(item.id)) fail(`${item.id} points to itself`);
+  for (const sourceId of item.legalBasisSourceIds ?? []) {
+    const source = sourcesById.get(sourceId);
+    if (!item.sourceIds.includes(sourceId)) {
+      fail(`${item.id} legal basis missing from sourceIds: ${sourceId}`);
+    }
+    if (
+      !source || source.authorityLevel !== "primary-law" || source.status !== "current" ||
+      source.reuseStatus !== "confirmed" || source.publicationMode !== "metadata-only" ||
+      !exactPrimaryLawUrl.test(source.url)
+    ) {
+      fail(`${item.id} legal basis is not an exact primary-law provision: ${sourceId}`);
+    }
+  }
 }
 const laneOrders = new Set();
 for (const item of corpus.pipelineStages) {

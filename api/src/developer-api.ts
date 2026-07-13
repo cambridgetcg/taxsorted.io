@@ -315,33 +315,167 @@ const CharitiesCollection = z.enum([
   "registers",
   "legal-forms",
   "tax-treatments",
+  "tax-rules",
   "obligations",
   "funding",
   "finance",
   "control",
   "help",
+  "official-procedures",
   "pipeline",
   "gaps",
 ]);
+const CharityTaxpayerClass = z.enum([
+  "charity-cross-tax",
+  "charitable-trust-income-tax",
+  "charitable-company-corporation-tax",
+]);
+const CharityProcedureTaxpayerClass = z.enum([
+  "charitable-trust-income-tax",
+  "charitable-company-corporation-tax",
+]);
+const CharityTaxRuleRole = z.enum([
+  "gateway",
+  "restriction",
+  "calculation",
+  "attribution",
+  "definition",
+  "transition",
+  "procedure",
+]);
+const CharityProcedureType = z.enum([
+  "attribution-specification-determination",
+]);
+const CharityJurisdiction = z.enum([
+  "United Kingdom",
+  "England",
+  "Wales",
+  "England and Wales",
+  "Scotland",
+  "Northern Ireland",
+]);
+const nonBlankCharityQuery = z.string().min(1).regex(/\S/);
+const charityTaxTreatmentIdQuery = z.string().min(1).regex(/\S/).openapi({
+  description:
+    "Exact tax-treatment record ID. Discover valid IDs from /v1/charities/uk/tax-treatments or the dictionary.",
+  example: "tax-non-charitable-expenditure",
+});
+const charityTaxRuleIdQuery = z.string().min(1).regex(/\S/).openapi({
+  description:
+    "Exact provision-level tax-rule ID. Discover valid IDs from /v1/charities/uk/tax-rules or the dictionary.",
+  example: "rule-ita-2007-s542",
+});
 const CharitiesQuery = z.object({
-  q: z.string().max(100).optional(),
-  jurisdiction: z.string().optional(),
-  kind: z.string().optional(),
-  type: z.string().optional(),
-  status: z.string().optional(),
-  taxType: z.string().optional(),
-  obligationType: z.string().optional(),
-  fundingType: z.string().optional(),
-  helpCategory: z.string().optional(),
-  regulatorId: z.string().optional(),
-  sourceId: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(100).optional(),
-  offset: z.coerce.number().int().nonnegative().optional(),
+  q: z.string().min(1).max(100).regex(/\S/).optional(),
+  jurisdiction: CharityJurisdiction.optional(),
+  kind: nonBlankCharityQuery.optional(),
+  type: nonBlankCharityQuery.optional(),
+  status: nonBlankCharityQuery.optional(),
+  taxType: nonBlankCharityQuery.optional(),
+  obligationType: nonBlankCharityQuery.optional(),
+  fundingType: nonBlankCharityQuery.optional(),
+  helpCategory: nonBlankCharityQuery.optional(),
+  taxTreatmentId: charityTaxTreatmentIdQuery.optional(),
+  taxpayerClass: CharityTaxpayerClass.openapi({
+    description: "Taxpayer branch used by a provision or procedure record.",
+  }).optional(),
+  ruleRole: CharityTaxRuleRole.openapi({
+    description: "Function the exact provision performs in the mapped law spine.",
+  }).optional(),
+  procedureType: CharityProcedureType.openapi({
+    description: "Exact procedure profile admitted in this corpus release.",
+  }).optional(),
+  taxRuleId: charityTaxRuleIdQuery.optional(),
+  regulatorId: nonBlankCharityQuery.optional(),
+  sourceId: nonBlankCharityQuery.optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+  offset: z.number().int().nonnegative().optional(),
+});
+const CharityTaxRuleQuery = CharitiesQuery.pick({
+  q: true,
+  jurisdiction: true,
+  taxTreatmentId: true,
+  taxpayerClass: true,
+  ruleRole: true,
+  regulatorId: true,
+  sourceId: true,
+  limit: true,
+  offset: true,
+});
+const CharityOfficialProcedureQuery = CharitiesQuery.pick({
+  q: true,
+  jurisdiction: true,
+  taxTreatmentId: true,
+  procedureType: true,
+  taxRuleId: true,
+  regulatorId: true,
+  sourceId: true,
+  limit: true,
+  offset: true,
+}).extend({
+  taxpayerClass: CharityProcedureTaxpayerClass.openapi({
+    description: "Trust or company branch used by the exact procedure record.",
+  }).optional(),
 });
 const CharitiesPublicJson = z
   .object({})
   .passthrough()
   .openapi("UkCharitiesResponse");
+const CharityListPage = z.object({
+  total: z.number().int().nonnegative(),
+  returned: z.number().int().nonnegative(),
+  limit: z.number().int().min(1).max(100),
+  offset: z.number().int().nonnegative(),
+});
+const CharityListProvenance = z.object({
+  corpusVersion: z.string(),
+  reviewedOn: z.string(),
+  sourceLedger: z.string(),
+  registers: z.string(),
+  gaps: z.string(),
+});
+const CharityTaxRuleRecord = ukCharitiesSchema.shape.taxRules.element;
+const CharityOfficialProcedureRecord =
+  ukCharitiesSchema.shape.officialProcedures.element;
+const CharitySourceRecord = ukCharitiesSchema.shape.sources.element;
+const CharityRegulatorRecord = ukCharitiesSchema.shape.regulators.element;
+const CharityTaxTreatmentRecord = ukCharitiesSchema.shape.taxTreatments.element;
+const CharityTaxRuleList = z.object({
+  data: z.array(CharityTaxRuleRecord),
+  page: CharityListPage,
+  filters: z.record(z.string(), z.string()),
+  provenance: CharityListProvenance,
+}).openapi("UkCharityTaxRuleList");
+const CharityTaxRuleDetail = z.object({
+  data: CharityTaxRuleRecord,
+  evidence: z.array(CharitySourceRecord),
+  related: z.object({
+    taxTreatment: CharityTaxTreatmentRecord.nullable(),
+    authoritySource: CharitySourceRecord.nullable(),
+    administrators: z.array(CharityRegulatorRecord),
+  }),
+}).openapi("UkCharityTaxRuleDetail");
+const CharityOfficialProcedureList = z.object({
+  data: z.array(CharityOfficialProcedureRecord),
+  page: CharityListPage,
+  filters: z.record(z.string(), z.string()),
+  provenance: CharityListProvenance,
+}).openapi("UkCharityOfficialProcedureList");
+const CharityOfficialProcedureDetail = z.object({
+  data: CharityOfficialProcedureRecord,
+  evidence: z.array(CharitySourceRecord),
+  related: z.object({
+    taxTreatment: CharityTaxTreatmentRecord.nullable(),
+    taxRules: z.array(CharityTaxRuleRecord),
+    nextProcedures: z.array(CharityOfficialProcedureRecord),
+    regulators: z.object({
+      administering: z.array(CharityRegulatorRecord),
+      handling: z.array(CharityRegulatorRecord),
+      deciding: z.array(CharityRegulatorRecord),
+    }),
+    legalBasis: z.array(CharitySourceRecord),
+  }),
+}).openapi("UkCharityOfficialProcedureDetail");
 const CharityAccountabilityFrameworkJson = z
   .object({
     id: z.literal("uk-charity-accountability"),
@@ -1307,7 +1441,7 @@ const publicResponseHeaders = {
     schema: { type: "string" as const },
   },
   "Cache-Control": {
-    description: "Public cache policy with bounded revalidation.",
+    description: "Cache policy for this exact response representation.",
     schema: { type: "string" as const },
   },
   Link: {
@@ -2799,7 +2933,7 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     operationId: "getUkCharityTaxTreatmentWhyGraph",
     summary: "Trace one UK charity tax-treatment record",
     description:
-      "Returns a raw taxsorted.why-graph/1 derived from one canonical sector tax-treatment record. Field-level evidence links resolve to the reviewed source ledger. Guidance remains guidance; exact binding provisions, case applicability, and case enforcement or challenge routes end in explicit gaps.",
+      "Returns a raw taxsorted.why-graph/1 derived from one canonical sector tax-treatment record. Field-level evidence links resolve to the reviewed source ledger. Guidance remains guidance. The non-charitable-expenditure treatment includes a selected exact primary-law spine as checked-not-decisive rule nodes; other binding law, case applicability, and case enforcement or challenge routes end in explicit gaps.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ id: z.string() }),
@@ -2863,11 +2997,267 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
 
   app.openAPIRegistry.registerPath({
     method: "get",
+    path: "/v1/charities/uk/tax-rules",
+    operationId: "queryUkCharityTaxRules",
+    summary: "Query exact UK charity tax-law provisions",
+    description:
+      "Returns provision-level records with exact primary-law selectors, taxpayer branches, treatment-field mappings, conditions, dates and explicit non-proofs. A rule record is not a case finding.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: CharityTaxRuleQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Filtered provision-level tax rules with paging and provenance.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharityTaxRuleList } },
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Unknown, repeated, empty or invalid tax-rule filter.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "The tax-rule collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/tax-rules",
+    operationId: "headUkCharityTaxRules",
+    summary: "Check a UK charity tax-rule query",
+    description:
+      "Returns the same validators as GET for this exact filtered query without a response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: CharityTaxRuleQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current filtered tax-rule representation metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Unknown, repeated, empty or invalid tax-rule filter." },
+      503: { description: "The tax-rule collection is disabled or emergency-stopped." },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/tax-rules/{id}",
+    operationId: "getUkCharityTaxRule",
+    summary: "Read one exact UK charity tax-law provision record",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        id: z.string().openapi({ example: "rule-ita-2007-s542" }),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description:
+          "One rule with its treatment, exact authority source and administering institutions resolved.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharityTaxRuleDetail } },
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Detail routes do not accept query parameters.",
+        content: charityErrorContent,
+      },
+      404: {
+        description: "No tax-rule record has that exact ID.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "The tax-rule collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/tax-rules/{id}",
+    operationId: "headUkCharityTaxRule",
+    summary: "Check one exact UK charity tax-law provision record",
+    description:
+      "Returns the same validators as GET for this exact record without a response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        id: z.string().openapi({ example: "rule-ita-2007-s542" }),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current tax-rule record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No tax-rule record has that exact ID." },
+      503: { description: "The tax-rule collection is disabled or emergency-stopped." },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/official-procedures",
+    operationId: "queryUkCharityOfficialProcedures",
+    summary: "Query admitted UK charity tax procedures",
+    description:
+      "Returns only procedures whose exact statutory trigger and case selectors are mapped. This release contains the trust and company attribution-specification determination branches; absence never implies a general assessment, appeal or collection route.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: CharityOfficialProcedureQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Filtered official procedures with paging and provenance.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharityOfficialProcedureList } },
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Unknown, repeated, empty or invalid procedure filter.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "The official-procedure collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/official-procedures",
+    operationId: "headUkCharityOfficialProcedures",
+    summary: "Check a UK charity tax-procedure query",
+    description:
+      "Returns the same validators as GET for this exact filtered query without a response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      query: CharityOfficialProcedureQuery,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current filtered official-procedure representation metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact query representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Unknown, repeated, empty or invalid procedure filter." },
+      503: {
+        description: "The official-procedure collection is disabled or emergency-stopped.",
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/charities/uk/official-procedures/{id}",
+    operationId: "getUkCharityOfficialProcedure",
+    summary: "Read one admitted UK charity tax procedure",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        id: z.string().openapi({
+          example: "procedure-ita-2007-s542-attribution-specification",
+        }),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description:
+          "One conditional procedure with linked rule, legal basis, institution roles and next procedures resolved.",
+        headers: publicResponseHeaders,
+        content: { "application/json": { schema: CharityOfficialProcedureDetail } },
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: {
+        description: "Detail routes do not accept query parameters.",
+        content: charityErrorContent,
+      },
+      404: {
+        description: "No official-procedure record has that exact ID.",
+        content: charityErrorContent,
+      },
+      503: {
+        description: "The official-procedure collection is disabled or emergency-stopped.",
+        content: charityErrorContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/charities/uk/official-procedures/{id}",
+    operationId: "headUkCharityOfficialProcedure",
+    summary: "Check one admitted UK charity tax procedure",
+    description:
+      "Returns the same validators as GET for this exact record without a response body.",
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        id: z.string().openapi({
+          example: "procedure-ita-2007-s542-attribution-specification",
+        }),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current official-procedure record metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "This exact record representation is unchanged.",
+        headers: publicResponseHeaders,
+      },
+      400: { description: "Detail routes do not accept query parameters." },
+      404: { description: "No official-procedure record has that exact ID." },
+      503: {
+        description: "The official-procedure collection is disabled or emergency-stopped.",
+      },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
     path: "/v1/charities/uk/{collection}",
     operationId: "queryUkCharitiesCollection",
     summary: "Query the bounded UK charity-sector map",
     description:
-      "Queries regulators, official register doors, legal forms, conditional tax treatments, obligations, funding mechanisms, finance disclosures, control models, generic help routes, pipeline stages and gaps. Filters are collection-specific; the dictionary is authoritative and unsupported collection/filter pairs return 400. There are no charity-by-charity or people records and no religion or name filter.",
+      "Queries regulators, official register doors, legal forms, conditional tax treatments, provision-level tax rules, obligations, funding mechanisms, finance disclosures, control models, generic help routes, narrowly admitted official procedures, pipeline stages and gaps. Filters are collection-specific; the dictionary is authoritative and unsupported collection/filter pairs return 400. There are no charity-by-charity or people records and no religion or name filter.",
     request: {
       headers: ConditionalRequestHeaders,
       params: z.object({ collection: CharitiesCollection }),

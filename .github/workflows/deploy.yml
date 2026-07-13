@@ -28,6 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Require main for a manual production release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${GITHUB_REF}" != 'refs/heads/main' ]; then
+            echo 'Manual production releases must run from main.' >&2
+            exit 1
+          fi
+
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -545,7 +553,28 @@ jobs:
               .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/WhyGraph" and
               (.paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses | has("503")) and
               .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].headers["X-Schema-Version"].schema.enum == ["taxsorted.why-graph/1"] and
-              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].headers["X-TaxSorted-Why-Graph-Adopter"].schema.enum == ["uk.charities.tax-treatment"]' >/dev/null
+              .paths["/v1/charities/uk/tax-treatments/{id}/why-graph"].get.responses["200"].headers["X-TaxSorted-Why-Graph-Adopter"].schema.enum == ["uk.charities.tax-treatment"] and
+              .paths["/v1/charities/uk/tax-rules"].get.security == [] and
+              .paths["/v1/charities/uk/tax-rules"].head.security == [] and
+              .paths["/v1/charities/uk/tax-rules"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/UkCharityTaxRuleList" and
+              .paths["/v1/charities/uk/tax-rules/{id}"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/UkCharityTaxRuleDetail" and
+              .paths["/v1/charities/uk/tax-rules/{id}"].head.security == [] and
+              .paths["/v1/charities/uk/official-procedures"].get.security == [] and
+              .paths["/v1/charities/uk/official-procedures"].head.security == [] and
+              .paths["/v1/charities/uk/official-procedures"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/UkCharityOfficialProcedureList" and
+              .paths["/v1/charities/uk/official-procedures/{id}"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/UkCharityOfficialProcedureDetail" and
+              .paths["/v1/charities/uk/official-procedures/{id}"].head.security == [] and
+              any(.paths["/v1/charities/uk/tax-rules"].get.parameters[];
+                .name == "jurisdiction" and (.schema.enum | length) == 6) and
+              any(.paths["/v1/charities/uk/official-procedures"].get.parameters[];
+                .name == "procedureType" and
+                .schema.enum == ["attribution-specification-determination"]) and
+              any(.paths["/v1/charities/uk/{collection}"].get.parameters[];
+                .name == "collection" and
+                (.schema.enum | index("tax-rules")) != null and
+                (.schema.enum | index("official-procedures")) != null) and
+              (["taxTreatmentId", "taxpayerClass", "ruleRole", "procedureType", "taxRuleId"]
+                - [.paths["/v1/charities/uk/{collection}"].get.parameters[].name] | length) == 0' >/dev/null
 
           charity_recognition_path='/v1/charities/uk/tax-treatments/tax-hmrc-recognition/why-graph'
           charity_analysis_path='/v1/charities/uk/tax-treatments/tax-public-benefit-bargain-analysis/why-graph'
@@ -571,7 +600,7 @@ jobs:
                 .context.effect == "advisory" and
                 .context.externalStateChange == false and
                 .context.subject.type == "dataset-record" and
-                .context.subject.version == "2026-07-12.1" and
+                .context.subject.version == "2026-07-13.1" and
                 .valueHandling.factValues == "case-financial-and-identity-fact-values-not-copied-into-graph" and
                 .nodes[0].id <= .nodes[-1].id and
                 ([
@@ -615,6 +644,74 @@ jobs:
                   ' >/dev/null
               done
             done
+
+            charity_nce_path='/v1/charities/uk/tax-treatments/tax-non-charitable-expenditure/why-graph'
+            charity_nce_graph="${RUNNER_TEMP}/tax-non-charitable-expenditure.why-graph.json"
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --output "${charity_nce_graph}" \
+              "https://api.taxsorted.io${charity_nce_path}"
+            jq --exit-status '
+              .context.subject.version == "2026-07-13.1" and
+              ([
+                "gap:binding-provision-coverage-incomplete",
+                "gap:case-applicability-not-assessed",
+                "gap:case-enforcement-and-challenge-not-mapped",
+                "gap:dataset:gap-non-charitable-expenditure-law-and-procedure-coverage"
+              ] - .coverage.gapNodeIds | length) == 0 and
+              ([.nodes[] | select(.kind == "rule")] | length) == 16 and
+              all(.nodes[] | select(.kind == "rule");
+                .state == "checked-not-decisive" and
+                .record.kind == "dataset-record" and
+                .record.collection == "taxRules") and
+              ([.nodes[] | select(.kind == "process")] | length) == 0 and
+              ([.edges[] | select(.relation == "legal-authority-from")] | length) == 16 and
+              ([.edges[] | select(.relation == "administered-by")] | length) == 16 and
+              ([.edges[] | select(.relation == "considers-rule")] | length) > 0 and
+              ([.edges[] | select(.relation == "applies-rule" or .relation == "enforced-through")] | length) == 0
+            ' "${charity_nce_graph}" >/dev/null
+
+            jq --raw-output '
+              .nodes[] |
+              select(.kind == "source" and .record.kind == "dataset-record") |
+              select(.record.recordId | startswith("src-ita-2007-s") or startswith("src-cta-2010-s")) |
+              .record.href
+            ' "${charity_nce_graph}" | while IFS= read -r law_href; do
+              curl --fail --silent --show-error \
+                --connect-timeout 10 --max-time 30 \
+                "https://api.taxsorted.io${law_href}" | \
+                jq --exit-status '
+                  .data.authorityLevel == "primary-law" and
+                  .data.status == "current" and
+                  .data.reuseStatus == "confirmed" and
+                  .data.publicationMode == "metadata-only" and
+                  (.data.url | test("/(section|regulation|article|rule)/"))
+                ' >/dev/null
+            done
+
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/tax-rules?taxTreatmentId=tax-non-charitable-expenditure&limit=100' | \
+              jq --exit-status '
+                .page.total == 16 and
+                (.data | length) == 16 and
+                all(.data[];
+                  .taxTreatmentId == "tax-non-charitable-expenditure" and
+                  .summaryAuthority == "taxsorted-analysis-of-primary-law")
+              ' >/dev/null
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/official-procedures?taxTreatmentId=tax-non-charitable-expenditure&limit=100' | \
+              jq --exit-status '
+                .page.total == 2 and
+                (.data | length) == 2 and
+                all(.data[];
+                  .applicability == "conditional-sector-map-case-selection-required" and
+                  .summaryAuthority == "taxsorted-analysis-of-primary-law" and
+                  (.requiredCaseSelectors | index("hmrc-requirement-made-date")) != null and
+                  (.requiredCaseSelectors | index("specification-notice-status")) != null and
+                  (.doesNotProve | any(test("appeal"; "i"))))
+              ' >/dev/null
 
             jq --exit-status '
               .coverage.gapNodeIds | index("gap:dataset:gap-public-benefit-analysis-territory") != null
@@ -721,7 +818,7 @@ jobs:
             .resources.whyGraph.firstAdopter.runtimeEmitted == true and
             .resources.whyGraph.firstAdopter.wireSchemaOptionalForForwardCompatibleV1Readers == true and
             .resources.whyGraph.secondAdopter.endpointTemplate == "/v1/charities/uk/tax-treatments/{id}/why-graph" and
-            .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-12.1" and
+            .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-13.1" and
             .resources.whyGraph.secondAdopter.runtimeEmitted == true and
             .resources.whyGraph.secondAdopter.organisationOrCaseFacts == false and
             .resources.whyGraph.access.appliesTo == ["/v1/why-graph", "/v1/why-graph/adopters", "/v1/why-graph/schema"] and

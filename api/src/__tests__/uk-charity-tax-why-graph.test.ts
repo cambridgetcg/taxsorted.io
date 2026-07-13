@@ -209,9 +209,12 @@ describe("UK charity tax-treatment why-graph adapter", () => {
       expect(WhyGraphSchema.safeParse(first).success, treatment.id).toBe(true);
       expect(JSON.stringify(first), treatment.id).toBe(JSON.stringify(second));
       const bytes = Buffer.from(JSON.stringify(first));
-      expect(bytes.byteLength, `${treatment.id} raw size`).toBeLessThanOrEqual(32 * 1024);
+      const hasLawSpine = treatment.id === "tax-non-charitable-expenditure";
+      expect(bytes.byteLength, `${treatment.id} raw size`).toBeLessThanOrEqual(
+        (hasLawSpine ? 64 : 32) * 1024,
+      );
       expect(gzipSync(bytes).byteLength, `${treatment.id} gzip size`)
-        .toBeLessThanOrEqual(6 * 1024);
+        .toBeLessThanOrEqual((hasLawSpine ? 8 : 6) * 1024);
       expect(first.rootNodeId, treatment.id).toBe(
         `conclusion:tax-treatment:${treatment.id}`,
       );
@@ -243,11 +246,13 @@ describe("UK charity tax-treatment why-graph adapter", () => {
         href: `/v1/charities/uk/tax-treatments/${treatment.id}`,
       });
       expect(first.nodes.some((node) => node.kind === "rule"), treatment.id)
-        .toBe(false);
+        .toBe(hasLawSpine);
       expect(first.edges.some((edge) => edge.relation === "legal-authority-from"))
-        .toBe(false);
+        .toBe(hasLawSpine);
       expect(first.coverage.gapNodeIds).toEqual(expect.arrayContaining([
-        "gap:binding-provision-not-mapped",
+        hasLawSpine
+          ? "gap:binding-provision-coverage-incomplete"
+          : "gap:binding-provision-not-mapped",
         "gap:case-applicability-not-assessed",
         "gap:case-enforcement-and-challenge-not-mapped",
       ]));
@@ -255,6 +260,104 @@ describe("UK charity tax-treatment why-graph adapter", () => {
         /accountability|organisationId|personId|trusteeId|donorId|beneficiaryId/i,
       );
     }
+  });
+
+  it("maps exact law for the reverse-relief treatment without deciding a case", () => {
+    const native = graphFor("tax-non-charitable-expenditure");
+    const rules = native.graph.nodes.filter((node) => node.kind === "rule");
+    const institutions = native.graph.nodes.filter(
+      (node) => node.kind === "institution",
+    );
+
+    expect(rules).toHaveLength(native.corpus.taxRules.length);
+    expect(institutions.map((node) => node.id)).toEqual([
+      "institution:reg-hmrc-charities",
+    ]);
+    expect(rules.every((node) => node.state === "checked-not-decisive")).toBe(true);
+    expect(native.graph.edges.some((edge) => edge.relation === "applies-rule"))
+      .toBe(false);
+    expect(native.graph.nodes.some((node) => node.kind === "process")).toBe(false);
+
+    for (const rule of native.corpus.taxRules) {
+      const ruleNodeId = `rule:${rule.id}`;
+      expect(native.graph.edges).toContainEqual(expect.objectContaining({
+        from: ruleNodeId,
+        relation: "legal-authority-from",
+        to: `source:${rule.authoritySourceId}`,
+      }));
+      expect(native.graph.edges).toContainEqual(expect.objectContaining({
+        from: ruleNodeId,
+        relation: "administered-by",
+        to: "institution:reg-hmrc-charities",
+      }));
+      for (const step of rule.reasoningStepIds) {
+        expect(native.graph.edges).toContainEqual(expect.objectContaining({
+          from: `reasoning:${step}`,
+          relation: "considers-rule",
+          to: ruleNodeId,
+        }));
+      }
+    }
+    expect(native.graph.coverage.gapNodeIds).toEqual(expect.arrayContaining([
+      "gap:binding-provision-coverage-incomplete",
+      "gap:case-applicability-not-assessed",
+      "gap:case-enforcement-and-challenge-not-mapped",
+    ]));
+  });
+
+  it("rejects decisive law, valid-provision substitution and invented enforcement", () => {
+    const native = graphFor("tax-non-charitable-expenditure");
+
+    const decisive = structuredClone(native.graph);
+    decisive.nodes.find((node) => node.kind === "rule")!.state = "decisive";
+    assertMutationFails(
+      decisive,
+      native,
+      /unadmitted tax rule|exact adopter-owned|checked-not-decisive/i,
+    );
+
+    const substituted = structuredClone(native.graph);
+    const authorityNodes = substituted.nodes.filter((node) => (
+      node.kind === "source"
+      && node.record?.kind === "dataset-record"
+      && node.record.recordId.startsWith("src-ita-2007-s")
+    ));
+    expect(authorityNodes.length).toBeGreaterThan(1);
+    const first = authorityNodes[0];
+    const second = authorityNodes[1];
+    if (
+      first.record?.kind !== "dataset-record"
+      || second.record?.kind !== "dataset-record"
+    ) throw new Error("fixture");
+    first.record.recordId = second.record.recordId;
+    first.record.href = second.record.href;
+    assertMutationFails(substituted, native, /unadmitted source/i);
+
+    const applied = structuredClone(native.graph);
+    const considered = applied.edges.find((edge) => edge.relation === "considers-rule")!;
+    considered.relation = "applies-rule";
+    considered.id = whyGraphEdge(
+      considered.from,
+      "applies-rule",
+      considered.to,
+      considered.explanation,
+    ).id;
+    assertMutationFails(
+      canonicaliseWhyGraph(applied),
+      native,
+      /relation not admitted|must target a decisive rule/i,
+    );
+  });
+
+  it("revalidates the native corpus before deriving an exported graph", () => {
+    const invalid = structuredClone(ukCharities);
+    const rule = invalid.taxRules[0];
+    invalid.sources.find((source) => source.id === rule.authoritySourceId)!.url =
+      "https://www.legislation.gov.uk/ukpga/2007/3";
+    expect(() => buildUkCharityTaxWhyGraph(
+      invalid,
+      "tax-non-charitable-expenditure",
+    )).toThrow(/exact current primary-law/);
   });
 
   it("keeps the composite editorial analysis on its exact collective source matrix", () => {

@@ -12,7 +12,10 @@ import {
   type WhyGraphNode,
   whyGraphEdge,
 } from "@taxsorted/engine/why-graph";
-import type { UkCharities } from "./uk-charities.js";
+import {
+  validateUkCharitiesGraph,
+  type UkCharities,
+} from "./uk-charities.js";
 
 export const UK_CHARITY_TAX_WHY_GRAPH_ADOPTER_ID =
   "uk.charities.tax-treatment" as const;
@@ -22,6 +25,8 @@ export const UK_CHARITY_TAX_WHY_GRAPH_RELEASED_ON = "2026-07-12" as const;
 
 type TaxTreatment = UkCharities["taxTreatments"][number];
 type Source = UkCharities["sources"][number];
+type TaxRule = UkCharities["taxRules"][number];
+type Regulator = UkCharities["regulators"][number];
 type TransparencyGap = UkCharities["transparencyGaps"][number];
 
 type ClaimCluster = {
@@ -121,11 +126,32 @@ const reasoningLabels: Record<ClaimCluster["reasoningStep"], string> = {
   "source-reading": "Preserve source voice and stated limits",
 };
 
-const fixedGapIds = [
+const baselineFixedGapIds = [
   "gap:binding-provision-not-mapped",
   "gap:case-applicability-not-assessed",
   "gap:case-enforcement-and-challenge-not-mapped",
 ] as const;
+
+const lawSpineFixedGapIds = [
+  "gap:binding-provision-coverage-incomplete",
+  "gap:case-applicability-not-assessed",
+  "gap:case-enforcement-and-challenge-not-mapped",
+] as const;
+
+const lawSpineTreatmentId = "tax-non-charitable-expenditure" as const;
+
+function fixedGapIdsFor(treatment: TaxTreatment): readonly string[] {
+  return treatment.id === lawSpineTreatmentId
+    ? lawSpineFixedGapIds
+    : baselineFixedGapIds;
+}
+
+function taxRulesFor(corpus: UkCharities, treatment: TaxTreatment): TaxRule[] {
+  if (treatment.id !== lawSpineTreatmentId) return [];
+  return corpus.taxRules
+    .filter((rule) => rule.taxTreatmentId === treatment.id)
+    .sort((left, right) => ascii(left.id, right.id));
+}
 
 const admittedNonLawAuthorityLevels = new Set([
   "government-guidance",
@@ -178,6 +204,26 @@ function sourceRecord(source: Source) {
     collection: "sources",
     recordId: source.id,
     href: `/v1/charities/uk/sources/${source.id}`,
+  };
+}
+
+function taxRuleRecord(rule: TaxRule) {
+  return {
+    kind: "dataset-record" as const,
+    dataset: "uk-charities-sector",
+    collection: "taxRules",
+    recordId: rule.id,
+    href: `/v1/charities/uk/tax-rules/${rule.id}`,
+  };
+}
+
+function regulatorRecord(regulator: Regulator) {
+  return {
+    kind: "dataset-record" as const,
+    dataset: "uk-charities-sector",
+    collection: "regulators",
+    recordId: regulator.id,
+    href: `/v1/charities/uk/regulators/${regulator.id}`,
   };
 }
 
@@ -248,12 +294,22 @@ export const ukCharityTaxWhyGraphAdopter:
     graphSchema: "taxsorted.why-graph/1",
     assertDomainInvariants(graph, native) {
       const { corpus, treatmentId } = native;
+      validateUkCharitiesGraph(corpus);
       const treatment = corpus.taxTreatments.find(
         (candidate) => candidate.id === treatmentId,
       );
       if (!treatment) {
         throw new Error("Charity tax why graph subject is not a canonical corpus treatment");
       }
+      const lawSpine = treatment.id === lawSpineTreatmentId;
+      const rules = taxRulesFor(corpus, treatment);
+      const fixedGapIds = fixedGapIdsFor(treatment);
+      const ruleAuthoritySourceIds = new Set(
+        rules.map((rule) => rule.authoritySourceId),
+      );
+      const administratorIds = new Set(
+        rules.flatMap((rule) => rule.administeredByRegulatorIds),
+      );
       const authority = treatment.reasoningStatus === "official-summary"
         ? "source-reported-claim"
         : "taxsorted-analysis";
@@ -284,27 +340,31 @@ export const ukCharityTaxWhyGraphAdopter:
       }
 
       if (graph.nodes.some((node) => (
-        node.kind === "rule"
-        || node.kind === "institution"
+        (!lawSpine && (node.kind === "rule" || node.kind === "institution"))
         || node.kind === "party-role"
         || node.kind === "process"
         || node.kind === "fact"
         || node.record?.kind === "response-record"
       ))) {
-        throw new Error("Charity tax v1 cannot invent rules, roles, processes, facts or response selectors");
+        throw new Error("Charity tax graph cannot invent rules, roles, processes, facts or response selectors; institutions are admitted only from this treatment's canonical rule records");
       }
-      if (graph.edges.some((edge) => [
-        "applies-rule",
+      const newlyAdmittedLawRelations = new Set([
         "considers-rule",
         "legal-authority-from",
-        "published-by",
         "administered-by",
-        "responsibility-held-by",
-        "performed-by",
-        "decision-made-by",
-        "enforced-through",
-        "handled-by",
-      ].includes(edge.relation))) {
+      ]);
+      if (graph.edges.some((edge) => (
+        [
+          "applies-rule",
+          "published-by",
+          "responsibility-held-by",
+          "performed-by",
+          "decision-made-by",
+          "enforced-through",
+          "handled-by",
+        ].includes(edge.relation)
+        || (!lawSpine && newlyAdmittedLawRelations.has(edge.relation))
+      ))) {
         throw new Error("Charity tax v1 contains a relation not admitted by the native treatment record");
       }
 
@@ -330,23 +390,63 @@ export const ukCharityTaxWhyGraphAdopter:
           const expectedMethod = treatment.reasoningStatus === "official-summary"
             ? "manual-review"
             : "editorial-analysis";
+          const admittedClaimSource = source && sourceIds.has(source.id);
+          const admittedRuleAuthority = source && ruleAuthoritySourceIds.has(source.id);
+          const claimSourceInvalid = admittedClaimSource && (
+            !admittedNonLawAuthorityLevels.has(source.authorityLevel)
+            || source.publicationMode !== "normalised-summary"
+            || treatment.evidence
+              .filter((entry) => entry.sourceId === source.id)
+              .some((entry) => entry.method !== expectedMethod)
+          );
+          const ruleAuthorityInvalid = admittedRuleAuthority && (
+            source.authorityLevel !== "primary-law"
+            || source.publicationMode !== "metadata-only"
+          );
           if (
             !source
-            || !sourceIds.has(source.id)
+            || (!admittedClaimSource && !admittedRuleAuthority)
             || canonicalAdmissionJson(record)
               !== canonicalAdmissionJson(sourceRecord(source))
             || node.id !== `source:${source.id}`
             || source.status !== "current"
-            || !admittedNonLawAuthorityLevels.has(source.authorityLevel)
             || source.reuseStatus !== "confirmed"
-            || source.publicationMode !== "normalised-summary"
             || source.reviewAfter < graph.context.knowledgeAsOf
             || source.reviewAfter < UK_CHARITY_TAX_WHY_GRAPH_RELEASED_ON
-            || treatment.evidence
-              .filter((entry) => entry.sourceId === source.id)
-              .some((entry) => entry.method !== expectedMethod)
+            || claimSourceInvalid
+            || ruleAuthorityInvalid
           ) {
             throw new Error(`Charity tax node ${node.id} selects an unadmitted source`);
+          }
+          continue;
+        }
+        if (record.collection === "taxRules") {
+          const rule = rules.find((candidate) => candidate.id === record.recordId);
+          if (
+            !rule
+            || canonicalAdmissionJson(record)
+              !== canonicalAdmissionJson(taxRuleRecord(rule))
+            || node.id !== `rule:${rule.id}`
+            || node.kind !== "rule"
+            || node.state !== "checked-not-decisive"
+          ) {
+            throw new Error(`Charity tax node ${node.id} selects an unadmitted tax rule`);
+          }
+          continue;
+        }
+        if (record.collection === "regulators") {
+          const regulator = corpus.regulators.find(
+            (candidate) => candidate.id === record.recordId,
+          );
+          if (
+            !regulator
+            || !administratorIds.has(regulator.id)
+            || canonicalAdmissionJson(record)
+              !== canonicalAdmissionJson(regulatorRecord(regulator))
+            || node.id !== `institution:${regulator.id}`
+            || node.kind !== "institution"
+          ) {
+            throw new Error(`Charity tax node ${node.id} selects an unadmitted institution`);
           }
           continue;
         }
@@ -403,9 +503,26 @@ export const ukCharityTaxWhyGraphAdopter:
           .filter((node) => node.kind === "source")
           .map((node) => node.id),
         [...new Set(
-          claimClusters.flatMap((cluster) => evidenceSourceIds(treatment, cluster)),
+          [
+            ...claimClusters.flatMap((cluster) => evidenceSourceIds(treatment, cluster)),
+            ...rules.map((rule) => rule.authoritySourceId),
+          ],
         )].sort(ascii).map((sourceId) => `source:${sourceId}`),
         "Charity tax source nodes",
+      );
+      exactSet(
+        graph.nodes
+          .filter((node) => node.kind === "rule")
+          .map((node) => node.id),
+        rules.map((rule) => `rule:${rule.id}`),
+        "Charity tax rule nodes",
+      );
+      exactSet(
+        graph.nodes
+          .filter((node) => node.kind === "institution")
+          .map((node) => node.id),
+        [...administratorIds].sort(ascii).map((id) => `institution:${id}`),
+        "Charity tax institution nodes",
       );
       exactSet(
         graph.nodes
@@ -515,6 +632,26 @@ export const ukCharityTaxWhyGraphAdopter:
             "expected",
           ).id)
         )),
+        ...rules.flatMap((rule) => rule.reasoningStepIds.map((step) => whyGraphEdge(
+          `reasoning:${step}`,
+          "considers-rule",
+          `rule:${rule.id}`,
+          "expected",
+        ).id)),
+        ...rules.map((rule) => whyGraphEdge(
+          `rule:${rule.id}`,
+          "legal-authority-from",
+          `source:${rule.authoritySourceId}`,
+          "expected",
+        ).id),
+        ...rules.flatMap((rule) => rule.administeredByRegulatorIds.map(
+          (regulatorId) => whyGraphEdge(
+            `rule:${rule.id}`,
+            "administered-by",
+            `institution:${regulatorId}`,
+            "expected",
+          ).id,
+        )),
         whyGraphEdge(
           graph.rootNodeId,
           "leads-to",
@@ -582,6 +719,8 @@ function buildUkCharityTaxWhyGraphUnchecked(
   if (!treatment) {
     throw new Error(`Unknown canonical charity tax treatment: ${treatmentId}`);
   }
+  const rules = taxRulesFor(corpus, treatment);
+  const fixedGapIds = fixedGapIdsFor(treatment);
   const jurisdiction = treatmentJurisdiction(treatment);
   const sources = new Map(corpus.sources.map((source) => [source.id, source]));
   const nodes = new Map<string, WhyGraphNode>();
@@ -660,6 +799,7 @@ function buildUkCharityTaxWhyGraphUnchecked(
     }
     for (const sourceId of supportingSourceIds) usedSourceIds.add(sourceId);
   }
+  for (const rule of rules) usedSourceIds.add(rule.authoritySourceId);
 
   for (const sourceId of [...usedSourceIds].sort(ascii)) {
     const source = sources.get(sourceId);
@@ -683,6 +823,58 @@ function buildUkCharityTaxWhyGraphUnchecked(
         "supported-by",
         `source:${sourceId}`,
         `The treatment evidence entry names this source for ${evidencedPointers(treatment, cluster, sourceId).join(" and ")}.`,
+      );
+    }
+  }
+
+  const administratorIds = new Set(
+    rules.flatMap((rule) => rule.administeredByRegulatorIds),
+  );
+  for (const regulatorId of [...administratorIds].sort(ascii)) {
+    const regulator = corpus.regulators.find((candidate) => candidate.id === regulatorId);
+    if (!regulator) {
+      throw new Error(`Charity tax rule references missing regulator ${regulatorId}`);
+    }
+    addNode({
+      id: `institution:${regulator.id}`,
+      kind: "institution",
+      label: regulator.name,
+      description:
+        "The canonical regulator record describes this institution's sector role, powers, limits and official website. It does not prove a decision in a case.",
+      state: "supporting",
+      record: regulatorRecord(regulator),
+    });
+  }
+  for (const rule of rules) {
+    addNode({
+      id: `rule:${rule.id}`,
+      kind: "rule",
+      label: rule.name,
+      description:
+        `${rule.ruleSummary} TaxSorted summary; checked, not applied without taxpayer class, conditions, period and case facts.`,
+      state: "checked-not-decisive",
+      record: taxRuleRecord(rule),
+    });
+    for (const step of rule.reasoningStepIds) {
+      addEdge(
+        `reasoning:${step}`,
+        "considers-rule",
+        `rule:${rule.id}`,
+        "Relevant to mapped treatment fields; no case facts, so the rule is not applied.",
+      );
+    }
+    addEdge(
+      `rule:${rule.id}`,
+      "legal-authority-from",
+      `source:${rule.authoritySourceId}`,
+      "Exact current primary-law source; the summary is not statutory text.",
+    );
+    for (const regulatorId of rule.administeredByRegulatorIds) {
+      addEdge(
+        `rule:${rule.id}`,
+        "administered-by",
+        `institution:${regulatorId}`,
+        "Named administrator only; no case decision is claimed.",
       );
     }
   }
@@ -731,14 +923,23 @@ function buildUkCharityTaxWhyGraphUnchecked(
     "The canonical tax-or-clawback field grounds this conditional consequence.",
   );
 
+  const bindingGap: Omit<WhyGraphNode, "kind" | "record"> = rules.length > 0
+    ? {
+        id: "gap:binding-provision-coverage-incomplete",
+        label: "Exact binding provision coverage is intentionally incomplete",
+        description:
+          "The core income restriction, amount, attribution, definition and carry-back tail are mapped separately for trusts and companies. Supplementary category provisions, capital-gains attribution and the case-specific procedural bridge remain outside this release.",
+        state: "not-mapped",
+      }
+    : {
+        id: "gap:binding-provision-not-mapped",
+        label: "Exact binding provision not mapped",
+        description:
+          "The current treatment ledger cites guidance or an official summary, not an admitted exact primary-law provision record. No guidance source is promoted to binding law.",
+        state: "not-mapped",
+      };
   const fixedGaps: Array<Omit<WhyGraphNode, "id" | "kind" | "record"> & { id: string }> = [
-    {
-      id: "gap:binding-provision-not-mapped",
-      label: "Exact binding provision not mapped",
-      description:
-        "The current treatment ledger cites guidance or an official summary, not an admitted exact primary-law provision record. No guidance source is promoted to binding law.",
-      state: "not-mapped",
-    },
+    bindingGap,
     {
       id: "gap:case-applicability-not-assessed",
       label: "Case applicability not assessed",
@@ -834,8 +1035,9 @@ function buildUkCharityTaxWhyGraphUnchecked(
     nodes: [...nodes.values()],
     edges: [...edges.values()],
     coverage: {
-      scope:
-        "The reviewed statement, field-level evidence trace, possible benefit, reverse tax path and declared gaps for one UK charity-sector tax-treatment record; not case advice or a complete map of binding law, administration, collection, review or appeal.",
+      scope: rules.length > 0
+        ? "The reviewed treatment statement, field-level evidence trace, selected exact trust and company primary-law provisions, administrator, possible effect, reverse tax path and declared gaps; not case advice or a complete map of supplementary provisions, assessment, collection, review or appeal."
+        : "The reviewed statement, field-level evidence trace, possible benefit, reverse tax path and declared gaps for one UK charity-sector tax-treatment record; not case advice or a complete map of binding law, administration, collection, review or appeal.",
       completeWithinDeclaredScope: false,
       gapNodeIds: [
         ...fixedGapIds,
@@ -843,7 +1045,15 @@ function buildUkCharityTaxWhyGraphUnchecked(
       ].sort(ascii),
       boundaries: [
         "Array positions are never record identity; each graph reference uses the stable treatment, source or gap ID.",
-        "Guidance and official summaries remain claims and sources; they are not labelled binding legal authority.",
+        rules.length > 0
+          ? "Guidance remains claim support. Every rule is only considered, never applied, and its legal-authority edge selects one exact primary-law source record."
+          : "Guidance and official summaries remain claims and sources; they are not labelled binding legal authority.",
+        ...(rules.length > 0
+          ? [
+              "Trust income-tax rules and company corporation-tax rules remain separate; neither class is used as a synonym for the other.",
+              "The official-procedure collection maps only the exact income-attribution specification trigger. No procedure node is emitted here because a case notice, date and appealable decision are absent.",
+            ]
+          : []),
         "No charity, trustee, donor, beneficiary, belief, contact, transaction, tax amount or case file is present.",
         "The SDLT treatment's context label is an admitted display union of its canonical England and Northern Ireland jurisdiction array; other future multi-territory labels fail closed.",
         "The graph is derived from the immutable reviewed corpus snapshot and does not alter its hash or canonical records.",

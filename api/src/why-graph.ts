@@ -244,7 +244,7 @@ export const whyGraphAdopters = {
   schema: "taxsorted.why-graph-adopters/1",
   graphSchema: "taxsorted.why-graph/1",
   title: "TaxSorted why-graph adopter index",
-  updatedOn: "2026-07-12",
+  updatedOn: "2026-07-13",
   adopters: [
     {
       id: "uk.mtd-income-tax.readiness",
@@ -279,7 +279,7 @@ export const whyGraphAdopters = {
         "The UK charity-sector publication switch and emergency stop control this subresource. Known and unknown IDs remain indistinguishable while closed.",
       claimSelectors: UK_CHARITY_TAX_WHY_GRAPH_CLAIM_SELECTORS,
       semanticAdmission:
-        "Exact treatment, source, gap, and field evidence identified by sourceId plus JSON Pointer are adapter-checked; evidence array positions are never identity. Guidance is not promoted to law, and missing binding provisions and case routes stay explicit gaps.",
+        "Exact treatment, source, gap, field evidence and selected provision records are adapter-checked; evidence array positions are never identity. Guidance is not promoted to law. Provision nodes remain checked-not-decisive, while unadmitted law and case routes stay explicit gaps.",
     },
   ],
   boundaries: [

@@ -429,16 +429,131 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty(
       "/v1/charities/uk/exports/{collection}/{format}",
     );
+    expect(document.paths).toHaveProperty("/v1/charities/uk/tax-rules");
+    expect(document.paths).toHaveProperty("/v1/charities/uk/tax-rules/{id}");
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/official-procedures",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/charities/uk/official-procedures/{id}",
+    );
     expect(document.paths["/v1/charities/uk"].get.security).toEqual([]);
     expect(document.paths["/v1/charities/uk"].head.security).toEqual([]);
+    expect(
+      document.paths["/v1/charities/uk/tax-rules"].get.responses[200].content[
+        "application/json"
+      ].schema.$ref,
+    ).toBe("#/components/schemas/UkCharityTaxRuleList");
+    expect(
+      document.paths["/v1/charities/uk/tax-rules/{id}"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkCharityTaxRuleDetail");
+    expect(
+      document.paths["/v1/charities/uk/official-procedures"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkCharityOfficialProcedureList");
+    expect(
+      document.paths["/v1/charities/uk/official-procedures/{id}"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkCharityOfficialProcedureDetail");
+    expect(document.paths["/v1/charities/uk/tax-rules"].head.security).toEqual([]);
+    expect(document.paths["/v1/charities/uk/tax-rules/{id}"].head.security).toEqual([]);
+    expect(
+      document.paths["/v1/charities/uk/official-procedures"].head.security,
+    ).toEqual([]);
+    expect(
+      document.paths["/v1/charities/uk/official-procedures/{id}"].head.security,
+    ).toEqual([]);
+    const ruleQueryParameters =
+      document.paths["/v1/charities/uk/tax-rules"].get.parameters;
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "taxpayerClass",
+      ).schema.enum,
+    ).toEqual([
+      "charity-cross-tax",
+      "charitable-trust-income-tax",
+      "charitable-company-corporation-tax",
+    ]);
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "taxTreatmentId",
+      ).description,
+    ).toMatch(/Exact tax-treatment record ID/);
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "jurisdiction",
+      ).schema.enum,
+    ).toEqual([
+      "United Kingdom",
+      "England",
+      "Wales",
+      "England and Wales",
+      "Scotland",
+      "Northern Ireland",
+    ]);
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "q",
+      ).schema.minLength,
+    ).toBe(1);
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "q",
+      ).schema.pattern,
+    ).toBe("\\S");
+    expect(
+      ruleQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "offset",
+      ).schema.type,
+    ).toBe("integer");
+    const procedureQueryParameters =
+      document.paths["/v1/charities/uk/official-procedures"].get.parameters;
+    expect(
+      procedureQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "procedureType",
+      ).schema.enum,
+    ).toEqual(["attribution-specification-determination"]);
+    expect(
+      procedureQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "taxRuleId",
+      ).description,
+    ).toMatch(/Exact provision-level tax-rule ID/);
+    expect(
+      document.components.schemas.UkCharityTaxRuleList.properties.data.items
+        .properties,
+    ).toHaveProperty("authoritySourceId");
+    expect(
+      document.components.schemas.UkCharityTaxRuleList.properties.data.items
+        .properties,
+    ).toHaveProperty("citation");
+    expect(
+      document.components.schemas.UkCharityOfficialProcedureList.properties.data
+        .items.properties,
+    ).toHaveProperty("requiredCaseSelectors");
+    expect(
+      document.components.schemas.UkCharityOfficialProcedureList.properties.data
+        .items.properties,
+    ).toHaveProperty("summaryAuthority");
     const charityQueryParameters =
       document.paths["/v1/charities/uk/{collection}"].get.parameters;
     expect(charityQueryParameters).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "jurisdiction", in: "query" }),
         expect.objectContaining({ name: "regulatorId", in: "query" }),
+        expect.objectContaining({ name: "taxTreatmentId", in: "query" }),
+        expect.objectContaining({ name: "taxpayerClass", in: "query" }),
+        expect.objectContaining({ name: "ruleRole", in: "query" }),
+        expect.objectContaining({ name: "procedureType", in: "query" }),
+        expect.objectContaining({ name: "taxRuleId", in: "query" }),
       ]),
     );
+    expect(
+      document.paths["/v1/charities/uk/{collection}"].get.parameters.find(
+        (parameter: { name: string; in: string }) =>
+          parameter.name === "collection" && parameter.in === "path"
+      ).schema.enum,
+    ).toEqual(expect.arrayContaining(["tax-rules", "official-procedures"]));
     expect(charityQueryParameters).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "religion", in: "query" }),

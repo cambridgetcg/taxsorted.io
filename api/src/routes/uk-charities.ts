@@ -59,11 +59,13 @@ type CollectionName =
   | "registers"
   | "legalForms"
   | "taxTreatments"
+  | "taxRules"
   | "obligations"
   | "fundingMechanisms"
   | "financeDisclosures"
   | "controlModels"
   | "helpRoutes"
+  | "officialProcedures"
   | "pipelineStages"
   | "transparencyGaps";
 
@@ -73,11 +75,13 @@ const paths: Record<string, CollectionName> = {
   registers: "registers",
   "legal-forms": "legalForms",
   "tax-treatments": "taxTreatments",
+  "tax-rules": "taxRules",
   obligations: "obligations",
   funding: "fundingMechanisms",
   finance: "financeDisclosures",
   control: "controlModels",
   help: "helpRoutes",
+  "official-procedures": "officialProcedures",
   pipeline: "pipelineStages",
   gaps: "transparencyGaps",
 };
@@ -95,6 +99,11 @@ type ExactFilterKey =
   | "obligationType"
   | "fundingType"
   | "helpCategory"
+  | "taxTreatmentId"
+  | "taxpayerClass"
+  | "ruleRole"
+  | "procedureType"
+  | "taxRuleId"
   | "sourceId"
   | "regulatorId";
 
@@ -104,11 +113,28 @@ const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> 
   registers: ["jurisdiction", "kind", "regulatorId", "sourceId"],
   legalForms: ["jurisdiction", "regulatorId", "sourceId"],
   taxTreatments: ["jurisdiction", "taxType", "sourceId"],
+  taxRules: [
+    "jurisdiction",
+    "taxTreatmentId",
+    "taxpayerClass",
+    "ruleRole",
+    "regulatorId",
+    "sourceId",
+  ],
   obligations: ["jurisdiction", "obligationType", "regulatorId", "sourceId"],
   fundingMechanisms: ["jurisdiction", "fundingType", "sourceId"],
   financeDisclosures: ["jurisdiction", "type", "sourceId"],
   controlModels: ["jurisdiction", "type", "sourceId"],
   helpRoutes: ["jurisdiction", "helpCategory", "regulatorId", "sourceId"],
+  officialProcedures: [
+    "jurisdiction",
+    "taxTreatmentId",
+    "taxpayerClass",
+    "procedureType",
+    "taxRuleId",
+    "regulatorId",
+    "sourceId",
+  ],
   pipelineStages: ["jurisdiction", "sourceId"],
   transparencyGaps: ["status", "sourceId"],
 };
@@ -128,6 +154,8 @@ const collectionDescriptions: Record<CollectionName, string> = {
     "Legal forms used by charities and related bodies, separating governance and asset restrictions from the misleading idea of an equity owner.",
   taxTreatments:
     "Conditional charity tax treatments, their public-benefit rationale, qualifying use, limits and possible clawback or liability.",
+  taxRules:
+    "Exact primary-law provisions mapped to named tax-treatment fields, taxpayer classes, conditions, dates and explicit limits.",
   obligations:
     "Registration, reporting, accounts, returns, governance and tax obligations, including thresholds and responsible authorities.",
   fundingMechanisms:
@@ -138,6 +166,8 @@ const collectionDescriptions: Record<CollectionName, string> = {
     "Governance, membership, trusteeship, statutory control, subsidiaries and related-party structures without treating trustees as beneficial owners.",
   helpRoutes:
     "Role-based public contact routes and plain prompts for asking an authority or support body what it can actually help with.",
+  officialProcedures:
+    "Only the official procedures whose exact trigger and case selectors have been mapped; an absent route is never inferred from guidance or a neighbouring procedure.",
   pipelineStages:
     "The bounded collection pipeline from official source discovery through rights review, exact-ID joins, validation, publication and correction.",
   transparencyGaps:
@@ -150,13 +180,67 @@ const collectionRecordNames: Record<CollectionName, string> = {
   registers: "register",
   legalForms: "legal form",
   taxTreatments: "tax treatment",
+  taxRules: "tax rule",
   obligations: "obligation",
   fundingMechanisms: "funding mechanism",
   financeDisclosures: "finance disclosure",
   controlModels: "control model",
   helpRoutes: "help route",
+  officialProcedures: "official procedure",
   pipelineStages: "pipeline stage",
   transparencyGaps: "transparency gap",
+};
+
+const collectionFieldMeanings: Partial<Record<
+  CollectionName,
+  Record<string, string>
+>> = {
+  taxRules: {
+    taxTreatmentId: "Exact tax-treatment record whose named fields this provision bears on.",
+    treatmentFieldPointers:
+      "JSON Pointers selecting the exact canonical tax-treatment fields supported by this provision mapping.",
+    reasoningStepIds:
+      "Why-graph reasoning steps that may consider this provision; this never means the provision was applied to a case.",
+    citation: "Human-readable citation paired with the exact authority source selector.",
+    authoritySourceId:
+      "Exact current primary-law provision source; a whole Act, Part or guidance page is not admitted here.",
+    administeredByRegulatorIds:
+      "Tax-authority institution IDs evidenced as administrators; not proof of a decision in a case.",
+    taxpayerClass: "Trust, company or cross-tax branch to which this provision record is scoped.",
+    ruleRole: "Function this provision performs in the selected statutory spine.",
+    ruleSummary:
+      "TaxSorted's normalised reading of the selected primary-law provision, not statutory wording.",
+    summaryAuthority: "Explicit voice label for the normalised rule summary.",
+    applicabilityConditions:
+      "Conditions that must be checked before the provision could be applied; no condition is a case finding.",
+  },
+  officialProcedures: {
+    taxTreatmentId: "Exact tax-treatment record to which this bounded procedure map belongs.",
+    treatmentFieldPointers:
+      "JSON Pointers matching the exact treatment fields mapped by the linked provision rule.",
+    taxpayerClass: "Separate charitable-trust or charitable-company procedure branch.",
+    procedureType:
+      "Exact procedure profile admitted in this release; unlisted assessment, appeal and collection routes remain gaps.",
+    graphNodeKind:
+      "Shared graph vocabulary classification. The sector why graph deliberately emits no process node without case facts.",
+    trigger:
+      "TaxSorted's normalised trigger reading; every statutory conjunct must be established before this route can apply.",
+    summaryAuthority: "Explicit voice label for the normalised procedure prose.",
+    applicability:
+      "Fail-closed marker requiring case selection before a sector procedure can become case guidance.",
+    requiredCaseSelectors:
+      "Exact facts needed to select the procedure and evaluate its trigger; a notice date may be absent only where the paired status says no notice was given.",
+    timeLimit:
+      "Statutory period and start event in words; this API does not calculate a deadline without the required dates.",
+    paymentEffect:
+      "Whether this exact provision itself changes payment; separate payment law is not inferred.",
+    possibleOutcomes: "Bounded outcomes, including the fail-closed result when a trigger fact is missing.",
+    taxRuleIds: "Exact provision-rule records that define this procedure's statutory basis.",
+    nextProcedureIds:
+      "Only separately admitted next procedures in the same treatment and taxpayer branch; an empty list is not a claim that no route exists.",
+    legalBasisSourceIds:
+      "Exact primary-law sources matching every linked provision rule and no cross-branch extras.",
+  },
 };
 
 const referenceTargets: Record<CollectionName, Record<string, string | string[]>> = {
@@ -173,6 +257,13 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
     "evidence[].sourceId": "sources",
   },
   taxTreatments: {
+    sourceIds: "sources",
+    "evidence[].sourceId": "sources",
+  },
+  taxRules: {
+    taxTreatmentId: "tax-treatments",
+    authoritySourceId: "sources",
+    administeredByRegulatorIds: "regulators",
     sourceIds: "sources",
     "evidence[].sourceId": "sources",
   },
@@ -199,6 +290,17 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
   helpRoutes: {
     regulatorIds: "regulators",
     registerIds: "registers",
+    sourceIds: "sources",
+    "evidence[].sourceId": "sources",
+  },
+  officialProcedures: {
+    taxTreatmentId: "tax-treatments",
+    administeredByRegulatorIds: "regulators",
+    handledByRegulatorIds: "regulators",
+    decisionByRegulatorIds: "regulators",
+    taxRuleIds: "tax-rules",
+    nextProcedureIds: "official-procedures",
+    legalBasisSourceIds: "sources",
     sourceIds: "sources",
     "evidence[].sourceId": "sources",
   },
@@ -320,7 +422,8 @@ function collectionDictionary(corpus: UkCharities) {
       schemaDocument,
       name,
       collectionRecordNames[name],
-      referenceTargets[name]
+      referenceTargets[name],
+      collectionFieldMeanings[name] ?? {}
     ),
   }));
 }
@@ -390,9 +493,9 @@ function dictionary(corpus: UkCharities) {
       ordering:
         "Corpus order is curated for reading, not a ranking. Within one version it is stable; use IDs when comparing versions.",
       schemaCompatibility:
-        "The final /1 in corpusSchema is the meaning-compatible major. Removing a field or changing its type or meaning requires a new major.",
+        "The final /2 in corpusSchema is this strict structural contract's major. Adding or removing a required field or collection, or changing a field's type or meaning, requires a new major. Strict clients must pin both corpusSchema and corpus version.",
       search:
-        "q is a case-insensitive substring search across the complete sector record. It is not a charity-name, person or belief search.",
+        "q is a case-insensitive substring search across the complete sector record. It is not a charity-name, person or belief search. Because q is caller-supplied text echoed in the response, q responses use Cache-Control: no-store.",
     },
     formats: {
       json:
@@ -491,11 +594,15 @@ function cacheHeaders(
   linkOptions: {
     includeSectorDescriptions?: boolean;
     related?: Array<{ href: string; type: string; title: string }>;
+    cacheControl?: string;
   } = {}
 ) {
   const includeSectorDescriptions =
     linkOptions.includeSectorDescriptions ?? true;
-  c.header("Cache-Control", "public, max-age=300, must-revalidate");
+  c.header(
+    "Cache-Control",
+    linkOptions.cacheControl ?? "public, max-age=300, must-revalidate"
+  );
   c.header("X-Corpus-Version", corpus.meta.version);
   c.header("X-Corpus-Reviewed-On", corpus.meta.reviewedOn);
   c.header("ETag", etag);
@@ -542,6 +649,7 @@ function cacheableRepresentation(
     canonicalLocation?: string;
     includeSectorDescriptions?: boolean;
     related?: Array<{ href: string; type: string; title: string }>;
+    cacheControl?: string;
   } = {}
 ) {
   const etag = options.etag ?? representationEtag(body);
@@ -555,6 +663,7 @@ function cacheableRepresentation(
     {
       includeSectorDescriptions: options.includeSectorDescriptions,
       related: options.related,
+      cacheControl: options.cacheControl,
     }
   );
   if (options.disposition) c.header("Content-Disposition", options.disposition);
@@ -568,7 +677,7 @@ function cacheableJson(
   c: Context,
   corpus: UkCharities,
   value: unknown,
-  options: { canonicalLocation?: string } = {}
+  options: { canonicalLocation?: string; cacheControl?: string } = {}
 ) {
   return cacheableRepresentation(
     c,
@@ -689,6 +798,17 @@ function candidateFields(collection: CollectionName, key: ExactFilterKey) {
     return ["modelType"] as const;
   }
   if (key === "sourceId") return ["sourceIds"] as const;
+  if (key === "taxRuleId") return ["taxRuleIds"] as const;
+  if (key === "regulatorId" && collection === "taxRules") {
+    return ["administeredByRegulatorIds"] as const;
+  }
+  if (key === "regulatorId" && collection === "officialProcedures") {
+    return [
+      "administeredByRegulatorIds",
+      "handledByRegulatorIds",
+      "decisionByRegulatorIds",
+    ] as const;
+  }
   if (key === "regulatorId") return ["regulatorIds"] as const;
   return [key] as const;
 }
@@ -736,6 +856,12 @@ function validFilterValue(
   }
   if (key === "regulatorId") {
     return corpus.regulators.some((regulator) => regulator.id === value);
+  }
+  if (key === "taxTreatmentId") {
+    return corpus.taxTreatments.some((treatment) => treatment.id === value);
+  }
+  if (key === "taxRuleId") {
+    return corpus.taxRules.some((rule) => rule.id === value);
   }
   const declared = candidateFields(collection, key).flatMap(
     (field) =>
@@ -1317,6 +1443,22 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
           { filters: repeated.sort(), collection: path }
         );
       }
+      const emptyParameters = [...allowedQueryKeys].filter((key) => (
+        searchParams.has(key) && !(searchParams.get(key) ?? "").trim()
+      ));
+      if (emptyParameters.length) {
+        return instructionalError(
+          c,
+          400,
+          "invalid_filter",
+          "An explicitly supplied query parameter cannot be empty or whitespace.",
+          {
+            filter: emptyParameters[0],
+            filters: [...emptyParameters].sort(),
+            collection: path,
+          }
+        );
+      }
       const q = c.req.query("q")?.trim();
       if (q && q.length > 100) {
         return instructionalError(
@@ -1380,18 +1522,25 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         );
       }
       const page = matches.slice(offset, offset + limit);
-      return cacheableJson(c, corpus, {
-        data: page,
-        page: { total: matches.length, returned: page.length, limit, offset },
-        filters: { ...(q ? { q } : {}), ...filters },
-        provenance: {
-          corpusVersion: corpus.meta.version,
-          reviewedOn: corpus.meta.reviewedOn,
-          sourceLedger: `${basePath}/sources`,
-          registers: `${basePath}/registers`,
-          gaps: `${basePath}/gaps`,
+      return cacheableJson(
+        c,
+        corpus,
+        {
+          data: page,
+          page: { total: matches.length, returned: page.length, limit, offset },
+          filters: { ...(q ? { q } : {}), ...filters },
+          provenance: {
+            corpusVersion: corpus.meta.version,
+            reviewedOn: corpus.meta.reviewedOn,
+            sourceLedger: `${basePath}/sources`,
+            registers: `${basePath}/registers`,
+            gaps: `${basePath}/gaps`,
+          },
         },
-      });
+        // q is arbitrary caller text and is echoed in the representation. It
+        // is useful for discovery but must not be retained by a shared cache.
+        { ...(q ? { cacheControl: "no-store" } : {}) }
+      );
     });
 
     app.get(`/${path}/:id`, (c) => {
@@ -1424,9 +1573,49 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
         );
       }
       if (name === "sources") return cacheableJson(c, corpus, { data: item });
+      const related = name === "taxRules"
+        ? {
+            taxTreatment: corpus.taxTreatments.find(
+              (treatment) => treatment.id === item.taxTreatmentId
+            ) ?? null,
+            authoritySource: corpus.sources.find(
+              (source) => source.id === item.authoritySourceId
+            ) ?? null,
+            administrators: corpus.regulators.filter((regulator) =>
+              (item.administeredByRegulatorIds as string[]).includes(regulator.id)
+            ),
+          }
+        : name === "officialProcedures"
+          ? {
+              taxTreatment: corpus.taxTreatments.find(
+                (treatment) => treatment.id === item.taxTreatmentId
+              ) ?? null,
+              taxRules: corpus.taxRules.filter((rule) =>
+                (item.taxRuleIds as string[]).includes(rule.id)
+              ),
+              nextProcedures: corpus.officialProcedures.filter((procedure) =>
+                (item.nextProcedureIds as string[]).includes(procedure.id)
+              ),
+              regulators: {
+                administering: corpus.regulators.filter((regulator) =>
+                  (item.administeredByRegulatorIds as string[]).includes(regulator.id)
+                ),
+                handling: corpus.regulators.filter((regulator) =>
+                  (item.handledByRegulatorIds as string[]).includes(regulator.id)
+                ),
+                deciding: corpus.regulators.filter((regulator) =>
+                  (item.decisionByRegulatorIds as string[]).includes(regulator.id)
+                ),
+              },
+              legalBasis: corpus.sources.filter((source) =>
+                (item.legalBasisSourceIds as string[]).includes(source.id)
+              ),
+            }
+          : undefined;
       return cacheableJson(c, corpus, {
         data: item,
         evidence: evidenceFor(corpus, item),
+        ...(related ? { related } : {}),
       });
     });
   }
