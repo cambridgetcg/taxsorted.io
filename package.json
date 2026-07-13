@@ -7,7 +7,8 @@
   "workspaces": [
     "engine",
     "frontend",
-    "api"
+    "api",
+    "mcp"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",

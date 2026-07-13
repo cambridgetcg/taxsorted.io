@@ -1,0 +1,22 @@
+{
+  "name": "@taxsorted/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TaxSorted for Agents \u2014 an MCP server exposing honest, sourced UK tax computation to any AI agent.",
+  "bin": {
+    "taxsorted-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

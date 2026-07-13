@@ -26,6 +26,7 @@ import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
 import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
 import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accountability.js";
 import { createWhyGraphRoutes } from "./routes/why-graph.js";
+import { createComputeRoutes } from "./routes/compute.js";
 
 const app = new OpenAPIHono();
 
@@ -103,6 +104,9 @@ app.route(
   createUkObserverAccountabilityRoutes()
 );
 app.route("/v1/why-graph", createWhyGraphRoutes());
+// Stateless compute — sessionless machine route, mounted before the
+// browser-session allowlist so it can never set a cookie.
+app.route("/v1/compute", createComputeRoutes());
 
 // Machine routes use workspace keys and never create browser sessions.
 // Register them before the explicit browser-session allowlist below.
