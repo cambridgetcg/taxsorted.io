@@ -20,6 +20,16 @@ function cleanColour(colour: string | null | undefined): string {
   return /^#[0-9a-f]{6}$/i.test(value) ? value : "#8b9188";
 }
 
+// Party colours vary from near-black to bright yellow. Pick dark or white
+// initials by perceived brightness so the letters stay readable on any of them.
+function initialsColourFor(background: string): string {
+  const r = parseInt(background.slice(1, 3), 16);
+  const g = parseInt(background.slice(3, 5), 16);
+  const b = parseInt(background.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 145 ? "#1c1f1c" : "#ffffff";
+}
+
 function initials(name: string): string {
   return name
     .replace(/^(Mr|Mrs|Ms|Miss|Sir|Dame|Lord|Baroness|Dr)\s+/i, "")
@@ -158,11 +168,11 @@ export function PeopleDirectory() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 id="directory-title" className="text-2xl font-semibold text-ink">People & offices</h2>
-            <p className="mt-1 text-sm text-ink-soft">Reads the UK Parliament Members API when the publication gate is open.</p>
+            <p className="mt-1 text-base text-ink-soft">Reads the official UK Parliament members list once the data is switched on.</p>
           </div>
           <a
             href="/uk/politics/method"
-            className="text-sm font-medium text-accent underline decoration-line underline-offset-4"
+            className="inline-flex min-h-11 items-center text-base font-medium text-accent underline decoration-line underline-offset-4"
           >
             What is safe to publish?
           </a>
@@ -227,8 +237,11 @@ export function PeopleDirectory() {
               >
                 <span className="flex gap-4">
                   <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-                    style={{ backgroundColor: cleanColour(person.party?.colour) }}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                    style={{
+                      backgroundColor: cleanColour(person.party?.colour),
+                      color: initialsColourFor(cleanColour(person.party?.colour)),
+                    }}
                     aria-hidden="true"
                   >
                     {initials(person.name)}
@@ -251,23 +264,23 @@ export function PeopleDirectory() {
                 type="button"
                 disabled={skip === 0}
                 onClick={() => setSkip(Math.max(0, skip - PAGE_SIZE))}
-                className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+                className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base font-medium text-ink disabled:opacity-40"
               >
-                ← Previous
+                <span aria-hidden="true">←</span>&nbsp;Previous
               </button>
               <button
                 type="button"
                 disabled={lastShown >= result.total}
                 onClick={() => setSkip(skip + PAGE_SIZE)}
-                className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+                className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base font-medium text-ink disabled:opacity-40"
               >
-                Next →
+                Next&nbsp;<span aria-hidden="true">→</span>
               </button>
             </div>
           ) : null}
 
           {result ? (
-            <p className="mt-4 text-xs text-ink-soft">
+            <p className="mt-4 text-sm text-ink-soft">
               Retrieved {displayDate(result.source.retrievedAt)} ·{" "}
               <a href={result.source.url} className="text-accent underline">{result.source.name}</a>
             </p>
@@ -284,7 +297,7 @@ export function PeopleDirectory() {
           {selectedId && detailError ? (
             <div className="rounded-3xl border border-line bg-white p-8">
               <p role="alert" className="text-ink">{detailError}</p>
-              <button type="button" onClick={closePerson} className="mt-4 text-sm font-medium text-accent">Close record</button>
+              <button type="button" onClick={closePerson} className="mt-4 inline-flex min-h-11 items-center text-base font-medium text-accent">Close record</button>
             </div>
           ) : null}
           {detail ? <PersonRecord detail={detail} onClose={closePerson} /> : null}
@@ -298,18 +311,17 @@ function DirectoryGuide() {
   return (
     <aside className="rounded-3xl border border-line bg-white p-6 shadow-sm lg:sticky lg:top-6">
       <p className="text-sm font-semibold uppercase tracking-wide text-accent">Open a record</p>
-      <h2 className="mt-3 text-3xl font-semibold text-ink">Receipts, not dossiers.</h2>
+      <h2 className="mt-3 text-3xl font-semibold text-ink">Only what the official record shows.</h2>
       <p className="mt-4 text-ink-soft">
-        Select a person to join the parts of the official record that are useful for public
-        accountability. Every section links back to Parliament. Missing data stays missing; it is
-        never filled by inference.
+        Pick a person to see their official record. Every section links back to Parliament.
+        Missing data stays missing — we never fill gaps with guesses.
       </p>
-      <ul className="mt-5 space-y-3 text-sm text-ink-soft">
-        <li>✓ Current role, party and represented place</li>
-        <li>✓ Published professional office routes</li>
-        <li>✓ Declared interests with address lines removed</li>
-        <li>✓ Public staff listing and recent Parliamentary work</li>
-        <li>— No home details, portraits or inferred contacts</li>
+      <ul className="mt-5 space-y-3 text-base text-ink-soft">
+        <li><span aria-hidden="true">✓</span> Current role, party and represented place</li>
+        <li><span aria-hidden="true">✓</span> Published office contact routes</li>
+        <li><span aria-hidden="true">✓</span> Declared interests, with address lines removed</li>
+        <li><span aria-hidden="true">✓</span> Public staff listing and recent work in Parliament</li>
+        <li><span aria-hidden="true">—</span> No home details, portraits or guessed contacts</li>
       </ul>
     </aside>
   );
@@ -344,7 +356,7 @@ function PersonRecord({ detail, onClose }: { detail: PersonDetailResponse; onClo
               {[person.party?.name, person.seat?.name].filter(Boolean).join(" · ") || person.fullTitle}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-line px-3 py-1.5 text-sm text-ink-soft">
+          <button type="button" onClick={onClose} className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-base text-ink-soft">
             Close
           </button>
         </div>
@@ -366,7 +378,7 @@ function PersonRecord({ detail, onClose }: { detail: PersonDetailResponse; onClo
             {detail.contacts.map((contact, index) => <ContactCard key={`${contact.type}-${index}`} contact={contact} />)}
           </div>
         ) : <EmptyLine text="Parliament lists no professional contact route for this record." />}
-        <p className="mt-4 text-xs text-ink-soft">Private, home, personal and residential contact types are removed by TaxSorted.</p>
+        <p className="mt-4 text-sm text-ink-soft">Private, home, personal and residential contact types are removed by TaxSorted.</p>
       </RecordSection>
 
       <RecordSection title="Public roles" count={roles.length}>
@@ -391,18 +403,18 @@ function PersonRecord({ detail, onClose }: { detail: PersonDetailResponse; onClo
         {detail.formalPower.assessmentIds.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {detail.formalPower.assessmentIds.map((assessmentId) => (
-              <span key={assessmentId} className="rounded-full border border-line bg-white px-3 py-1.5 text-xs text-ink">
+              <span key={assessmentId} className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-sm text-ink">
                 {officeAssessmentLabel(assessmentId)}
               </span>
             ))}
           </div>
         ) : <EmptyLine text="No office assessment has completed the provisional calibration for this record." />}
         {detail.formalPower.unassessedCurrentRoles.length ? (
-          <p className="mt-4 text-xs text-ink-soft">
+          <p className="mt-4 text-sm text-ink-soft">
             Not yet assessed for this method version: {detail.formalPower.unassessedCurrentRoles.join(" · ")}.
           </p>
         ) : null}
-        {detail.formalPower.gap ? <p className="mt-2 text-xs text-ink-soft">{detail.formalPower.gap}</p> : null}
+        {detail.formalPower.gap ? <p className="mt-2 text-sm text-ink-soft">{detail.formalPower.gap}</p> : null}
         <a href="/uk/politics/system#formal-power" className="mt-4 inline-block text-sm font-semibold text-accent underline underline-offset-4">
           Open the scores, evidence and legal limits →
         </a>
@@ -423,7 +435,7 @@ function PersonRecord({ detail, onClose }: { detail: PersonDetailResponse; onClo
             ))}
           </div>
         ) : <EmptyLine text="No current interest entries were returned by the official API." />}
-        <p className="mt-4 text-xs text-ink-soft">Donor, payer, destination, location and address lines are not redistributed here. Interest categories explicitly about family members, spouses or civil partners are omitted. Open the official record for its full statutory context.</p>
+        <p className="mt-4 text-base text-ink-soft">Donor, payer, destination, location and address lines are not shown here. Interest categories about family members, spouses or civil partners are left out. Open the official record for its full statutory context.</p>
       </RecordSection>
 
       <RecordSection title="Publicly listed staff" count={detail.staff.length}>
@@ -461,7 +473,7 @@ function PersonRecord({ detail, onClose }: { detail: PersonDetailResponse; onClo
         </RecordSection>
       ) : null}
 
-      <footer className="border-t border-line bg-paper p-5 text-xs text-ink-soft sm:px-8">
+      <footer className="border-t border-line bg-paper p-5 text-sm text-ink-soft sm:px-8">
         Retrieved {displayDate(detail.source.retrievedAt)} from{" "}
         <a href={detail.source.url} className="text-accent underline">{detail.source.name}</a>. An official record shows what was published; it does not by itself prove motive, influence or wrongdoing.
       </footer>

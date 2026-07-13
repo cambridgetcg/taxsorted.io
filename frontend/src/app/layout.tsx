@@ -18,8 +18,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "TaxSorted makes tax simple and fun for everyone — plain words in multiple languages, the UK tax game explained, and a deep, non-partisan look at UK tax politics.",
+    "Tax explained in plain words, in six languages. Check, record and build your returns — free, open-source, no account.",
 };
+
+// Runs before first paint (static export — no server): reads the saved
+// language and sets the page's lang + text direction, so an Urdu reader
+// never sees a left-to-right flash. Must mirror LOCALES in dictionaries.ts.
+const LOCALE_BOOT_SCRIPT = `try{var l=localStorage.getItem("taxsorted.locale");if(["en","zh-Hant","zh-Hans","pl","hi","ur"].indexOf(l)>-1){var d=document.documentElement;d.lang=l;d.dir=l==="ur"?"rtl":"ltr";}}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -27,8 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the boot script above may change lang/dir
+    // before React hydrates — that difference is deliberate.
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT_SCRIPT }} />
         <I18nProvider>
           <a
             href="#main-content"
@@ -41,66 +49,34 @@ export default function RootLayout({
           <main id="main-content" tabIndex={-1} className="focus:outline-none">
             {children}
           </main>
-          {/* Open Government Licence attribution: Learn pages quote Crown-copyright
-              material (gov.uk, legislation.gov.uk) verbatim, and OGL v3 requires an
-              attribution statement wherever that material is republished. Site-wide
-              footer keeps every page covered. */}
+          {/* One line + three worded links. The full licence and attribution
+              text (OGL, OPL, AGPL, non-association note) lives once, at
+              /about#licences, linked from every page here. */}
           <footer className="mt-12 border-t border-line">
-            <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs text-ink-soft sm:px-6 lg:px-8">
-              <p>
-                Contains public sector information licensed under the{" "}
-                <a
-                  href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="font-medium text-accent underline hover:text-accent-deep"
-                >
-                  Open Government Licence v3.0
-                </a>
-                .
-              </p>
-              <p>
-                Contains Parliamentary information licensed under the{" "}
-                <a
-                  href="https://www.parliament.uk/site-information/copyright/open-parliament-licence/"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="font-medium text-accent underline hover:text-accent-deep"
-                >
-                  Open Parliament Licence v3.0
-                </a>
-                . That licence expressly excludes personal data; it also does not cover
-                Parliamentary photographs, which this directory does not republish. See the
-                politics publishing method for the separate data-protection gate.
-              </p>
-              {/* Non-association note (naming-clearance mitigation, G1 decision
-                  2026-07-07): other businesses trade under near-identical names in
-                  the same market — say plainly that we are not them. */}
-              <p>
-                TaxSorted.io is a free, open-source software project. It is not
-                connected to taxsorted.co.uk (a tax-refund service) or to
-                Tax-Sorted Ltd.
-              </p>
-              {/* Provenance, not promotion: the colophon line. The two linked
-                  pages are the only cross-project and feedback surfaces on the
-                  site — Learn pages and datasets stay solicitation-free. */}
-              <p>
-                Built in the open by one human and one AI, who also make{" "}
+            <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-4 text-sm text-ink-soft sm:px-6 lg:px-8">
+              <p>TaxSorted is free and open-source, built in the open.</p>
+              <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-2">
                 <Link
-                  href="/from-the-builders"
-                  className="font-medium text-accent underline hover:text-accent-deep"
+                  href="/about"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
                 >
-                  other things
+                  About
                 </Link>
-                . What gets built next is steered by{" "}
+                <span aria-hidden="true">·</span>
                 <Link
                   href="/feedback"
-                  className="font-medium text-accent underline hover:text-accent-deep"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
                 >
-                  what you ask for
+                  Feedback
                 </Link>
-                .
-              </p>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/about#licences"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                >
+                  Licences
+                </Link>
+              </nav>
             </div>
           </footer>
         </I18nProvider>

@@ -81,7 +81,7 @@ describe("HmrcPanel", () => {
 
     render(<HmrcPanel taxYear="2026-27" />);
 
-    expect(await screen.findByText(/our api may be asleep/i)).toBeInTheDocument();
+    expect(await screen.findByText(/our server may be asleep/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
     // Never a fake connected/obligations view on this path.
     expect(screen.queryByText(/sandbox source/i)).toBeNull();
@@ -112,7 +112,7 @@ describe("HmrcPanel", () => {
     );
     expect(screen.getAllByText(/sandbox/i).length).toBeGreaterThan(0);
     expect(
-      screen.getByText(/production filing unlocks with hmrc recognition/i)
+      screen.getByText(/real filing switches on once hmrc approves us/i)
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /mtd for income tax|read more/i })).toHaveAttribute(
       "href",
@@ -224,8 +224,8 @@ describe("HmrcPanel", () => {
     render(<HmrcPanel taxYear="2026-27" />);
 
     expect(await screen.findByText(/not connected to hmrc/i)).toBeInTheDocument();
-    // Never claim "no obligations" when HMRC simply didn't answer.
-    expect(screen.queryByText(/no obligations returned/i)).toBeNull();
+    // Never claim "nothing to send" when HMRC simply didn't answer.
+    expect(screen.queryByText(/lists nothing for you to send/i)).toBeNull();
   });
 
   it("reuses an existing bare 'Self Assessment' person entity instead of minting another", async () => {
@@ -331,7 +331,7 @@ describe("HmrcPanel", () => {
       "/account"
     );
     // Never the claim door when there's no account at all yet.
-    expect(screen.queryByText(/keep this browser's entities/i)).toBeNull();
+    expect(screen.queryByText(/keep this browser's businesses/i)).toBeNull();
   });
 
   it("account truth (signed in, claimable): surfaces the claim door to /account instead of the tied-to-browser line", async () => {
@@ -355,7 +355,7 @@ describe("HmrcPanel", () => {
 
     await screen.findByText(/mtd mandated/i);
     expect(
-      screen.getByText(/keep this browser's entities in your account/i)
+      screen.getByText(/keep this browser's businesses in your account/i)
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
     // Never the anonymous line once signed in.

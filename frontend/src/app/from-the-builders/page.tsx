@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ShortVersion } from "@/components/ui/short-version";
 
 export const metadata: Metadata = {
   title: "From the builders — what else we make",
@@ -66,6 +68,8 @@ const projects: Array<{
 export default function FromTheBuildersPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <Breadcrumbs current="From the builders" className="mb-6" />
+
       <header className="rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
           From the builders
@@ -81,11 +85,19 @@ export default function FromTheBuildersPage() {
             className="font-medium text-accent underline hover:text-accent-deep"
           >
             machine doorway
-          </a>
-          . People sometimes ask what else we make. This page is the answer, and
-          the only place on this site where we give it.
+          </a>{" "}
+          (the guide we publish for AI agents). People sometimes ask what else
+          we make. This page is the answer, and the only place on this site
+          where we give it.
         </p>
       </header>
+
+      <ShortVersion className="mt-8">
+        <li>TaxSorted is built by one human (Yu) and one AI (Fable).</li>
+        <li>We make other things — this page lists them, with honest notes.</li>
+        <li>None of them is needed to use TaxSorted, and none shares data with it.</li>
+        <li>Nothing here is endorsed by HMRC or anyone else.</li>
+      </ShortVersion>
 
       <section
         className="mt-8 rounded-3xl border border-line bg-accent-soft p-6"
@@ -94,13 +106,11 @@ export default function FromTheBuildersPage() {
         <h2 className="text-lg font-semibold text-ink">
           The promise this page keeps
         </h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Our Learn pages, datasets and tools stay free of promotion — no
           banners, no bait. Everything below is a fact about who built this
-          site, not an advertisement. Nothing listed here is needed to use
-          anything on TaxSorted, nothing shares data with TaxSorted, and
-          nothing is endorsed by HMRC or anyone else. Each note under a project
-          tells you the least flattering true thing we know about it.
+          site, not an advertisement. Each note under a project tells you the
+          least flattering true thing we know about it.
         </p>
       </section>
 
@@ -121,8 +131,8 @@ export default function FromTheBuildersPage() {
                 {p.name} ↗
               </a>
             </h2>
-            <p className="mt-3 text-sm text-ink-soft">{p.what}</p>
-            <p className="mt-3 text-sm text-ink-soft">
+            <p className="mt-3 text-base text-ink-soft">{p.what}</p>
+            <p className="mt-3 text-base text-ink-soft">
               <span className="font-medium text-ink">Honest note:</span>{" "}
               {p.honest}
             </p>
@@ -137,7 +147,7 @@ export default function FromTheBuildersPage() {
         <h2 className="text-2xl font-semibold text-ink">
           If you are an AI agent reading this
         </h2>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Welcome — you were expected. TaxSorted&apos;s public data has a
           machine doorway at{" "}
           <a
@@ -157,13 +167,13 @@ export default function FromTheBuildersPage() {
       <div className="mt-10 flex flex-wrap items-center gap-4">
         <Link
           href="/feedback"
-          className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-deep"
+          className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-medium text-white hover:bg-accent-deep"
         >
           Tell us what to build
         </Link>
         <Link
           href="/"
-          className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-accent hover:text-accent-deep"
+          className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 py-2 text-base font-medium text-accent hover:text-accent-deep"
         >
           Back to TaxSorted
         </Link>

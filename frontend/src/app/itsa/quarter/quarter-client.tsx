@@ -3,7 +3,7 @@
 // i18n: deferred to M2 — plain English for launch
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { quarterForDate, type LedgerRecord, type TaxYear } from "@taxsorted/engine/uk/itsa";
 import { createRecordsStore, type RecordsStore } from "@/lib/records";
 import { SOURCES } from "@/lib/sources";
@@ -87,25 +87,29 @@ export default function QuarterClient() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to TaxSorted
-      </Link>
+      <Breadcrumbs
+        items={[
+          { href: "/tools", label: "Do my tax" },
+          { href: "/itsa", label: "Income Tax" },
+        ]}
+        current="Quarterly figures"
+      />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Quarterly figures & estimate</h1>
-      <p className="mt-3 text-ink-soft">
-        Your cumulative Q figures, ready to copy into any MTD software — and a cited estimate of
-        what you might owe.
+      <p className="mt-3 text-base text-ink-soft">
+        Your running totals for each quarter of Income Tax Self Assessment (ITSA), ready to copy
+        into any Making Tax Digital (MTD) software — plus a cited estimate of what you might owe.
       </p>
 
       <div className="mt-6">
         <EducationNotice />
       </div>
 
-      <div className="mt-6 rounded-2xl border border-line bg-white p-4 text-sm text-ink-soft sm:p-5">
+      <div className="mt-6 rounded-2xl border border-line bg-white p-4 text-base text-ink-soft sm:p-5">
         <p>
-          These are exactly the cumulative figures MTD software sends. Connect to HMRC&apos;s
-          sandbox on your dashboard to practice a real submission below — production filing stays
-          gated on HMRC recognition, which we&apos;re walking in the open.
+          These running totals are exactly what MTD software sends. You can practise sending
+          them to HMRC&apos;s test system (the &ldquo;sandbox&rdquo;) below — connect on your
+          dashboard first. Real filing switches on once HMRC approves us; we&apos;ll say so here.
         </p>
       </div>
 

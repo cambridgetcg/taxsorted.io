@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import VATPageClient from "./vat-page-client";
 
 export const metadata: Metadata = {
-  title: "Fictional VAT workspace",
+  title: "VAT worked example",
   description:
-    "A fixed browser-only VAT exhibit with no account or HMRC connection and no filing capability.",
+    "A worked VAT example with made-up numbers — no account, no HMRC connection, and no filing capability.",
   robots: {
     index: false,
     follow: false,

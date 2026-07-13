@@ -42,6 +42,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { deriveFigures } from "@/lib/derive-figures";
 import { gbp, gbpFromPounds, formatUkDate, formatUkDateTime } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
@@ -108,7 +109,9 @@ function sleep(ms: number): Promise<void> {
 }
 
 function unreachableMessage(e: unknown): string {
-  return e instanceof ApiError ? e.message : "Could not reach the api — try again.";
+  return e instanceof ApiError
+    ? e.message
+    : "We can't reach our server right now — nothing was lost. Try again in a minute.";
 }
 
 /** Every card in this flow wears the same header: a title and a permanent
@@ -232,7 +235,7 @@ export function SubmitFlow({
   if (!connectedItsa) {
     return (
       <FlowShell title={`Send ${sourceLabel} to HMRC`}>
-        <p className="text-sm text-ink-soft">
+        <p className="text-base text-ink-soft">
           Connect to HMRC (sandbox) on your dashboard to practice a real submission.{" "}
           <Link href="/dashboard" className="underline hover:text-ink">
             Go to your dashboard
@@ -245,7 +248,7 @@ export function SubmitFlow({
   if (update.recordCount === 0) {
     return (
       <FlowShell title={`Send ${sourceLabel} to HMRC`}>
-        <p className="text-sm text-ink-soft">
+        <p className="text-base text-ink-soft">
           No {sourceLabel.toLowerCase()} records yet for Q{quarterIndex} {taxYear} — add some
           before there is anything to send.
         </p>
@@ -346,7 +349,7 @@ export function SubmitFlow({
   return (
     <FlowShell title={`Send ${sourceLabel} to HMRC`}>
       {businessesState.kind === "loading" && (
-        <p className="text-sm text-ink-soft">Checking your HMRC businesses…</p>
+        <p className="text-base text-ink-soft">Checking your HMRC businesses…</p>
       )}
 
       {businessesState.kind === "error" && (
@@ -357,65 +360,66 @@ export function SubmitFlow({
       )}
 
       {businessesState.kind === "none" && (
-        <p className="text-sm text-ink-soft">
-          HMRC&apos;s sandbox has no {sourceLabel.toLowerCase()} business registered for this NINO
-          yet — nothing to submit to.
+        <p className="text-base text-ink-soft">
+          HMRC&apos;s practice system (the sandbox) has no {sourceLabel.toLowerCase()} business
+          registered for your National Insurance number yet — nothing to send to.
         </p>
       )}
 
       {businessesState.kind === "choose" && (
         <div className="space-y-2">
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             More than one {sourceLabel.toLowerCase()} business — pick which one this quarter&apos;s
             figures belong to:
           </p>
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Business">
-            {businessesState.businesses.map((b) => (
-              <button
-                key={b.businessId}
-                type="button"
-                role="radio"
-                aria-checked={false}
-                onClick={() => setBusinessesState({ kind: "ready", business: b })}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
-              >
-                {b.tradingName ?? b.businessId}
-              </button>
-            ))}
-          </div>
+          <PillRadioGroup
+            label="Business"
+            hideLabel
+            options={businessesState.businesses.map((b) => ({
+              value: b.businessId,
+              label: b.tradingName ?? b.businessId,
+            }))}
+            value={null}
+            onChange={(businessId) => {
+              const business = businessesState.businesses.find(
+                (b) => b.businessId === businessId
+              );
+              if (business) setBusinessesState({ kind: "ready", business });
+            }}
+          />
         </div>
       )}
 
       {businessesState.kind === "ready" && checkingReceipts && (
-        <p className="text-sm text-ink-soft">Checking for earlier submissions…</p>
+        <p className="text-base text-ink-soft">Checking for earlier submissions…</p>
       )}
 
       {businessesState.kind === "ready" && !checkingReceipts && !shownReceipt && (
         <div className="space-y-4">
           {flowStep.kind === "start" && receiptsState.kind === "error" && (
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               Couldn&apos;t check for earlier submissions just now — if you already sent this
-              quarter, resending simply updates it (cumulative model).
+              quarter, resending simply replaces the totals with your current figures.
             </p>
           )}
-          <p className="text-sm text-ink">
+          <p className="text-base text-ink" aria-live="polite">
             Submitting for{" "}
             <span className="font-medium">
               {businessesState.business.tradingName ?? businessesState.business.businessId}
             </span>
           </p>
-          <p className="text-sm font-medium text-ink">
+          <p className="text-base font-medium text-ink">
             HMRC receives these totals — never your individual records.
           </p>
           <div className="overflow-x-auto rounded-2xl border border-line">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-ink-soft">
+              <thead className="bg-paper text-ink-soft">
                 <tr>
                   <th scope="col" className="p-3 font-medium">
                     Category
                   </th>
                   <th scope="col" className="p-3 text-right font-medium">
-                    Cumulative amount
+                    Running total
                   </th>
                 </tr>
               </thead>
@@ -454,16 +458,16 @@ export function SubmitFlow({
               Receipt
               <Badge variant="outline">SANDBOX</Badge>
             </p>
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-1 text-base text-ink-soft">
               Q{shownReceipt.quarterIndex} {shownReceipt.taxYear} — period ending{" "}
               {formatUkDate(shownReceipt.periodEnd)}
             </p>
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               Submitted {formatUkDateTime(shownReceipt.submittedAt)}
             </p>
             {shownReceipt.hmrcCorrelationId ? (
-              <p className="text-xs text-ink-soft">
-                HMRC correlation id: {shownReceipt.hmrcCorrelationId}
+              <p className="text-base text-ink">
+                HMRC&apos;s reference number (keep this): {shownReceipt.hmrcCorrelationId}
               </p>
             ) : null}
             {shownReceipt.supersededCount > 0 ? (
@@ -472,7 +476,7 @@ export function SubmitFlow({
           </div>
 
           {flowStep.kind === "submitted" ? (
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               Added or corrected a record since?{" "}
               <button
                 type="button"
@@ -481,13 +485,13 @@ export function SubmitFlow({
               >
                 Review and resubmit this quarter
               </button>{" "}
-              — cumulative updates are designed to be corrected this way.
+              — quarterly updates are designed to be corrected this way.
             </p>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm text-ink-soft">
-                This quarter was already sent to HMRC&apos;s sandbox — resubmitting replaces those
-                totals with your current figures (the cumulative correction model).
+              <p className="text-base text-ink-soft">
+                This quarter was already sent to HMRC&apos;s sandbox — resubmitting replaces
+                those totals with your current figures.
               </p>
               <Button type="button" variant="outline" onClick={() => setFlowStep({ kind: "review" })}>
                 Resubmit with updated figures

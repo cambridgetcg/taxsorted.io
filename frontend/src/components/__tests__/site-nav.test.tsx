@@ -5,10 +5,32 @@ import { SiteNav } from "../site-nav";
 
 // SiteNav reads i18n through useI18n, which has a safe English fallback when
 // rendered outside the provider — so no wrapper is needed here.
+//
+// The nav is four doors + Account + language. Every destination that left the
+// old flat nav is one click away behind its door's hub page (see the hub-pages
+// test), so these assertions pin the doors, not the deep links.
 describe("SiteNav", () => {
   it("keeps the open Learn book in the primary navigation", () => {
     render(<SiteNav />);
     expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
+  });
+
+  it("offers the Do my tax door to the tools hub", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
+  });
+
+  it("offers the Follow the money door to the civic hub", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Follow the money" })).toHaveAttribute(
+      "href",
+      "/uk/money",
+    );
+  });
+
+  it("offers the About door", () => {
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
   });
 
   it("offers an Account link", () => {
@@ -16,44 +38,10 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
   });
 
-  it("offers the evidence-backed UK tax expert", () => {
+  it("shows exactly the four doors plus Account — no flat link pile", () => {
     render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Tax expert" })).toHaveAttribute(
-      "href",
-      "/uk/tax-expert",
-    );
-  });
-
-  it("offers the public industry map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Industry" })).toHaveAttribute(
-      "href",
-      "/uk/tax-industry",
-    );
-  });
-
-  it("offers the public charities map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Charities" })).toHaveAttribute(
-      "href",
-      "/uk/charities",
-    );
-  });
-
-  it("offers the public money map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Public money" })).toHaveAttribute(
-      "href",
-      "/uk/public-funding",
-    );
-  });
-
-  it("offers the observer-accountability map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Accountability" })).toHaveAttribute(
-      "href",
-      "/uk/accountability",
-    );
+    // Logo link + 4 doors + Account = 6 links total.
+    expect(screen.getAllByRole("link")).toHaveLength(6);
   });
 
   it("exposes an accessible mobile disclosure without dropping links or language", () => {
@@ -68,10 +56,7 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: /^income tax \(mtd\)$/i })).toHaveAttribute(
-      "href",
-      "/itsa",
-    );
+    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
     expect(screen.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
   });
 

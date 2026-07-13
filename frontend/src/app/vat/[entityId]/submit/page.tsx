@@ -4,9 +4,9 @@ import { Suspense } from "react";
 import VATSubmitPageClient from "./submit-page-client";
 
 export const metadata: Metadata = {
-  title: "Fictional VAT draft calculator",
+  title: "VAT example draft calculator",
   description:
-    "A browser-only VAT example that does not connect to HMRC, save a draft or file a return.",
+    "A browser-only VAT example with made-up numbers — it does not connect to HMRC, save a draft or file a return.",
   robots: {
     index: false,
     follow: false,

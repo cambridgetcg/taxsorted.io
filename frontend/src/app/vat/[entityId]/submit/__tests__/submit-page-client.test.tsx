@@ -30,7 +30,7 @@ describe("fictional VAT draft calculator", () => {
     render(<VATSubmitPageClient entityId="ent_001" />);
 
     expect(
-      screen.getByRole("complementary", { name: "Fictional browser-only calculator" }),
+      screen.getByRole("complementary", { name: "A worked example" }),
     ).toHaveTextContent(/does not connect.*save a draft.*file a return/i);
     expect(screen.queryByText(/submission failed|vat return prepared|saved and sent/i)).toBeNull();
     expect(screen.queryByRole("button", { name: /^file/i })).toBeNull();
@@ -44,7 +44,7 @@ describe("fictional VAT draft calculator", () => {
     render(<VATSubmitPageClient entityId="ent_001" />);
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: /every sale in these totals is standard-rated/i }),
+      screen.getByRole("checkbox", { name: /yes — both are true/i }),
     );
     const sales = screen.getByLabelText("Standard-rated sales, before VAT");
     fireEvent.change(sales, { target: { value: "123.45" } });
@@ -70,7 +70,7 @@ describe("fictional VAT draft calculator", () => {
     render(<VATSubmitPageClient entityId="ent_001" />);
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: /every sale in these totals is standard-rated/i }),
+      screen.getByRole("checkbox", { name: /yes — both are true/i }),
     );
     const sales = screen.getByLabelText("Standard-rated sales, before VAT");
     fireEvent.change(sales, { target: { value: "£ 1,000.00" } });
@@ -206,7 +206,7 @@ describe("fictional VAT draft calculator", () => {
     render(<VATSubmitPageClient entityId="ent_001" />);
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: /every sale in these totals is standard-rated/i }),
+      screen.getByRole("checkbox", { name: /yes — both are true/i }),
     );
     const sales = screen.getByLabelText("Standard-rated sales, before VAT");
     const costs = screen.getByLabelText("Eligible standard-rated purchases, before VAT");
@@ -218,7 +218,7 @@ describe("fictional VAT draft calculator", () => {
     fireEvent.click(screen.getByRole("button", { name: "Review completed calculation" }));
 
     const completionHeading = screen.getByRole("heading", {
-      name: "Review the fictional VAT draft",
+      name: "Review the example VAT draft",
     });
     expect(completionHeading).toHaveFocus();
     expect(

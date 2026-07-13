@@ -14,9 +14,13 @@ export interface ContactTableProps {
  */
 export function ContactTable({ channels }: ContactTableProps) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-line">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-gray-50 text-ink-soft">
+    <div>
+      <p className="mb-2 text-sm text-ink-soft sm:hidden" aria-hidden="true">
+        Wide table — swipe sideways to see it all →
+      </p>
+      <div className="overflow-x-auto rounded-2xl border border-line">
+      <table className="w-full text-left text-base">
+        <thead className="bg-paper text-ink-soft">
           <tr>
             <th scope="col" className="p-3 font-medium">
               Who it&apos;s for
@@ -43,6 +47,7 @@ export function ContactTable({ channels }: ContactTableProps) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

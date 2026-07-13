@@ -36,7 +36,8 @@ export function TaxPlayground() {
   }, []);
 
   return (
-    <section className="mt-12 rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-8" dir={dir}>
+    // id="playground": the homepage teaser links straight here (/uk/personal-tax#playground).
+    <section id="playground" className="mt-12 rounded-[2rem] border border-line bg-white p-5 shadow-sm sm:p-8" dir={dir}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-accent">
@@ -50,11 +51,11 @@ export function TaxPlayground() {
         <div className="rounded-2xl border border-line bg-paper px-4 py-3 text-sm text-ink">
           <p className="font-medium">{siteT("lang.label")}</p>
           <p className="mt-1 text-ink-soft">{localeLabels[locale].native} · {localeLabels[locale].english}</p>
-          <p className="mt-2 text-xs text-ink-soft">{t(playgroundCopy.switcherHint, locale)}</p>
+          <p className="mt-2 text-sm text-ink-soft">{t(playgroundCopy.switcherHint, locale)}</p>
         </div>
       </div>
 
-      <p className="mt-5 rounded-2xl bg-accent-soft p-4 text-sm font-medium text-ink">
+      <p className="mt-5 rounded-2xl bg-accent-soft p-4 text-base font-medium text-ink">
         {t(playgroundCopy.boundary, locale)}
       </p>
 
@@ -66,9 +67,9 @@ export function TaxPlayground() {
               <article key={card.id} className="rounded-3xl border border-line bg-paper p-5">
                 <p className="text-3xl" aria-hidden="true">{card.emoji}</p>
                 <h4 className="mt-3 text-lg font-semibold text-ink">{t(card.title, locale)}</h4>
-                <p className="mt-2 text-sm text-ink-soft">{t(card.body, locale)}</p>
-                <p className="mt-3 text-sm text-ink"><strong>{t(playgroundCopy.playLabel, locale)}:</strong> {t(card.play, locale)}</p>
-                <p className="mt-2 text-xs text-ink-soft"><strong>{t(playgroundCopy.cleanLineLabel, locale)}:</strong> {t(card.legalBoundary, locale)}</p>
+                <p className="mt-2 text-base text-ink-soft">{t(card.body, locale)}</p>
+                <p className="mt-3 text-base text-ink"><strong>{t(playgroundCopy.playLabel, locale)}:</strong> {t(card.play, locale)}</p>
+                <p className="mt-2 text-sm text-ink-soft"><strong>{t(playgroundCopy.cleanLineLabel, locale)}:</strong> {t(card.legalBoundary, locale)}</p>
               </article>
             ))}
           </div>
@@ -80,12 +81,12 @@ export function TaxPlayground() {
             {politicsCards.map((card) => (
               <article key={card.id} className="rounded-3xl border border-line bg-white p-5 shadow-sm">
                 <h4 className="text-lg font-semibold text-ink">{t(card.title, locale)}</h4>
-                <p className="mt-2 text-sm text-ink-soft">{t(card.plain, locale)}</p>
-                <p className="mt-3 text-sm text-ink"><strong>{t(playgroundCopy.whyPoliticsLabel, locale)}:</strong> {t(card.whyItMatters, locale)}</p>
-                <p className="mt-2 text-sm text-ink"><strong>{t(playgroundCopy.moveLabel, locale)}:</strong> {t(card.action, locale)}</p>
+                <p className="mt-2 text-base text-ink-soft">{t(card.plain, locale)}</p>
+                <p className="mt-3 text-base text-ink"><strong>{t(playgroundCopy.whyPoliticsLabel, locale)}:</strong> {t(card.whyItMatters, locale)}</p>
+                <p className="mt-2 text-base text-ink"><strong>{t(playgroundCopy.moveLabel, locale)}:</strong> {t(card.action, locale)}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {getSources(card.sourceIds).map((source) => (
-                    <a key={source.id} href={source.url} className="rounded-full border border-line px-3 py-1 text-xs text-accent hover:text-accent-deep">
+                    <a key={source.id} href={source.url} className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-accent hover:text-accent-deep">
                       {t(sourceKindLabels[source.kind], locale)}: {source.name}
                     </a>
                   ))}
@@ -100,7 +101,7 @@ export function TaxPlayground() {
         <h3 className="text-xl font-semibold text-ink">{t(playgroundCopy.receiptsHeading, locale)}</h3>
         <div className="mt-3 flex flex-wrap gap-2">
           {getSources(allSourceIds).map((source) => (
-            <a key={source.id} href={source.url} className="rounded-full bg-paper px-3 py-1 text-xs text-accent hover:text-accent-deep">
+            <a key={source.id} href={source.url} className="inline-flex min-h-11 items-center rounded-full bg-paper px-4 text-sm text-accent hover:text-accent-deep">
               {source.name}
             </a>
           ))}

@@ -39,7 +39,8 @@ describe('who runs your taxes', () => {
     )
     expect(steps).toEqual(['tier-1', 'tier-2', 'adjudicator', 'ombudsman'])
 
-    const ladder = container.querySelector('ol')
+    // The breadcrumbs trail is also an <ol>, so anchor on the ladder's own steps.
+    const ladder = container.querySelector('[data-step]')?.closest('ol') ?? null
     expect(ladder).not.toBeNull()
     const ladderText = ladder!.textContent ?? ''
     const tier1 = ladderText.indexOf('Tier 1')

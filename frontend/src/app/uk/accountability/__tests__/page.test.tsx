@@ -7,16 +7,36 @@ describe("UK observer-accountability page", () => {
   it("makes the observer inspectable without making a people dossier", () => {
     render(<AccountabilityPage />);
 
-    expect(metadata.description).toMatch(/institution-first framework/i);
+    expect(metadata.description).toMatch(
+      /how uk investigators, auditors and regulators are themselves checked/i,
+    );
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /watch the watchers.*keep the humans human/i,
+        name: /who checks the checkers.*how you can complain/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/symmetric accountability, not metaphysical fog/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/watchdogs follow the same evidence rules they apply to others/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/every observer gets a sourced review/i)).toBeInTheDocument();
     expect(screen.getByText(/even TaxSorted is inside this rule/i)).toBeInTheDocument();
+  });
+
+  it("gives ordinary people the HMRC complaint routes before the framework", () => {
+    render(<AccountabilityPage />);
+
+    expect(
+      screen.getByRole("heading", { name: /unhappy with how hmrc treated you/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/statutory review, then appeal to the first-tier tribunal/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/a complaint does not pause tax or replace an appeal/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /start at gov\.uk: complain about hmrc/i }),
+    ).toHaveAttribute("href", "https://www.gov.uk/complain-about-hmrc");
+    expect(screen.getByRole("heading", { name: /the short version/i })).toBeInTheDocument();
   });
 
   it("keeps words, actions and outcomes in distinct states", () => {
@@ -39,10 +59,12 @@ describe("UK observer-accountability page", () => {
     expect(screen.getByText(/specific SIA licence category is absent/i)).toBeInTheDocument();
   });
 
-  it("publishes the bounded Love inquiry loop and its off-switch", () => {
+  it("publishes the bounded inquiry loop and its off-switch in plain words", () => {
     render(<AccountabilityPage />);
 
-    expect(screen.getByRole("heading", { name: /with receipts and an off-switch/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /try things, check the evidence, keep an off-switch/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/controlled inquiry loop, not ambient surveillance/i)).toBeInTheDocument();
     for (const step of ["Hypothesis", "Pilot", "Counterevidence", "Risk", "Stop"]) {
       expect(screen.getByText(new RegExp(`· ${step}$`, "i"))).toBeInTheDocument();

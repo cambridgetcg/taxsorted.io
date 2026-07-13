@@ -1,38 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
 // i18n: deferred to M2 — plain English for launch
 
 export const metadata: Metadata = {
   title: "Learn — TaxSorted",
   description:
-    "Plain-words UK tax guides, every figure cited to its source. Free, open, no account.",
+    "Plain-words UK tax guides. Every figure links to the official rule it comes from. Free, open, no account.",
 };
 
 const GUIDES = [
   {
     slug: "mtd-income-tax",
     tag: "Start here",
-    title: "MTD Income Tax: don't panic",
-    desc: "What's actually true about Making Tax Digital for Income Tax — who's in, what you send, the real deadlines and penalties.",
+    title: "Making Tax Digital: don’t panic",
+    desc: "Heard you must send HMRC updates four times a year? Who’s actually in, what you send, the real deadlines and penalties.",
   },
   {
     slug: "income-tax",
-    tag: "Direct Tax",
+    tag: "Income Tax",
     title: "Income Tax",
-    desc: "Personal Allowance, bands and rates, the taper trap, and National Insurance for the self-employed.",
+    desc: "How much of your income is tax-free, how the bands work, the high-income trap, and what self-employed people pay on top.",
   },
   {
     slug: "for-landlords",
     tag: "Property",
     title: "For landlords",
-    desc: "Property Allowance, Rent-a-Room, the Section 24 finance-cost credit, and what changed with Furnished Holiday Lettings.",
+    desc: "Rent out a property, or a room? What’s tax-free, what’s not, and what to track.",
   },
   {
     slug: "self-employed",
     tag: "Self-employment",
     title: "Self-employed",
-    desc: "Trading Allowance, Class 4 and Class 2 National Insurance, cash basis, simplified expenses, and the MTD timeline.",
+    desc: "Work for yourself? What’s tax-free, what National Insurance you owe, and the flat rates that save you keeping every receipt.",
   },
 ] as const;
 
@@ -41,39 +42,41 @@ const GOV_GUIDES = [
     slug: "gov/how-tax-law-is-made",
     tag: "Mechanism",
     title: "How a tax law is born",
-    desc: "The real pipeline from Budget speech to Finance Act — including the surprise that you pay before it's law.",
+    desc: "Where do tax rules actually come from? The real pipeline from Budget speech to law — including why you can owe money before the law is passed.",
   },
   {
     slug: "gov/who-runs-your-taxes",
-    tag: "Who's who",
+    tag: "Who’s who",
     title: "Who runs your taxes",
-    desc: "Who's actually in charge of HMRC and the rules, and the real complaints ladder if HMRC gets your own case wrong.",
+    desc: "HMRC got your case wrong? Who’s actually in charge, and the step-by-step complaints ladder that exists for exactly this.",
   },
   {
     slug: "gov/your-levers",
     tag: "Take action",
     title: "Your levers on tax policy",
-    desc: "The real, official channels for changing a tax rule — your MP, select committees, petitions, FOI — with honest odds.",
+    desc: "Want a tax rule changed? Every official way to push — your MP, committees, petitions and more — with honest odds for each.",
   },
   {
     slug: "gov/receipts",
     tag: "Receipts",
     title: "Receipts: when pressure worked",
-    desc: "when pressure on tax policy actually worked — with sources",
+    desc: "When pressure on tax policy actually worked — four real cases, with sources.",
   },
 ] as const;
 
 export default function LearnPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-ink sm:text-4xl">Learn</h1>
-      <p className="mt-3 text-ink-soft">
-        Plain-words UK tax guides. Each one tells you what it means, what you must do, what you
-        can safely skip, and how to optimise — every figure cited to its source, nothing
-        hardcoded. Free, open, no account.
+      <Breadcrumbs current="Learn" />
+      <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Learn</h1>
+      <p className="mt-3 text-base text-ink-soft">
+        Plain-words UK tax guides. Each one tells you what it means, what you must do, and what
+        you can safely skip. Every figure links to the official rule it comes from. Free, open,
+        no account.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <h2 className="mt-10 text-2xl font-bold text-ink">Your taxes, explained</h2>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {GUIDES.map((g) => (
           <Link
             key={g.slug}
@@ -83,14 +86,14 @@ export default function LearnPage() {
             <span className="inline-block rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-deep">
               {g.tag}
             </span>
-            <h2 className="mt-3 text-lg font-semibold text-ink">{g.title}</h2>
-            <p className="mt-1.5 text-sm text-ink-soft">{g.desc}</p>
+            <h3 className="mt-3 text-lg font-semibold text-ink">{g.title}</h3>
+            <p className="mt-1.5 text-base text-ink-soft">{g.desc}</p>
           </Link>
         ))}
       </div>
 
       <h2 className="mt-12 text-2xl font-bold text-ink">The tax state, explained</h2>
-      <p className="mt-3 text-ink-soft">
+      <p className="mt-3 text-base text-ink-soft">
         Not just the rules — who makes them, who runs them day to day, and the real, official
         channels for having your own say. Same discipline: plain words, every fact cited.
       </p>
@@ -106,16 +109,16 @@ export default function LearnPage() {
               {g.tag}
             </span>
             <h3 className="mt-3 text-lg font-semibold text-ink">{g.title}</h3>
-            <p className="mt-1.5 text-sm text-ink-soft">{g.desc}</p>
+            <p className="mt-1.5 text-base text-ink-soft">{g.desc}</p>
           </Link>
         ))}
       </div>
 
-      <p className="mt-8 text-sm text-ink-soft">
-        More guides are coming — VAT, Corporation Tax, PAYE/RTI and Capital Gains Tax are next.
-        The tax-state guides above are UK-wide for now; devolved taxes in full, Northern Ireland,
-        and Welsh-language versions are the next backlog for that section. This list is honestly
-        short today because every figure on it has to be cited before it ships.
+      <p className="mt-8 text-base text-ink-soft">
+        More guides are coming — VAT, Corporation Tax, PAYE (tax taken from pay) and Capital
+        Gains Tax, then the taxes Scotland and Wales set themselves (devolved taxes in full),
+        Northern Ireland, and Welsh-language versions. The list is honestly short today because
+        every figure has to be cited before a guide ships.
       </p>
     </div>
   );

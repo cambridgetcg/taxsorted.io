@@ -44,7 +44,7 @@ export interface HmrcPanelProps {
 type PanelStatus = "loading" | "unreachable" | "need-nino" | "not-connected" | "connected";
 
 const RECOGNITION_LINE =
-  "Production filing unlocks with HMRC recognition — we're walking that path in the open.";
+  "Real filing switches on once HMRC approves us — we're working on that in the open.";
 
 /** Every card in this panel wears the same header shape: title, permanent
     SANDBOX badge, and the recognition line — so the badge can never be
@@ -70,7 +70,8 @@ function PanelShell({
           <Badge variant="outline">SANDBOX</Badge>
         </CardTitle>
         <CardDescription>
-          {RECOGNITION_LINE}{" "}
+          {RECOGNITION_LINE} Until then everything runs in the sandbox — HMRC&apos;s practice
+          system.{" "}
           <Link href="/learn/mtd-income-tax" className="underline hover:text-ink">
             How MTD for Income Tax works
           </Link>
@@ -112,7 +113,7 @@ function AccountNote({ account }: { account: GetAccountResponse | null }) {
   if (account.claimableEntities > 0) {
     return (
       <p className="text-xs text-ink-soft">
-        Keep this browser&apos;s entities in your account →{" "}
+        Keep this browser&apos;s businesses in your account <span aria-hidden="true">→</span>{" "}
         <Link href="/account" className="underline hover:text-ink">
           Account
         </Link>
@@ -355,8 +356,9 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
           <CardTitle>Connect to HMRC</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-ink-soft">
-            Our api may be asleep — it scales to zero between visits. Give it a moment and retry.
+          <p className="text-base text-ink-soft">
+            Our server may be asleep — it naps between visits. Nothing is lost. Give it a
+            moment, then retry.
           </p>
           <Button variant="outline" size="sm" onClick={() => setReloadToken((t) => t + 1)}>
             Retry
@@ -373,9 +375,9 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
         notice={notice}
         accountNote={<AccountNote account={account} />}
       >
-        <p className="text-sm text-ink-soft">
-          First, this entity&apos;s National Insurance number — ITSA identifies a taxpayer by
-          NINO, not VRN.
+        <p className="text-base text-ink-soft">
+          First, your National Insurance number (NINO) — HMRC uses it to identify you for
+          Income Tax.
         </p>
         <div className="flex max-w-sm gap-2">
           <div className="flex-1 space-y-1.5">
@@ -443,10 +445,10 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
             <AlertDescription>{obligationsError}</AlertDescription>
           </Alert>
         ) : obligations === null ? (
-          <p className="text-sm text-ink-soft">Loading obligations…</p>
+          <p className="text-base text-ink-soft">Checking what you must send…</p>
         ) : obligations.length === 0 ? (
-          <p className="text-sm text-ink-soft">
-            No obligations returned by the sandbox right now.
+          <p className="text-base text-ink-soft">
+            HMRC&apos;s practice system lists nothing for you to send right now.
           </p>
         ) : (
           <ul className="space-y-2">

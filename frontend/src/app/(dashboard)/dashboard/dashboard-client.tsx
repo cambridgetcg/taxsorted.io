@@ -34,6 +34,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { gbp, gbpCompact } from "@/lib/format";
 import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
@@ -98,11 +99,12 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Dashboard" />
       <div>
-        <h1 className="text-2xl font-bold text-ink sm:text-3xl">Your ITSA cockpit</h1>
-        <p className="mt-1 text-sm text-ink-soft">
-          Where you stand on Making Tax Digital for Income Tax, from your own records — nothing
-          invented, nothing assumed.
+        <h1 className="text-2xl font-bold text-ink sm:text-3xl">Your Income Tax home</h1>
+        <p className="mt-1 text-base text-ink-soft">
+          Where you stand on Making Tax Digital (MTD) for Income Tax Self Assessment (ITSA),
+          from your own records — nothing invented, nothing assumed.
         </p>
       </div>
 
@@ -120,7 +122,7 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
               {todayIso === null
                 ? "Loading your quarter…"
                 : quarter
-                  ? `Q${quarter.index} ${TAX_YEAR}, cumulative from 6 April`
+                  ? `Q${quarter.index} ${TAX_YEAR}, counted from 6 April`
                   : `${TAX_YEAR} — outside the quarterly periods`}
             </CardDescription>
           </CardHeader>
@@ -160,9 +162,9 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
             )}
             <Link
               href="/itsa/records"
-              className="inline-block text-sm font-medium text-accent underline hover:text-accent-deep"
+              className="inline-block text-base font-medium text-accent underline hover:text-accent-deep"
             >
-              Add or review your records →
+              Add or review your records <span aria-hidden="true">→</span>
             </Link>
           </CardContent>
         </Card>
@@ -184,9 +186,9 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
             ) : null}
             <Link
               href="/itsa/quarter"
-              className="inline-block text-sm font-medium text-accent underline hover:text-accent-deep"
+              className="inline-block text-base font-medium text-accent underline hover:text-accent-deep"
             >
-              See the full cited breakdown →
+              See the full cited breakdown <span aria-hidden="true">→</span>
             </Link>
           </CardContent>
         </Card>
@@ -200,18 +202,18 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
         <VoicePanel today={today} />
       </div>
 
-      {/* Row 4 — VAT stays its own cockpit */}
+      {/* Row 4 — VAT stays its own home page */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Run a VAT-registered business too?</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-ink-soft">
-            The VAT cockpit lives at <span className="font-medium text-ink">/vat</span> — its own
-            entities, HMRC connection and receipts, kept separate from Income Tax.
+          <p className="text-base text-ink-soft">
+            VAT has its own home page — its own businesses, HMRC connection and receipts, kept
+            separate from Income Tax.
           </p>
           <Link href="/vat/" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            Open the VAT cockpit →
+            Open your VAT home <span aria-hidden="true">→</span>
           </Link>
         </CardContent>
       </Card>

@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
 /* The first stroke of the brand: warm paper, honest ink, one calm green.
-   One light theme for now — dark returns when it can be done properly. */
+   One light theme for now — dark returns when it can be done properly.
+
+   These seven tokens are the whole palette. The components in
+   src/components/ui/ use ONLY these (plus Tailwind's stock red/green/
+   yellow/blue where a status colour carries meaning). If a class names a
+   colour token that isn't defined here, Tailwind 4 silently generates no
+   CSS — so don't add shadcn-style names (ring, primary, foreground…);
+   rewrite the component onto these real tokens instead. */
 :root {
   --paper: #faf9f5;
   --ink: #1c1b17;
@@ -30,6 +37,8 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", "Noto Sans CJK SC", "Noto Sans CJK TC", "PingFang SC", "PingFang TC", "Microsoft YaHei", "Hiragino Sans", sans-serif;
 }
 
+/* The one keyboard-focus style for the whole site. No component sets
+   focus-visible:outline-none — everything lets this outline win. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;

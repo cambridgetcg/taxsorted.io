@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Cited } from "@/components/prep/cited";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ShortVersion } from "@/components/ui/short-version";
+import { ExternalLink, PageSources } from "@/components/gov/sources";
 import { RoleCard } from "@/components/gov/role-card";
 import { ContactTable } from "@/components/gov/contact-table";
 import { ROLES, HMRC_CHANNELS, type RoleEntry } from "@/lib/gov/contacts";
@@ -66,215 +69,45 @@ export default function WhoRunsYourTaxesPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/learn" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to Learn
-      </Link>
+      <Breadcrumbs items={[{ href: "/learn", label: "Learn" }]} current="Who runs your taxes" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Who runs your taxes</h1>
-      <p className="mt-3 text-ink-soft">
-        HMRC collects it, Treasury ministers decide the rules, and neither can simply wave your
-        individual case away — there&apos;s a real ladder for that. Here&apos;s who actually holds
-        each role, how to reach them, and the official complaints route if HMRC gets{" "}
-        <strong>your own</strong> case wrong.
+      <p className="mt-3 text-base text-ink-soft">
+        This page shows who to contact when HMRC gets <strong>your own</strong>{" "} case wrong — and
+        who actually holds each role behind the tax system.
       </p>
 
-      <div role="note" className="mt-6 rounded-2xl border border-line bg-accent-soft p-4 text-sm text-ink sm:p-5">
+      <ShortVersion className="mt-6">
+        <li>
+          Case gone wrong? The ladder: complain to HMRC (Tier 1), ask for a second review
+          (Tier 2), then the free Adjudicator, then the Ombudsman via your MP.
+        </li>
+        <li>
+          Think a tax decision or penalty is <em>wrong</em>? That&apos;s an appeal, not a
+          complaint — a separate route.
+        </li>
+        <li>
+          Treasury ministers decide the rules; HMRC runs the system. A minister cannot change
+          your individual case.
+        </li>
+        <li>HMRC never calls, texts or emails out of the blue demanding payment. That&apos;s a scam.</li>
+      </ShortVersion>
+
+      <div role="note" className="mt-6 rounded-2xl border border-line bg-accent-soft p-4 text-base text-ink sm:p-5">
         <p>
-          <strong>Mechanism, not opinion.</strong> This page describes who holds which office and
+          <strong>Mechanism, not opinion.</strong>{" "} This page describes who holds which office and
           how the machine is built to work — not a verdict on any tax, minister or government.
           Names are role-anchored and date-stamped (people move on; roles don&apos;t) — check the
           linked official page for who holds a role today.
         </p>
       </div>
 
-      {/* 1. Non-ministerial explainer */}
+      {/* 1. Complaints ladder — the page's most-wanted answer, so it comes first */}
       <section className="mt-10 rounded-2xl border border-line bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">
-          HMRC is non-ministerial — why a minister can&apos;t touch your case
-        </h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          <Cited cite={{ source: HMRC_ORG_URL, effectiveFrom: VERIFIED_ON }}>
-            gov.uk states plainly: &ldquo;HMRC is a non-ministerial department, supported by 1
-            public body.&rdquo;
-          </Cited>{" "}
-          <Cited cite={{ source: HMRC_ABOUT_URL, effectiveFrom: VERIFIED_ON }}>
-            It is &ldquo;a non-ministerial Department established by the Commissioners for Revenue
-            and Customs Act (CRCA) 2005&rdquo;, with responsibility vested &ldquo;in Commissioners
-            appointed by the King&rdquo; — and it &ldquo;report[s] to Parliament through our
-            Treasury minister who oversees our spending.&rdquo;
-          </Cited>
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Plain words: day-to-day administration of the tax system legally sits with HMRC&apos;s
-          own Commissioners, not with politicians. A minister or MP cannot simply order HMRC to
-          change the outcome of <strong>your</strong> individual case — that&apos;s deliberate; it
-          protects impartiality. The routes that <em>do</em> work for an individual case are the
-          statutory appeal/review, the complaints ladder below, the Adjudicator, and the Ombudsman
-          via your MP. Your MP can still chase HMRC on your behalf and raise systemic issues — but
-          that&apos;s the policy lever, not this one.
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a
-            href={HMRC_ORG_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC — GOV.UK
-          </a>
-          ,{" "}
-          <a
-            href={HMRC_ABOUT_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC — About us
-          </a>
-          .
-        </p>
-      </section>
-
-      {/* 2. Policy partnership */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">
-          The policy partnership: Treasury decides, HMRC delivers
-        </h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          <Cited cite={{ source: HMRC_ABOUT_URL, effectiveFrom: VERIFIED_ON }}>
-            HMRC&apos;s own gov.uk page states it verbatim: &ldquo;The Treasury lead on strategic
-            tax policy and policy development. HMRC leads on policy maintenance and
-            implementation. This arrangement for policy making is known as the &lsquo;policy
-            partnership&rsquo;.&rdquo;
-          </Cited>
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Plain words: Treasury ministers decide what the tax rules <em>should be</em> — rates, new
-          taxes, reliefs, announced at Budgets. HMRC keeps the machine running — collects the tax,
-          runs the systems, administers the existing rules. Want a rule <em>changed</em>? Treasury
-          is the decision-maker.{" "}
-          <Link
-            href="/learn/gov/your-levers"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            Your levers
-          </Link>{" "}
-          covers that route. Got a problem with how an existing rule was applied to{" "}
-          <strong>you</strong>? That&apos;s HMRC, and the rest of this page.
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          <Cited cite={{ source: HMRC_GOVERNANCE_URL, effectiveFrom: VERIFIED_ON }}>
-            The two departments are linked at the top: the Exchequer Secretary to the Treasury —
-            the current tax minister — chairs the HMRC Board.
-          </Cited>
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Source:{" "}
-          <a
-            href={HMRC_ABOUT_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC — About us (the policy partnership)
-          </a>
-          .
-        </p>
-      </section>
-
-      {/* 3. Who's who — RoleCards */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-ink">Who actually holds each role</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Every card below is role-anchored — the office is the durable fact; the named
-          office-holder carries the date it was last checked. An amber badge means an entry hasn&apos;t
-          been re-verified in over 90 days; check the linked page before repeating it as current.
-        </p>
-        {ROLE_GROUPS.map((group) => (
-          <div key={group.body} className="mt-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">
-              {group.heading}
-            </h3>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              {ROLES.filter((r) => r.body === group.body).map((role) => (
-                <RoleCard key={role.id} role={role} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* 4. Anti-phishing callout — ABOVE the contact table */}
-      <section className="mt-10 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">These are routes for you to contact them</h2>
-        <p className="mt-2 text-sm text-ink">
-          Every channel in the table below is a route for <strong>you</strong> to reach HMRC — not
-          the other way round. HMRC will never call, text or email you out of the blue demanding
-          payment, threatening arrest, or asking for your bank details, PIN or password. If you get
-          a message like that, it is not HMRC — it&apos;s a scam.
-        </p>
-        <p className="mt-3 text-sm text-ink">
-          Check anything that looks suspicious against{" "}
-          <a
-            href={SCAM_GUIDANCE_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC&apos;s own guidance on identifying scam phone calls, emails and text messages
-          </a>{" "}
-          before you click a link or ring back a number that didn&apos;t come from this page or
-          gov.uk. And please stay civil on the phone or in writing — the people answering these
-          lines aren&apos;t the ones who set the rules.
-        </p>
-      </section>
-
-      {/* 5. Contact table */}
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold text-ink">Official HMRC contact routes</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Every row below is copied exactly from its own gov.uk contact page — click through to
-          check it&apos;s still current before you rely on it.
-        </p>
-        <div className="mt-3">
-          <ContactTable channels={HMRC_CHANNELS} />
-        </div>
-
-        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-sm text-ink">
-          <p className="font-semibold">Need extra support to get in touch?</p>
-          <p className="mt-1 text-ink-soft">{extraSupportChannel.audience}.</p>
-          <p className="mt-1">
-            {extraSupportChannel.channel}: {extraSupportChannel.details}
-          </p>
-          {extraSupportChannel.hours ? (
-            <p className="mt-1 text-ink-soft">{extraSupportChannel.hours}</p>
-          ) : null}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-line bg-white p-4 text-sm text-ink">
-          <p className="font-semibold">
-            What we&apos;re legally required to send when we contact HMRC on your behalf
-          </p>
-          <p className="mt-1 text-ink-soft">
-            Every API call our software makes to HMRC carries a set of fraud-prevention headers
-            about your browser and device — required by UK law, not our choice.
-          </p>
-          <Link
-            href="/learn/gov/what-we-send-hmrc"
-            className="mt-1 inline-block font-medium text-accent underline hover:text-accent-deep"
-          >
-            See exactly what we send, and why
-          </Link>
-        </div>
-      </section>
-
-      {/* 6. Complaints ladder */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">
           The complaints ladder — for when HMRC gets your case wrong
         </h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: COMPLAINTS_URL, effectiveFrom: VERIFIED_ON }}>
             Complaints are not appeals: if you think a tax decision or penalty is <em>wrong</em>,
             use the appeal/review route instead. Complaints are for poor service — &ldquo;unreasonable
@@ -282,12 +115,13 @@ export default function WhoRunsYourTaxesPage() {
             interest and penalties.
           </Cited>
         </p>
-        <ol className="mt-4 space-y-4 text-sm text-ink">
+        <ol className="mt-4 space-y-4 text-base text-ink">
           <li data-step="tier-1">
             <strong>Tier 1 — first review by HMRC.</strong>{" "}
             <Cited cite={{ source: COMPLAINTS_URL, effectiveFrom: VERIFIED_ON }}>
-              Complain online, by phone, or by post. Have your National Insurance number, UTR or
-              VAT number ready, plus what happened and how you want it resolved. HMRC
+              Complain online, by phone, or by post. Have your National Insurance number, your
+              Unique Taxpayer Reference (UTR — the 10-digit number on HMRC letters) or your VAT
+              number ready, plus what happened and how you want it resolved. HMRC
               &ldquo;investigate what happened and what should have happened.&rdquo;
             </Cited>
           </li>
@@ -317,35 +151,155 @@ export default function WhoRunsYourTaxesPage() {
             <span>{phsoChannel.details}</span>
           </li>
         </ol>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a
-            href={COMPLAINTS_URL}
-            target="_blank"
-            rel="noreferrer noopener"
+      </section>
+
+      {/* 2. Anti-phishing callout — ABOVE the contact table */}
+      <section className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-ink">These are routes for you to contact them</h2>
+        <p className="mt-2 text-base text-ink">
+          Every channel in the table below is a route for <strong>you</strong>{" "} to reach HMRC — not
+          the other way round. HMRC will never call, text or email you out of the blue demanding
+          payment, threatening arrest, or asking for your bank details, PIN or password. If you get
+          a message like that, it is not HMRC — it&apos;s a scam.
+        </p>
+        <p className="mt-3 text-base text-ink">
+          Check anything suspicious against{" "}
+          <ExternalLink href={SCAM_GUIDANCE_URL}>
+            HMRC&apos;s own guidance on identifying scam calls, emails and texts
+          </ExternalLink>{" "}
+          before you click a link or ring back a number that didn&apos;t come from this page or
+          gov.uk. And please stay civil on the phone or in writing — the people answering these
+          lines aren&apos;t the ones who set the rules.
+        </p>
+      </section>
+
+      {/* 3. Contact table */}
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold text-ink">Official HMRC contact routes</h2>
+        <p className="mt-2 text-base text-ink-soft">
+          Every row below is copied exactly from its own gov.uk contact page — click through to
+          check it&apos;s still current before you rely on it.
+        </p>
+        <div className="mt-3">
+          <ContactTable channels={HMRC_CHANNELS} />
+        </div>
+
+        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-base text-ink">
+          <p className="font-semibold">Need extra support to get in touch?</p>
+          <p className="mt-1 text-ink-soft">{extraSupportChannel.audience}.</p>
+          <p className="mt-1">
+            {extraSupportChannel.channel}: {extraSupportChannel.details}
+          </p>
+          {extraSupportChannel.hours ? (
+            <p className="mt-1 text-ink-soft">{extraSupportChannel.hours}</p>
+          ) : null}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-line bg-white p-4 text-base text-ink">
+          <p className="font-semibold">
+            What we&apos;re legally required to send when we contact HMRC on your behalf
+          </p>
+          <p className="mt-1 text-ink-soft">
+            Every call our software makes to HMRC carries a set of fraud-prevention headers
+            about your browser and device — required by UK law, not our choice.
+          </p>
+          <Link
+            href="/learn/gov/what-we-send-hmrc"
+            className="mt-1 inline-block font-medium text-accent underline hover:text-accent-deep"
+          >
+            See exactly what we send, and why
+          </Link>
+        </div>
+      </section>
+
+      {/* 4. Who's who — RoleCards */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold text-ink">Who actually holds each role</h2>
+        <p className="mt-2 text-base text-ink-soft">
+          Every card below is role-anchored — the office is the durable fact; the named
+          office-holder carries the date it was last checked. An amber badge means an entry
+          hasn&apos;t been re-verified in over 90 days; check the linked page before repeating it
+          as current.
+        </p>
+        {ROLE_GROUPS.map((group) => (
+          <div key={group.body} className="mt-6">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">
+              {group.heading}
+            </h3>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              {ROLES.filter((r) => r.body === group.body).map((role) => (
+                <RoleCard key={role.id} role={role} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* 5. Non-ministerial explainer */}
+      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-ink">
+          Why a minister can&apos;t touch your case
+        </h2>
+        <p className="mt-2 text-base text-ink-soft">
+          <Cited cite={{ source: HMRC_ORG_URL, effectiveFrom: VERIFIED_ON }}>
+            gov.uk states plainly: &ldquo;HMRC is a non-ministerial department, supported by 1
+            public body.&rdquo;
+          </Cited>{" "}
+          <Cited cite={{ source: HMRC_ABOUT_URL, effectiveFrom: VERIFIED_ON }}>
+            It is &ldquo;a non-ministerial Department established by the Commissioners for Revenue
+            and Customs Act (CRCA) 2005&rdquo;, with responsibility vested &ldquo;in Commissioners
+            appointed by the King&rdquo; — and it &ldquo;report[s] to Parliament through our
+            Treasury minister who oversees our spending.&rdquo;
+          </Cited>
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          Plain words: the day-to-day running of the tax system legally sits with HMRC&apos;s own
+          Commissioners, not with politicians. A minister or MP cannot order HMRC to change the
+          outcome of <strong>your</strong>{" "} case. That&apos;s deliberate — it protects
+          impartiality.
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          The routes that <em>do</em>{" "} work for an individual case: the statutory appeal/review,
+          the complaints ladder above, the Adjudicator, and the Ombudsman via your MP. Your MP
+          can still chase HMRC on your behalf and raise systemic issues — but that&apos;s the
+          policy lever, not this one.
+        </p>
+      </section>
+
+      {/* 6. Policy partnership */}
+      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-ink">
+          The policy partnership: Treasury decides, HMRC delivers
+        </h2>
+        <p className="mt-2 text-base text-ink-soft">
+          <Cited cite={{ source: HMRC_ABOUT_URL, effectiveFrom: VERIFIED_ON }}>
+            HMRC&apos;s own gov.uk page states it verbatim: &ldquo;The Treasury lead on strategic
+            tax policy and policy development. HMRC leads on policy maintenance and
+            implementation. This arrangement for policy making is known as the &lsquo;policy
+            partnership&rsquo;.&rdquo;
+          </Cited>
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          Plain words: Treasury ministers decide what the rules <em>should be</em> — rates, new
+          taxes, reliefs, announced at Budgets. HMRC keeps the machine running: collecting tax
+          and applying the existing rules.
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          Want a rule <em>changed</em>? Treasury is the decision-maker —{" "}
+          <Link
+            href="/learn/gov/your-levers"
             className="font-medium text-accent underline hover:text-accent-deep"
           >
-            Complain about HMRC — GOV.UK
-          </a>
-          ,{" "}
-          <a
-            href={ADJUDICATOR_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            The Adjudicator&apos;s Office
-          </a>
-          ,{" "}
-          <a
-            href={PHSO_MP_FILTER_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            PHSO — the MP filter
-          </a>
-          .
+            Your levers
+          </Link>{" "}
+          covers that route. Got a problem with how a rule was applied to <strong>you</strong>?
+          That&apos;s HMRC, and the ladder above.
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          <Cited cite={{ source: HMRC_GOVERNANCE_URL, effectiveFrom: VERIFIED_ON }}>
+            The two departments are linked at the top: the Exchequer Secretary to the Treasury —
+            the current tax minister — chairs the HMRC Board.
+          </Cited>
         </p>
       </section>
 
@@ -354,57 +308,31 @@ export default function WhoRunsYourTaxesPage() {
         <h2 className="text-lg font-semibold text-ink">
           Your own data is a Subject Access Request (SAR), not FOI
         </h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: FOI_MAKE_REQUEST_URL, effectiveFrom: VERIFIED_ON }}>
-            Freedom of Information gets you HMRC&apos;s policy, process, statistics and internal
-            guidance. Personal data about <em>yourself</em> is not FOI — that&apos;s a
+            Freedom of Information (FOI) gets you HMRC&apos;s policy, process, statistics and
+            internal guidance. Personal data about <em>yourself</em>{" "} is not FOI — that&apos;s a
             data-protection Subject Access Request (SAR) instead.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           HMRC has its own dedicated route for that:{" "}
-          <a
-            href={SAR_GUIDANCE_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
+          <ExternalLink href={SAR_GUIDANCE_URL}>
             request your own HMRC data via a Subject Access Request
-          </a>
-          . It is free, and it is entirely separate from the FOI route below.
+          </ExternalLink>
+          . It is free, and it is entirely separate from FOI.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           FOI, by contrast, is for asking how HMRC works — never your own tax affairs, and never
           anyone else&apos;s (HMRC will &ldquo;neither confirm nor deny&rdquo; holding information
           about an identifiable taxpayer). HMRC&apos;s FOI route: {foiChannel.details}
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a
-            href={FOI_MAKE_REQUEST_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            Make a Freedom of Information request — GOV.UK
-          </a>
-          ,{" "}
-          <a
-            href={SAR_GUIDANCE_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC Subject Access Request — GOV.UK
-          </a>
-          .
         </p>
       </section>
 
       {/* 8. Devolution note */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">If you&apos;re in Scotland or Wales</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Everything above still applies — HMRC still administers and collects your Income Tax,
           National Insurance and VAT, and the same contact routes and complaints ladder are yours to
           use too. What differs is who sets your income tax <em>rates and bands</em>:{" "}
@@ -413,44 +341,23 @@ export default function WhoRunsYourTaxesPage() {
           </Cited>
           , and{" "}
           <Cited cite={{ source: WELSH_INCOME_TAX_URL, effectiveFrom: VERIFIED_ON }}>
-            the Senedd sets Welsh rates of income tax
+            the Senedd (the Welsh Parliament) sets Welsh rates of income tax
           </Cited>
-          . A complaint about the <em>rate itself</em> is a question for the devolved Parliament,
+          . A complaint about the <em>rate itself</em>{" "} is a question for the devolved Parliament,
           not the UK routes on this page.
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a
-            href={SCOTTISH_INCOME_TAX_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            Scottish Income Tax — GOV.UK
-          </a>
-          ,{" "}
-          <a
-            href={WELSH_INCOME_TAX_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            Welsh rates of Income Tax — GOV.UK
-          </a>
-          .
         </p>
       </section>
 
       {/* Wrong-door box — INVERTED: this page IS the individual-dispute door */}
       <section className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Is this actually about tax policy, not your own case?</h2>
-        <p className="mt-2 text-sm text-ink">
+        <p className="mt-2 text-base text-ink">
           Everything above is the individual-dispute door: a wrong bill, a stuck refund, bad
           service — the complaints ladder is built for exactly that. If instead you think a{" "}
-          <strong>rule itself</strong> should change — a rate, a threshold, a Making Tax Digital
+          <strong>rule itself</strong>{" "} should change — a rate, a threshold, a Making Tax Digital
           deadline — none of the routes on this page will move it.
         </p>
-        <p className="mt-3 text-sm text-ink">
+        <p className="mt-3 text-base text-ink">
           <Link
             href="/learn/gov/your-levers"
             className="font-medium text-accent underline hover:text-accent-deep"
@@ -460,6 +367,22 @@ export default function WhoRunsYourTaxesPage() {
           covers who actually decides tax policy and how to make yourself heard.
         </p>
       </section>
+
+      <PageSources
+        links={[
+          { href: COMPLAINTS_URL, label: "Complain about HMRC — GOV.UK" },
+          { href: ADJUDICATOR_URL, label: "The Adjudicator's Office" },
+          { href: PHSO_MP_FILTER_URL, label: "Parliamentary and Health Service Ombudsman — the MP filter" },
+          { href: SCAM_GUIDANCE_URL, label: "HMRC — identify scam phone calls, emails and texts" },
+          { href: HMRC_ORG_URL, label: "HMRC — GOV.UK" },
+          { href: HMRC_ABOUT_URL, label: "HMRC — About us (the policy partnership)" },
+          { href: HMRC_GOVERNANCE_URL, label: "HMRC — our governance" },
+          { href: FOI_MAKE_REQUEST_URL, label: "Make a Freedom of Information request — GOV.UK" },
+          { href: SAR_GUIDANCE_URL, label: "HMRC Subject Access Request — GOV.UK" },
+          { href: SCOTTISH_INCOME_TAX_URL, label: "Scottish Income Tax — GOV.UK" },
+          { href: WELSH_INCOME_TAX_URL, label: "Welsh rates of Income Tax — GOV.UK" },
+        ]}
+      />
     </div>
   );
 }

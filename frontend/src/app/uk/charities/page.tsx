@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ShortVersion } from "@/components/ui/short-version";
 
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "How UK charities work — TaxSorted",
   description:
-    "A sector-first guide to UK charity registers, conditional tax relief, obligations, finance, assets, control and safe routes to ask for help.",
+    "Find a charity on its official register, understand how charity tax really works, and ask for help safely — with the rules that keep people out of our data.",
 };
 
 const registers = [
@@ -14,21 +16,21 @@ const registers = [
     body: "Charity Commission",
     href: "https://www.gov.uk/find-charity-information",
     description:
-      "Search registered charities by name or number and inspect their stated work and filed information. Some charities are excepted, exempt or outside the ordinary registration threshold.",
+      "Search registered charities by name or number and read their stated work and filed information. Some charities do not have to register — the law calls them excepted or exempt — or sit outside the ordinary registration threshold.",
   },
   {
     jurisdiction: "Scotland",
     body: "OSCR",
     href: "https://www.oscr.org.uk/about-charities/search-the-register/",
     description:
-      "Search the Scottish Charity Register by exact number, purpose, status, form, geography or income. Read OSCR as the source of the Scottish record.",
+      "The Office of the Scottish Charity Regulator (OSCR) holds the Scottish record. Search the Scottish Charity Register by exact number, purpose, status, form, geography or income.",
   },
   {
     jurisdiction: "Northern Ireland",
     body: "CCNI",
     href: "https://www.charitycommissionni.org.uk/start-up-a-charity/register-of-charities/",
     description:
-      "Use CCNI guidance and the register search for Northern Ireland identity, purposes, activities and annual reporting information.",
+      "The Charity Commission for Northern Ireland (CCNI) publishes identity, purposes, activities and annual reporting information. Use its register search and guidance.",
   },
 ] as const;
 
@@ -88,6 +90,13 @@ const evidenceContext = [
   ["Metric", "The exact scope and metric definitions, method, units and accounting boundary."],
 ] as const;
 
+const controlPoints = [
+  "Members may have defined votes.",
+  "In England and Wales, a corporate charity can hold assets in its own name. An unincorporated charity may need trustees or a custodian to hold property.",
+  "Scotland and Northern Ireland have their own legal forms and rules.",
+  "A charity can also control a separate trading subsidiary.",
+] as const;
+
 const obligations = [
   {
     title: "Stay inside the purposes",
@@ -107,7 +116,7 @@ const obligations = [
   {
     title: "Meet ordinary duties too",
     detail:
-      "Charitable status does not remove employment, safeguarding, fundraising, company, VAT, PAYE, data-protection or other activity-specific duties.",
+      "Charitable status does not remove employment, safeguarding, fundraising, company, VAT, PAYE (Pay As You Earn payroll), data-protection or other activity-specific duties.",
   },
 ] as const;
 
@@ -137,6 +146,12 @@ const primarySources = [
 export default function CharitiesPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <Breadcrumbs
+        items={[{ href: "/uk/money", label: "Follow the money" }]}
+        current="Charities"
+        className="mb-6"
+      />
+
       <header className="relative overflow-hidden rounded-[2rem] border border-line bg-ink p-6 text-white shadow-sm sm:p-10 lg:p-12">
         <div
           className="absolute -right-20 -top-24 h-72 w-72 rounded-full border border-white/10"
@@ -147,33 +162,42 @@ export default function CharitiesPage() {
           aria-hidden="true"
         />
         <div className="relative max-w-5xl">
-          <p className="text-sm font-semibold uppercase tracking-wide text-white/65">
-            UK charities · bounded public guide
+          <p className="text-sm font-semibold uppercase tracking-wide text-white/80">
+            UK charities
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-6xl">
-            See the public bargain. Keep people out of the bulk graph.
+          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+            Check a charity, understand its tax, ask it for help.
           </h1>
-          <p className="mt-5 max-w-4xl text-lg leading-8 text-white/75">
-            Find the official register, understand conditional tax relief, read money and
-            control honestly, then approach an organisation through the route it publishes
-            for help.
+          <p className="mt-5 max-w-4xl text-lg leading-8 text-white/80">
+            Find any UK charity on its official register, see how charity tax really
+            works, and ask for help the safe way.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a
               href="#registers"
-              className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-ink hover:bg-accent-soft"
+              className="inline-flex min-h-11 items-center rounded-full bg-white px-5 py-2.5 text-base font-semibold text-ink hover:bg-accent-soft"
             >
-              Open the official registers
+              Find a charity
             </a>
             <a
-              href="https://api.taxsorted.io/v1/charities/uk"
-              className="rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+              href="#help"
+              className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-5 py-2.5 text-base font-semibold text-white hover:bg-white/10"
             >
-              Read the bounded API ↗
+              How to ask for help
             </a>
           </div>
         </div>
       </header>
+
+      <ShortVersion className="mt-6">
+        <li>Check a charity’s number on its official register before trusting the brand.</li>
+        <li>
+          “Charities pay no tax” is not quite true: relief has conditions, and some income
+          is still taxed.
+        </li>
+        <li>There is a calm, 7-step way to ask a charity for help — see below.</li>
+        <li>We publish how charities work, never a directory of the people in them.</li>
+      </ShortVersion>
 
       <nav
         className="mt-6 rounded-3xl border border-line bg-white p-4"
@@ -181,19 +205,18 @@ export default function CharitiesPage() {
       >
         <div className="flex flex-wrap gap-2">
           {[
-            ["#registers", "Official registers"],
-            ["#tax", "The tax bargain"],
-            ["#control", "Control and ownership"],
-            ["#finance", "Finance and assets"],
-            ["#accountability", "Words and actions"],
+            ["#registers", "Find a charity"],
+            ["#tax", "How charity tax works"],
             ["#help", "Ask for help"],
-            ["#boundary", "People and religion boundary"],
-            ["#api", "API"],
+            ["#control", "Who runs a charity"],
+            ["#finance", "Reading the money"],
+            ["#protect", "How we protect people in this data"],
+            ["#developers", "For developers"],
           ].map(([href, label]) => (
             <a
               key={href}
               href={href}
-              className="rounded-full border border-line px-3 py-1.5 text-sm text-ink hover:border-accent hover:bg-accent-soft"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base text-ink hover:border-accent hover:bg-accent-soft"
             >
               {label}
             </a>
@@ -203,15 +226,15 @@ export default function CharitiesPage() {
 
       <section id="registers" className="mt-16 scroll-mt-6" aria-labelledby="registers-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Identity starts at the source
+          Start at the official source
         </p>
         <h2 id="registers-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Three jurisdictions. Three official doors.
+          Three nations, three official registers.
         </h2>
-        <p className="mt-3 max-w-4xl leading-7 text-ink-soft">
-          Use the exact charity number when possible. A public brand, registered charity and
-          trading subsidiary can be different legal entities. Absence from one register is
-          not, by itself, proof that an organisation is not charitable.
+        <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+          Use the exact charity number when possible. A public brand, a registered charity
+          and a trading subsidiary can be different legal bodies. Absence from one register
+          is not, by itself, proof that an organisation is not charitable.
         </p>
         <div className="mt-7 grid gap-5 lg:grid-cols-3">
           {registers.map((register) => (
@@ -224,27 +247,27 @@ export default function CharitiesPage() {
                 {register.jurisdiction}
               </p>
               <h3 className="mt-2 text-xl font-semibold text-ink">{register.body}</h3>
-              <p className="mt-3 text-sm leading-6 text-ink-soft">{register.description}</p>
+              <p className="mt-3 text-base leading-7 text-ink-soft">{register.description}</p>
               <a
                 href={register.href}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="mt-5 inline-flex text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+                className="mt-5 inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
               >
-                Search at the official source ↗
+                Search at the official source <span aria-hidden="true">&nbsp;↗</span>
               </a>
             </article>
           ))}
         </div>
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
-          TaxSorted does not currently mirror these national registers. There is no local
-          charity directory, trustee list or address book on this page.
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-base leading-7 text-amber-950">
+          TaxSorted does not copy these national registers. There is no local charity
+          directory, trustee list or address book on this page.
         </div>
       </section>
 
       <section id="tax" className="mt-16 scroll-mt-6" aria-labelledby="tax-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Conditional relief, not a magic label
+          Relief with conditions, not a magic label
         </p>
         <h2 id="tax-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
           “Charities pay no tax” is the wrong map.
@@ -253,75 +276,107 @@ export default function CharitiesPage() {
           <div className="grid gap-px bg-line lg:grid-cols-2">
             <article className="bg-accent-soft p-6 sm:p-8">
               <h3 className="text-xl font-semibold text-ink">
-                TaxSorted’s structural reading
+                Why charities get tax relief
               </h3>
-              <p className="mt-3 leading-7 text-ink-soft">
-                TaxSorted reads conditional relief alongside the restriction of resources to
-                recognised charitable purposes and public benefit, trustee duties and public
-                reporting. This is analysis of the structure, not a statutory purpose statement
-                or a reward for a brand appearing benevolent.
+              <p className="mt-3 text-base leading-7 text-ink-soft">
+                Relief comes with strings. Money must serve recognised charitable purposes
+                and public benefit, trustees carry duties, and reporting is public. This is
+                analysis of the structure, not a statement of law or a reward for a brand
+                appearing benevolent.
               </p>
             </article>
             <article className="bg-white p-6 sm:p-8">
               <h3 className="text-xl font-semibold text-ink">Where ordinary tax remains</h3>
-              <p className="mt-3 leading-7 text-ink-soft">
-                HMRC recognition, the source and use of income, trading activity and the exact
-                tax all matter. Non-qualifying income or non-charitable spending can be taxed;
-                VAT and trading follow their own rules.
+              <p className="mt-3 text-base leading-7 text-ink-soft">
+                Recognition by HM Revenue &amp; Customs (HMRC — the UK tax office), the source
+                and use of income, trading activity and the exact tax all matter.
+                Non-qualifying income or non-charitable spending can be taxed; VAT (Value
+                Added Tax) and trading follow their own rules.
               </p>
             </article>
           </div>
-          <div className="border-t border-line px-6 py-5 sm:px-8">
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              <a
-                href="https://www.gov.uk/charities-and-tax"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
-              >
-                Check HMRC charities and tax guidance ↗
-              </a>
-              <a
-                href="https://api.taxsorted.io/v1/charities/uk/tax-treatments/tax-income-and-gains/why-graph"
-                className="text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
-              >
-                Walk the income-and-gains why graph ↗
-              </a>
-            </div>
-            <p className="mt-4 max-w-4xl text-sm leading-6 text-ink-soft">
-              Every published tax treatment now has a machine-readable explanation trace.
-              It connects stable record fields to their exact reviewed sources, keeps the
-              possible benefit beside the reverse tax path, and names what is still missing.
-              The corpus now admits exact primary-law records where reviewed, with
-              supplementary law and conditional procedures kept separately queryable. The
-              graph still says when a binding provision, case selector, deadline, or route
-              is not established instead of dressing guidance, adjacency, or a sector map
-              up as a conclusion about a real case.
-            </p>
+          <div className="border-t border-line px-6 py-4 sm:px-8">
+            <a
+              href="https://www.gov.uk/charities-and-tax"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+            >
+              Check HMRC charities and tax guidance <span aria-hidden="true">&nbsp;↗</span>
+            </a>
           </div>
+        </div>
+      </section>
+
+      <section id="help" className="mt-16 scroll-mt-6" aria-labelledby="help-title">
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          Reach the service, not a private person
+        </p>
+        <h2 id="help-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
+          A calm way to ask what help is actually available.
+        </h2>
+        <div className="mt-7 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <ol className="space-y-4 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
+            {[
+              "Verify the charity number and jurisdiction at the official register.",
+              "Read its stated purposes, activities, area and latest reporting date.",
+              "Follow the organisation website linked by the official record.",
+              "Use its generic service form, public help line or role-based inbox.",
+              "State the help needed, relevant area and only the eligibility facts requested.",
+              "Ask whether the service is open, whether it charges, what it needs and where it refers people it cannot help.",
+              "Understand the privacy route before sending a case file, identity document or safeguarding detail.",
+            ].map((step, index) => (
+              <li key={step} className="flex gap-4 text-base leading-7 text-ink-soft">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft font-semibold text-accent">
+                  {index + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+          <aside className="rounded-3xl border border-line bg-paper p-6 sm:p-8" aria-labelledby="ask-title">
+            <h3 id="ask-title" className="text-xl font-semibold text-ink">A useful first message</h3>
+            <blockquote className="mt-4 border-l-4 border-accent pl-4 text-base leading-7 text-ink-soft">
+              I am looking for help with [type of need] in [area]. Does your service cover
+              this, is it currently open, and what is the safest way to share the minimum
+              information you need? If not, is there an official service you recommend I
+              contact?
+            </blockquote>
+            <a
+              href="https://www.gov.uk/complain-about-charity"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-6 inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+            >
+              Understand complaint and concern routes <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+          </aside>
         </div>
       </section>
 
       <section id="control" className="mt-16 scroll-mt-6" aria-labelledby="control-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Stewardship is not share ownership
+          Nobody “owns” a charity like shares
         </p>
         <h2 id="control-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Ask who governs, holds and controls each legal entity.
+          Ask who governs, holds and controls each legal body.
         </h2>
-        <p className="mt-3 max-w-4xl leading-7 text-ink-soft">
-          Trustees direct and steward a charity under its governing document. Members may
-          have defined votes. In England and Wales, a corporate charity can hold assets in
-          its own name; an unincorporated charity may need trustees or a custodian to hold
-          property. Scotland and Northern Ireland have their own legal forms and rules. A
-          charity can also control a separate trading subsidiary. Calling all of that
-          “ownership” hides the real duties and boundaries.
+        <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+          Trustees direct and steward a charity under its governing document.
+        </p>
+        <ul className="mt-3 max-w-4xl list-disc space-y-2 pl-5 text-base leading-7 text-ink-soft">
+          {controlPoints.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+        <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+          Calling all of that “ownership” hides the real duties and boundaries.
         </p>
         <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {obligations.map((obligation) => (
             <article key={obligation.title} className="rounded-3xl border border-line bg-white p-6">
               <h3 className="font-semibold text-ink">{obligation.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-ink-soft">{obligation.detail}</p>
+              <p className="mt-3 text-base leading-7 text-ink-soft">{obligation.detail}</p>
             </article>
           ))}
         </div>
@@ -334,118 +389,133 @@ export default function CharitiesPage() {
         <h2 id="finance-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
           Income ≠ spending ≠ assets ≠ impact.
         </h2>
-        <p className="mt-3 max-w-4xl leading-7 text-ink-soft">
-          Always carry the reporting period, currency, source precision and whether the
-          figures describe the charity alone or a consolidated group.
+        <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+          Always carry the reporting period, the currency and the source’s precision. Check
+          whether figures describe the charity alone or a consolidated group.
         </p>
         <dl className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {financeMeasures.map(([term, meaning]) => (
             <div key={term} data-testid="finance-card" className="rounded-3xl border border-line bg-white p-6">
               <dt className="font-semibold text-ink">{term}</dt>
-              <dd className="mt-2 text-sm leading-6 text-ink-soft">{meaning}</dd>
+              <dd className="mt-2 text-base leading-7 text-ink-soft">{meaning}</dd>
             </div>
           ))}
         </dl>
       </section>
 
-      <section
-        id="accountability"
-        className="mt-16 scroll-mt-6"
-        aria-labelledby="accountability-title"
+      <details
+        id="protect"
+        className="group mt-16 scroll-mt-6 rounded-[2rem] border border-line bg-white shadow-sm"
       >
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Words beside actions, not verdicts
-        </p>
-        <h2
-          id="accountability-title"
-          className="mt-2 max-w-4xl text-3xl font-semibold tracking-tight text-ink"
-        >
-          Compare public claims and records without inventing a character score.
-        </h2>
-        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
-          This is the published model for a future ledger, not a populated organisation
-          directory. It keeps each evidence kind distinct, attributes the source voice and
-          links back to the original wording. A legal object, a normalised claim and a reported
-          result are not interchangeable just because they concern the same charity.
-        </p>
-        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
-          The API stores a human-reviewed paraphrase, not a quotation. Its locator is a human
-          editorial assertion, not a mechanically proven anchor. Follow it to the publisher&apos;s
-          words as available at review time; the permanence field says whether a publisher
-          version or lawful archive is known. Public review notes, IDs, attribution, terms,
-          limitations and locators are screened too: no copied source excerpt or personal detail,
-          and locators remain pointers rather than quotations.
-        </p>
-        <p className="mt-3 max-w-5xl leading-7 text-ink-soft">
-          A TaxSorted editorial number cannot call itself reported. TaxSorted-derived finance must
-          show its exact arithmetic, while programmes, funding, assets, control, observations and
-          outcomes stay attributed to an external institutional source.
-        </p>
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-6 marker:hidden sm:p-8">
+          <span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              How we protect people in this data
+            </h2>
+            <p className="mt-2 max-w-4xl text-base leading-7 text-ink-soft">
+              We are designing a way to show what charities say next to what they file. It
+              is not live yet. These are the safety rules it must obey first — heavy
+              detail, for careful readers.
+            </p>
+          </span>
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-lg text-accent transition group-open:rotate-45"
+            aria-hidden="true"
+          >
+            +
+          </span>
+        </summary>
 
-        <div className="mt-7 grid gap-5 lg:grid-cols-2">
-          {accountabilityEvidence.map((group, index) => (
-            <article
-              key={group.title}
-              className={
-                index === 0
-                  ? "rounded-[2rem] border border-ink bg-ink p-6 text-white shadow-sm sm:p-8"
-                  : "rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8"
-              }
-            >
-              <h3 className={`text-xl font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
-                {group.title}
-              </h3>
-              <p
-                className={`mt-3 text-sm leading-6 ${index === 0 ? "text-white/70" : "text-ink-soft"}`}
-              >
-                {group.description}
-              </p>
-              <dl className="mt-6 space-y-4">
-                {group.items.map(([term, meaning]) => (
-                  <div
-                    key={term}
-                    data-testid="accountability-evidence-type"
-                    className={
-                      index === 0
-                        ? "rounded-2xl border border-white/15 bg-white/5 p-4"
-                        : "rounded-2xl border border-line bg-paper p-4"
-                    }
-                  >
-                    <dt className={`font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
-                      {term}
-                    </dt>
-                    <dd
-                      className={`mt-1 text-sm leading-6 ${index === 0 ? "text-white/70" : "text-ink-soft"}`}
-                    >
-                      {meaning}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-5 rounded-3xl border border-line bg-accent-soft p-6 sm:p-8">
-          <h3 className="text-xl font-semibold text-ink">
-            Keep the relevant context attached when records are compared
+        <div className="border-t border-line p-6 sm:p-8">
+          <h3 className="max-w-4xl text-2xl font-semibold tracking-tight text-ink">
+            Compare public claims and records without inventing a character score.
           </h3>
-          <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {evidenceContext.map(([term, meaning]) => (
-              <div key={term} className="rounded-2xl bg-white/75 p-4">
-                <dt className="text-sm font-semibold text-accent-deep">{term}</dt>
-                <dd className="mt-2 text-sm leading-6 text-ink-soft">{meaning}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+          <p className="mt-3 max-w-5xl text-base leading-7 text-ink-soft">
+            This is the published model for a future ledger, not a populated organisation
+            directory. It keeps each evidence kind distinct, attributes the source voice and
+            links back to the original wording. A legal object, a normalised claim and a reported
+            result are not interchangeable just because they concern the same charity.
+          </p>
+          <p className="mt-3 max-w-5xl text-base leading-7 text-ink-soft">
+            The API stores a human-reviewed paraphrase, not a quotation. Its locator is a human
+            editorial assertion, not a mechanically proven anchor. Follow it to the publisher&apos;s
+            words as available at review time; the permanence field says whether a publisher
+            version or lawful archive is known. Public review notes, IDs, attribution, terms,
+            limitations and locators are screened too: no copied source excerpt or personal detail,
+            and locators remain pointers rather than quotations.
+          </p>
+          <p className="mt-3 max-w-5xl text-base leading-7 text-ink-soft">
+            A TaxSorted editorial number cannot call itself reported. TaxSorted-derived finance must
+            show its exact arithmetic, while programmes, funding, assets, control, observations and
+            outcomes stay attributed to an external institutional source.
+          </p>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-          <aside className="rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8" aria-labelledby="comparison-rules-title">
-            <h3 id="comparison-rules-title" className="text-xl font-semibold text-ink">
+          <div className="mt-7 grid gap-5 lg:grid-cols-2">
+            {accountabilityEvidence.map((group, index) => (
+              <article
+                key={group.title}
+                className={
+                  index === 0
+                    ? "rounded-[2rem] border border-ink bg-ink p-6 text-white shadow-sm sm:p-8"
+                    : "rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8"
+                }
+              >
+                <h4 className={`text-xl font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
+                  {group.title}
+                </h4>
+                <p
+                  className={`mt-3 text-base leading-7 ${index === 0 ? "text-white/80" : "text-ink-soft"}`}
+                >
+                  {group.description}
+                </p>
+                <dl className="mt-6 space-y-4">
+                  {group.items.map(([term, meaning]) => (
+                    <div
+                      key={term}
+                      data-testid="accountability-evidence-type"
+                      className={
+                        index === 0
+                          ? "rounded-2xl border border-white/15 bg-white/5 p-4"
+                          : "rounded-2xl border border-line bg-paper p-4"
+                      }
+                    >
+                      <dt className={`font-semibold ${index === 0 ? "text-white" : "text-ink"}`}>
+                        {term}
+                      </dt>
+                      <dd
+                        className={`mt-1 text-base leading-7 ${index === 0 ? "text-white/80" : "text-ink-soft"}`}
+                      >
+                        {meaning}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-3xl border border-line bg-accent-soft p-6 sm:p-8">
+            <h4 className="text-xl font-semibold text-ink">
+              Keep the relevant context attached when records are compared
+            </h4>
+            <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {evidenceContext.map(([term, meaning]) => (
+                <div key={term} className="rounded-2xl bg-white/75 p-4">
+                  <dt className="text-base font-semibold text-accent-deep">{term}</dt>
+                  <dd className="mt-2 text-base leading-7 text-ink-soft">{meaning}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <aside
+            className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8"
+            aria-labelledby="comparison-rules-title"
+          >
+            <h4 id="comparison-rules-title" className="text-xl font-semibold text-ink">
               Missing evidence is not contradiction.
-            </h3>
-            <div className="mt-4 space-y-3 text-sm leading-6 text-amber-950">
+            </h4>
+            <div className="mt-4 space-y-3 text-base leading-7 text-amber-950">
               <p>
                 A gap records evidence that is missing, unavailable, unsafe, conflicting or
                 deliberately excluded. It does not make a claim false. An award is not a
@@ -478,14 +548,125 @@ export default function CharitiesPage() {
             </div>
           </aside>
 
-          <aside className="rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8" aria-labelledby="accountability-api-title">
+          <div className="mt-5 rounded-[2rem] border border-rose-200 bg-rose-50 p-6 sm:p-8">
+            <p className="text-sm font-semibold uppercase tracking-wide text-rose-800">
+              The people and belief boundary
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              An organisation purpose does not establish a person’s private belief.
+            </h3>
+            <p className="mt-4 max-w-5xl text-base leading-7 text-ink-soft">
+              Advancement of religion can be an official charitable-purpose category. This
+              guide does not turn it into a denomination map, congregation list or inference
+              about trustees, staff, donors, members, attendees or beneficiaries. Publicly
+              listed names and addresses are not copied into a TaxSorted bulk people service.
+            </p>
+            <p className="mt-4 max-w-5xl text-base font-semibold leading-7 text-rose-900">
+              No local charity mirror. No bulk people export. No person-to-religion graph.
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <details
+        id="developers"
+        className="group mt-6 scroll-mt-6 rounded-[2rem] border border-line bg-white shadow-sm"
+      >
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-6 marker:hidden sm:p-8">
+          <span>
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              For developers
+            </h2>
+            <p className="mt-2 max-w-4xl text-base leading-7 text-ink-soft">
+              The bounded API, its schemas and the machine-readable explanation traces.
+            </p>
+          </span>
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-lg text-accent transition group-open:rotate-45"
+            aria-hidden="true"
+          >
+            +
+          </span>
+        </summary>
+
+        <div className="border-t border-line p-6 sm:p-8">
+          <h3 className="text-xl font-semibold text-ink">
+            Build from the framework without pretending it is the official register.
+          </h3>
+          <p className="mt-4 max-w-4xl text-base leading-7 text-ink-soft">
+            The bounded API describes sources, official register doors, legal forms, tax
+            treatments, obligations, funding, finance disclosures, control and help routes.
+            It does not reproduce a national charity database. A later organisation snapshot
+            needs source rights, a complete inclusion rule, stable identifiers, correction and
+            update rules, human approval and a confidential safety-reporting route.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="https://api.taxsorted.io/v1/charities/uk"
+              className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-semibold text-white hover:bg-accent-deep"
+            >
+              Open `/v1/charities/uk` <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+            <a
+              href="https://api.taxsorted.io/openapi.json"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
+            >
+              Read OpenAPI <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+            <a
+              href="https://api.taxsorted.io/v1/charities/uk/exports"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
+            >
+              Bulk exports <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+            <a
+              href="https://api.taxsorted.io/v1/charities/uk/dictionary"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
+            >
+              Data dictionary <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+            <a
+              href="https://api.taxsorted.io/v1/charities/uk/registers"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
+            >
+              Register doors <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+            <a
+              href="https://api.taxsorted.io/v1/why-graph/adopters"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
+            >
+              Why-graph adopters <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-line bg-paper p-6">
+            <h3 className="text-xl font-semibold text-ink">Explanation traces for tax treatments</h3>
+            <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+              Every published tax treatment now has a machine-readable explanation trace.
+              It connects stable record fields to their exact reviewed sources, keeps the
+              possible benefit beside the reverse tax path, and names what is still missing.
+              The corpus now admits exact primary-law records where reviewed, with
+              supplementary law and conditional procedures kept separately queryable. The
+              graph still says when a binding provision, case selector, deadline, or route
+              is not established instead of dressing guidance, adjacency, or a sector map
+              up as a conclusion about a real case.
+            </p>
+            <a
+              href="https://api.taxsorted.io/v1/charities/uk/tax-treatments/tax-income-and-gains/why-graph"
+              className="mt-4 inline-flex min-h-11 items-center text-base font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
+            >
+              Walk the income-and-gains why graph <span aria-hidden="true">&nbsp;↗</span>
+            </a>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-wide text-accent">
               Open shape, guarded publication
             </p>
-            <h3 id="accountability-api-title" className="mt-2 text-xl font-semibold text-ink">
+            <h3 className="mt-2 text-xl font-semibold text-ink">
               Builders can use the accountability schema.
             </h3>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">
+            <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
               The evidence types, provenance fields, collection guide and comparison rules are
               open for structural reuse. No route accepts candidate documents. The two named
               blockers—confidential correction intake and asset-level rights review—are immediate,
@@ -496,148 +677,26 @@ export default function CharitiesPage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href="https://api.taxsorted.io/v1/charities/uk/accountability"
-                className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-deep"
+                className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-semibold text-white hover:bg-accent-deep"
               >
-                Accountability index ↗
+                Accountability index <span aria-hidden="true">&nbsp;↗</span>
               </a>
               <a
                 href="https://api.taxsorted.io/v1/charities/uk/accountability/schema"
-                className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
+                className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
               >
-                Accountability schema ↗
+                Accountability schema <span aria-hidden="true">&nbsp;↗</span>
               </a>
               <a
                 href="https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/charity-accountability/examples/zero-row-candidate.json"
-                className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
+                className="inline-flex min-h-11 items-center rounded-full border border-line px-4 py-2 text-base font-semibold text-accent hover:bg-paper"
               >
-                Zero-row example ↗
+                Zero-row example <span aria-hidden="true">&nbsp;↗</span>
               </a>
             </div>
-          </aside>
-        </div>
-      </section>
-
-      <section id="help" className="mt-16 scroll-mt-6" aria-labelledby="help-title">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Reach the service, not a private person
-        </p>
-        <h2 id="help-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          A calm way to ask what help is actually available.
-        </h2>
-        <div className="mt-7 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <ol className="space-y-4 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
-            {[
-              "Verify the charity number and jurisdiction at the official register.",
-              "Read its stated purposes, activities, area and latest reporting date.",
-              "Follow the organisation website linked by the official record.",
-              "Use its generic service form, public help line or role-based inbox.",
-              "State the help needed, relevant area and only the eligibility facts requested.",
-              "Ask whether the service is open, whether it charges, what it needs and where it refers people it cannot help.",
-              "Understand the privacy route before sending a case file, identity document or safeguarding detail.",
-            ].map((step, index) => (
-              <li key={step} className="flex gap-4 text-sm leading-6 text-ink-soft">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft font-semibold text-accent">
-                  {index + 1}
-                </span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-          <aside className="rounded-3xl border border-line bg-paper p-6 sm:p-8" aria-labelledby="ask-title">
-            <h3 id="ask-title" className="text-xl font-semibold text-ink">A useful first message</h3>
-            <blockquote className="mt-4 border-l-4 border-accent pl-4 text-sm leading-7 text-ink-soft">
-              I am looking for help with [type of need] in [area]. Does your service cover
-              this, is it currently open, and what is the safest way to share the minimum
-              information you need? If not, is there an official service you recommend I
-              contact?
-            </blockquote>
-            <a
-              href="https://www.gov.uk/complain-about-charity"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="mt-6 inline-flex text-sm font-semibold text-accent underline decoration-line underline-offset-4 hover:text-accent-deep"
-            >
-              Understand complaint and concern routes ↗
-            </a>
-          </aside>
-        </div>
-      </section>
-
-      <section id="boundary" className="mt-16 scroll-mt-6" aria-labelledby="boundary-title">
-        <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-6 sm:p-8 lg:p-10">
-          <p className="text-sm font-semibold uppercase tracking-wide text-rose-800">
-            The people and belief boundary
-          </p>
-          <h2 id="boundary-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-            An organisation purpose does not establish a person’s private belief.
-          </h2>
-          <p className="mt-4 max-w-5xl leading-7 text-ink-soft">
-            Advancement of religion can be an official charitable-purpose category. This
-            guide does not turn it into a denomination map, congregation list or inference
-            about trustees, staff, donors, members, attendees or beneficiaries. Publicly
-            listed names and addresses are not copied into a TaxSorted bulk people service.
-          </p>
-          <p className="mt-4 max-w-5xl text-sm font-semibold leading-6 text-rose-900">
-            No local charity mirror. No bulk people export. No person-to-religion graph.
-          </p>
-        </div>
-      </section>
-
-      <section id="api" className="mt-16 scroll-mt-6" aria-labelledby="api-title">
-        <div className="rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8 lg:p-10">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-            A distribution door with a visible limit
-          </p>
-          <h2 id="api-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-            Build from the framework without pretending it is the official register.
-          </h2>
-          <p className="mt-4 max-w-4xl leading-7 text-ink-soft">
-            The bounded API describes sources, official register doors, legal forms, tax
-            treatments, obligations, funding, finance disclosures, control and help routes.
-            It does not reproduce a national charity database. A later organisation snapshot
-            needs source rights, a complete inclusion rule, stable identifiers, correction and
-            update rules, human approval and a confidential safety-reporting route.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href="https://api.taxsorted.io/v1/charities/uk"
-              className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-deep"
-            >
-              Open `/v1/charities/uk` ↗
-            </a>
-            <a
-              href="https://api.taxsorted.io/openapi.json"
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
-            >
-              Read OpenAPI ↗
-            </a>
-            <a
-              href="https://api.taxsorted.io/v1/charities/uk/exports"
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
-            >
-              Bulk exports ↗
-            </a>
-            <a
-              href="https://api.taxsorted.io/v1/charities/uk/dictionary"
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
-            >
-              Data dictionary ↗
-            </a>
-            <a
-              href="https://api.taxsorted.io/v1/charities/uk/registers"
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
-            >
-              Register doors ↗
-            </a>
-            <a
-              href="https://api.taxsorted.io/v1/why-graph/adopters"
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-accent hover:bg-paper"
-            >
-              Why-graph adopters ↗
-            </a>
           </div>
         </div>
-      </section>
+      </details>
 
       <section className="mt-16" aria-labelledby="sources-title">
         <h2 id="sources-title" className="text-2xl font-semibold tracking-tight text-ink">
@@ -650,9 +709,9 @@ export default function CharitiesPage() {
                 href={source.href}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="block rounded-2xl border border-line bg-white px-5 py-4 text-sm font-semibold text-accent hover:border-accent hover:bg-accent-soft"
+                className="block rounded-2xl border border-line bg-white px-5 py-4 text-base font-semibold text-accent hover:border-accent hover:bg-accent-soft"
               >
-                {source.label} ↗
+                {source.label} <span aria-hidden="true">↗</span>
               </a>
             </li>
           ))}

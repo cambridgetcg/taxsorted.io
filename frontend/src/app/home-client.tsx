@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { configFor } from "@taxsorted/engine/uk/itsa";
-import { TaxPlayground } from "@/components/TaxPlayground";
 import { useI18n } from "@/i18n/I18nProvider";
 import { gbpCompact, formatUkDate } from "@/lib/format";
 
@@ -13,14 +12,10 @@ const [MTD_FIRST_PHASE] = configFor("2026-27").mtdThresholds.value;
 export function HomeClient() {
   const { t } = useI18n();
 
-  const places = [
-    { name: t("home.place.uk"), status: "open" as const, href: "/learn" },
-    { name: "UK tax expert", status: "open" as const, href: "/uk/tax-expert" },
-    { name: t("home.place.personal"), status: "open" as const, href: "/uk/personal-tax" },
-    { name: t("home.place.ireland"), status: "drawing" as const },
-    { name: t("home.place.germany"), status: "drawing" as const },
-    { name: t("home.place.us"), status: "drawing" as const },
-  ];
+  // The date and threshold come from the engine, never from copy.
+  const mtdBody = t("home.mtd.body")
+    .replace("{date}", formatUkDate(MTD_FIRST_PHASE.mandatedFrom))
+    .replace("{amount}", gbpCompact(MTD_FIRST_PHASE.qualifyingIncomeOver));
 
   const pillars = [
     {
@@ -43,6 +38,15 @@ export function HomeClient() {
     },
   ];
 
+  // The same four doors as the top nav — the homepage repeats the map, it
+  // does not invent a second one.
+  const doors = [
+    { href: "/learn", label: t("nav.learn"), line: t("home.door.learn") },
+    { href: "/tools", label: t("nav.tools"), line: t("home.door.tools") },
+    { href: "/uk/money", label: t("nav.money"), line: t("home.door.money") },
+    { href: "/about", label: t("nav.about"), line: t("home.door.about") },
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">
@@ -52,81 +56,35 @@ export function HomeClient() {
       </h1>
       <p className="mt-5 text-lg text-ink-soft">{t("home.intro")}</p>
 
-      {/* i18n: deferred to M2 — plain English for launch */}
       <section
-        aria-label="MTD Income Tax"
+        aria-labelledby="mtd-heading"
         className="mt-10 rounded-lg border border-accent/30 bg-accent-soft p-6 sm:p-8"
       >
-        <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          MTD Income Tax is here — are you in?
+        <h2
+          id="mtd-heading"
+          className="text-2xl font-bold tracking-tight text-ink sm:text-3xl"
+        >
+          {t("home.mtd.title")}
         </h2>
-        <p className="mt-2 text-ink-soft">
-          Mandatory since {formatUkDate(MTD_FIRST_PHASE.mandatedFrom)} for sole traders and
-          landlords with income over {gbpCompact(MTD_FIRST_PHASE.qualifyingIncomeOver)}.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
+        <p className="mt-2 text-base text-ink-soft">{mtdBody}</p>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <Link
             href="/itsa/am-i-in"
-            className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-8 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-8 text-base font-medium text-white transition-colors hover:bg-accent-deep"
           >
-            Am I in? 60-second check
+            {t("home.mtd.check")}
           </Link>
           <Link
             href="/learn/mtd-income-tax"
-            className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-sm font-medium text-ink transition-colors hover:bg-accent-soft"
+            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-base font-medium text-accent underline hover:text-accent-deep"
           >
-            Don&apos;t panic — what&apos;s actually true
-          </Link>
-          <Link
-            href="/itsa"
-            className="inline-flex h-11 items-center px-2 text-sm font-medium text-accent hover:text-accent-deep"
-          >
-            Explore the toolkit →
+            {t("home.mtd.truth")} <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <p className="mt-4 text-xs text-ink-soft">
-          Free &amp; open-source (AGPL) · working towards HMRC recognition · no account — your
-          records stay in your browser
-        </p>
+        <p className="mt-4 text-sm text-ink-soft">{t("home.mtd.smallprint")}</p>
       </section>
 
-      <section
-        aria-label="Find your path"
-        className="mt-12 rounded-lg border border-line bg-white p-6 sm:p-8"
-      >
-        <h2 className="text-sm font-medium uppercase tracking-wide text-ink-soft">
-          {t("home.where")}
-        </h2>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {places.map((place) =>
-            place.status === "open" ? (
-              <li key={place.name}>
-                <Link
-                  href={place.href!}
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
-                >
-                  {place.name}
-                  <span aria-hidden="true">→</span>
-                </Link>
-              </li>
-            ) : (
-              <li key={place.name}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-1.5 text-sm text-ink-soft">
-                  {place.name}
-                  <span className="text-xs">· {t("home.status.drawing")}</span>
-                </span>
-              </li>
-            ),
-          )}
-        </ul>
-
-        <h2 className="mt-8 text-sm font-medium uppercase tracking-wide text-ink-soft">
-          {t("home.who")}
-        </h2>
-        <p className="mt-3 text-ink">{t("home.who.body")}</p>
-      </section>
-
-      <section aria-label="What TaxSorted is" className="mt-16 space-y-10">
+      <section className="mt-16 space-y-10">
         {pillars.map((pillar) => (
           <div key={pillar.name}>
             <h2 className="text-xl font-semibold text-ink">
@@ -135,36 +93,44 @@ export function HomeClient() {
                 {pillar.status}
               </span>
             </h2>
-            <p className="mt-2 text-ink-soft">{pillar.body}</p>
+            <p className="mt-2 text-base text-ink-soft">{pillar.body}</p>
           </div>
         ))}
       </section>
 
-      <div className="mt-14 flex flex-wrap gap-3">
+      <section aria-labelledby="doors-heading" className="mt-16">
+        <h2 id="doors-heading" className="text-xl font-semibold text-ink">
+          {t("home.doors")}
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {doors.map((door) => (
+            <Link
+              key={door.href}
+              href={door.href}
+              className="block min-h-11 rounded-2xl border border-line bg-paper p-5 transition hover:border-accent"
+            >
+              <h3 className="text-lg font-semibold text-ink">{door.label}</h3>
+              <p className="mt-1.5 text-base text-ink-soft">{door.line}</p>
+            </Link>
+          ))}
+        </div>
+        {/* The playground lives on its own page now — one teaser, not 450 words. */}
         <Link
-          href="/uk/tax-expert"
-          className="inline-flex h-11 items-center justify-center rounded-md bg-accent px-8 text-sm font-medium text-white transition-colors hover:bg-accent-deep"
+          href="/uk/personal-tax#playground"
+          className="mt-4 flex min-h-11 items-center justify-between rounded-2xl border border-line bg-paper p-5 transition hover:border-accent"
         >
-          Understand my UK tax position
+          <span className="text-base font-medium text-ink">
+            {t("home.playground.teaser")}
+          </span>
+          <span aria-hidden="true" className="text-accent">
+            →
+          </span>
         </Link>
-        <Link
-          href="/uk/personal-tax"
-          className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-8 text-sm font-medium text-ink transition-colors hover:bg-accent-soft"
-        >
-          {t("home.cta.playbook")}
-        </Link>
-        <Link
-          href="/uk/politics"
-          className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-8 text-sm font-medium text-ink transition-colors hover:bg-accent-soft"
-        >
-          {t("home.cta.politics")}
-        </Link>
-      </div>
+      </section>
 
-      <TaxPlayground />
-
-      <p className="mt-6 text-sm text-ink-soft">{t("home.honest")}</p>
-      <p className="mt-10 text-ink">{t("home.lastline")}</p>
+      <p className="mt-10 text-base text-ink-soft">{t("home.world")}</p>
+      <p className="mt-4 text-base text-ink-soft">{t("home.honest")}</p>
+      <p className="mt-10 text-base text-ink">{t("home.lastline")}</p>
     </div>
   );
 }

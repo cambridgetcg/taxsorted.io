@@ -55,7 +55,7 @@ describe("UK politics public-integrity page", () => {
 
   it("distinguishes available metadata from post-approval record bodies", () => {
     render(<PoliticsIntegrityPage />);
-    expect(screen.getByRole("heading", { name: "Developer handoff" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "For developers" })).toBeInTheDocument();
     for (const door of integrityDistributionDoors) {
       const matchingLinks = screen.getAllByRole("link", {
         name: new RegExp(door.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
@@ -67,7 +67,7 @@ describe("UK politics public-integrity page", () => {
       ).toBe(true);
     }
     expect(
-      screen.getByRole("link", { name: /check release state and learn how to mirror with etags/i })
+      screen.getByRole("link", { name: /check what is open now, and how to mirror it/i })
     ).toHaveAttribute("href", "/uk/politics/api");
     expect(screen.getAllByText(/after human release approval/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/after api deployment.*pending human decision/i).length).toBeGreaterThan(0);

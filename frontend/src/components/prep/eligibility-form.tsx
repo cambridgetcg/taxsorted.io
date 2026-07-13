@@ -41,9 +41,11 @@ function isRowBlank(row: YearField): boolean {
 
 /**
  * Every explain/exemption sentence from the engine carries its source as a
- * literal URL inline in the text. This turns just that URL into a real link,
- * leaving the rest of the sentence — including any trailing punctuation — as
- * plain text.
+ * literal URL inline in the text. This turns just that URL into a worded
+ * link ("see the rule on GOV.UK") — a slow reader shouldn't face a wall of
+ * slashes, and a screen reader shouldn't spell out a URL character by
+ * character. The href keeps the exact URL; any trailing punctuation stays
+ * as plain text.
  */
 function linkify(text: string, keyPrefix: string): ReactNode[] {
   const urlPattern = /(https?:\/\/\S+)/g;
@@ -67,7 +69,7 @@ function linkify(text: string, keyPrefix: string): ReactNode[] {
         rel="noreferrer noopener"
         className="text-accent underline hover:text-accent-deep"
       >
-        {url}
+        see the rule on GOV.UK
       </a>
     );
     if (trailing) parts.push(trailing);
@@ -163,6 +165,20 @@ export function EligibilityForm() {
 
   return (
     <div className="space-y-8">
+      <div
+        role="note"
+        className="rounded-2xl border border-line bg-white p-4 text-base text-ink sm:p-5"
+      >
+        <p>
+          <strong>Gross income</strong>{" "} = money coming in before any costs. Example: £28,400
+          from invoices. It is the number most people get wrong — don&apos;t use your profit.
+        </p>
+        <p className="mt-2 text-ink-soft">
+          Start with the years you know. If a year is missing, we won&apos;t guess — we&apos;ll
+          tell you exactly which year is still needed for a final answer.
+        </p>
+      </div>
+
       <form onSubmit={onSubmit} noValidate className="space-y-6">
         {YEARS.map((year) => (
           <fieldset key={year} className="rounded-2xl border border-line p-4 sm:p-5">
@@ -193,7 +209,7 @@ export function EligibilityForm() {
           </Alert>
         ) : null}
 
-        <Button type="submit">Check eligibility</Button>
+        <Button type="submit">Check if I&apos;m in</Button>
       </form>
 
       {result ? (
@@ -202,18 +218,16 @@ export function EligibilityForm() {
             <CardTitle>{headlineFor(result)}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2 text-sm text-ink-soft">
+            <div className="space-y-2 text-base text-ink-soft">
               {result.explain.map((line, i) => (
                 <p key={i}>{linkify(line, `explain-${i}`)}</p>
               ))}
             </div>
 
-            <Alert>
-              <AlertTitle>The gotcha</AlertTitle>
-              <AlertDescription>
-                It&apos;s your income before expenses — the number most people get wrong.
-              </AlertDescription>
-            </Alert>
+            <p className="text-base text-ink-soft">
+              This verdict rests on <strong>gross</strong>{" "} income — before any costs. If you
+              typed profit, correct it above and check again.
+            </p>
 
             <div>
               <button
@@ -221,14 +235,14 @@ export function EligibilityForm() {
                 aria-expanded={exemptionsOpen}
                 aria-controls={exemptionsPanelId}
                 onClick={() => setExemptionsOpen((v) => !v)}
-                className="text-sm font-medium text-accent underline hover:text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                className="text-base font-medium text-accent underline hover:text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
               >
                 {exemptionsOpen
                   ? "Hide the exclusion note"
                   : "Digital exclusion or other circumstances — could you be excused?"}
               </button>
               {exemptionsOpen ? (
-                <p id={exemptionsPanelId} className="mt-2 text-sm text-ink-soft">
+                <p id={exemptionsPanelId} className="mt-2 text-base text-ink-soft">
                   {linkify(result.exemptionsNote, "exemptions")}
                 </p>
               ) : null}
@@ -275,7 +289,7 @@ function AmountField({
         className={error ? "border-red-600 focus-visible:ring-red-600" : undefined}
       />
       {error ? (
-        <p id={errorId} className="text-sm text-red-600">
+        <p id={errorId} className="text-base text-red-600">
           {error}
         </p>
       ) : null}

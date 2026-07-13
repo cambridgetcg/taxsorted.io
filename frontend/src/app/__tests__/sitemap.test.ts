@@ -37,4 +37,18 @@ describe("public sitemap", () => {
       expect(urls).toContain(`https://taxsorted.io${path}`);
     }
   });
+
+  it("lists the section hubs, About, and the once-orphaned routes", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    for (const path of [
+      "/about/",
+      "/tools/",
+      "/uk/money/",
+      "/vat/",
+      "/uk/politics/people/",
+      "/uk/politics/funding/",
+    ]) {
+      expect(urls).toContain(`https://taxsorted.io${path}`);
+    }
+  });
 });

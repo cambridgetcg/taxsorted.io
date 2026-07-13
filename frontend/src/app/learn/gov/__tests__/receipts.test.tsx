@@ -9,13 +9,17 @@ describe('receipts: when pressure worked', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/receipts/i)
   })
 
-  it('renders at least 3 case cards, each carrying at least one source link', () => {
+  it('renders at least 3 case cards, each carrying at least one source citation', () => {
     const { container } = render(<Receipts />)
     const cards = Array.from(container.querySelectorAll('[data-case]'))
     expect(cards.length).toBeGreaterThanOrEqual(3)
     for (const card of cards) {
-      const links = card.querySelectorAll('a[href]')
-      expect(links.length).toBeGreaterThanOrEqual(1)
+      // A source is either a plain link or a click-to-reveal Cited marker;
+      // the collected link list also lives in the page-level "Sources" fold.
+      const sources = card.querySelectorAll(
+        'a[href], button[aria-label="Show source for this figure"]',
+      )
+      expect(sources.length).toBeGreaterThanOrEqual(1)
     }
   })
 

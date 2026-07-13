@@ -108,9 +108,9 @@ export function FundingRegister() {
     <section className="mt-8" aria-labelledby="funding-register-title">
       <div className="rounded-3xl border border-line bg-paper p-5 sm:p-6">
         <h2 id="funding-register-title" className="text-2xl font-semibold text-ink">Declared party donations</h2>
-        <p className="mt-1 text-sm text-ink-soft">One reported quarter at a time. Date windows are capped at 92 days.</p>
+        <p className="mt-1 text-base text-ink-soft">One reported quarter at a time. Date windows are capped at 92 days.</p>
         <form onSubmit={search} className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_minmax(12rem,1.3fr)_auto]">
-          <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+          <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
             From
             <input
               type="date"
@@ -120,7 +120,7 @@ export function FundingRegister() {
               className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink"
             />
           </label>
-          <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+          <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
             To
             <input
               type="date"
@@ -130,7 +130,7 @@ export function FundingRegister() {
               className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink"
             />
           </label>
-          <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+          <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
             Recipient party (optional)
             <input
               value={recipient}
@@ -140,8 +140,8 @@ export function FundingRegister() {
               className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm normal-case tracking-normal text-ink"
             />
           </label>
-          <button type="submit" className="self-end rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-accent-deep">
-            Read returns
+          <button type="submit" className="inline-flex min-h-11 items-center self-end rounded-xl bg-accent px-5 text-base font-semibold text-white hover:bg-accent-deep">
+            Show the donations
           </button>
         </form>
       </div>
@@ -149,37 +149,44 @@ export function FundingRegister() {
       {licenceGate ? (
         <div className="mt-6 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-accent">Reuse terms first</p>
-          <h2 className="mt-2 text-3xl font-semibold text-ink">The official register is open. TaxSorted&apos;s mirror is not—yet.</h2>
+          <h2 className="mt-2 text-3xl font-semibold text-ink">The official register is open. Our copy is not — yet.</h2>
           <p className="mt-4 max-w-3xl text-ink-soft">
-            The Electoral Commission publishes the returns and download files, but Political
-            Finance Online does not state blanket database-reuse terms. TaxSorted will not turn a
-            public search into a bulk mirror until the Commission confirms those terms and the
+            The Electoral Commission publishes the returns and download files, but its Political
+            Finance Online database does not state general reuse terms. TaxSorted will not turn a
+            public search into a bulk copy until the Commission confirms those terms and the
             required attribution in writing.
           </p>
           <a
             href={(error as PoliticsApiError).sourceUrl || OFFICIAL_REGISTER}
-            className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white"
+            className="mt-5 inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-base font-semibold text-white"
           >
-            Search the official Commission record ↗
+            Search the official Commission record <span aria-hidden="true">↗</span>
           </a>
         </div>
       ) : null}
 
       {error && !licenceGate ? (
-        <p role="alert" className="mt-6 rounded-2xl border border-line bg-white p-5 text-sm text-ink">
+        <p role="alert" className="mt-6 rounded-2xl border border-line bg-white p-5 text-base text-ink">
           {error.message}
         </p>
       ) : null}
 
-      {loading ? <p className="mt-6 text-sm text-ink-soft" aria-live="polite">Reading the official returns…</p> : null}
+      {loading ? <p className="mt-6 text-base text-ink-soft" aria-live="polite">Reading the official returns…</p> : null}
 
-      {result ? (
+      {result && result.total === 0 ? (
+        <p className="mt-6 rounded-2xl border border-line bg-white p-5 text-base text-ink">
+          No donations found for these dates.{" "}
+          <a href={result.source.url} className="text-accent underline">{result.source.name}</a>
+        </p>
+      ) : null}
+
+      {result && result.total > 0 ? (
         <div className="mt-6">
           <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               {result.total.toLocaleString("en-GB")} records · showing {result.skip + 1}–{Math.min(result.skip + result.donations.length, result.total)}
             </p>
-            <p className="text-xs text-ink-soft">
+            <p className="text-sm text-ink-soft">
               <a href={result.source.url} className="text-accent underline">{result.source.name}</a>
             </p>
           </div>
@@ -188,7 +195,7 @@ export function FundingRegister() {
               <article key={donation.reference} className="grid gap-3 border-b border-line p-5 last:border-b-0 md:grid-cols-[9rem_minmax(0,1.2fr)_minmax(0,1fr)] md:gap-5">
                 <div>
                   <p className="font-mono text-lg font-semibold text-ink">{money(donation.amountPence)}</p>
-                  <p className="mt-1 text-xs text-ink-soft">Accepted {date(donation.acceptedDate)}</p>
+                  <p className="mt-1 text-sm text-ink-soft">Accepted {date(donation.acceptedDate)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-ink">{donation.donorName}</p>
@@ -205,7 +212,7 @@ export function FundingRegister() {
                   ) : null}
                   {donation.nature ? <p className="mt-2 text-sm text-ink-soft">{donation.nature}</p> : null}
                 </div>
-                <div className="text-xs text-ink-soft">
+                <div className="text-sm text-ink-soft">
                   <p>{donation.donationType || "Donation"} · {donation.reportingPeriod || "period not stated"}</p>
                   <p className="mt-1">Reported {date(donation.reportedDate)} · {donation.register || "register not stated"}</p>
                   <a href={result.source.url} className="mt-1 inline-block font-mono text-accent underline">
@@ -220,23 +227,23 @@ export function FundingRegister() {
               type="button"
               disabled={skip === 0}
               onClick={() => setSkip(Math.max(0, skip - TAKE))}
-              className="rounded-full border border-line bg-white px-4 py-2 text-sm text-ink disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base text-ink disabled:opacity-40"
             >
-              ← Previous
+              <span aria-hidden="true">←</span>&nbsp;Previous
             </button>
             <button
               type="button"
               disabled={skip + result.donations.length >= result.total}
               onClick={() => setSkip(skip + TAKE)}
-              className="rounded-full border border-line bg-white px-4 py-2 text-sm text-ink disabled:opacity-40"
+              className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base text-ink disabled:opacity-40"
             >
-              Next →
+              Next&nbsp;<span aria-hidden="true">→</span>
             </button>
           </div>
         </div>
       ) : null}
 
-      <p className="mt-6 text-xs text-ink-soft">
+      <p className="mt-6 text-sm text-ink-soft">
         Northern Ireland donations and loans from before 1 July 2017 cannot be published under the
         applicable legislation. Donation records show declared transactions; they do not establish
         a donor&apos;s influence on any decision. A Companies House link confirms the reported company

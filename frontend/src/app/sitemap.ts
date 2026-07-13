@@ -7,6 +7,9 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["/", 1],
+    ["/about/", 0.6],
+    ["/tools/", 0.9],
+    ["/uk/money/", 0.9],
     ["/learn/", 0.9],
     ["/learn/mtd-income-tax/", 0.9],
     ["/learn/income-tax/", 0.8],
@@ -28,6 +31,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/politics/integrity/", 0.9],
     ["/uk/politics/api/", 0.8],
     ["/uk/politics/method/", 0.7],
+    ["/uk/politics/people/", 0.7],
+    ["/uk/politics/funding/", 0.7],
+    ["/vat/", 0.8],
     ["/itsa/", 0.8],
     ["/itsa/am-i-in/", 0.8],
     ["/itsa/records/", 0.7],

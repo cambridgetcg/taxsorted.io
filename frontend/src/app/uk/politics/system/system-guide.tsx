@@ -45,9 +45,9 @@ function SourceLinks({
           href={source.url}
           target="_blank"
           rel="noreferrer noopener"
-          className="rounded-full border border-line bg-white px-3 py-1 text-xs text-accent underline decoration-line underline-offset-2 hover:text-accent-deep"
+          className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-sm text-accent underline decoration-line underline-offset-2 hover:text-accent-deep"
         >
-          {source.title} ↗
+          {source.title} <span aria-hidden="true">↗</span>
         </a>
       ))}
     </div>
@@ -131,7 +131,7 @@ export function SystemGuide() {
         ].map(([title, body]) => (
           <article key={title} className="rounded-3xl border border-line bg-paper p-5">
             <h2 className="font-semibold text-ink">{title}</h2>
-            <p className="mt-2 text-sm text-ink-soft">{body}</p>
+            <p className="mt-2 text-base text-ink-soft">{body}</p>
           </article>
         ))}
       </section>
@@ -152,7 +152,7 @@ export function SystemGuide() {
             <a
               key={href}
               href={href}
-              className="rounded-full border border-line px-3 py-1.5 text-sm text-ink hover:border-accent hover:bg-accent-soft"
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-base text-ink hover:border-accent hover:bg-accent-soft"
             >
               {label}
             </a>
@@ -171,33 +171,36 @@ export function SystemGuide() {
           guides and regulates, but does not run Great Britain polling stations or declare those results.
         </p>
 
-        <ol className="mt-6 space-y-4">
-          {data.electionProcess.map((stage) => (
-            <li key={stage.id} className="grid gap-3 sm:grid-cols-[3rem_minmax(0,1fr)]">
-              <p className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white" aria-hidden="true">
-                {stage.order}
-              </p>
-              <article className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6">
-                <h3 className="text-xl font-semibold text-ink">{stage.title}</h3>
-                <p className="mt-2 text-sm text-ink-soft">{stage.summary}</p>
-                <div className="mt-4 flex flex-wrap gap-2" aria-label="Responsible offices and bodies">
-                  {stage.responsibleActorIds.map((actorId) => (
-                    <span key={actorId} className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-ink">
-                      {actorById.get(actorId)?.name ?? actorId}
-                    </span>
-                  ))}
-                </div>
-                <p className="mt-4 text-xs text-ink-soft">
-                  <strong className="text-ink">Public trail:</strong> {stage.publicRecords.join(" · ")}
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Read each step of an election, and who is responsible</summary>
+          <ol className="mt-4 space-y-4">
+            {data.electionProcess.map((stage) => (
+              <li key={stage.id} className="grid gap-3 sm:grid-cols-[3rem_minmax(0,1fr)]">
+                <p className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white" aria-hidden="true">
+                  {stage.order}
                 </p>
-                <SourceLinks sourceIds={stage.sourceIds} sourceById={sourceById} />
-              </article>
-            </li>
-          ))}
-        </ol>
+                <article className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-6">
+                  <h3 className="text-xl font-semibold text-ink">{stage.title}</h3>
+                  <p className="mt-2 text-base text-ink-soft">{stage.summary}</p>
+                  <div className="mt-4 flex flex-wrap gap-2" aria-label="Responsible offices and bodies">
+                    {stage.responsibleActorIds.map((actorId) => (
+                      <span key={actorId} className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-ink">
+                        {actorById.get(actorId)?.name ?? actorId}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm text-ink-soft">
+                    <strong className="text-ink">Public trail:</strong> {stage.publicRecords.join(" · ")}
+                  </p>
+                  <SourceLinks sourceIds={stage.sourceIds} sourceById={sourceById} />
+                </article>
+              </li>
+            ))}
+          </ol>
+        </details>
 
         <details className="mt-5 rounded-3xl border border-line bg-paper p-5 sm:p-6">
-          <summary className="cursor-pointer font-semibold text-ink">Read each actor&apos;s responsibility boundary</summary>
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">What each office is — and is not — responsible for</summary>
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             {data.actors.map((actor) => (
               <article key={actor.id} className="rounded-2xl border border-line bg-white p-4">
@@ -224,11 +227,11 @@ export function SystemGuide() {
           </div>
         </details>
 
-        <div className="mt-5 rounded-3xl border border-line bg-white p-5 sm:p-6">
-          <h3 className="text-xl font-semibold text-ink">Published institutional contact routes</h3>
-          <p className="mt-2 max-w-4xl text-sm text-ink-soft">
-            These lead to the office responsible for the duty, not a private address or a guessed
-            personal contact. Postcode-selected lookups should be used once and not retained.
+        <details className="mt-5 rounded-3xl border border-line bg-white p-5 sm:p-6">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Find the right office to contact</summary>
+          <p className="mt-2 max-w-4xl text-base text-ink-soft">
+            These links lead to the office that holds the duty — never a private address or a
+            guessed personal contact. Use a postcode lookup once; do not keep the result.
           </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {data.electionContactRoutes.map((route) => (
@@ -242,13 +245,13 @@ export function SystemGuide() {
                   rel="noreferrer noopener"
                   className="mt-2 inline-block font-semibold text-accent underline decoration-line underline-offset-2"
                 >
-                  {route.label} ↗
+                  {route.label} <span aria-hidden="true">↗</span>
                 </a>
-                <p className="mt-2 text-sm text-ink-soft">{route.note}</p>
+                <p className="mt-2 text-base text-ink-soft">{route.note}</p>
               </article>
             ))}
           </div>
-        </div>
+        </details>
       </section>
 
       <section id="formal-power" className="mt-14 scroll-mt-6" aria-labelledby="formal-power-title">
@@ -257,23 +260,26 @@ export function SystemGuide() {
           Six published powers, scored without judging the person
         </h2>
         <p className="mt-3 max-w-4xl text-ink-soft">{formalPower.method.warning}</p>
-        <p className="mt-4 max-w-4xl rounded-2xl bg-accent-soft p-4 text-sm text-ink">
-          <strong>Office, not person.</strong> Examples remain in source order, never a leaderboard.
+        <p className="mt-4 max-w-4xl rounded-2xl bg-accent-soft p-4 text-base text-ink">
+          <strong>Office, not person.</strong> Examples stay in source order, never a leaderboard.
           A person&apos;s separate offices and their scores never add together.
         </p>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {formalPower.method.dimensions.map((dimension) => (
-            <article key={dimension.id} className="rounded-2xl border border-line bg-white p-4">
-              <h3 className="font-semibold text-ink">{dimension.label}</h3>
-              <p className="mt-1 text-sm text-ink-soft">{dimension.meaning}</p>
-            </article>
-          ))}
-        </div>
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">What each of the six scores measures</summary>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {formalPower.method.dimensions.map((dimension) => (
+              <article key={dimension.id} className="rounded-2xl border border-line bg-white p-4">
+                <h3 className="font-semibold text-ink">{dimension.label}</h3>
+                <p className="mt-1 text-base text-ink-soft">{dimension.meaning}</p>
+              </article>
+            ))}
+          </div>
+        </details>
 
         <details className="mt-4 rounded-2xl border border-line bg-white p-5">
-          <summary className="cursor-pointer font-semibold text-ink">Read the scoring and comparison method</summary>
-          <p className="mt-4 text-sm text-ink-soft">{formalPower.method.calculation}</p>
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">How the scores are worked out</summary>
+          <p className="mt-4 text-base text-ink-soft">{formalPower.method.calculation}</p>
           <ol className="mt-4 grid gap-2 text-sm md:grid-cols-2">
             {formalPower.method.rubric.map((row) => (
               <li key={row.score} className="rounded-2xl bg-paper p-3 text-ink-soft">
@@ -286,7 +292,9 @@ export function SystemGuide() {
           </ul>
         </details>
 
-        <div className="mt-6 space-y-5">
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">See each scored office, with its evidence and limits</summary>
+          <div className="mt-4 space-y-5">
           {formalPower.assessments.map((assessment) => (
             <article key={assessment.assessmentId} className="rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8">
               <header className="grid gap-4 border-b border-line pb-5 md:grid-cols-[minmax(0,1fr)_8rem] md:items-start">
@@ -330,14 +338,14 @@ export function SystemGuide() {
                           style={{ width: `${(assessed.score / 5) * 100}%` }}
                         />
                       </div>
-                      <p className="mt-2 text-xs text-ink-soft">{assessed.reason}</p>
+                      <p className="mt-2 text-sm text-ink-soft">{assessed.reason}</p>
                     </div>
                   );
                 })}
               </div>
 
               <details className="mt-6 rounded-2xl bg-paper p-4">
-                <summary className="cursor-pointer text-sm font-semibold text-ink">Evidence, legal basis and limits</summary>
+                <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Evidence, legal basis and limits</summary>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   {formalPower.method.dimensions.map((dimension) => {
                     const assessed = assessment.dimensions[dimension.id];
@@ -366,19 +374,22 @@ export function SystemGuide() {
               </details>
             </article>
           ))}
-        </div>
+          </div>
+        </details>
       </section>
 
       <section id="campaign-finance" className="mt-14 scroll-mt-6" aria-labelledby="campaign-finance-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Campaign finance</p>
         <h2 id="campaign-finance-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Four lanes, four sets of duties
+          Campaign money has four separate sets of rules
         </h2>
         <p className="mt-3 max-w-4xl text-ink-soft">
-          Candidate, party, non-party and regulated-funding records are not interchangeable. Limits,
-          responsible people, reporting routes and enforcement all depend on the lane and effective date.
+          Candidates, parties, non-party campaigners and regulated funding each follow their own rules.
+          Limits, responsible people, reporting routes and enforcement depend on which set applies, and on the date.
         </p>
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Read the four rule-sets — limits, returns and enforcement</summary>
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
           {data.campaignFinanceRules.map((rule) => {
             const actor = actorById.get(rule.responsibleActorId);
             return (
@@ -409,14 +420,17 @@ export function SystemGuide() {
             );
           })}
         </div>
+        </details>
 
         <aside className="mt-6 rounded-[2rem] border border-line bg-paper p-6 sm:p-8" aria-labelledby="public-funding-title">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">A separate public-support lane</p>
           <h3 id="public-funding-title" className="mt-2 text-2xl font-semibold text-ink">
             Public political funding is not a private donation
           </h3>
-          <p className="mt-3 max-w-4xl text-sm text-ink-soft">{data.publicPoliticalFunding.principle}</p>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <p className="mt-3 max-w-4xl text-base text-ink-soft">{data.publicPoliticalFunding.principle}</p>
+          <details className="mt-5 rounded-3xl border border-line bg-white p-5">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">See each public-support scheme</summary>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             {data.publicPoliticalFunding.schemes.map((scheme) => (
               <article key={scheme.id} className="rounded-2xl border border-line bg-white p-5">
                 <h4 className="font-semibold text-ink">{scheme.name}</h4>
@@ -433,19 +447,22 @@ export function SystemGuide() {
               </article>
             ))}
           </div>
+          </details>
         </aside>
       </section>
 
       <section id="public-money" className="mt-14 scroll-mt-6" aria-labelledby="public-money-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Budget accountability</p>
         <h2 id="public-money-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Authority, plan and actual spending are different facts
+          Permission to spend, the plan and the actual spending are three different numbers
         </h2>
-        <p className="mt-4 max-w-5xl rounded-2xl bg-accent-soft p-4 text-sm text-ink">
-          <strong>Budget authority ≠ personal money.</strong> {data.budgetAccountability.principle}
+        <p className="mt-4 max-w-5xl rounded-2xl bg-accent-soft p-4 text-base text-ink">
+          <strong>A budget is not a politician&apos;s personal money.</strong> {data.budgetAccountability.principle}
         </p>
 
-        <article className="mt-6 rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8">
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">See the current totals and who answers for them</summary>
+        <article className="mt-4 rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,1fr)]">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-accent">Current aggregate snapshot</p>
@@ -484,19 +501,22 @@ export function SystemGuide() {
             </article>
           ))}
         </div>
+        </details>
       </section>
 
       <section id="relationships" className="mt-14 scroll-mt-6" aria-labelledby="relationships-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Corporate and organisational records</p>
         <h2 id="relationships-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Publish the relationship; do not invent the influence
+          A recorded meeting or donation is not proof of influence
         </h2>
-        <p className="mt-4 max-w-4xl rounded-2xl bg-accent-soft p-4 text-sm text-ink">
-          <strong>Relationship ≠ influence.</strong> A source-reported edge is evidence of exactly the
-          recorded donation, declaration, meeting, lobbying return or contract—not a favour, motive,
+        <p className="mt-4 max-w-4xl rounded-2xl bg-accent-soft p-4 text-base text-ink">
+          <strong>A relationship record is not influence.</strong> A published record proves exactly the
+          recorded donation, declaration, meeting, lobbying return or contract — not a favour, motive,
           policy result or wrongdoing.
         </p>
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Read each record type — what it proves, and what it does not</summary>
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
           {data.relationshipEvidenceLanes.map((lane) => (
             <article key={lane.id} className="rounded-3xl border border-line bg-white p-6 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -521,12 +541,13 @@ export function SystemGuide() {
             </article>
           ))}
         </div>
+        </details>
       </section>
 
       <section id="enforcement" className="mt-14 scroll-mt-6" aria-labelledby="enforcement-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Enforcement</p>
         <h2 id="enforcement-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Keep every state separate
+          An allegation is not a finding — every stage stays separate
         </h2>
         <p className="mt-3 max-w-4xl text-ink-soft">
           {data.enforcementSnapshot.caseStateRule} These are record states, not a claim that every
@@ -541,21 +562,19 @@ export function SystemGuide() {
           ))}
         </ol>
 
-        <article className="mt-5 rounded-3xl border border-line bg-paper p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <h3 className="text-xl font-semibold text-ink">Electoral Commission civil remit</h3>
-            <span className="rounded-full bg-white px-3 py-1 text-xs text-ink-soft">
-              Checked {data.enforcementSnapshot.asAt}
-            </span>
-          </div>
-          <p className="mt-3 text-sm text-ink-soft">{data.enforcementSnapshot.electoralCommission.remit}</p>
+        <details className="mt-5 rounded-3xl border border-line bg-paper p-6">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">
+            What the Electoral Commission can fine, and where its power ends
+          </summary>
+          <p className="mt-2 text-sm text-ink-soft">Checked {data.enforcementSnapshot.asAt}</p>
+          <p className="mt-3 text-base text-ink-soft">{data.enforcementSnapshot.electoralCommission.remit}</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <p className="rounded-2xl bg-white p-4 text-sm text-ink">
+            <p className="rounded-2xl bg-white p-4 text-base text-ink">
               <strong>Civil fine range:</strong>{" "}
               {gbpCompact.format(data.enforcementSnapshot.electoralCommission.civilFineRangeGbp.minimum)} to{" "}
               {gbpCompact.format(data.enforcementSnapshot.electoralCommission.civilFineRangeGbp.maximumPerOffence)} per offence where authorised.
             </p>
-            <p className="rounded-2xl bg-white p-4 text-sm text-ink">
+            <p className="rounded-2xl bg-white p-4 text-base text-ink">
               <strong>Candidate boundary:</strong>{" "}
               {data.enforcementSnapshot.electoralCommission.candidateBoundary}
             </p>
@@ -564,12 +583,16 @@ export function SystemGuide() {
             sourceIds={data.enforcementSnapshot.electoralCommission.sourceIds}
             sourceById={sourceById}
           />
-        </article>
+        </details>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <details className="mt-5 rounded-3xl border border-line bg-paper p-6">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">
+            How enforcement records are published, and by whom
+          </summary>
+          <div className="mt-4 grid gap-5 lg:grid-cols-2">
           <article className="rounded-3xl border border-line bg-white p-6">
             <h3 className="text-xl font-semibold text-ink">Publication rules</h3>
-            <ul className="mt-4 list-disc space-y-3 pl-5 text-sm text-ink-soft">
+            <ul className="mt-4 list-disc space-y-3 pl-5 text-base text-ink-soft">
               {data.enforcementPrinciples.map((principle) => <li key={principle}>{principle}</li>)}
             </ul>
           </article>
@@ -586,17 +609,20 @@ export function SystemGuide() {
                 </article>
               ))}
           </div>
-        </div>
+          </div>
+        </details>
       </section>
 
       <section id="history-law" className="mt-14 scroll-mt-6" aria-labelledby="history-law-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">History and changing law</p>
         <h2 id="history-law-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Preserve what changed; never turn a proposal into current law
+          Old rules and proposed rules stay separate from current law
         </h2>
         <p className="mt-3 max-w-4xl text-ink-soft">{data.historyCoverage.model}</p>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <details className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">See which history this map covers so far</summary>
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
           <article className="rounded-3xl border border-line bg-white p-6">
             <h3 className="text-xl font-semibold text-ink">History represented in this map</h3>
             <div className="mt-4 space-y-4">
@@ -628,8 +654,11 @@ export function SystemGuide() {
             </p>
           </article>
         </div>
+        </details>
 
-        <div className="mt-5 space-y-4">
+        <details className="mt-5 rounded-3xl border border-line bg-paper p-5 sm:p-6">
+        <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">See the proposed law changes we are watching</summary>
+        <div className="mt-4 space-y-4">
           {data.legislativeWatch.map((item) => (
             <article key={item.id} className="rounded-3xl border border-line bg-accent-soft p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -648,25 +677,29 @@ export function SystemGuide() {
             </article>
           ))}
         </div>
+        </details>
       </section>
 
       <section id="coverage" className="mt-14 scroll-mt-6" aria-labelledby="coverage-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">Coverage and receipts</p>
         <h2 id="coverage-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          What this foundation does not cover yet
+          What this map does not cover yet
         </h2>
         <p className="mt-3 max-w-4xl text-ink-soft">
           {data.scope.release} · law checked {data.scope.lawAsAt} · record updated {data.updatedAt}
         </p>
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           <article className="rounded-3xl border border-line bg-paper p-6">
-            <ul className="list-disc space-y-3 pl-5 text-sm text-ink-soft">
-              {data.scope.notYetComplete.map((gap) => <li key={gap}>{gap}</li>)}
-            </ul>
-            <p className="mt-5 rounded-2xl bg-white p-4 text-sm font-medium text-ink">{data.scope.rule}</p>
+            <details>
+              <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">Read the list of known gaps</summary>
+              <ul className="mt-2 list-disc space-y-3 pl-5 text-base text-ink-soft">
+                {data.scope.notYetComplete.map((gap) => <li key={gap}>{gap}</li>)}
+              </ul>
+            </details>
+            <p className="mt-5 rounded-2xl bg-white p-4 text-base font-medium text-ink">{data.scope.rule}</p>
           </article>
           <details className="rounded-3xl border border-line bg-white p-6">
-            <summary className="cursor-pointer text-xl font-semibold text-ink">
+            <summary className="min-h-11 cursor-pointer py-2 text-xl font-semibold text-ink">
               Browse all {data.sources.length} official sources
             </summary>
             <div className="mt-5 max-h-[34rem] space-y-3 overflow-y-auto pr-2">
@@ -691,9 +724,11 @@ export function SystemGuide() {
         </div>
 
         <section className="mt-5 rounded-3xl border border-line bg-accent-soft p-6" aria-labelledby="source-use-title">
-          <h3 id="source-use-title" className="text-xl font-semibold text-ink">Publication and reuse are separate checks</h3>
-          <p className="mt-3 text-sm text-ink-soft">{data.sourceUsePolicy.rule}</p>
-          <p className="mt-2 text-sm text-ink-soft">{data.sourceUsePolicy.curatedFacts}</p>
+          <h3 id="source-use-title" className="text-xl font-semibold text-ink">Publishing a fact and reusing a source are separate checks</h3>
+          <details className="mt-3">
+          <summary className="min-h-11 cursor-pointer py-2 text-base font-semibold text-ink">How we may reuse each source</summary>
+          <p className="mt-3 text-base text-ink-soft">{data.sourceUsePolicy.rule}</p>
+          <p className="mt-2 text-base text-ink-soft">{data.sourceUsePolicy.curatedFacts}</p>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {data.sourceUsePolicy.dataFamilies.map((family) => (
               <article key={family.id} className="rounded-2xl bg-white p-4">
@@ -706,13 +741,14 @@ export function SystemGuide() {
                   href={family.termsUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="mt-3 inline-block text-xs font-semibold text-accent underline underline-offset-2"
+                  className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-2"
                 >
-                  Read the source terms ↗
+                  Read the source terms <span aria-hidden="true">↗</span>
                 </a>
               </article>
             ))}
           </div>
+          </details>
         </section>
       </section>
     </>

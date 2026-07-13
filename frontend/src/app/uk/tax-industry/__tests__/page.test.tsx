@@ -11,8 +11,12 @@ describe("UK tax-industry page", () => {
     render(<TaxIndustryPage />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /see the gate before you pay/i }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /how people get into tax work.*what it really costs/i,
+      }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /the short version/i })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /ordinary tax advice is generally not a reserved profession/i,
