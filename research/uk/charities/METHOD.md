@@ -1,7 +1,7 @@
 # Method — UK charities bounded sector map
 
 **Reviewed:** 13 July 2026
-**Status:** operational method for the human guide; organisation mirror not admitted
+**Status:** operational method for the v3 sector guide; organisation mirror not admitted
 
 ## Purpose
 
@@ -228,26 +228,102 @@ Keep direct tax, VAT, business rates, PAYE and Gift Aid distinct. Keep a charity
 trading subsidiary distinct. A policy explanation and the operative legal rule are separate
 claims and may need different sources.
 
-This v2 slice admits one exact current section as the authority selector for each
-provision-level rule. A later regulation or schedule-paragraph slice needs a typed authority
-selector before admission. A whole Act, Part or guidance page cannot occupy that field. Keep a
-charitable trust under Income Tax separately from a charitable company under Corporation Tax.
-Map the provision to exact treatment fields and reasoning steps, state when applicability begins
-only where the source supports a date, and publish unknown effective dates as `null` rather than
-guessing.
+Version 3 gives every provision-level rule a typed `authoritySelector`. It identifies either one
+exact section or one exact schedule paragraph and must reconstruct the same legislation.gov.uk URL
+as the authority source. The human `citation` is also bound to the admitted instrument and
+selector, while agents should use the typed selector as machine identity. A whole Act, Part,
+schedule without a paragraph, or guidance page cannot occupy that field.
+
+The v3 substantive addition contains 31 atomic records: 12 trust rules, 12 company rules and seven
+chargeable-gains rules. A section with separate calculation, definition or claim propositions can
+therefore produce separate records, but each record still cites that exact provision and states
+its own conditions and non-proofs. `taxTypes` identifies the reviewed direct-tax branches and
+`explanationScope` separates `treatment-core`, `supplementary-substantive` and
+`administrative-procedure`. Keep a charitable trust under Income Tax or Capital Gains Tax
+separately from a charitable company under Corporation Tax. State when applicability begins only
+where the source supports the event and date; publish unknown dates as `null` rather than guessing.
 
 Rule summaries are labelled TaxSorted analysis of primary law. The primary-law source remains
 metadata-only and is not copied. A sector rule can be `checked-not-decisive` in an explanation
 graph; it cannot become an applied rule without case facts and a separate admitted capability.
 Mutation tests swap valid provisions, promote guidance, change taxpayer class and invent applied
-or enforcement edges. Each must fail.
+or enforcement edges. The admission gate binds each stable rule ID to its exact instrument,
+section, authority-source ID, source-title prefix and display citation. Each substitution must
+fail even when the replacement is another valid current provision.
 
-Official procedures are a separate collection. A procedure needs its taxpayer class, actual
-trigger, required case selectors, steps, time limit, payment effect, possible outcomes, responsible
-institution roles, exact legal basis and explicit non-proofs. Friendly guidance such as “HMRC can
-determine” must not erase a preceding requirement, notice or waiting period. The absence of a
-mapped appeal or debt route is a gap, not permission to infer one from an adjacent tax rule. The
-procedure prose is explicitly labelled TaxSorted analysis of primary law; it is not statutory text.
+Official procedures are a separate collection. Version 3 records separate trust and company doors
+for notification, return and self-assessment, taxpayer amendment, HMRC correction, enquiry,
+closure, no-return determination, discovery assessment, payment, appeal, review, tribunal
+notification, payment postponement and the admitted recovery slice. A procedure needs its taxpayer
+class, `taxTypes`, actual trigger, required case selectors, steps, time limit, payment effect,
+possible outcomes, responsible institution roles, exact legal basis and explicit non-proofs.
+The assembled corpus contains 35 procedure records: the two earlier attribution procedures plus
+33 supplemental doors. The procedure supplement owns 56 exact primary-law source records, one
+official tribunal service-page source and one First-tier Tribunal institution record; its two TCGA
+doors resolve against section 256B and 256D sources and rules in the law supplement.
+Each stable procedure ID is separately bound to its complete reviewed legal-basis set. Another
+valid provision cannot be substituted merely because it is current primary law.
+
+`procedureStage` is the broad filter; `procedureType` is the exact door. `performedByRoles` names
+public roles such as taxpayer, tax authority, tribunal or territorial enforcement role without
+creating named-person records. `challengeMode` keeps an appeal, correction rejection, superseding
+return, separate route and no challenge in the selected provision legally distinct. Friendly
+guidance such as “HMRC can determine” must not erase a preceding requirement, notice or waiting
+period.
+
+There is no universal procedure sequence. `nextProcedureIds` names only other admitted doors that
+may follow, and `nextProcedureMeaning` is fixed to `possible-not-mandatory`. The correct path still
+depends on the real return, notice, decision, date, payment and jurisdiction facts. No sector
+record selects a case, applies a rule, calculates a missing deadline or predicts an outcome.
+
+The narrow recovery admission has three territorial branches: taking control of goods in England
+and Wales, Scottish summary warrant and diligence, and Northern Ireland distraint. Court debt
+proceedings, direct recovery from accounts, insolvency and downstream public-law or court routes
+remain gaps. Reported-case holdings and their effects also remain outside the corpus until the
+separate case-law admission method is completed. The procedure prose is labelled TaxSorted
+analysis of primary law; it is not statutory text.
+
+Composite records expose their complete admitted provision set, but the named group has
+provision-set provenance rather than clause-by-clause attribution. The machine gap and procedure
+research note list the affected records. Do not claim that the lead source alone supports every
+word of a composite field.
+
+## V3 corpus assembly and agent queries
+
+The authored source stays reviewable in three layers:
+
+1. `data/uk-charities.json` is the bounded base corpus;
+2. `data/uk-charity-tax-law-additions.json` carries the 31 atomic substantive additions and their
+   sources;
+3. `data/uk-charity-tax-procedure-additions.json` carries the conditional procedure doors,
+   procedural sources and residual procedure gaps.
+
+The base file stores the earlier reviewed spine directly in the v3 shape; there is no runtime
+migration. The loader reads the two supplements in fixed law-then-procedure order, appends only
+their allowed collections, parses the strict v3 schema, and runs exact-ID, evidence, authority,
+taxpayer, tax-type and procedure-branch checks. The fixed order makes the procedure supplement's
+two explicit TCGA dependencies visible and reproducible.
+Routes then use one immutable in-memory corpus. Deterministic JSON serialisation produces the same
+complete representation for `GET /v1/charities/uk/graph` and its digest; list, detail, resolver,
+dictionary and export routes all read from that assembled corpus. The supplement files are not
+independent public graphs. This describes repository behaviour and does not claim deployment.
+
+For agent use, filter before broad retrieval:
+
+- `taxType`, `taxpayerClass` and `explanationScope` select the direct-tax and substantive-law
+  branch in `tax-rules`;
+- `taxType`, `taxpayerClass`, `procedureStage` and `procedureType` select a conditional door in
+  `official-procedures`.
+
+These are exact filters and can be combined. `taxType` is matched against a record's `taxTypes`
+array. An empty list means the assembled corpus has no matching admitted record; it does not prove
+that legislation, a remedy or an enforcement route does not exist. Read the API dictionary for
+the filter allowlist and field meanings before relying on a query.
+
+The assembly does not relax the privacy boundary. Supplements may add primary-law sources,
+institution roles, rules, procedures and explicit gaps. They may not add organisations, people,
+trustees, contacts, biographies, named pay, donor or beneficiary records, belief data, transactions
+or case files.
 
 ## Contact and help rule
 

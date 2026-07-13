@@ -7,7 +7,16 @@ import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
-import { ukCharitiesSchema } from "./uk-charities.js";
+import {
+  charityProcedureActorRoles,
+  charityProcedureChallengeModes,
+  charityProcedureStages,
+  charityProcedureTypes,
+  charityTaxpayerClasses,
+  charityTaxRuleExplanationScopes,
+  charityTaxTypes,
+  ukCharitiesSchema,
+} from "./uk-charities.js";
 import { ukPublicFundingSchema } from "./uk-public-funding.js";
 import {
   releaseAtomFeedPath,
@@ -325,14 +334,18 @@ const CharitiesCollection = z.enum([
   "pipeline",
   "gaps",
 ]);
-const CharityTaxpayerClass = z.enum([
-  "charity-cross-tax",
-  "charitable-trust-income-tax",
-  "charitable-company-corporation-tax",
-]);
-const CharityProcedureTaxpayerClass = z.enum([
-  "charitable-trust-income-tax",
-  "charitable-company-corporation-tax",
+const CharityTaxpayerClass = z.enum(charityTaxpayerClasses);
+const CharityTaxType = z.enum(charityTaxTypes);
+const CharityQueryTaxType = z.enum([
+  ...charityTaxTypes,
+  "recognition",
+  "income-and-gains",
+  "trading",
+  "gift-aid",
+  "vat",
+  "business-rates",
+  "property-transaction",
+  "cross-tax-rationale",
 ]);
 const CharityTaxRuleRole = z.enum([
   "gateway",
@@ -343,9 +356,11 @@ const CharityTaxRuleRole = z.enum([
   "transition",
   "procedure",
 ]);
-const CharityProcedureType = z.enum([
-  "attribution-specification-determination",
-]);
+const CharityProcedureType = z.enum(charityProcedureTypes);
+const CharityProcedureStage = z.enum(charityProcedureStages);
+const CharityProcedureActorRole = z.enum(charityProcedureActorRoles);
+const CharityProcedureChallengeMode = z.enum(charityProcedureChallengeModes);
+const CharityTaxRuleExplanationScope = z.enum(charityTaxRuleExplanationScopes);
 const CharityJurisdiction = z.enum([
   "United Kingdom",
   "England",
@@ -357,7 +372,7 @@ const CharityJurisdiction = z.enum([
 const nonBlankCharityQuery = z.string().min(1).regex(/\S/);
 const charityTaxTreatmentIdQuery = z.string().min(1).regex(/\S/).openapi({
   description:
-    "Exact tax-treatment record ID. Discover valid IDs from /v1/charities/uk/tax-treatments or the dictionary.",
+    "Exact tax-treatment record ID. Tax-rule queries match the primary or an explicit related treatment; procedure queries match the primary treatment. Discover valid IDs from /v1/charities/uk/tax-treatments or the dictionary.",
   example: "tax-non-charitable-expenditure",
 });
 const charityTaxRuleIdQuery = z.string().min(1).regex(/\S/).openapi({
@@ -371,7 +386,7 @@ const CharitiesQuery = z.object({
   kind: nonBlankCharityQuery.optional(),
   type: nonBlankCharityQuery.optional(),
   status: nonBlankCharityQuery.optional(),
-  taxType: nonBlankCharityQuery.optional(),
+  taxType: CharityQueryTaxType.optional(),
   obligationType: nonBlankCharityQuery.optional(),
   fundingType: nonBlankCharityQuery.optional(),
   helpCategory: nonBlankCharityQuery.optional(),
@@ -382,8 +397,20 @@ const CharitiesQuery = z.object({
   ruleRole: CharityTaxRuleRole.openapi({
     description: "Function the exact provision performs in the mapped law spine.",
   }).optional(),
+  explanationScope: CharityTaxRuleExplanationScope.openapi({
+    description: "Compact why-graph spine or separately queryable supplementary law.",
+  }).optional(),
   procedureType: CharityProcedureType.openapi({
     description: "Exact procedure profile admitted in this corpus release.",
+  }).optional(),
+  procedureStage: CharityProcedureStage.openapi({
+    description: "Broad procedure state-machine stage.",
+  }).optional(),
+  performedByRole: CharityProcedureActorRole.openapi({
+    description: "Public role that performs a procedure step; never a named-person filter.",
+  }).optional(),
+  challengeMode: CharityProcedureChallengeMode.openapi({
+    description: "Appeal, correction rejection, return supersession or another bounded route.",
   }).optional(),
   taxRuleId: charityTaxRuleIdQuery.optional(),
   regulatorId: nonBlankCharityQuery.optional(),
@@ -396,26 +423,35 @@ const CharityTaxRuleQuery = CharitiesQuery.pick({
   jurisdiction: true,
   taxTreatmentId: true,
   taxpayerClass: true,
+  taxType: true,
   ruleRole: true,
+  explanationScope: true,
   regulatorId: true,
   sourceId: true,
   limit: true,
   offset: true,
+}).extend({
+  taxType: CharityTaxType.optional(),
 });
 const CharityOfficialProcedureQuery = CharitiesQuery.pick({
   q: true,
   jurisdiction: true,
   taxTreatmentId: true,
+  taxType: true,
   procedureType: true,
+  procedureStage: true,
+  performedByRole: true,
+  challengeMode: true,
   taxRuleId: true,
   regulatorId: true,
   sourceId: true,
   limit: true,
   offset: true,
 }).extend({
-  taxpayerClass: CharityProcedureTaxpayerClass.openapi({
-    description: "Trust or company branch used by the exact procedure record.",
+  taxpayerClass: CharityTaxpayerClass.openapi({
+    description: "Trust, company or reviewed cross-tax procedure branch.",
   }).optional(),
+  taxType: CharityTaxType.optional(),
 });
 const CharitiesPublicJson = z
   .object({})
@@ -451,6 +487,7 @@ const CharityTaxRuleDetail = z.object({
   evidence: z.array(CharitySourceRecord),
   related: z.object({
     taxTreatment: CharityTaxTreatmentRecord.nullable(),
+    relatedTaxTreatments: z.array(CharityTaxTreatmentRecord),
     authoritySource: CharitySourceRecord.nullable(),
     administrators: z.array(CharityRegulatorRecord),
   }),
@@ -1197,6 +1234,10 @@ const DictionaryField = z
     type: z.string(),
     required: z.boolean(),
     requiredWithin: z.string(),
+    requiredWhen: z.array(z.object({
+      field: z.string(),
+      equals: z.unknown(),
+    })).optional(),
     nullable: z.boolean(),
     meaning: z.string(),
     allowedValues: z.array(z.unknown()).optional(),
@@ -3125,7 +3166,7 @@ function registerCharitiesOpenApi(app: OpenAPIHono) {
     operationId: "queryUkCharityOfficialProcedures",
     summary: "Query admitted UK charity tax procedures",
     description:
-      "Returns only procedures whose exact statutory trigger and case selectors are mapped. This release contains the trust and company attribution-specification determination branches; absence never implies a general assessment, appeal or collection route.",
+      "Returns the 35 admitted conditional procedure doors across attribution, return, enquiry, assessment, payment, challenge and the narrow territorial recovery slice. Each record requires case selectors; absence never proves that another procedure or remedy does not exist.",
     request: {
       headers: ConditionalRequestHeaders,
       query: CharityOfficialProcedureQuery,

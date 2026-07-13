@@ -102,7 +102,11 @@ type ExactFilterKey =
   | "taxTreatmentId"
   | "taxpayerClass"
   | "ruleRole"
+  | "explanationScope"
   | "procedureType"
+  | "procedureStage"
+  | "performedByRole"
+  | "challengeMode"
   | "taxRuleId"
   | "sourceId"
   | "regulatorId";
@@ -117,7 +121,9 @@ const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> 
     "jurisdiction",
     "taxTreatmentId",
     "taxpayerClass",
+    "taxType",
     "ruleRole",
+    "explanationScope",
     "regulatorId",
     "sourceId",
   ],
@@ -130,7 +136,11 @@ const filterKeysByCollection: Record<CollectionName, readonly ExactFilterKey[]> 
     "jurisdiction",
     "taxTreatmentId",
     "taxpayerClass",
+    "taxType",
     "procedureType",
+    "procedureStage",
+    "performedByRole",
+    "challengeMode",
     "taxRuleId",
     "regulatorId",
     "sourceId",
@@ -197,6 +207,8 @@ const collectionFieldMeanings: Partial<Record<
 >> = {
   taxRules: {
     taxTreatmentId: "Exact tax-treatment record whose named fields this provision bears on.",
+    relatedTaxTreatmentIds:
+      "Other tax-treatment records this provision directly helps explain; these links do not change the primary field mapping.",
     treatmentFieldPointers:
       "JSON Pointers selecting the exact canonical tax-treatment fields supported by this provision mapping.",
     reasoningStepIds:
@@ -204,9 +216,26 @@ const collectionFieldMeanings: Partial<Record<
     citation: "Human-readable citation paired with the exact authority source selector.",
     authoritySourceId:
       "Exact current primary-law provision source; a whole Act, Part or guidance page is not admitted here.",
+    authoritySelector:
+      "Machine selector for an exact section or schedule paragraph; use this instead of parsing the display citation.",
+    "authoritySelector.kind":
+      "Discriminator for the exact-law selector: section or schedule paragraph.",
+    "authoritySelector.legislationClass":
+      "legislation.gov.uk document class used with year and number to identify the instrument.",
+    "authoritySelector.year": "Enactment year in the exact legislation.gov.uk selector.",
+    "authoritySelector.number": "Instrument number in the exact legislation.gov.uk selector.",
+    "authoritySelector.section":
+      "Section identifier; required only when authoritySelector.kind is section.",
+    "authoritySelector.schedule":
+      "Schedule identifier; required only when authoritySelector.kind is schedule-paragraph.",
+    "authoritySelector.paragraph":
+      "Paragraph identifier; required only when authoritySelector.kind is schedule-paragraph.",
     administeredByRegulatorIds:
       "Tax-authority institution IDs evidenced as administrators; not proof of a decision in a case.",
     taxpayerClass: "Trust, company or cross-tax branch to which this provision record is scoped.",
+    taxTypes: "Direct-tax branches to which the provision record is scoped.",
+    explanationScope:
+      "Whether the rule belongs to the compact why-graph spine or the separately queryable supplementary law map.",
     ruleRole: "Function this provision performs in the selected statutory spine.",
     ruleSummary:
       "TaxSorted's normalised reading of the selected primary-law provision, not statutory wording.",
@@ -217,10 +246,13 @@ const collectionFieldMeanings: Partial<Record<
   officialProcedures: {
     taxTreatmentId: "Exact tax-treatment record to which this bounded procedure map belongs.",
     treatmentFieldPointers:
-      "JSON Pointers matching the exact treatment fields mapped by the linked provision rule.",
-    taxpayerClass: "Separate charitable-trust or charitable-company procedure branch.",
+      "JSON Pointers naming the treatment fields this procedure bears on. When taxRuleIds are present they must exactly match those linked rules; an empty taxRuleIds array leaves this as an explicit procedural mapping.",
+    taxpayerClass:
+      "Separate charitable-trust, charitable-company or reviewed cross-tax procedure branch.",
+    taxTypes: "Direct-tax branches for which this conditional procedure door was reviewed.",
+    procedureStage: "Broad state-machine stage for exact filtering without parsing prose.",
     procedureType:
-      "Exact procedure profile admitted in this release; unlisted assessment, appeal and collection routes remain gaps.",
+      "Exact conditional procedure profile admitted in this release; any unlisted route remains a gap.",
     graphNodeKind:
       "Shared graph vocabulary classification. The sector why graph deliberately emits no process node without case facts.",
     trigger:
@@ -230,16 +262,22 @@ const collectionFieldMeanings: Partial<Record<
       "Fail-closed marker requiring case selection before a sector procedure can become case guidance.",
     requiredCaseSelectors:
       "Exact facts needed to select the procedure and evaluate its trigger; a notice date may be absent only where the paired status says no notice was given.",
+    performedByRoles:
+      "Public procedural roles that perform the step; these are roles, not named people records.",
     timeLimit:
       "Statutory period and start event in words; this API does not calculate a deadline without the required dates.",
     paymentEffect:
       "Whether this exact provision itself changes payment; separate payment law is not inferred.",
     possibleOutcomes: "Bounded outcomes, including the fail-closed result when a trigger fact is missing.",
-    taxRuleIds: "Exact provision-rule records that define this procedure's statutory basis.",
+    taxRuleIds:
+      "Optional links to substantive treatment-rule records. The procedure's complete admitted statutory basis is legalBasisSourceIds, so an empty array is not missing law.",
     nextProcedureIds:
-      "Only separately admitted next procedures in the same treatment and taxpayer branch; an empty list is not a claim that no route exists.",
+      "Separately admitted possible next doors; these links never state a mandatory or complete sequence, and an empty list is not a claim that no route exists.",
+    nextProcedureMeaning: "Constant guardrail stating that next links are possible, not mandatory.",
+    challengeMode:
+      "How this exact procedural act may be contested or displaced; it prevents correction rejection and return supersession from being mislabeled as appeals.",
     legalBasisSourceIds:
-      "Exact primary-law sources matching every linked provision rule and no cross-branch extras.",
+      "Complete admitted primary-law basis for this procedure record. It must contain every linked rule authority and may also contain exact procedural provisions; it is not a claim that all possible law is mapped.",
   },
 };
 
@@ -262,7 +300,9 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
   },
   taxRules: {
     taxTreatmentId: "tax-treatments",
+    relatedTaxTreatmentIds: "tax-treatments",
     authoritySourceId: "sources",
+    "temporalApplicability.transitionAuthoritySourceIds": "sources",
     administeredByRegulatorIds: "regulators",
     sourceIds: "sources",
     "evidence[].sourceId": "sources",
@@ -312,6 +352,7 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
   },
   transparencyGaps: {
     affectedIds: Object.keys(paths),
+    "temporalApplicability.transitionAuthoritySourceIds": "sources",
     sourceIds: "sources",
     "evidence[].sourceId": "sources",
   },
@@ -490,10 +531,12 @@ function dictionary(corpus: UkCharities) {
       contacts:
         "Help routes are role-based public channels. They do not promise eligibility, funding or a particular answer.",
       dates: "Calendar dates use ISO 8601 YYYY-MM-DD and carry no time of day.",
+      conditionalFields:
+        "In each field guide, required means required in every schema branch. requiredWhen lists discriminator values that make a branch-only field required.",
       ordering:
         "Corpus order is curated for reading, not a ranking. Within one version it is stable; use IDs when comparing versions.",
       schemaCompatibility:
-        "The final /2 in corpusSchema is this strict structural contract's major. Adding or removing a required field or collection, or changing a field's type or meaning, requires a new major. Strict clients must pin both corpusSchema and corpus version.",
+        "The final /3 in corpusSchema is this strict structural contract's major. Version 3 adds exact section/schedule selectors and role-, tax- and stage-aware procedures. Adding or removing another required field or collection, or changing a field's type or meaning, requires a new major. Strict clients must pin both corpusSchema and corpus version.",
       search:
         "q is a case-insensitive substring search across the complete sector record. It is not a charity-name, person or belief search. Because q is caller-supplied text echoed in the response, q responses use Cache-Control: no-store.",
     },
@@ -790,6 +833,13 @@ function includesValue(item: Identified, fields: readonly string[], value: strin
 
 function candidateFields(collection: CollectionName, key: ExactFilterKey) {
   if (key === "jurisdiction") return ["jurisdictions"] as const;
+  if (
+    key === "taxType"
+    && (collection === "taxRules" || collection === "officialProcedures")
+  ) {
+    return ["taxTypes"] as const;
+  }
+  if (key === "performedByRole") return ["performedByRoles"] as const;
   if (key === "fundingType") return ["category"] as const;
   if (key === "type" && collection === "financeDisclosures") {
     return ["disclosureType"] as const;
@@ -799,6 +849,9 @@ function candidateFields(collection: CollectionName, key: ExactFilterKey) {
   }
   if (key === "sourceId") return ["sourceIds"] as const;
   if (key === "taxRuleId") return ["taxRuleIds"] as const;
+  if (key === "taxTreatmentId" && collection === "taxRules") {
+    return ["taxTreatmentId", "relatedTaxTreatmentIds"] as const;
+  }
   if (key === "regulatorId" && collection === "taxRules") {
     return ["administeredByRegulatorIds"] as const;
   }
@@ -1578,6 +1631,11 @@ export function createUkCharitiesRoutes(options: UkCharitiesRouteOptions = {}) {
             taxTreatment: corpus.taxTreatments.find(
               (treatment) => treatment.id === item.taxTreatmentId
             ) ?? null,
+            relatedTaxTreatments: corpus.taxTreatments.filter((treatment) =>
+              ((item.relatedTaxTreatmentIds as string[] | undefined) ?? []).includes(
+                treatment.id
+              )
+            ),
             authoritySource: corpus.sources.find(
               (source) => source.id === item.authoritySourceId
             ) ?? null,

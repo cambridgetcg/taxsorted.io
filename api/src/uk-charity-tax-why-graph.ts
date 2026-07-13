@@ -149,7 +149,10 @@ function fixedGapIdsFor(treatment: TaxTreatment): readonly string[] {
 function taxRulesFor(corpus: UkCharities, treatment: TaxTreatment): TaxRule[] {
   if (treatment.id !== lawSpineTreatmentId) return [];
   return corpus.taxRules
-    .filter((rule) => rule.taxTreatmentId === treatment.id)
+    .filter((rule) => (
+      rule.taxTreatmentId === treatment.id
+      && rule.explanationScope === "treatment-core"
+    ))
     .sort((left, right) => ascii(left.id, right.id));
 }
 
@@ -926,16 +929,16 @@ function buildUkCharityTaxWhyGraphUnchecked(
   const bindingGap: Omit<WhyGraphNode, "kind" | "record"> = rules.length > 0
     ? {
         id: "gap:binding-provision-coverage-incomplete",
-        label: "Exact binding provision coverage is intentionally incomplete",
+        label: "The why graph is an intentionally selected law projection",
         description:
-          "The core income restriction, amount, attribution, definition and carry-back tail are mapped separately for trusts and companies. Supplementary category provisions, capital-gains attribution and the case-specific procedural bridge remain outside this release.",
+          "This compact graph carries the selected core rule spine. The tax-rules collection separately publishes the reviewed supplementary substantive provisions, including capital-gains branches, without forcing every provision into one oversized explanation response.",
         state: "not-mapped",
       }
     : {
         id: "gap:binding-provision-not-mapped",
-        label: "Exact binding provision not mapped",
+        label: "No core binding provision selected into this graph",
         description:
-          "The current treatment ledger cites guidance or an official summary, not an admitted exact primary-law provision record. No guidance source is promoted to binding law.",
+          "This compact graph selected no treatment-core provision for this treatment. The tax-rules collection may still publish exact supplementary or related provisions; query it by primary or related tax-treatment ID. No guidance source is promoted to binding law.",
         state: "not-mapped",
       };
   const fixedGaps: Array<Omit<WhyGraphNode, "id" | "kind" | "record"> & { id: string }> = [
@@ -949,9 +952,9 @@ function buildUkCharityTaxWhyGraphUnchecked(
     },
     {
       id: "gap:case-enforcement-and-challenge-not-mapped",
-      label: "Case enforcement and official challenge route not mapped",
+      label: "No procedure route has been selected for a case",
       description:
-        "An exact notice, decision, date, competent authority and legal route are needed before mapping collection, review, appeal or enforcement for a case.",
+        "The official-procedures collection maps conditional doors for return, assessment, payment, challenge and territorial recovery. This graph selects none without the exact notice, decision, date, tax branch and jurisdiction facts.",
       state: "not-mapped",
     },
   ];
@@ -1051,7 +1054,7 @@ function buildUkCharityTaxWhyGraphUnchecked(
         ...(rules.length > 0
           ? [
               "Trust income-tax rules and company corporation-tax rules remain separate; neither class is used as a synonym for the other.",
-              "The official-procedure collection maps only the exact income-attribution specification trigger. No procedure node is emitted here because a case notice, date and appealable decision are absent.",
+              "The official-procedure collection contains separate conditional doors across attribution, administration, challenge and a narrow recovery slice. No procedure node is emitted here because the case selectors needed to choose a door are absent.",
             ]
           : []),
         "No charity, trustee, donor, beneficiary, belief, contact, transaction, tax amount or case file is present.",

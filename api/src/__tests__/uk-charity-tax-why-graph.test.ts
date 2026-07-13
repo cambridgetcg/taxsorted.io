@@ -268,8 +268,12 @@ describe("UK charity tax-treatment why-graph adapter", () => {
     const institutions = native.graph.nodes.filter(
       (node) => node.kind === "institution",
     );
+    const coreRules = native.corpus.taxRules.filter(
+      (rule) => rule.explanationScope === "treatment-core"
+    );
 
-    expect(rules).toHaveLength(native.corpus.taxRules.length);
+    expect(rules).toHaveLength(coreRules.length);
+    expect(coreRules).toHaveLength(16);
     expect(institutions.map((node) => node.id)).toEqual([
       "institution:reg-hmrc-charities",
     ]);
@@ -277,8 +281,11 @@ describe("UK charity tax-treatment why-graph adapter", () => {
     expect(native.graph.edges.some((edge) => edge.relation === "applies-rule"))
       .toBe(false);
     expect(native.graph.nodes.some((node) => node.kind === "process")).toBe(false);
+    expect(native.graph.coverage.boundaries).toEqual(expect.arrayContaining([
+      expect.stringMatching(/separate conditional doors across attribution, administration/),
+    ]));
 
-    for (const rule of native.corpus.taxRules) {
+    for (const rule of coreRules) {
       const ruleNodeId = `rule:${rule.id}`;
       expect(native.graph.edges).toContainEqual(expect.objectContaining({
         from: ruleNodeId,
@@ -298,6 +305,10 @@ describe("UK charity tax-treatment why-graph adapter", () => {
         }));
       }
     }
+    expect(native.corpus.taxRules.some(
+      (rule) => rule.explanationScope === "supplementary-substantive"
+    )).toBe(true);
+    expect(rules.some((node) => node.id.includes("tcga-1992"))).toBe(false);
     expect(native.graph.coverage.gapNodeIds).toEqual(expect.arrayContaining([
       "gap:binding-provision-coverage-incomplete",
       "gap:case-applicability-not-assessed",
