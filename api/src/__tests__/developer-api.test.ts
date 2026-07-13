@@ -492,11 +492,15 @@ describe("developer API boundary", () => {
         (parameter: { name: string }) => parameter.name === "taxTreatmentId",
       ).description,
     ).toMatch(/Exact tax-treatment record ID/);
-    expect(
-      ruleQueryParameters.find(
-        (parameter: { name: string }) => parameter.name === "taxType",
-      ).schema.enum,
-    ).toEqual(["income-tax", "capital-gains-tax", "corporation-tax"]);
+    const ruleTaxTypeParameter = ruleQueryParameters.find(
+      (parameter: { name: string }) => parameter.name === "taxType",
+    );
+    expect(ruleTaxTypeParameter.schema.enum).toEqual([
+      "income-tax",
+      "capital-gains-tax",
+      "corporation-tax",
+    ]);
+    expect(ruleTaxTypeParameter.description).toMatch(/Direct-tax branch/);
     expect(
       ruleQueryParameters.find(
         (parameter: { name: string }) => parameter.name === "jurisdiction",
@@ -547,6 +551,11 @@ describe("developer API boundary", () => {
       ).description,
     ).toMatch(/Exact provision-level tax-rule ID/);
     expect(
+      procedureQueryParameters.find(
+        (parameter: { name: string }) => parameter.name === "taxType",
+      ).description,
+    ).toMatch(/Direct-tax branch/);
+    expect(
       document.components.schemas.UkCharityTaxRuleList.properties.data.items
         .properties,
     ).toHaveProperty("authoritySourceId");
@@ -589,12 +598,11 @@ describe("developer API boundary", () => {
           parameter.name === "collection" && parameter.in === "path"
       ).schema.enum,
     ).toEqual(expect.arrayContaining(["tax-rules", "official-procedures"]));
-    expect(
-      charityQueryParameters.find(
-        (parameter: { name: string; in: string }) =>
-          parameter.name === "taxType" && parameter.in === "query"
-      ).schema.enum,
-    ).toEqual(expect.arrayContaining([
+    const genericTaxTypeParameter = charityQueryParameters.find(
+      (parameter: { name: string; in: string }) =>
+        parameter.name === "taxType" && parameter.in === "query",
+    );
+    expect(genericTaxTypeParameter.schema.enum).toEqual(expect.arrayContaining([
       "income-tax",
       "corporation-tax",
       "vat",
@@ -602,6 +610,8 @@ describe("developer API boundary", () => {
       "property-transaction",
       "cross-tax-rationale",
     ]));
+    expect(genericTaxTypeParameter.description).toMatch(/Collection-dependent/);
+    expect(genericTaxTypeParameter.description).toMatch(/dedicated tax-rules/);
     expect(charityQueryParameters).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "religion", in: "query" }),

@@ -335,18 +335,26 @@ const CharitiesCollection = z.enum([
   "gaps",
 ]);
 const CharityTaxpayerClass = z.enum(charityTaxpayerClasses);
-const CharityTaxType = z.enum(charityTaxTypes);
-const CharityQueryTaxType = z.enum([
-  ...charityTaxTypes,
-  "recognition",
-  "income-and-gains",
-  "trading",
-  "gift-aid",
-  "vat",
-  "business-rates",
-  "property-transaction",
-  "cross-tax-rationale",
-]);
+const CharityTaxType = z.enum(charityTaxTypes).openapi({
+  description:
+    "Direct-tax branch reviewed by an exact tax-rule or official-procedure record: Income Tax, Capital Gains Tax or Corporation Tax.",
+});
+const CharityQueryTaxType = z
+  .enum([
+    ...charityTaxTypes,
+    "recognition",
+    "income-and-gains",
+    "trading",
+    "gift-aid",
+    "vat",
+    "business-rates",
+    "property-transaction",
+    "cross-tax-rationale",
+  ])
+  .openapi({
+    description:
+      "Collection-dependent tax classification. The generic collection route accepts both direct-tax branches and the broader tax-treatment classifications in this enum; the dedicated tax-rules and official-procedures routes accept only direct-tax branches. Check the selected collection in the dictionary before filtering.",
+  });
 const CharityTaxRuleRole = z.enum([
   "gateway",
   "restriction",

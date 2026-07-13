@@ -292,9 +292,11 @@ export default function CharitiesPage() {
               Every published tax treatment now has a machine-readable explanation trace.
               It connects stable record fields to their exact reviewed sources, keeps the
               possible benefit beside the reverse tax path, and names what is still missing.
-              The current corpus has HMRC guidance but no admitted primary-law records, so
-              the graph says “binding provision not mapped” instead of dressing guidance up
-              as legislation.
+              The corpus now admits exact primary-law records where reviewed, with
+              supplementary law and conditional procedures kept separately queryable. The
+              graph still says when a binding provision, case selector, deadline, or route
+              is not established instead of dressing guidance, adjacency, or a sector map
+              up as a conclusion about a real case.
             </p>
           </div>
         </div>
@@ -656,7 +658,7 @@ export default function CharitiesPage() {
           ))}
         </ul>
         <p className="mt-6 text-sm leading-6 text-ink-soft">
-          Reviewed 10 July 2026. This is public research, not legal, tax, accounting,
+          Reviewed 13 July 2026. This is public research, not legal, tax, accounting,
           safeguarding or grant advice. Check the current regulator, HMRC and organisation
           before acting.
         </p>

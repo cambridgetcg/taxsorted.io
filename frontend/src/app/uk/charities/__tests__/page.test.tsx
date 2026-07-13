@@ -44,7 +44,10 @@ describe("UK charities page", () => {
       screen.getByRole("heading", { name: /charities pay no tax.*wrong map/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/non-qualifying income or non-charitable spending can be taxed/i)).toBeInTheDocument();
-    expect(screen.getByText(/binding provision not mapped/i)).toBeInTheDocument();
+    expect(screen.getByText(/admits exact primary-law records where reviewed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no admitted primary-law records/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/a conclusion about a real case/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reviewed 13 July 2026/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /income-and-gains why graph/i })).toHaveAttribute(
       "href",
       "https://api.taxsorted.io/v1/charities/uk/tax-treatments/tax-income-and-gains/why-graph",
