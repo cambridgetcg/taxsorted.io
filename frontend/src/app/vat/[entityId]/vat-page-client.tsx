@@ -65,10 +65,10 @@ export default function VATPortalPage({ entityId }: VATPageClientProps) {
                   <dt className="text-sm text-ink-soft">Illustrative balance</dt>
                   <dd className="mt-1 text-2xl font-semibold text-ink">
                     {formatCurrency(EXAMPLE.illustrativeBalance)}
+                    <span className="mt-1 block text-sm font-normal text-ink-soft">
+                      Not fetched, owed, paid or attached to any person or business.
+                    </span>
                   </dd>
-                  <p className="mt-1 text-sm text-ink-soft">
-                    Not fetched, owed, paid or attached to any person or business.
-                  </p>
                 </div>
               </dl>
 

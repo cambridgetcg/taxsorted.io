@@ -25,6 +25,7 @@ export * from "./categorise";
 export * from "./explain";
 export * from "./guided";
 export * from "./detailed";
+export * from "./example-amount";
 // Re-export HMRC-contract validation so the engine is one import surface.
 export { validateVATReturnData, calculateVATReturnTotals } from "../hmrc/vat-api";
 

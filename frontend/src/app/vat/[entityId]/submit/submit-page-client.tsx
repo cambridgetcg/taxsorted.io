@@ -4,7 +4,11 @@ import { useEffect, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Printer, RotateCcw } from "lucide-react";
-import type { VATObligation, VATReturnData } from "@taxsorted/engine/uk/vat";
+import {
+  ratesFor,
+  type VATObligation,
+  type VATReturnData,
+} from "@taxsorted/engine/uk/vat";
 import { DemoNotice } from "@/components/demo-notice";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, formatDate, formatPeriod } from "@/lib/utils";
@@ -50,6 +54,7 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
     : EXAMPLE_PERIODS[0];
   const completedData =
     completed && completed.periodKey === obligation?.periodKey ? completed.data : null;
+  const standardRatePercent = obligation ? ratesFor(obligation.end).standard * 100 : 20;
 
   useEffect(() => {
     if (completedData) document.getElementById("completion-heading")?.focus();
@@ -143,8 +148,9 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
                 Understand the figures before anything happens.
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">
-                Try a narrow 20% estimate or enter a detailed nine-box example. Every result
-                stays in this browser tab and must be checked before it is used elsewhere.
+                Try a narrow {standardRatePercent}% estimate or enter a detailed nine-box
+                example. Every result stays in this browser tab and must be checked before
+                it is used elsewhere.
               </p>
             </header>
 
@@ -163,13 +169,13 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
                 onClick={() => setMode("guided")}
                 onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "min-h-11 rounded-md px-4 text-sm font-semibold transition-colors motion-reduce:transition-none",
+                  "min-h-11 rounded-md px-4 text-sm font-semibold",
                   mode === "guided"
                     ? "bg-accent text-white"
                     : "text-ink-soft hover:bg-accent-soft hover:text-ink",
                 )}
               >
-                Quick 20% estimate
+                Quick {standardRatePercent}% estimate
               </button>
               <button
                 id="detailed-tab"
@@ -181,7 +187,7 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
                 onClick={() => setMode("detailed")}
                 onKeyDown={handleTabKeyDown}
                 className={cn(
-                  "min-h-11 rounded-md px-4 text-sm font-semibold transition-colors motion-reduce:transition-none",
+                  "min-h-11 rounded-md px-4 text-sm font-semibold",
                   mode === "detailed"
                     ? "bg-accent text-white"
                     : "text-ink-soft hover:bg-accent-soft hover:text-ink",
@@ -260,7 +266,16 @@ function CompletionReview({
           </p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink-soft">
             Nothing was saved, connected to an account, or sent to HMRC. Check every figure
-            against records and current guidance before using it in a real return.
+            against records and the current{" "}
+            <a
+              href="https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
+            >
+              HMRC VAT Return guidance
+            </a>{" "}
+            before using it in a real return.
           </p>
         </div>
 

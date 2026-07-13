@@ -13,8 +13,8 @@ export function SiteNav() {
 
   const closeMenu = () => setMenuOpen(false);
 
-  const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Escape") return;
+  const handleMenuKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== "Escape" || !menuOpen) return;
     event.preventDefault();
     setMenuOpen(false);
     menuButtonRef.current?.focus();
@@ -24,6 +24,7 @@ export function SiteNav() {
     <header className="border-b border-line bg-paper">
       <nav
         aria-label="Main"
+        onKeyDown={handleMenuKeyDown}
         className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8"
       >
         <Link href="/" className="flex items-baseline gap-2">
@@ -48,7 +49,6 @@ export function SiteNav() {
         </button>
         <div
           id="primary-navigation-links"
-          onKeyDown={handleMenuKeyDown}
           className={`${menuOpen ? "flex" : "hidden"} w-full max-w-full flex-col items-start gap-x-4 gap-y-3 border-t border-line pt-3 text-sm lg:flex lg:w-auto lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
         >
           <Link href="/learn" onClick={closeMenu} className="text-ink-soft hover:text-ink">

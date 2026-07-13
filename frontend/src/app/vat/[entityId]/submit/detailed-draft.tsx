@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import {
-  calculateVATReturnTotals,
-  isVatExampleDetailedInput,
+  deriveTotals,
   parseVatExampleDetailedAmount,
+  stripVatExamplePoundPrefix,
   validateVATReturnData,
+  validateVatExampleDetailedTotals,
   type VatExampleDetailedAmountResult,
   type VATObligation,
   type VATReturnData,
@@ -124,6 +125,7 @@ function isEditableBoxKey(field: BoxKey): field is EditableBoxKey {
 }
 
 export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
+  const goodsBoxesRef = useRef<HTMLDetailsElement>(null);
   const [inputs, setInputs] = useState<Record<EditableBoxKey, string>>(INITIAL_INPUTS);
   const [confirmed, setConfirmed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -158,21 +160,37 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
     totalAcquisitionsExVAT: parsedValue("totalAcquisitionsExVAT"),
     finalised: confirmed,
   };
+  const { box3, box5 } = deriveTotals(
+    baseData.vatDueSales,
+    baseData.vatDueAcquisitions,
+    baseData.vatReclaimedCurrPeriod,
+  );
   const draftData: VATReturnData = {
     ...baseData,
-    ...calculateVATReturnTotals(baseData),
+    totalVatDue: box3,
+    netVatDue: box5,
   };
   const presentation = presentVatDraft(draftData);
 
   const handleInputChange = (field: BoxKey, value: string) => {
-    if (!isEditableBoxKey(field) || !isVatExampleDetailedInput(value)) return;
+    if (!isEditableBoxKey(field)) return;
 
-    setInputs((previous) => ({ ...previous, [field]: value }));
+    setInputs((previous) => ({
+      ...previous,
+      [field]: stripVatExamplePoundPrefix(value),
+    }));
     setConfirmed(false);
     setErrors((previous) => {
-      if (!previous[field]) return previous;
       const next = { ...previous };
       delete next[field];
+      if (
+        field === "vatDueSales" ||
+        field === "vatDueAcquisitions" ||
+        field === "vatReclaimedCurrPeriod"
+      ) {
+        delete next.totalVatDue;
+        delete next.netVatDue;
+      }
       return next;
     });
   };
@@ -188,6 +206,21 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
     setInputs((previous) => ({ ...previous, [field]: String(result.value) }));
   };
 
+  const revealAndFocus = (field: string) => {
+    if (
+      field === "totalValueGoodsSuppliedExVAT" ||
+      field === "totalAcquisitionsExVAT"
+    ) {
+      goodsBoxesRef.current?.setAttribute("open", "");
+    }
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(field === "finalised" ? "detailed-confirm" : `detailed-${field}`)
+        ?.focus();
+    });
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -201,30 +234,26 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           }),
         ),
       );
-      window.requestAnimationFrame(() => {
-        document.getElementById(`detailed-${incomplete[0]}`)?.focus();
-      });
+      revealAndFocus(incomplete[0]);
       return;
     }
 
     const validation = validateVATReturnData(draftData);
-    if (!validation.valid) {
-      const validationErrors = Object.fromEntries(
-        validation.errors.map((error) => [
+    const exampleTotalErrors = validateVatExampleDetailedTotals(draftData);
+    if (!validation.valid || exampleTotalErrors.length > 0) {
+      const validationErrors = [
+        ...validation.errors.map((error) => [
           error.field,
           error.field === "finalised"
             ? "Confirm that you checked the example figures."
             : error.message,
-        ]),
-      );
-      setErrors(validationErrors);
-      const firstField = validation.errors[0]?.field;
+        ] as const),
+        ...exampleTotalErrors.map((error) => [error.field, error.error] as const),
+      ];
+      setErrors(Object.fromEntries(validationErrors));
+      const firstField = validationErrors[0]?.[0];
       if (firstField) {
-        window.requestAnimationFrame(() => {
-          document
-            .getElementById(firstField === "finalised" ? "detailed-confirm" : `detailed-${firstField}`)
-            ?.focus();
-        });
+        revealAndFocus(firstField);
       }
       return;
     }
@@ -250,6 +279,16 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
         <p className="mt-4 rounded-lg bg-accent-soft p-3 text-sm leading-6 text-ink">
           This example follows the engine&apos;s existing non-negative input boundary. Negative
           adjustments are not interpreted here; use suitable records or software for them.
+          Check HMRC&apos;s{" "}
+          <a
+            href="https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
+          >
+            VAT Return guidance
+          </a>
+          .
         </p>
       </section>
 
@@ -262,7 +301,7 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
                 key={field}
                 field={field}
                 value={displayValue(field)}
-                disabled={BOX_DEFINITIONS[field].calculated}
+                readOnly={BOX_DEFINITIONS[field].calculated}
                 error={errors[field]}
                 onChange={handleInputChange}
                 onBlur={handleInputBlur}
@@ -274,7 +313,7 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           <DraftField
             field="netVatDue"
             value={displayValue("netVatDue")}
-            disabled
+            readOnly
             error={errors.netVatDue}
             onChange={handleInputChange}
             onBlur={handleInputBlur}
@@ -297,7 +336,7 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           ))}
         </div>
 
-        <details className="mt-5 rounded-lg border border-line p-4">
+        <details ref={goodsBoxesRef} className="mt-5 rounded-lg border border-line p-4">
           <summary className="cursor-pointer font-medium text-ink">
             Northern Ireland and EU goods boxes
           </summary>
@@ -370,14 +409,14 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
 function DraftField({
   field,
   value,
-  disabled = false,
+  readOnly = false,
   error,
   onChange,
   onBlur,
 }: {
   field: BoxKey;
   value: string | number;
-  disabled?: boolean;
+  readOnly?: boolean;
   error?: string;
   onChange: (field: BoxKey, value: string) => void;
   onBlur: (field: BoxKey) => void;
@@ -405,15 +444,15 @@ function DraftField({
           inputMode="decimal"
           autoComplete="off"
           value={value}
-          disabled={disabled}
+          readOnly={readOnly}
           onChange={(event) => onChange(field, event.target.value)}
           onFocus={(event) => {
-            if (!disabled && event.currentTarget.value === "0") event.currentTarget.select();
+            if (!readOnly && event.currentTarget.value === "0") event.currentTarget.select();
           }}
           onBlur={() => onBlur(field)}
           aria-invalid={Boolean(error)}
           aria-describedby={`${helpId}${error ? ` ${errorId}` : ""}`}
-          className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-ink disabled:bg-paper disabled:text-ink-soft"
+          className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-ink read-only:bg-paper read-only:text-ink-soft"
         />
       </div>
       {error ? (

@@ -78,10 +78,10 @@ describe("SiteNav", () => {
   it("closes on Escape and returns focus to the disclosure button", () => {
     render(<SiteNav />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    fireEvent.keyDown(document.getElementById("primary-navigation-links")!, {
-      key: "Escape",
-    });
+    const disclosure = screen.getByRole("button", { name: "Open menu" });
+    disclosure.focus();
+    fireEvent.click(disclosure);
+    fireEvent.keyDown(disclosure, { key: "Escape" });
 
     const menuButton = screen.getByRole("button", { name: "Open menu" });
     expect(menuButton).toHaveAttribute("aria-expanded", "false");

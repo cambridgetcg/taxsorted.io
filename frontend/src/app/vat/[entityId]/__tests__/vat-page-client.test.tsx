@@ -6,7 +6,7 @@ import VATPortalPage from "../vat-page-client";
 
 describe("legacy VAT workspace", () => {
   it("presents fixed data as fictional and points separately to the real cockpit", () => {
-    render(<VATPortalPage entityId="ent_001" />);
+    const { container } = render(<VATPortalPage entityId="ent_001" />);
 
     expect(
       screen.getByRole("complementary", { name: "Fictional VAT workspace" }),
@@ -21,5 +21,6 @@ describe("legacy VAT workspace", () => {
       "href",
       "/vat",
     );
+    expect(container.querySelector("dl > div > :not(dt):not(dd)")).toBeNull();
   });
 });

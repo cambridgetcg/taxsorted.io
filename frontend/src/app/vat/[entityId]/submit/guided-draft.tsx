@@ -5,8 +5,11 @@ import { ArrowRight, Info } from "lucide-react";
 import {
   parseVatExampleGuidedAmount,
   prepareVatReturn,
+  ratesFor,
+  stripVatExamplePoundPrefix,
   type VATObligation,
   type VATReturnData,
+  vatExampleGuidedAmountLimit,
 } from "@taxsorted/engine/uk/vat";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
@@ -29,17 +32,29 @@ export function GuidedDraft({
   const [costs, setCosts] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
-  const salesResult = parseVatExampleGuidedAmount(sales, "standard-rated sales");
-  const costsResult = parseVatExampleGuidedAmount(costs, "eligible standard-rated purchases");
+  const standardRate = ratesFor(obligation.end).standard;
+  const standardRatePercent = standardRate * 100;
+  const exampleYear = obligation.end.slice(0, 4);
+  const maximumAmount = vatExampleGuidedAmountLimit(standardRate);
+  const salesResult = parseVatExampleGuidedAmount(
+    sales,
+    "standard-rated sales",
+    maximumAmount,
+  );
+  const costsResult = parseVatExampleGuidedAmount(
+    costs,
+    "eligible standard-rated purchases",
+    maximumAmount,
+  );
   const figuresReady = fitsQuickEstimate && salesResult.ok && costsResult.ok;
 
   const { data } = prepareVatReturn(
     [
-      { kind: "sale", net: salesResult.ok ? salesResult.value : 0, rate: "standard" },
+      { kind: "sale", net: salesResult.ok ? salesResult.value : 0, rate: standardRate },
       {
         kind: "purchase",
         net: costsResult.ok ? costsResult.value : 0,
-        rate: "standard",
+        rate: standardRate,
         reclaimable: true,
       },
     ],
@@ -63,8 +78,17 @@ export function GuidedDraft({
           Can this narrow estimate handle the example?
         </h2>
         <p className="mt-2 text-sm leading-6 text-ink-soft">
-          It uses only the current standard 20% VAT rate. Confirm the assumptions before
-          entering figures.
+          It uses only the {standardRatePercent}% rate recorded for this fictional {exampleYear}{" "}
+          period. Confirm the assumptions before entering figures, and check the{" "}
+          <a
+            href="https://www.gov.uk/vat-rates"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
+          >
+            official VAT rates
+          </a>
+          .
         </p>
 
         <label className="mt-5 flex items-start gap-3 rounded-lg border border-line bg-paper p-4">
@@ -119,8 +143,11 @@ export function GuidedDraft({
             disabled={!fitsQuickEstimate}
             error={sales !== "" && !salesResult.ok ? salesResult.error : undefined}
             onChange={(value) => {
-              setSales(value);
+              setSales(stripVatExamplePoundPrefix(value));
               resetConfirmation();
+            }}
+            onBlur={() => {
+              if (salesResult.ok) setSales(String(salesResult.value));
             }}
           />
           <AmountField
@@ -131,8 +158,11 @@ export function GuidedDraft({
             disabled={!fitsQuickEstimate}
             error={costs !== "" && !costsResult.ok ? costsResult.error : undefined}
             onChange={(value) => {
-              setCosts(value);
+              setCosts(stripVatExamplePoundPrefix(value));
               resetConfirmation();
+            }}
+            onBlur={() => {
+              if (costsResult.ok) setCosts(String(costsResult.value));
             }}
           />
         </div>
@@ -215,6 +245,7 @@ function AmountField({
   disabled,
   error,
   onChange,
+  onBlur,
 }: {
   id: string;
   label: string;
@@ -223,6 +254,7 @@ function AmountField({
   disabled: boolean;
   error?: string;
   onChange: (value: string) => void;
+  onBlur: () => void;
 }) {
   const helpId = `${id}-help`;
   const errorId = `${id}-error`;
@@ -247,6 +279,7 @@ function AmountField({
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
           aria-invalid={Boolean(error)}
           aria-describedby={`${helpId}${error ? ` ${errorId}` : ""}`}
           className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-ink disabled:bg-paper disabled:text-ink-soft"
