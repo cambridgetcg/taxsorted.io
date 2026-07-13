@@ -544,6 +544,20 @@ jobs:
               ;;
           esac
 
+          declares_new_open_charity_checkpoint=$(jq --raw-output \
+            --slurpfile before "${RUNNER_TEMP}/release-checkpoint-prefix.json" '
+              ([.[] | select(.datasetId == "uk-charities-sector")]) as $candidate |
+              ([$before[0][] | select(.datasetId == "uk-charities-sector")]) as $published |
+              (($candidate | length) > ($published | length)) and
+              ($candidate[-1].publicationStatusAtCheckpoint == "open")
+            ' api/src/release-checkpoints.json)
+          if [ "${declares_new_open_charity_checkpoint}" = true ] && \
+             [ "${publication_status}" != open ]
+          then
+            echo 'A new charity checkpoint declares an observed open release, but the deployed corpus is not open.' >&2
+            exit 1
+          fi
+
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/openapi/charities-uk.json | \
@@ -568,17 +582,44 @@ jobs:
                 .name == "jurisdiction" and (.schema.enum | length) == 6) and
               any(.paths["/v1/charities/uk/official-procedures"].get.parameters[];
                 .name == "procedureType" and
-                .schema.enum == ["attribution-specification-determination"]) and
+                (.schema.enum | index("attribution-specification-determination")) != null and
+                (.schema.enum | index("no-return-determination-and-superseding-return")) != null and
+                (.schema.enum | index("taking-control-of-goods-recovery")) != null and
+                (.schema.enum | index("summary-warrant-recovery")) != null and
+                (.schema.enum | index("distraint-recovery")) != null) and
               any(.paths["/v1/charities/uk/{collection}"].get.parameters[];
                 .name == "collection" and
                 (.schema.enum | index("tax-rules")) != null and
                 (.schema.enum | index("official-procedures")) != null) and
-              (["taxTreatmentId", "taxpayerClass", "ruleRole", "procedureType", "taxRuleId"]
+              (["taxTreatmentId", "taxpayerClass", "taxType", "ruleRole", "explanationScope", "procedureType", "procedureStage", "performedByRole", "challengeMode", "taxRuleId"]
                 - [.paths["/v1/charities/uk/{collection}"].get.parameters[].name] | length) == 0' >/dev/null
 
           charity_recognition_path='/v1/charities/uk/tax-treatments/tax-hmrc-recognition/why-graph'
           charity_analysis_path='/v1/charities/uk/tax-treatments/tax-public-benefit-bargain-analysis/why-graph'
           if [ "${publication_status}" = 'open' ]; then
+            expected_charity_version=$(jq --raw-output \
+              '[.[] | select(.datasetId == "uk-charities-sector")][-1].version' \
+              api/src/release-checkpoints.json)
+            expected_charity_digest=$(jq --raw-output \
+              '[.[] | select(.datasetId == "uk-charities-sector")][-1].digest' \
+              api/src/release-checkpoints.json)
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              https://api.taxsorted.io/v1/charities/uk/manifest | \
+              jq --exit-status \
+                --arg version "${expected_charity_version}" \
+                --arg digest "${expected_charity_digest}" '
+                  .schema == "taxsorted.uk.charities/3" and
+                  .version == $version and
+                  .datasetHash == $digest and
+                  .publication.status == "open" and
+                  .publication.fullCorpusAvailable == true and
+                  .counts.sources == 132 and
+                  .counts.regulators == 8 and
+                  .counts["tax-rules"] == 47 and
+                  .counts["official-procedures"] == 35 and
+                  .counts.gaps == 22
+                ' >/dev/null
             for specification in \
               "${charity_recognition_path}|source-reported-claim" \
               "${charity_analysis_path}|taxsorted-analysis"
@@ -600,7 +641,7 @@ jobs:
                 .context.effect == "advisory" and
                 .context.externalStateChange == false and
                 .context.subject.type == "dataset-record" and
-                .context.subject.version == "2026-07-13.1" and
+                .context.subject.version == "2026-07-13.2" and
                 .valueHandling.factValues == "case-financial-and-identity-fact-values-not-copied-into-graph" and
                 .nodes[0].id <= .nodes[-1].id and
                 ([
@@ -652,7 +693,7 @@ jobs:
               --output "${charity_nce_graph}" \
               "https://api.taxsorted.io${charity_nce_path}"
             jq --exit-status '
-              .context.subject.version == "2026-07-13.1" and
+              .context.subject.version == "2026-07-13.2" and
               ([
                 "gap:binding-provision-coverage-incomplete",
                 "gap:case-applicability-not-assessed",
@@ -693,24 +734,71 @@ jobs:
               --connect-timeout 10 --max-time 30 \
               'https://api.taxsorted.io/v1/charities/uk/tax-rules?taxTreatmentId=tax-non-charitable-expenditure&limit=100' | \
               jq --exit-status '
-                .page.total == 16 and
-                (.data | length) == 16 and
+                .page.total >= 47 and
+                (.data | length) == .page.total and
                 all(.data[];
                   .taxTreatmentId == "tax-non-charitable-expenditure" and
-                  .summaryAuthority == "taxsorted-analysis-of-primary-law")
+                  .summaryAuthority == "taxsorted-analysis-of-primary-law" and
+                  (.taxTypes | length) > 0 and
+                  (.authoritySelector.kind == "section" or .authoritySelector.kind == "schedule-paragraph"))
               ' >/dev/null
             curl --fail --silent --show-error \
               --connect-timeout 10 --max-time 30 \
-              'https://api.taxsorted.io/v1/charities/uk/official-procedures?taxTreatmentId=tax-non-charitable-expenditure&limit=100' | \
+              'https://api.taxsorted.io/v1/charities/uk/official-procedures?limit=100' | \
               jq --exit-status '
-                .page.total == 2 and
-                (.data | length) == 2 and
+                .page.total == 35 and
+                (.data | length) == .page.total and
+                ([.data[] | select(.taxTreatmentId == "tax-income-and-gains")] | length) == 31 and
+                ([.data[] | select(.taxTreatmentId == "tax-non-charitable-expenditure")] | length) == 4 and
                 all(.data[];
                   .applicability == "conditional-sector-map-case-selection-required" and
                   .summaryAuthority == "taxsorted-analysis-of-primary-law" and
-                  (.requiredCaseSelectors | index("hmrc-requirement-made-date")) != null and
-                  (.requiredCaseSelectors | index("specification-notice-status")) != null and
-                  (.doesNotProve | any(test("appeal"; "i"))))
+                  .nextProcedureMeaning == "possible-not-mandatory" and
+                  (.requiredCaseSelectors | index("taxpayer-class")) != null and
+                  (.requiredCaseSelectors | index("tax-type")) != null and
+                  (.requiredCaseSelectors | index("jurisdiction")) != null)
+              ' >/dev/null
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/tax-rules?taxType=capital-gains-tax&explanationScope=supplementary-substantive&limit=100' | \
+              jq --exit-status '
+                .page.total >= 5 and
+                all(.data[];
+                  (.taxTypes | index("capital-gains-tax")) != null and
+                  .explanationScope == "supplementary-substantive")
+              ' >/dev/null
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/tax-rules?taxTreatmentId=tax-income-and-gains&sourceId=src-tcga-1992-s256&limit=100' | \
+              jq --exit-status '
+                .page.total == 1 and
+                .data[0].id == "rule-tcga-1992-s256-charitable-gain-exemption" and
+                .data[0].taxTreatmentId == "tax-non-charitable-expenditure" and
+                .data[0].relatedTaxTreatmentIds == ["tax-income-and-gains"]
+              ' >/dev/null
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/official-procedures?procedureType=tribunal-notification&limit=100' | \
+              jq --exit-status '
+                .page.total == 3 and
+                ([.data[].id] | sort) == [
+                  "procedure-charity-cross-tax-tma-1970-s49d-direct-tribunal-notification",
+                  "procedure-charity-cross-tax-tma-1970-s49g-post-review-tribunal-notification",
+                  "procedure-charity-cross-tax-tma-1970-s49h-unaccepted-review-offer-tribunal-notification"
+                ] and
+                all(.data[];
+                  .performedByRoles == ["taxpayer"] and
+                  .nextProcedureMeaning == "possible-not-mandatory")
+              ' >/dev/null
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              'https://api.taxsorted.io/v1/charities/uk/official-procedures?procedureStage=recovery&limit=100' | \
+              jq --exit-status '
+                .page.total == 3 and
+                ([.data[].procedureType] | sort) == ["distraint-recovery", "summary-warrant-recovery", "taking-control-of-goods-recovery"] and
+                ([.data[].jurisdictions[]] | index("Scotland")) != null and
+                ([.data[].jurisdictions[]] | index("Northern Ireland")) != null and
+                all(.data[]; .nextProcedureMeaning == "possible-not-mandatory")
               ' >/dev/null
 
             jq --exit-status '
@@ -818,7 +906,7 @@ jobs:
             .resources.whyGraph.firstAdopter.runtimeEmitted == true and
             .resources.whyGraph.firstAdopter.wireSchemaOptionalForForwardCompatibleV1Readers == true and
             .resources.whyGraph.secondAdopter.endpointTemplate == "/v1/charities/uk/tax-treatments/{id}/why-graph" and
-            .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-13.1" and
+            .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-13.2" and
             .resources.whyGraph.secondAdopter.runtimeEmitted == true and
             .resources.whyGraph.secondAdopter.organisationOrCaseFacts == false and
             .resources.whyGraph.access.appliesTo == ["/v1/why-graph", "/v1/why-graph/adopters", "/v1/why-graph/schema"] and

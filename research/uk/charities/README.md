@@ -70,20 +70,56 @@ the whole argument. It keeps a neutral treatment effect beside the reverse tax, 
 clawback path. It contains no organisation, person, contact, belief, transaction, amount or case
 assessment.
 
-The non-charitable-expenditure treatment now carries a selected exact statutory spine: separate
-trust and company records for ITA 2007 sections 539–543 and 562–564 and CTA 2010 sections 492–496
-and 515–517. Every rule points to one exact current provision, the treatment fields it bears on,
-its taxpayer class, conditions, effective-date knowledge and what it does not prove. The graph
-marks those rules `checked-not-decisive`: it shows that the reasoning considered the law, never
-that a sector record applied it to a case.
+The non-charitable-expenditure treatment carries a selected exact statutory spine. Version 3
+keeps the earlier trust and company core and adds 31 atomic substantive records: 12 trust rules,
+12 company rules and seven chargeable-gains rules. The additions cover selected supplementary
+calculation, expenditure, investment, loan and gains-attribution propositions. “Atomic” means one
+record states one bounded proposition even where several propositions come from the same section.
 
-The other treatments still publish `binding-provision-not-mapped` rather than promoting guidance
-to law. The admitted spine also remains partial: the supplementary middle provisions, separate
-chargeable-gains attribution rules and case-specific return, assessment, payment, appeal and debt
-routes remain explicit gaps. Two narrow procedure records cover only the attribution-specification
-and conditional HMRC-determination powers in ITA section 542 and CTA section 495. Read
-[`CHARITY-TAX-LAW-GAP.md`](CHARITY-TAX-LAW-GAP.md) for the provision map and
-[`CHARITY-TAX-PROCEDURE-GAP.md`](CHARITY-TAX-PROCEDURE-GAP.md) for the procedure boundary.
+Every rule names its exact section or schedule paragraph, treatment fields, taxpayer class,
+`taxTypes`, conditions, temporal knowledge and non-proofs. `explanationScope` separates the compact
+`treatment-core` from `supplementary-substantive` and `administrative-procedure` records. The
+treatment why graph continues to mark law `checked-not-decisive`: reviewed sector law was
+considered, but no rule was applied to an organisation, transaction or case.
+
+Version 3 also adds 33 supplemental conditional procedure doors, for 35 admitted records after the
+two earlier attribution procedures are assembled. Notification, return, amendment, correction,
+enquiry, closure, assessment, payment, appeal, review, tribunal notification and outcome,
+postponement and recovery are branches selected by the actual taxpayer, tax, document, dates and
+jurisdiction. They are not one universal HMRC sequence. A possible next-door link is explicitly
+`possible-not-mandatory` and is not a complete prediction of what happens next.
+
+The admitted recovery slice is narrow: taking control of goods in England and Wales, the Scottish
+summary-warrant and diligence branch, and Northern Ireland distraint. Court debt proceedings,
+direct recovery from accounts, insolvency, downstream court routes and other recovery powers
+remain gaps. No procedure record selects a real case, decides a deadline from missing dates or
+imports a reported-case effect. Read [`CHARITY-TAX-LAW-GAP.md`](CHARITY-TAX-LAW-GAP.md) for the
+substantive map, [`CHARITY-TAX-PROCEDURE-GAP.md`](CHARITY-TAX-PROCEDURE-GAP.md) for the two state
+machines and [`CHARITY-TAX-CASE-LAW-GAP.md`](CHARITY-TAX-CASE-LAW-GAP.md) for the judgment boundary.
+
+### One assembled v3 corpus, two authored supplements
+
+The repository keeps the reviewed additions in two small, named source files:
+
+- `data/uk-charity-tax-law-additions.json` for the 31 atomic substantive records and their sources;
+- `data/uk-charity-tax-procedure-additions.json` for 33 conditional procedure doors, 56 owned
+  primary-law sources, one official tribunal service-page source, the First-tier Tribunal
+  institution record and explicit procedure gaps.
+
+The base file stores its reviewed spine natively as v3; the loader performs no hidden migration.
+It reads `data/uk-charities.json`, then merges the law and procedure supplements in that fixed
+order. The procedure supplement's two TCGA attribution doors intentionally depend on the law
+supplement's section 256B and 256D sources and rules. Strict schemas, exact source and record
+references, evidence fields and branch checks must all pass. A fixed admission contract binds
+every rule ID to its exact instrument and section, and every procedure ID to its complete reviewed
+legal-basis set; substituting a different valid provision fails. The canonical JSON
+representation is then one corpus at `GET /v1/charities/uk/graph`; the supplements are reviewable
+authoring units, not separate public datasets. That assembly changes no organisation boundary:
+the graph still contains no organisation, people, contact, belief, transaction or case records.
+
+For named composite procedures, evidence is currently exact at the complete provision-set level,
+not clause by clause. The machine-readable gap and procedure research note name every affected
+record; consumers must not attribute every sentence or list item to the lead provision alone.
 
 ## Control is not ordinary ownership
 
@@ -243,20 +279,37 @@ rules, and a register search must be read in that context.
 
 ## API door
 
-The bounded public route is:
+The v3 route contract implemented in this repository is shown below. This research note does not
+claim that a particular host or release is deployed.
 
 ```text
-GET https://api.taxsorted.io/v1/charities/uk
-GET https://api.taxsorted.io/v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments|tax-rules}
-GET https://api.taxsorted.io/v1/charities/uk/{obligations|funding|finance|control|help|official-procedures|pipeline|gaps}
-GET https://api.taxsorted.io/v1/charities/uk/records/{id}
-GET https://api.taxsorted.io/v1/charities/uk/exports
-GET https://api.taxsorted.io/v1/charities/uk/exports/{collection}/{json|ndjson|csv}
-GET https://api.taxsorted.io/v1/charities/uk/dictionary
-GET https://api.taxsorted.io/v1/charities/uk/accountability
-GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
-GET https://api.taxsorted.io/openapi/charities-uk.json
+GET /v1/charities/uk
+GET /v1/charities/uk/graph
+GET /v1/charities/uk/schema
+GET /v1/charities/uk/{sources|regulators|registers|legal-forms|tax-treatments|tax-rules}
+GET /v1/charities/uk/{obligations|funding|finance|control|help|official-procedures|pipeline|gaps}
+GET /v1/charities/uk/records/{id}
+GET /v1/charities/uk/exports
+GET /v1/charities/uk/exports/{collection}/{json|ndjson|csv}
+GET /v1/charities/uk/dictionary
+GET /v1/charities/uk/accountability
+GET /v1/charities/uk/accountability/schema
+GET /openapi/charities-uk.json
 ```
+
+Agents should filter before requesting broad lists. For substantive law, start with `taxType`,
+`taxpayerClass` and `explanationScope`. For procedures, start with `taxType`, `taxpayerClass`,
+`procedureStage` and `procedureType`; `performedByRole` and `challengeMode` narrow the actor or
+challenge door without searching prose. For example:
+
+```text
+GET /v1/charities/uk/tax-rules?taxType=income-tax&taxpayerClass=charitable-trust-income-and-capital-gains-tax&explanationScope=supplementary-substantive
+GET /v1/charities/uk/official-procedures?taxType=corporation-tax&taxpayerClass=charitable-company-corporation-tax&procedureStage=assessment&procedureType=discovery-assessment
+```
+
+Filters are exact selectors, not free-text legal conclusions. Read the dictionary before composing
+a query, and treat an empty result as corpus coverage information rather than proof that no legal
+route exists.
 
 The first route describes the sector map and its publication boundary. It is not a local
 copy of the three official registers. There is no bulk people export or religion graph.

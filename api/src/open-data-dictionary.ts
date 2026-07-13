@@ -123,17 +123,56 @@ export function fieldsFromJsonSchema(
 ) {
   const item = collectionItem(document, corpusKey);
   const fields: Array<Record<string, unknown>> = [];
-  const seen = new Set<string>();
 
-  function walk(object: SchemaNode | undefined, prefix = "") {
-    const required = new Set(object?.required ?? []);
-    for (const [fieldName, node] of Object.entries(object?.properties ?? {})) {
+  function walk(objects: SchemaNode[], prefix = "") {
+    const objectVariants = objects.filter((object) => object.properties !== undefined);
+    const fieldOrder: string[] = [];
+    const knownFields = new Set<string>();
+    for (const object of objectVariants) {
+      for (const fieldName of Object.keys(object.properties ?? {})) {
+        if (knownFields.has(fieldName)) continue;
+        knownFields.add(fieldName);
+        fieldOrder.push(fieldName);
+      }
+    }
+    const discriminator = fieldOrder.find((fieldName) =>
+      objectVariants.every((object) => {
+        const node = object.properties?.[fieldName];
+        return node !== undefined && Object.hasOwn(node, "const");
+      })
+    );
+
+    for (const fieldName of fieldOrder) {
+      const appearances = objectVariants.flatMap((object) => {
+        const node = object.properties?.[fieldName];
+        return node
+          ? [{
+              node,
+              object,
+              required: (object.required ?? []).includes(fieldName),
+            }]
+          : [];
+      });
+      const node: SchemaNode = appearances.length === 1
+        ? appearances[0].node
+        : { oneOf: appearances.map((appearance) => appearance.node) };
       const path = prefix ? `${prefix}.${fieldName}` : fieldName;
-      if (seen.has(path)) continue;
-      seen.add(path);
       const targets = references[path] ?? references[fieldName];
       const types = nodeTypes(node);
       const values = allowedValues(node) ?? (node.items ? allowedValues(node.items) : undefined);
+      const required = appearances.length === objectVariants.length
+        && appearances.every((appearance) => appearance.required);
+      const requiredWhen = !required && discriminator
+        ? appearances.flatMap((appearance) => {
+            const discriminatorNode = appearance.object.properties?.[discriminator];
+            return appearance.required && discriminatorNode && Object.hasOwn(discriminatorNode, "const")
+              ? [{
+                  field: prefix ? `${prefix}.${discriminator}` : discriminator,
+                  equals: discriminatorNode.const,
+                }]
+              : [];
+          })
+        : [];
       const commonMeaning =
         prefix && ["id", "name", "title"].includes(fieldName)
           ? undefined
@@ -142,8 +181,9 @@ export function fieldsFromJsonSchema(
         name: path,
         field: fieldName,
         type: types.filter((type) => type !== "null").join(" | "),
-        required: required.has(fieldName),
+        required,
         requiredWithin: prefix || "record",
+        ...(requiredWhen.length ? { requiredWhen } : {}),
         nullable: types.includes("null"),
         meaning:
           meanings[path] ??
@@ -155,12 +195,20 @@ export function fieldsFromJsonSchema(
         ...(values ? { allowedValues: values } : {}),
       });
 
-      for (const nested of nestedObjects(node)) {
-        walk(nested.node, `${path}${nested.suffix}`);
+      const nestedBySuffix = new Map<string, SchemaNode[]>();
+      for (const appearance of appearances) {
+        for (const nested of nestedObjects(appearance.node)) {
+          const grouped = nestedBySuffix.get(nested.suffix) ?? [];
+          grouped.push(nested.node);
+          nestedBySuffix.set(nested.suffix, grouped);
+        }
+      }
+      for (const [suffix, nested] of nestedBySuffix) {
+        walk(nested, `${path}${suffix}`);
       }
     }
   }
 
-  walk(item);
+  walk(item ? variants(item) : []);
   return fields;
 }

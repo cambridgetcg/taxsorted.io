@@ -8,7 +8,7 @@ describe("plain field dictionary", () => {
         rows: {
           items: {
             type: "object",
-            required: ["id", "actorIds", "status", "profile", "selectors", "steps"],
+            required: ["id", "actorIds", "status", "profile", "selectors", "steps", "selector"],
             properties: {
               id: { type: "string" },
               actorIds: { type: "array", items: { type: "string" } },
@@ -29,6 +29,27 @@ describe("plain field dictionary", () => {
                     actorId: { type: "string" },
                   },
                 },
+              },
+              selector: {
+                oneOf: [
+                  {
+                    type: "object",
+                    required: ["kind", "section"],
+                    properties: {
+                      kind: { type: "string", const: "section" },
+                      section: { type: "string" },
+                    },
+                  },
+                  {
+                    type: "object",
+                    required: ["kind", "schedule", "paragraph"],
+                    properties: {
+                      kind: { type: "string", const: "schedule-paragraph" },
+                      schedule: { type: "string" },
+                      paragraph: { type: "string" },
+                    },
+                  },
+                ],
               },
             },
           },
@@ -87,6 +108,26 @@ describe("plain field dictionary", () => {
           required: true,
           requiredWithin: "steps[]",
           meaning: "Stable reference to actors.",
+        }),
+        expect.objectContaining({
+          name: "selector.kind",
+          required: true,
+          allowedValues: ["section", "schedule-paragraph"],
+        }),
+        expect.objectContaining({
+          name: "selector.section",
+          required: false,
+          requiredWhen: [{ field: "selector.kind", equals: "section" }],
+        }),
+        expect.objectContaining({
+          name: "selector.schedule",
+          required: false,
+          requiredWhen: [{ field: "selector.kind", equals: "schedule-paragraph" }],
+        }),
+        expect.objectContaining({
+          name: "selector.paragraph",
+          required: false,
+          requiredWhen: [{ field: "selector.kind", equals: "schedule-paragraph" }],
         }),
       ])
     );

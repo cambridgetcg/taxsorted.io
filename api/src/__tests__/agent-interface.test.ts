@@ -282,7 +282,7 @@ describe("agent interface", () => {
       secondAdopter: {
         endpointTemplate:
           "/v1/charities/uk/tax-treatments/{id}/why-graph",
-        subjectVersion: "2026-07-13.1",
+        subjectVersion: "2026-07-13.2",
         runtimeEmitted: true,
         standaloneResource: true,
         publicationControlledBy: "/v1/charities/uk",

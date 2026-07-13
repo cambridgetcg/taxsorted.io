@@ -1,14 +1,15 @@
 {
-  "schema": "taxsorted.uk.charities/2",
+  "schema": "taxsorted.uk.charities/3",
   "meta": {
     "title": "How UK charity status, tax, finance, control, public data and help routes fit together",
-    "version": "2026-07-13.1",
+    "version": "2026-07-13.2",
     "reviewedOn": "2026-07-13",
     "jurisdiction": "United Kingdom",
     "coverage": [
       "The regulators and official register doors across all four UK nations, plus selected common legal forms with their jurisdiction shown.",
       "Conditional tax treatments, reporting obligations, funding routes and organisation-level finance disclosures.",
-      "An exact primary-law and conditional procedure spine for the non-charitable-expenditure treatment, with charitable trusts and charitable companies kept separate.",
+      "An exact primary-law map for the current non-charitable-expenditure provisions, including Income Tax, Corporation Tax and Capital Gains Tax branches.",
+      "Separate conditional trust and company paths from notification and return through enquiry, assessment, payment, challenge and territorially distinct recovery doors.",
       "Stewardship and control models that avoid describing charities as equity-owned businesses.",
       "A fail-closed collection and help-discovery pipeline for future organisation-level public data."
     ],
@@ -29,7 +30,9 @@
       "Source rights, privacy, special-category risk and field admission are checked before collection, and uncertainty stops publication.",
       "TaxSorted analysis is labelled as analysis rather than presented as legislation or regulator policy.",
       "Every tax-rule summary links to one exact primary-law provision; a whole Act or guidance page cannot become its legal authority.",
-      "Trust and company rules stay distinct, and a sector procedure never proves that a notice, deadline, payment duty or appeal right exists in a case."
+      "Trust and company rules stay distinct, and a sector procedure never proves that a notice, deadline, payment duty or appeal right exists in a case.",
+      "A procedure nextProcedureIds link means a separately admitted possible door, never a mandatory or complete sequence.",
+      "Repealed provisions, legacy-contract transitions and case-law applicability remain explicit gaps unless their temporal and factual selectors have been separately admitted."
     ],
     "contentLicence": {
       "name": "Creative Commons Attribution-ShareAlike 4.0",
@@ -295,7 +298,7 @@
       "url": "https://www.gov.uk/government/publications/charities-detailed-guidance-notes/annex-ii-non-charitable-expenditure",
       "authorityLevel": "tax-authority-guidance",
       "jurisdictions": ["United Kingdom"],
-      "reviewedOn": "2026-07-12",
+      "reviewedOn": "2026-07-13",
       "reviewAfter": "2026-10-10",
       "lastUpdated": "2026-06-22",
       "status": "current",
@@ -309,7 +312,8 @@
         "How non-charitable expenditure restricts exemptions and can require a return and tax payment."
       ],
       "doesNotProve": [
-        "That a particular payment is non-charitable without applying the rules and facts."
+        "That a particular payment is non-charitable without applying the rules and facts.",
+        "The exact statutory trigger, temporal transition, return route, payment date, challenge right or recovery procedure; the current primary law controls where guidance compresses the test."
       ]
     },
     {
@@ -2289,7 +2293,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 539",
           "observedOn": "2026-07-13",
@@ -2301,18 +2306,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s539",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2343,10 +2351,21 @@
       ],
       "citation": "Income Tax Act 2007 s 539",
       "authoritySourceId": "src-ita-2007-s539",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "539"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-trust-income-tax",
+      "taxTypes": [
+        "income-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "restriction",
       "ruleSummary": "If a charitable trust has a non-exempt amount, Part 10 income exemptions do not apply, and are treated as never having applied, to income attributed to that amount.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2358,6 +2377,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not establish non-charitable expenditure, attribution, a tax amount, misconduct or loss of charity status.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2387,7 +2415,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 540",
           "observedOn": "2026-07-13",
@@ -2399,18 +2428,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s540",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2438,10 +2470,22 @@
       ],
       "citation": "Income Tax Act 2007 s 540",
       "authoritySourceId": "src-ita-2007-s540",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "540"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "calculation",
       "ruleSummary": "A charitable trust's non-exempt amount is the lower of its non-charitable expenditure and its attributable exempt income and gains for the tax year.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2453,6 +2497,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not supply either input, classify a payment or calculate case-specific tax.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2482,7 +2535,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 541",
           "observedOn": "2026-07-13",
@@ -2494,18 +2548,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s541",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2530,10 +2587,22 @@
       ],
       "citation": "Income Tax Act 2007 s 541",
       "authoritySourceId": "src-ita-2007-s541",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "541"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "The trust's whole non-exempt amount must be used up by attributing otherwise exempt income, gains or a combination of both.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2545,6 +2614,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not identify the income or gains for a case or prove the underlying expenditure is non-charitable.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2574,7 +2652,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 542",
           "observedOn": "2026-07-13",
@@ -2586,18 +2665,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s542",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2622,10 +2704,21 @@
       ],
       "citation": "Income Tax Act 2007 s 542",
       "authoritySourceId": "src-ita-2007-s542",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "542"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-trust-income-tax",
+      "taxTypes": [
+        "income-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "procedure",
       "ruleSummary": "Trustees may specify attributable income by notice; if HMRC requires a specification and no notice is given within the statutory period, HMRC may determine the income attributed.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2637,6 +2730,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove that HMRC made a requirement, that the 30-day clock began or that a particular notice is valid.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2666,7 +2768,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 543",
           "observedOn": "2026-07-13",
@@ -2678,18 +2781,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s543",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2715,10 +2821,22 @@
       ],
       "citation": "Income Tax Act 2007 s 543",
       "authoritySourceId": "src-ita-2007-s543",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "543"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "definition",
       "ruleSummary": "The section lists losses, expenditure, investments and loans that can count as a charitable trust's non-charitable expenditure and requires its supplementary provisions to be read.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2730,6 +2848,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not classify a particular item, make ordinary administration non-charitable or prove personal wrongdoing.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2759,7 +2886,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 562",
           "observedOn": "2026-07-13",
@@ -2771,18 +2899,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s562",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2809,10 +2940,22 @@
       ],
       "citation": "Income Tax Act 2007 s 562",
       "authoritySourceId": "src-ita-2007-s562",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "562"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "Where a trust's non-charitable expenditure exceeds its available income and gains, qualifying excess is treated as non-charitable expenditure of earlier years so far as section 563 permits.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2824,6 +2967,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove an excess, open an earlier year automatically or state the resulting assessment.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2853,7 +3005,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 563",
           "observedOn": "2026-07-13",
@@ -2865,18 +3018,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s563",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2901,10 +3057,22 @@
       ],
       "citation": "Income Tax Act 2007 s 563",
       "authoritySourceId": "src-ita-2007-s563",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "563"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "The section limits attribution to qualifying earlier tax years within six years, caps it by available capacity and gives later years priority.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -2916,6 +3084,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove an earlier year is eligible, calculate capacity or determine a final adjustment.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -2945,7 +3122,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 564",
           "observedOn": "2026-07-13",
@@ -2957,18 +3135,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-ita-2007-s564",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -2993,10 +3174,22 @@
       ],
       "citation": "Income Tax Act 2007 s 564",
       "authoritySourceId": "src-ita-2007-s564",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2007,
+        "number": 3,
+        "section": "564"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
-      "taxpayerClass": "charitable-trust-income-tax",
+      "taxpayerClass": "charitable-trust-income-and-capital-gains-tax",
+      "taxTypes": [
+        "income-tax",
+        "capital-gains-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "procedure",
       "ruleSummary": "Required consequential adjustments must be made, by assessments or otherwise, when section 562 applies.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3008,6 +3201,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not identify a notice, assessment power, payment date, review right or appeal route.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3037,7 +3239,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 492",
           "observedOn": "2026-07-13",
@@ -3049,18 +3252,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s492",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3091,10 +3297,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 492",
       "authoritySourceId": "src-cta-2010-s492",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "492"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "restriction",
       "ruleSummary": "If a charitable company has a non-exempt amount, the listed income exemptions do not apply, and are treated as never having applied, to income attributed to that amount.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3106,6 +3323,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not establish non-charitable expenditure, attribution, a tax amount, misconduct or loss of charity status.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3135,7 +3361,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 493",
           "observedOn": "2026-07-13",
@@ -3147,18 +3374,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s493",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3186,10 +3416,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 493",
       "authoritySourceId": "src-cta-2010-s493",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "493"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "calculation",
       "ruleSummary": "A charitable company's non-exempt amount is the lower of its non-charitable expenditure and its attributable exempt income and gains for the accounting period.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3201,6 +3442,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not supply either input, classify a payment or calculate case-specific tax.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3230,7 +3480,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 494",
           "observedOn": "2026-07-13",
@@ -3242,18 +3493,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s494",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3278,10 +3532,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 494",
       "authoritySourceId": "src-cta-2010-s494",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "494"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "The company's whole non-exempt amount must be used up by attributing otherwise exempt income, gains or a combination of both.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3293,6 +3558,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not identify the income or gains for a case or prove the underlying expenditure is non-charitable.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3322,7 +3596,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 495",
           "observedOn": "2026-07-13",
@@ -3334,18 +3609,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s495",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3370,10 +3648,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 495",
       "authoritySourceId": "src-cta-2010-s495",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "495"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "procedure",
       "ruleSummary": "The company may specify attributable income by notice; if HMRC requires a specification and no notice is given within the statutory period, HMRC may determine the income attributed.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3385,6 +3674,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove that HMRC made a requirement, that the 30-day clock began or that a particular notice is valid.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3414,7 +3712,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 496",
           "observedOn": "2026-07-13",
@@ -3426,18 +3725,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s496",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3463,10 +3765,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 496",
       "authoritySourceId": "src-cta-2010-s496",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "496"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "definition",
       "ruleSummary": "The section lists losses, expenditure, investments and loans that can count as a charitable company's non-charitable expenditure and requires its supplementary provisions to be read.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3478,6 +3791,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not classify a particular item, make ordinary administration non-charitable or prove personal wrongdoing.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3507,7 +3829,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 515",
           "observedOn": "2026-07-13",
@@ -3519,18 +3842,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s515",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3557,10 +3883,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 515",
       "authoritySourceId": "src-cta-2010-s515",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "515"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "Where a company's non-charitable expenditure exceeds its available income and gains, qualifying excess is treated as non-charitable expenditure of earlier accounting periods so far as section 516 permits.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3572,6 +3909,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove an excess, open an earlier period automatically or state the resulting assessment.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3601,7 +3947,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 516",
           "observedOn": "2026-07-13",
@@ -3613,18 +3960,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s516",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3649,10 +3999,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 516",
       "authoritySourceId": "src-cta-2010-s516",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "516"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "attribution",
       "ruleSummary": "The section limits attribution to qualifying earlier accounting periods within six years, caps it by available capacity and gives later periods priority.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3664,6 +4025,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not prove an earlier period is eligible, calculate capacity or determine a final adjustment.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -3693,7 +4063,8 @@
             "/effectiveFrom",
             "/effectiveTo",
             "/temporalStatus",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/temporalApplicability"
           ],
           "locator": "Current consolidated section 517",
           "observedOn": "2026-07-13",
@@ -3705,18 +4076,21 @@
             "/taxTreatmentId",
             "/treatmentFieldPointers",
             "/reasoningStepIds",
-            "/authoritySourceId"
+            "/authoritySourceId",
+            "/authoritySelector",
+            "/taxTypes"
           ],
-          "locator": "TaxSorted exact treatment-field admission",
+          "locator": "TaxSorted exact treatment-field, authority-selector and tax-type mapping",
           "observedOn": "2026-07-13",
           "method": "derived-exact-id-mapping"
         },
         {
           "sourceId": "src-cta-2010-s517",
           "fields": [
-            "/summaryAuthority"
+            "/summaryAuthority",
+            "/explanationScope"
           ],
-          "locator": "TaxSorted labels the plain-language rule summary rather than quoting legislation",
+          "locator": "TaxSorted labels the plain-language rule summary and compact-graph scope rather than quoting legislation",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
@@ -3741,10 +4115,21 @@
       ],
       "citation": "Corporation Tax Act 2010 s 517",
       "authoritySourceId": "src-cta-2010-s517",
+      "authoritySelector": {
+        "kind": "section",
+        "legislationClass": "ukpga",
+        "year": 2010,
+        "number": 4,
+        "section": "517"
+      },
       "administeredByRegulatorIds": [
         "reg-hmrc-charities"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
+      "explanationScope": "treatment-core",
       "ruleRole": "procedure",
       "ruleSummary": "Required consequential adjustments must be made, by assessments or otherwise, when section 515 applies.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
@@ -3756,6 +4141,15 @@
       "effectiveFrom": null,
       "effectiveTo": null,
       "temporalStatus": "current",
+      "temporalApplicability": {
+        "basis": "all-current-cases-subject-to-conditions",
+        "eventType": null,
+        "startsOnOrAfter": null,
+        "endsBefore": null,
+        "legacyContractSignedBefore": null,
+        "legacyContractMustNotBeVariedOnOrAfter": null,
+        "transitionAuthoritySourceIds": []
+      },
       "doesNotProve": [
         "It does not identify a notice, assessment power, payment date, review right or appeal route.",
         "It is a sector rule record, not a finding about an organisation, transaction, person, return or notice."
@@ -5073,7 +5467,11 @@
             "/paymentEffect",
             "/possibleOutcomes",
             "/legalBasisSourceIds",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/taxTypes",
+            "/procedureStage",
+            "/performedByRoles",
+            "/challengeMode"
           ],
           "locator": "Current consolidated section 542",
           "observedOn": "2026-07-13",
@@ -5099,9 +5497,10 @@
           "sourceId": "src-ita-2007-s542",
           "fields": [
             "/summaryAuthority",
-            "/applicability"
+            "/applicability",
+            "/nextProcedureMeaning"
           ],
-          "locator": "TaxSorted analysis label and fail-closed case-selection boundary",
+          "locator": "TaxSorted analysis labels, fail-closed case-selection boundary and possible-next semantics",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         }
@@ -5112,13 +5511,22 @@
         "/whenTaxOrClawbackCanArise"
       ],
       "taxpayerClass": "charitable-trust-income-tax",
+      "taxTypes": [
+        "income-tax"
+      ],
       "procedureType": "attribution-specification-determination",
+      "procedureStage": "attribution",
+      "performedByRoles": [
+        "taxpayer",
+        "tax-authority"
+      ],
       "graphNodeKind": "process",
       "trigger": "Trustees may specify attributable income by notice. HMRC's determination power arises only if HMRC actually requires a specification and the trustees do not give the specification notice before the required period ends.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
       "applicability": "conditional-sector-map-case-selection-required",
       "requiredCaseSelectors": [
-        "decision-type",
+        "document-or-decision-type",
+        "tax-type",
         "hmrc-requirement-made-date",
         "specification-notice-status",
         "specification-notice-date-if-given",
@@ -5151,6 +5559,8 @@
         "rule-ita-2007-s542"
       ],
       "nextProcedureIds": [],
+      "nextProcedureMeaning": "possible-not-mandatory",
+      "challengeMode": "separate-route",
       "legalBasisSourceIds": [
         "src-ita-2007-s542"
       ],
@@ -5184,7 +5594,11 @@
             "/paymentEffect",
             "/possibleOutcomes",
             "/legalBasisSourceIds",
-            "/doesNotProve"
+            "/doesNotProve",
+            "/taxTypes",
+            "/procedureStage",
+            "/performedByRoles",
+            "/challengeMode"
           ],
           "locator": "Current consolidated section 495",
           "observedOn": "2026-07-13",
@@ -5210,9 +5624,10 @@
           "sourceId": "src-cta-2010-s495",
           "fields": [
             "/summaryAuthority",
-            "/applicability"
+            "/applicability",
+            "/nextProcedureMeaning"
           ],
-          "locator": "TaxSorted analysis label and fail-closed case-selection boundary",
+          "locator": "TaxSorted analysis labels, fail-closed case-selection boundary and possible-next semantics",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         }
@@ -5223,13 +5638,22 @@
         "/whenTaxOrClawbackCanArise"
       ],
       "taxpayerClass": "charitable-company-corporation-tax",
+      "taxTypes": [
+        "corporation-tax"
+      ],
       "procedureType": "attribution-specification-determination",
+      "procedureStage": "attribution",
+      "performedByRoles": [
+        "taxpayer",
+        "tax-authority"
+      ],
       "graphNodeKind": "process",
       "trigger": "The company may specify attributable income by notice. HMRC's determination power arises only if HMRC actually requires a specification and the company does not give the specification notice before the required period ends.",
       "summaryAuthority": "taxsorted-analysis-of-primary-law",
       "applicability": "conditional-sector-map-case-selection-required",
       "requiredCaseSelectors": [
-        "decision-type",
+        "document-or-decision-type",
+        "tax-type",
         "hmrc-requirement-made-date",
         "specification-notice-status",
         "specification-notice-date-if-given",
@@ -5262,6 +5686,8 @@
         "rule-cta-2010-s495"
       ],
       "nextProcedureIds": [],
+      "nextProcedureMeaning": "possible-not-mandatory",
+      "challengeMode": "separate-route",
       "legalBasisSourceIds": [
         "src-cta-2010-s495"
       ],
@@ -6522,7 +6948,7 @@
     },
     {
       "id": "gap-non-charitable-expenditure-law-and-procedure-coverage",
-      "name": "Non-charitable expenditure law and procedure coverage is deliberately partial",
+      "name": "A reviewed sector map is not a case-decision engine",
       "jurisdictions": ["United Kingdom"],
       "sourceIds": [
         "src-ita-2007-s543",
@@ -6535,51 +6961,96 @@
         {
           "sourceId": "src-ita-2007-s543",
           "fields": ["/title", "/detail", "/affectedIds"],
-          "locator": "Trust definition gateway and the boundary before supplementary trust rules",
+          "locator": "Trust definition gateway used to distinguish the sector rule map from a factual case decision",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-ita-2007-s564",
           "fields": ["/detail", "/consequence", "/status"],
-          "locator": "Trust tail provision confirming that the statutory machinery continues beyond the selected core records",
+          "locator": "Trust adjustment provision showing why a mapped rule still needs the actual assessment and procedural facts",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-cta-2010-s496",
           "fields": ["/detail", "/affectedIds"],
-          "locator": "Company definition gateway and the boundary before supplementary company rules",
+          "locator": "Company definition gateway used to distinguish the sector rule map from a factual case decision",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-cta-2010-s517",
           "fields": ["/detail", "/consequence", "/status"],
-          "locator": "Company tail provision confirming that the statutory machinery continues beyond the selected core records",
+          "locator": "Company adjustment provision showing why a mapped rule still needs the actual assessment and procedural facts",
           "observedOn": "2026-07-13",
           "method": "editorial-analysis"
         },
         {
           "sourceId": "src-hmrc-non-charitable-expenditure",
           "fields": ["/title", "/detail", "/consequence", "/affectedIds"],
-          "locator": "HMRC sector guidance compared with the narrower admitted provision and procedure records",
+          "locator": "HMRC sector guidance compared with the exact-law and conditional-procedure records",
           "observedOn": "2026-07-12",
           "method": "editorial-analysis"
         }
       ],
-      "title": "Selected core and tail provisions do not make a complete case-decision engine",
-      "detail": "This release maps ITA 2007 sections 539–543 and 562–564 and CTA 2010 sections 492–496 and 515–517. It does not yet model the supplementary middle provisions, separate chargeable-gains attribution law, or case-specific return, amendment, enquiry, assessment, payment, appeal and debt routes. The two official-procedure records cover only the conditional attribution-specification powers in sections 542 and 495.",
-      "consequence": "Clients may inspect the selected statutory spine and exact 30-day triggers, but must not infer that an omitted rule is irrelevant, that HMRC issued a notice, that tax is payable, or that an appeal or collection path exists in a case.",
+      "title": "Mapped law and procedure do not establish the route or outcome in a case",
+      "detail": "Version 3 assembles the selected core spine, 31 supplementary substantive rules and separate conditional procedure doors. The compact why graph intentionally carries only treatment-core rules. Neither collection supplies an organisation's transactions, return, notices, decisions, dates, payment state, postponement state or reported-case effect; separate transition, case-law and wider-recovery gaps name the remaining boundaries.",
+      "consequence": "Clients may filter the reviewed rules and possible procedure doors, but must not infer that HMRC issued a notice, that a deadline began, that tax is payable, that an appeal exists, that payment is suspended or that a recovery branch applies in a case.",
       "status": "bounded-by-design",
       "affectedIds": [
         "tax-non-charitable-expenditure",
+        "rule-ita-2007-s539",
+        "rule-ita-2007-s540",
+        "rule-ita-2007-s541",
+        "rule-ita-2007-s542",
         "rule-ita-2007-s543",
+        "rule-ita-2007-s562",
+        "rule-ita-2007-s563",
         "rule-ita-2007-s564",
+        "rule-cta-2010-s492",
+        "rule-cta-2010-s493",
+        "rule-cta-2010-s494",
+        "rule-cta-2010-s495",
         "rule-cta-2010-s496",
+        "rule-cta-2010-s515",
+        "rule-cta-2010-s516",
         "rule-cta-2010-s517",
+        "rule-ita-2007-s544-loss-calculation",
+        "rule-ita-2007-s544-miscellaneous-transaction",
+        "rule-ita-2007-s545-expenditure-scope",
+        "rule-ita-2007-s546-commitment-timing",
+        "rule-ita-2007-s547-overseas-reasonable-steps",
+        "rule-ita-2007-s548-same-year-recycling",
+        "rule-ita-2007-s558-listed-purpose-gateway",
+        "rule-ita-2007-s558-unlisted-claim-route",
+        "rule-ita-2007-s558-allowable-purpose",
+        "rule-ita-2007-s559-security-types",
+        "rule-ita-2007-s560-security-conditions",
+        "rule-ita-2007-s561-approved-loan",
+        "rule-cta-2010-s497-loss-calculation",
+        "rule-cta-2010-s497-miscellaneous-transaction",
+        "rule-cta-2010-s498-expenditure-scope",
+        "rule-cta-2010-s499-commitment-timing",
+        "rule-cta-2010-s500-overseas-reasonable-steps",
+        "rule-cta-2010-s501-same-period-recycling",
+        "rule-cta-2010-s511-listed-purpose-gateway",
+        "rule-cta-2010-s511-unlisted-claim-route",
+        "rule-cta-2010-s511-allowable-purpose",
+        "rule-cta-2010-s512-security-types",
+        "rule-cta-2010-s513-security-conditions",
+        "rule-cta-2010-s514-approved-loan",
+        "rule-tcga-1992-s256-charitable-gain-exemption",
+        "rule-tcga-1992-s256-cessation-deemed-disposal",
+        "rule-tcga-1992-s256-attributed-gains-chargeable",
+        "rule-tcga-1992-s256a-trust-gain-attribution",
+        "rule-tcga-1992-s256b-trust-gain-specification",
+        "rule-tcga-1992-s256c-company-gain-attribution",
+        "rule-tcga-1992-s256d-company-gain-specification",
         "procedure-ita-2007-s542-attribution-specification",
-        "procedure-cta-2010-s495-attribution-specification"
+        "procedure-cta-2010-s495-attribution-specification",
+        "procedure-tcga-1992-s256b-gains-attribution-specification",
+        "procedure-tcga-1992-s256d-gains-attribution-specification"
       ]
     },
     {

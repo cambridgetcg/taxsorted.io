@@ -118,5 +118,25 @@
       "schema": "/v1/charities/uk/schema",
       "exports": "/v1/charities/uk/exports"
     }
+  },
+  {
+    "id": "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-13.2",
+    "kind": "release-checkpoint",
+    "datasetId": "uk-charities-sector",
+    "title": "How UK charity status, tax, finance, control, public data and help routes fit together",
+    "version": "2026-07-13.2",
+    "evidenceReviewedOn": "2026-07-13",
+    "observedPublicOn": "2026-07-13",
+    "publicationStatusAtCheckpoint": "open",
+    "assertionScope": "dataset-release-snapshot",
+    "recordChangeClaims": "none",
+    "digest": "sha256:c27bcf486f2f841b0fbe4a4cb16146119df4232bbbe4c5b4a3d3db8ea4d80114",
+    "links": {
+      "manifest": "/v1/charities/uk/manifest",
+      "currentGraph": "/v1/charities/uk/graph",
+      "immutableSnapshot": null,
+      "schema": "/v1/charities/uk/schema",
+      "exports": "/v1/charities/uk/exports"
+    }
   }
 ]

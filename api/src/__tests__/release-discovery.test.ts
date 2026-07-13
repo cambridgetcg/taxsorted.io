@@ -80,7 +80,7 @@ describe("uniform public release discovery", () => {
     expect(body.semantics.archiveAvailability).toContain(
       "No immutable snapshot archive exists",
     );
-    expect(body.checkpoints).toHaveLength(6);
+    expect(body.checkpoints).toHaveLength(7);
     expect(
       body.checkpoints.every(
         (checkpoint: { links: { immutableSnapshot: unknown } }) =>
@@ -110,9 +110,9 @@ describe("uniform public release discovery", () => {
           "sha256:df9dd5d816db517b240e19f5040fe9392f18b972979d4fda9a07f5e53fabc959",
       },
       "uk-charities-sector": {
-        version: "2026-07-13.1",
+        version: "2026-07-13.2",
         digest:
-          "sha256:427485ac6a67214c125a0ad4348dc543e566a4a2b669330fc13ba0900fb447ac",
+          "sha256:c27bcf486f2f841b0fbe4a4cb16146119df4232bbbe4c5b4a3d3db8ea4d80114",
       },
       "uk-public-funding": {
         version: "2026-07-10.1",
@@ -258,7 +258,7 @@ describe("uniform public release discovery", () => {
       ...openOptions,
       charitiesEmergencyStop: true,
     });
-    expect(ledger.checkpoints).toHaveLength(6);
+    expect(ledger.checkpoints).toHaveLength(7);
     expect(
       ledger.currentPublication.find(
         (dataset) => dataset.datasetId === "uk-charities-sector",
@@ -267,7 +267,7 @@ describe("uniform public release discovery", () => {
       publicationStatus: "emergency-stopped",
       fullDatasetAvailable: false,
       latestDeclaredCheckpointId:
-        "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-13.1",
+        "urn:taxsorted:release-checkpoint:uk-charities-sector:2026-07-13.2",
     });
   });
 
