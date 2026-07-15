@@ -83,6 +83,21 @@ const endpoints = [
   },
   {
     method: "GET",
+    path: "/public-office-pathways",
+    does: "Public, non-personal routes outside the pending record gates: current law, nomination, agents, money, support, safety, pay, duties, sources and explicit coverage gaps. The politics emergency stop still closes this API.",
+  },
+  {
+    method: "GET",
+    path: "/public-office-pathways/offices/uk-mp-great-britain",
+    does: "One deeply mapped office route. The sibling offices and schema doors use the same stable source-linked contract.",
+  },
+  {
+    method: "GET",
+    path: "/public-office-pathways/rights",
+    does: "The CC BY-SA curation boundary, upstream source-specific rights, AGPL software boundary and correction door.",
+  },
+  {
+    method: "GET",
     path: "/integrity",
     does: "The public-integrity scope, evidence rule, dataset doors, excluded material and named-person publication-gate state.",
   },
@@ -282,6 +297,9 @@ export default function PoliticsApiPage() {
         <div className="mt-5 flex flex-wrap gap-4 text-sm font-semibold">
           <a href="/uk/politics/system" className="text-accent underline underline-offset-4">
             See the human-readable system map →
+          </a>
+          <a href="/uk/politics/stand" className="text-accent underline underline-offset-4">
+            Explore standing for office →
           </a>
           <a href="/uk/politics/integrity" className="text-accent underline underline-offset-4">
             Inspect money and enforcement →

@@ -8,6 +8,36 @@ Only a human can mint those.
 
 ## UK politics publication controls
 
+### Public-office pathways are a narrow rules-only surface
+
+`/v1/politics/uk/public-office-pathways` and its `offices`, `support`, `rights` and `schema`
+children are intentionally readable when the named-person and bulk-record gates are closed.
+They contain no applicant, candidate, voter, party-preference or live-election record and make
+no eligibility decision. The politics bulk emergency stop still closes this route; the normal
+pending-approval state does not. Do not add any such field to this exemption. A proposal to collect
+answers, save a checklist or load live election events needs a separate privacy, source and
+publication decision first.
+
+Successful pathway responses are cacheable for one hour and require revalidation after that;
+there is no stale-while-revalidate extension. An emergency stop cannot retract a still-fresh copy
+already held by a client or intermediary. Purge every cache under operator control and record when
+the remaining one-hour freshness window ends.
+
+After deployment, verify the narrow surface and confirm that the broader gate has not moved:
+
+```bash
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways/schema
+curl --fail https://taxsorted.io/uk/politics/stand/
+```
+
+When bulk publication is still awaiting approval, `/v1/politics/uk/system` should continue to
+return its documented `503`; opening the pathway slice is not authority to open that corpus.
+The API emergency stop cannot erase the separately deployed static HTML. If this rules corpus
+itself is found unsafe or materially wrong, also roll Cloudflare Pages back to the last safe
+deployment and purge the affected page cache; do not claim the stop covers the human page.
+
 ### Public-safe dataset distribution
 
 The institutional, aggregate and agent-screened organisation-only bulk candidate catalogue is

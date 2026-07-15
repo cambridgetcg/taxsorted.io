@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const doors = [
   { href: "/uk/politics", label: "Overview" },
   { href: "/uk/politics/system", label: "System" },
+  { href: "/uk/politics/stand", label: "Stand for office" },
   { href: "/uk/politics/integrity", label: "Money & power" },
   { href: "/uk/politics/people", label: "People & offices" },
   { href: "/uk/politics/funding", label: "Funding" },

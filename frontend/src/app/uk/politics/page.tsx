@@ -39,6 +39,18 @@ export default function UkPoliticsPage() {
           <p className="mt-5 text-sm font-semibold">Open the system map →</p>
         </Link>
         <Link
+          href="/uk/politics/stand"
+          className="rounded-3xl border border-accent bg-accent-soft p-6 shadow-sm transition-transform hover:-translate-y-0.5"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Start with the work</p>
+          <h2 className="mt-3 text-2xl font-semibold text-ink">Stand for public office</h2>
+          <p className="mt-3 text-sm text-ink-soft">
+            Compare the lawful routes to becoming an MP or an English principal councillor:
+            eligibility, nomination, money, agents, safety, pay and duties after election.
+          </p>
+          <p className="mt-5 text-sm font-semibold text-accent">Find a route →</p>
+        </Link>
+        <Link
           href="/uk/politics/integrity"
           className="rounded-3xl border border-ink bg-ink p-6 text-white shadow-sm transition-transform hover:-translate-y-0.5"
         >

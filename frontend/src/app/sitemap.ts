@@ -25,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/accountability/", 0.9],
     ["/uk/politics/", 0.9],
     ["/uk/politics/system/", 0.9],
+    ["/uk/politics/stand/", 0.9],
     ["/uk/politics/integrity/", 0.9],
     ["/uk/politics/api/", 0.8],
     ["/uk/politics/method/", 0.7],

@@ -55,6 +55,20 @@ are scored under a versioned rubric. Jurisdiction and checks sit beside every
 result; offices held by one person are never added. Current assessments are
 marked provisional. The full editorial rule is in `system-method.md`.
 
+## Public-office entry pathways
+
+The public-office pathfinder joins role discovery to the exact official legal
+door without collecting a political profile or applicant facts. Version 1
+deeply maps a UK Parliamentary candidate in Great Britain and a principal-
+council candidate in England. It keeps party selection separate from statutory
+nomination, represents a non-applicable deposit differently from £0, dates
+current law separately from proposed reform, and names every office family it
+does not yet cover.
+
+The market decision is in `public-office-market.md`; the editorial boundary is
+in `public-office-pathways-method.md`; the reviewed machine corpus is
+`data/public-office-pathways.json`.
+
 ## Sources and terms
 
 ### UK Parliament

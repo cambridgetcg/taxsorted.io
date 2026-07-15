@@ -37,6 +37,9 @@ const charityAccountabilitySchemaPath =
   "/v1/charities/uk/accountability/schema";
 const observerAccountabilityPath = "/v1/accountability/uk";
 const observerAccountabilitySchemaPath = "/v1/accountability/uk/schema";
+const publicOfficePathwaysPath = "/v1/politics/uk/public-office-pathways";
+const publicOfficePathwaysSchemaPath =
+  "/v1/politics/uk/public-office-pathways/schema";
 const taxExpertManifestPath = "/v1/uk/tax-expert";
 const taxExpertAssessmentPath =
   "/v1/uk/tax-expert/mtd-income-tax/assessments";
@@ -111,6 +114,13 @@ sdlt-calculation-kind: stateless deterministic computation for one ordinary resi
 sdlt-calculation-review-boundary: recognised complex, unknown, out-of-scope or future-effective-date cases return needs_review without a tax figure
 sdlt-calculation-effects: calculation only; no client record, return preparation, filing or external state change
 sdlt-calculation-trust: request hash covers normalized facts and ruleset revision; evaluatedOn reports the separate server-date boundary
+politics-public-office-pathways: GET ${apiOrigin}${publicOfficePathwaysPath}
+politics-public-office-pathways-schema: GET ${apiOrigin}${publicOfficePathwaysSchemaPath}
+politics-public-office-pathways-scope: current-law, non-partisan routes for UK MP elections in Great Britain and England principal councillors; named gaps for other offices
+politics-public-office-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active
+politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation
+politics-public-office-pathways-rights: GET ${apiOrigin}${publicOfficePathwaysPath}/rights
+politics-public-office-pathways-corrections: GET ${apiOrigin}/v1/politics/uk/integrity/corrections
 tax-expert-manifest: GET ${apiOrigin}${taxExpertManifestPath}
 tax-expert-openapi: GET ${apiOrigin}${taxExpertOpenApiPath}
 tax-expert-assessment: POST ${apiOrigin}${taxExpertAssessmentPath}
@@ -456,6 +466,17 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
+      },
+      publicOfficePathways: {
+        href: publicOfficePathwaysPath,
+        schema: publicOfficePathwaysSchemaPath,
+        humanGuide: `${humanOrigin}/uk/politics/stand/`,
+        availability: "conditional-public",
+        unavailableWhen: "politics-bulk-data-emergency-stop",
+        rights: `${publicOfficePathwaysPath}/rights`,
+        corrections: "/v1/politics/uk/integrity/corrections",
+        effects:
+          "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
       },
       whyGraph: {
         framework: whyGraphBasePath,

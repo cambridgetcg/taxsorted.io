@@ -1,0 +1,1131 @@
+{
+  "schema": "taxsorted.uk.public-office-pathways/1",
+  "meta": {
+    "title": "TaxSorted UK public-office pathways",
+    "version": "1.0.0",
+    "retrievedAt": "2026-07-15",
+    "lawAsAt": "2026-07-15",
+    "jurisdiction": "United Kingdom",
+    "coverage": [
+      "UK Parliamentary general-election candidacy in Great Britain",
+      "Principal local-government councillor candidacy in England"
+    ],
+    "exclusions": [
+      "Personalised eligibility decisions or legal advice",
+      "Party recommendations, ideology matching, voter profiling or campaign persuasion",
+      "UK Parliamentary elections in Northern Ireland",
+      "Parish and town councils, mayors, the Greater London Authority and police and crime commissioners",
+      "Scottish, Welsh and Northern Irish local government and the devolved legislatures",
+      "Appointed offices, ministers, the House of Lords, special advisers and public appointments"
+    ],
+    "editorialRules": [
+      "Name the exact office, election family, territory and law-as-at date before comparing rules.",
+      "Keep statutory candidacy, party selection and practical campaign support separate.",
+      "Keep deposits, spending limits, salary, allowances and business costs as different money types.",
+      "Never merge a Bill or an uncommenced provision into current law.",
+      "Use official institutional contacts and never collect applicant or voter data."
+    ],
+    "personalisedDecisionPolicy": "TaxSorted does not decide whether a person is legally eligible. Complex or missing facts must remain uncertain and be checked with the official guidance or independent legal advice.",
+    "warning": "Election law changes and event timetables control real deadlines. Recheck the exact official candidate guide and notice of election when a poll is called."
+  },
+  "sources": [
+    {
+      "id": "ec-candidates-agents-hub",
+      "title": "Guidance for candidates and agents",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/our-guidance/candidates-and-agents",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Election-specific candidate and agent guidance across the United Kingdom"],
+      "supports": ["Official guide selection", "The need to choose an exact election and jurisdiction"],
+      "limitations": ["The hub is a set of election-specific legal manuals, not a personalised eligibility or role-discovery service"]
+    },
+    {
+      "id": "ec-mp-master",
+      "title": "Guidance for candidates and agents at UK Parliamentary general elections in Great Britain",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/full-guidance/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary general elections in Great Britain"],
+      "supports": ["Candidate, agent, nomination, spending, donation and reporting rules"],
+      "limitations": ["Northern Ireland and a Parliamentary by-election can require separate guidance or timetable checks"]
+    },
+    {
+      "id": "ec-mp-qualifications",
+      "title": "Qualifications for standing for election",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain/what-you-need-know-you-stand-a-candidate/qualifications-and-disqualifications-standing-election/qualifications",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary candidates in Great Britain"],
+      "supports": ["Age and citizenship qualifications", "No electoral-registration requirement"],
+      "limitations": ["Citizenship status can require fact-specific checking"]
+    },
+    {
+      "id": "ec-mp-disqualifications",
+      "title": "Disqualifications for standing for election",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain/what-you-need-know-you-stand-a-candidate/qualifications-and-disqualifications-standing-election/disqualifications",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary candidates in Great Britain"],
+      "supports": ["Categories of disqualification", "The candidate's responsibility for the legal decision"],
+      "limitations": ["The list is complex and the Electoral Commission and returning officer cannot certify an individual's eligibility"]
+    },
+    {
+      "id": "ec-mp-nomination",
+      "title": "Submitting your nomination papers",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain/nominations/submitting-your-nomination-papers",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary general-election nominations in Great Britain"],
+      "supports": ["Nomination documents", "Delivery and deadline rules", "Party and independent descriptions"],
+      "limitations": ["The live notice of election controls the event-specific deadline and place of delivery"]
+    },
+    {
+      "id": "ec-mp-subscribers",
+      "title": "Nomination form – subscriber requirements",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-acting-returning-officers-administering-a-uk-parliamentary-election-great-britain/nominations/forms-nomination/nomination-form-subscriber-requirements",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary nominations in Great Britain"],
+      "supports": ["Ten constituency subscribers and their roles"],
+      "limitations": ["Register and constituency validity are determined for the particular election"]
+    },
+    {
+      "id": "ec-mp-deposit",
+      "title": "Deposit",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain/nominations/submitting-your-nomination-papers/deposit",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary candidates in Great Britain"],
+      "supports": ["The £500 deposit", "Return only above five per cent of valid votes"],
+      "limitations": ["Payment methods and operational instructions come from the acting returning officer"]
+    },
+    {
+      "id": "ec-mp-agent",
+      "title": "Appointing your election agent and other agents",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain/what-you-need-know-you-stand-a-candidate/appointing-your-election-agent-and-other-agents",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["UK Parliamentary candidates and agents in Great Britain"],
+      "supports": ["Mandatory election-agent appointment", "Candidate default as own agent", "Agent responsibility"],
+      "limitations": ["A specific agent appointment and office address must be checked for the election"]
+    },
+    {
+      "id": "ec-candidate-finance",
+      "title": "Campaign spending: candidates",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/political-registration-and-regulation/financial-reporting/campaign-spending-candidates",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Regulated candidate campaign spending and returns"],
+      "supports": ["Separate candidate spending lane", "Return publication and police responsibility for possible offences"],
+      "limitations": ["The exact formula and reporting form remain election-specific"]
+    },
+    {
+      "id": "candidate-spending-order-2023",
+      "title": "Representation of the People (Variation of Election Expenses, Expenditure Limits and Donation etc. Thresholds) Order 2023",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/uksi/2023/1235/contents/made",
+      "authorityLevel": "secondary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Current candidate spending figures for covered UK Parliamentary and English local-government elections"],
+      "supports": ["£11,390 Parliamentary base and constituency-type elector rates", "£960 English local-government base and 8p elector rate from 21 November 2023"],
+      "limitations": ["Later legislation or election-specific guidance can change a formula"]
+    },
+    {
+      "id": "parliament-become-mp",
+      "title": "Become a Member of Parliament",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/get-involved/become-a-member-of-parliament/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["People exploring the MP role and route"],
+      "supports": ["Party and independent routes", "Public orientation and official hand-offs"],
+      "limitations": ["Detailed election-law compliance is handed to the Electoral Commission"]
+    },
+    {
+      "id": "parliament-mp-role",
+      "title": "What do MPs do?",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/about/mps-and-lords/members/mps/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Members of the House of Commons"],
+      "supports": ["Representation, legislation, scrutiny and debate duties"],
+      "limitations": ["Individual roles, party responsibilities and constituency practice vary"]
+    },
+    {
+      "id": "ipsa-mp-pay-2026",
+      "title": "IPSA confirms decision on MPs' pay for 2026-27",
+      "publisher": "Independent Parliamentary Standards Authority",
+      "url": "https://www.theipsa.org.uk/news/press-releases/ipsa-confirms-decision-on-mps-pay-for-2026-27",
+      "authorityLevel": "official-pay-body",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["MP salary from 1 April 2026"],
+      "supports": ["Annual MP salary of £98,599"],
+      "limitations": ["Future annual determinations can change the amount"]
+    },
+    {
+      "id": "parliament-mp-pay-costs",
+      "title": "Pay and expenses for MPs",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/about/mps-and-lords/members/pay-mps/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["MP salary and Parliamentary business costs"],
+      "supports": ["Separation of salary from staffing, office, accommodation and travel costs"],
+      "limitations": ["Eligibility and claim details sit in the current IPSA funding scheme"]
+    },
+    {
+      "id": "hmrc-mp-tax-nic-2026",
+      "title": "Tax and National Insurance contributions for MPs and ministers",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/tax-and-national-insurance-contributions-for-mps-and-ministers",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "updatedOn": "2026-07-02",
+      "appliesTo": ["Tax and National Insurance treatment of MPs and ministers"],
+      "supports": ["Dedicated HMRC tax, National Insurance and reporting guidance for parliamentarians and ministers"],
+      "limitations": ["Individual reporting and deductions depend on the member's complete facts and current HMRC guidance"]
+    },
+    {
+      "id": "parliament-swearing-in",
+      "title": "Swearing in and the parliamentary oath",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/about/how/elections-and-voting/swearingin/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Newly elected MPs"],
+      "supports": ["Oath or affirmation before sitting, speaking, voting or receiving salary"],
+      "limitations": ["Parliament controls the operational swearing-in arrangements"]
+    },
+    {
+      "id": "commons-register-interests",
+      "title": "Register of Members' Financial Interests",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/mps-lords-and-offices/standards-and-financial-interests/parliamentary-commissioner-for-standards/registers-of-interests/register-of-members-financial-interests/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Members of the House of Commons"],
+      "supports": ["Initial registration and update deadlines for financial interests"],
+      "limitations": ["The current Code and Registrar guidance control category-level obligations"]
+    },
+    {
+      "id": "ec-local-master",
+      "title": "Guidance for candidates and agents at local government elections in England",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/full-guidance/guidance-candidates-and-agents-local-government-elections-england",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["District, borough, county and unitary-authority elections in England"],
+      "supports": ["Principal-council qualifications, nomination, agent, finance and return rules"],
+      "limitations": ["Parish, mayoral, Greater London and elections outside England use separate guidance"]
+    },
+    {
+      "id": "ec-local-qualifications",
+      "title": "Qualifications and disqualifications for standing at local government elections in England",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/guidance-candidates-and-agents-local-government-elections-england/what-you-need-know-you-stand-a-candidate/qualifications-and-disqualifications-standing-election",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Principal local-government candidates in England"],
+      "supports": ["Age, citizenship, local-connection and disqualification rules"],
+      "limitations": ["Treaty-country citizenship and difficult disqualification cases require current fact-specific checking"]
+    },
+    {
+      "id": "ec-local-subscribers",
+      "title": "Nomination form – subscriber requirements",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/combined-guidance-returning-officers-local-government-and-police-and-crime-commissioner-elections/nominations/forms-nomination/nomination-form-subscriber-requirements",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Principal and parish local-government nominations in England"],
+      "supports": ["Exactly two ward subscribers: proposer and seconder"],
+      "limitations": ["Older pages that say ten subscribers are stale; validate both subscribers against the election register"]
+    },
+    {
+      "id": "castle-point-no-deposit",
+      "title": "Become a councillor",
+      "publisher": "Castle Point Borough Council",
+      "url": "https://www.castlepoint.gov.uk/w/become-a-councillor",
+      "authorityLevel": "local-authority-publication",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Ordinary principal-council candidacy in England"],
+      "supports": ["No election deposit for an ordinary councillor candidate"],
+      "limitations": ["This does not apply to Parliamentary, mayoral or other election families"]
+    },
+    {
+      "id": "lga-be-councillor",
+      "title": "Be a Councillor",
+      "publisher": "Local Government Association",
+      "url": "https://www.local.gov.uk/be-councillor",
+      "authorityLevel": "local-government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["People exploring councillor work and candidacy"],
+      "supports": ["Role orientation", "Party and independent first steps", "Public support and training routes"],
+      "limitations": ["Legal rules must be checked against current election-specific guidance"]
+    },
+    {
+      "id": "lga-independent-candidate-school",
+      "title": "Independent Group: Be a Councillor",
+      "publisher": "Local Government Association Independent Group",
+      "url": "https://www.local.gov.uk/lga-independent/our-work/be-councillor",
+      "authorityLevel": "local-government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Independent and smaller-party local-government candidates"],
+      "supports": ["Candidate School covering law, manifestos, canvassing, expenses and polling day"],
+      "limitations": ["Programme dates, places and eligibility can vary"]
+    },
+    {
+      "id": "local-government-act-1972-s83",
+      "title": "Local Government Act 1972, section 83",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1972/70/section/83",
+      "authorityLevel": "primary-law",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Declaration of acceptance of office for local councillors"],
+      "supports": ["Declaration before acting and the two-month vacancy consequence"],
+      "limitations": ["Council procedure and any statutory exceptions must be checked locally"]
+    },
+    {
+      "id": "local-government-act-1972-s85",
+      "title": "Local Government Act 1972, section 85",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1972/70/section/85",
+      "authorityLevel": "primary-law",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Local-authority member attendance"],
+      "supports": ["Six-month attendance rule and approved-reason route"],
+      "limitations": ["The exact qualifying meeting and approval facts are council-specific"]
+    },
+    {
+      "id": "lga-code-conduct",
+      "title": "Guidance on the Local Government Association Model Councillor Code of Conduct",
+      "publisher": "Local Government Association",
+      "url": "https://www.local.gov.uk/publications/guidance-local-government-association-model-councillor-code-conduct",
+      "authorityLevel": "local-government-guidance",
+      "status": "partly-current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Councillor conduct and interest registration"],
+      "supports": ["Monitoring Officer route", "Registering disclosable interests within 28 days", "Conduct expectations"],
+      "limitations": ["The model is not itself every council's adopted code; check the authority's current code"]
+    },
+    {
+      "id": "hmrc-councillor-allowances",
+      "title": "EIM65960 - Local government councillors and civic dignitaries: allowances",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim65960",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Structure and administration of English councillor allowance schemes"],
+      "supports": ["Basic, special-responsibility, travel and subsistence allowance categories", "Independent remuneration panel and local scheme structure"],
+      "limitations": ["This page points to EIM65920 and EIM65970 for the tax treatment of particular payments"]
+    },
+    {
+      "id": "hmrc-councillor-tax-treatment",
+      "title": "EIM65920 - Tax treatment of Local Government Councillors and civic dignitaries: allowances councillors may receive",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/employment-income-manual/eim65920",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "updatedOn": "2026-07-15",
+      "appliesTo": ["Tax treatment of councillor and civic-dignitary payments"],
+      "supports": ["Basic, attendance and special-responsibility allowances are taxable as earnings from the office"],
+      "limitations": ["Travel, subsistence, financial-loss and other payments have separate fact-specific treatment"]
+    },
+    {
+      "id": "wyre-forest-allowance-2026",
+      "title": "Members' Allowances Scheme",
+      "publisher": "Wyre Forest District Council",
+      "url": "https://www.wyreforestdc.gov.uk/your-council/councillors-committees-and-meetings/constitution/section-17-members-allowances-scheme/",
+      "authorityLevel": "local-authority-publication",
+      "status": "event-specific",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Wyre Forest District Council 2026-27 basic member allowance"],
+      "supports": ["One local example of £5,261 per year"],
+      "limitations": ["This is not a national rate, floor, ceiling or estimate for another authority"]
+    },
+    {
+      "id": "somerset-allowance-2026",
+      "title": "Councillor allowances",
+      "publisher": "Somerset Council",
+      "url": "https://www.somerset.gov.uk/council-and-democracy/councillor-allowances/",
+      "authorityLevel": "local-authority-publication",
+      "status": "event-specific",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Somerset Council 2026-27 basic member allowance"],
+      "supports": ["One local example of £16,651 per year"],
+      "limitations": ["This is not a national rate, floor, ceiling or estimate for another authority"]
+    },
+    {
+      "id": "gov-candidate-security",
+      "title": "Candidate Security Guidance Collection",
+      "publisher": "UK Government",
+      "url": "https://www.gov.uk/government/collections/candidate-security-guidance-collection",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "updatedOn": "2026-01-12",
+      "appliesTo": ["Election candidates, agents and campaign teams"],
+      "supports": ["Protective, cyber, information-security and high-risk guidance"],
+      "limitations": ["Emergency or immediate threats require the emergency services or police, not this guide"]
+    },
+    {
+      "id": "ec-harassment-intimidation",
+      "title": "Guidance about harassment and intimidation",
+      "publisher": "Electoral Commission",
+      "url": "https://www.electoralcommission.org.uk/our-guidance/candidate-or-agent/guidance-about-harassment-and-intimidation",
+      "authorityLevel": "statutory-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-15",
+      "appliesTo": ["Candidates and agents"],
+      "supports": ["Prevention, recording and reporting routes for harassment and intimidation"],
+      "limitations": ["The Commission does not replace police reporting or emergency response"]
+    },
+    {
+      "id": "representation-people-bill-2026",
+      "title": "Representation of the People Bill",
+      "publisher": "UK Parliament",
+      "url": "https://bills.parliament.uk/bills/4080",
+      "authorityLevel": "official-bill-record",
+      "status": "proposed",
+      "retrievedAt": "2026-07-15",
+      "updatedOn": "2026-07-14",
+      "appliesTo": ["Proposed changes to elections, political finance, agent addresses and enforcement"],
+      "supports": ["Bill stage and proposed-law status after Commons third reading"],
+      "limitations": ["A Bill is not current law and its text, commencement and application can still change"]
+    }
+  ],
+  "sharedJourney": {
+    "summary": "A candidacy is a chain of choices and legal hand-offs. The office explains the work; the candidate checks qualifications; a party may control selection; the statutory officer controls nomination and the poll; the candidate and agent control campaign compliance; the electorate decides the result; the elected person then enters a different standards and disclosure system.",
+    "steps": [
+      {
+        "id": "journey-discover-work",
+        "order": 1,
+        "stage": "discover",
+        "title": "Choose the work, not the status",
+        "whatToDo": ["Compare the office's real duties, geography, voting system, term and remuneration.", "Speak with current or former office-holders through public, professional routes."],
+        "outputs": ["One exact office and election family to research"],
+        "caution": "Being interested in politics is not the same as wanting the daily work of representation, scrutiny and public accountability.",
+        "sourceIds": ["parliament-mp-role", "lga-be-councillor"]
+      },
+      {
+        "id": "journey-check-current-rules",
+        "order": 2,
+        "stage": "check-rules",
+        "title": "Check qualifications and disqualifications",
+        "whatToDo": ["Read the exact current candidate guide.", "Treat difficult citizenship, employment, bankruptcy, sentence or office-holding facts as uncertain until checked."],
+        "outputs": ["A current-law issue list, not a TaxSorted eligibility certificate"],
+        "caution": "Signing a false consent to nomination can be a criminal offence. A returning officer or the Electoral Commission cannot decide every difficult case for you.",
+        "sourceIds": ["ec-mp-qualifications", "ec-mp-disqualifications", "ec-local-qualifications"]
+      },
+      {
+        "id": "journey-choose-route",
+        "order": 3,
+        "stage": "choose-route",
+        "title": "Choose party or independent route",
+        "whatToDo": ["Ask a registered party for its current selection process, or prepare to use an independent description or no description.", "Keep internal selection and statutory nomination as separate gates."],
+        "outputs": ["A party-controlled selection route or an independent route"],
+        "caution": "Party membership or selection does not place a person on the ballot. Independence removes the party-selection gate, not election law.",
+        "sourceIds": ["parliament-become-mp", "ec-mp-nomination", "lga-be-councillor"]
+      },
+      {
+        "id": "journey-build-readiness",
+        "order": 4,
+        "stage": "seek-selection",
+        "title": "Build knowledge, support and a safety plan",
+        "whatToDo": ["Use public training and role orientation before an election is called.", "Plan for accessibility, caring, employment, digital security and abuse reporting."],
+        "outputs": ["A support network, realistic capacity plan and safety contacts"],
+        "caution": "Abuse is not a qualification or a normal price that a candidate must quietly accept.",
+        "sourceIds": ["lga-independent-candidate-school", "gov-candidate-security", "ec-harassment-intimidation"]
+      },
+      {
+        "id": "journey-nominate",
+        "order": 5,
+        "stage": "nominate",
+        "title": "Submit the exact nomination",
+        "whatToDo": ["Obtain the official pack and notice of election from the correct statutory officer.", "Complete, validate and deliver every required document, subscriber and deposit item before the deadline."],
+        "outputs": ["A nomination accepted or rejected by the proper returning officer"],
+        "caution": "Do not calculate a calendar deadline from a generic guide when the live notice of election is available.",
+        "sourceIds": ["ec-mp-nomination", "ec-local-master", "ec-local-subscribers"]
+      },
+      {
+        "id": "journey-campaign",
+        "order": 6,
+        "stage": "campaign",
+        "title": "Campaign through the agent and finance lane",
+        "whatToDo": ["Appoint or become the election agent and keep spending and donation records from the correct trigger.", "Use the exact electorate figure, formula, imprint and reporting rules for the contest."],
+        "outputs": ["A traceable campaign ledger and compliant public material"],
+        "caution": "Candidate, party and non-party campaign spending are separate legal lanes even when activity feels connected.",
+        "sourceIds": ["ec-mp-agent", "ec-candidate-finance", "ec-local-master"]
+      },
+      {
+        "id": "journey-poll-count",
+        "order": 7,
+        "stage": "poll-and-count",
+        "title": "Let the election administrator run the poll and count",
+        "whatToDo": ["Use only appointed-agent access to restricted proceedings.", "Follow the returning officer's result and lawful challenge route."],
+        "outputs": ["An officially declared result"],
+        "caution": "The Electoral Commission regulates and guides; local statutory officers administer the poll and declare Great Britain results.",
+        "sourceIds": ["ec-mp-master", "ec-local-master"]
+      },
+      {
+        "id": "journey-take-office",
+        "order": 8,
+        "stage": "take-office",
+        "title": "Complete the legal entry into office",
+        "whatToDo": ["Make the required oath, affirmation or declaration of acceptance.", "Register interests and complete the institution's employment, payroll, security and standards steps."],
+        "outputs": ["Authority to act in the elected office"],
+        "caution": "Winning the count does not erase entry formalities or their legal consequences.",
+        "sourceIds": ["parliament-swearing-in", "local-government-act-1972-s83", "commons-register-interests", "lga-code-conduct"]
+      },
+      {
+        "id": "journey-serve-accountably",
+        "order": 9,
+        "stage": "serve",
+        "title": "Serve under public duties and continuing disclosure",
+        "whatToDo": ["Represent the public, scrutinise decisions and follow the applicable conduct code.", "Keep interests current, separate public funds from personal pay, and use formal absence or challenge routes."],
+        "outputs": ["An auditable record of public service, decisions and disclosures"],
+        "caution": "Election is authority to perform a public role, not ownership of the office, institution or public budget.",
+        "sourceIds": ["parliament-mp-role", "commons-register-interests", "local-government-act-1972-s85", "lga-code-conduct"]
+      }
+    ]
+  },
+  "officePaths": [
+    {
+      "id": "uk-mp-great-britain",
+      "coverageStatus": "deep",
+      "currentLawAsAt": "2026-07-15",
+      "identity": {
+        "name": "Member of the UK Parliament (MP)",
+        "officeType": "uk-parliamentary-representative",
+        "jurisdiction": "United Kingdom Parliament election in Great Britain",
+        "contestGeography": "One Parliamentary constituency in England, Scotland or Wales",
+        "electoralSystem": "First past the post: the candidate with the most votes is elected",
+        "administratorRoles": ["Acting Returning Officer in England and Wales", "Returning Officer in Scotland", "Electoral Registration Officer"],
+        "term": "One Parliament, ending at dissolution; there is no personal guarantee of a fixed term"
+      },
+      "summary": "Represent a constituency in the House of Commons; make and scrutinise national law and taxation, question government, debate public issues and work on constituency cases.",
+      "routes": [
+        {
+          "id": "mp-registered-party-route",
+          "kind": "registered-party",
+          "title": "Seek selection from a registered political party",
+          "description": "The party controls its internal selection. Election law then requires the party's authorised certificate before the registered description can appear on the ballot.",
+          "requirements": ["Meet the party's membership and selection rules as they stand at the time.", "Obtain a certificate of authorisation signed by the registered nominating officer or authorised delegate.", "Complete the same statutory candidate nomination, agent, deposit and finance steps as every candidate."],
+          "tradeoffs": ["A party can provide a label, local organisation, training and campaign support.", "Selection is a separate discretionary gate and is not an entitlement created by election law."],
+          "sourceIds": ["parliament-become-mp", "ec-mp-nomination"]
+        },
+        {
+          "id": "mp-independent-route",
+          "kind": "independent",
+          "title": "Stand independently",
+          "description": "An independent candidate may use the permitted independent description or leave the description blank, without a party certificate.",
+          "requirements": ["Choose only the independent or blank ballot-description route allowed by the current guidance.", "Build your own support, compliance and campaign organisation.", "Complete every statutory nomination, subscriber, deposit, agent and finance step."],
+          "tradeoffs": ["There is no internal party-selection gate.", "Independence does not reduce the legal requirements or guarantee access to training, funding or campaign workers."],
+          "sourceIds": ["parliament-become-mp", "ec-mp-nomination"]
+        }
+      ],
+      "eligibility": {
+        "minimumAge": 18,
+        "citizenship": ["British citizen", "Citizen of the Republic of Ireland", "Eligible Commonwealth citizen with the required UK immigration status or exemption"],
+        "localConnection": "No constituency residence, property, work or electoral-registration qualification is required.",
+        "rules": [
+          {
+            "id": "mp-age-citizenship",
+            "title": "Age and citizenship",
+            "plainLanguage": "You must be at least 18 on nomination day and be a British citizen, an Irish citizen or an eligible Commonwealth citizen.",
+            "appliesAt": "nomination",
+            "status": "current-law",
+            "seekAdviceWhen": "Commonwealth or immigration status is not clearly within the current guidance.",
+            "sourceIds": ["ec-mp-qualifications"]
+          },
+          {
+            "id": "mp-no-register-residence-rule",
+            "title": "No register or constituency-residence requirement",
+            "plainLanguage": "A Parliamentary candidate does not have to be registered to vote, live in the constituency or have another local connection to it.",
+            "appliesAt": "nomination",
+            "status": "current-law",
+            "seekAdviceWhen": "A party has a separate local connection preference; that is party practice, not this statutory qualification.",
+            "sourceIds": ["ec-mp-qualifications"]
+          }
+        ],
+        "disqualifications": [
+          {
+            "id": "mp-disqualifying-offices",
+            "title": "Specified public offices and incompatible roles",
+            "plainLanguage": "Some civil servants, police officers, armed-forces members, judges, election administrators and holders of other named offices are disqualified. The official list and timing rules must be checked rather than inferred from a job title.",
+            "appliesAt": "nomination-and-poll",
+            "status": "current-law",
+            "seekAdviceWhen": "You hold or recently held any public, judicial, policing, military, electoral or overseas office.",
+            "sourceIds": ["ec-mp-disqualifications"]
+          },
+          {
+            "id": "mp-other-disqualifications",
+            "title": "Bankruptcy, imprisonment and election-offence restrictions",
+            "plainLanguage": "Specified bankruptcy restrictions, a sentence or order of imprisonment or detention indefinitely or for more than one year while detained in a listed territory or unlawfully at large, corrupt or illegal practice findings and certain intimidatory offences can disqualify a person.",
+            "appliesAt": "nomination-and-poll",
+            "status": "current-law",
+            "seekAdviceWhen": "Any insolvency order, current detention or unlawfully-at-large status, election-law finding or intimidatory-offence order may apply.",
+            "sourceIds": ["ec-mp-disqualifications"]
+          }
+        ],
+        "evaluation": {
+          "allowedOutcomes": ["eligible", "ineligible", "uncertain"],
+          "method": "Match only sourced atomic rules. Return uncertain when a required fact, exception, office list or legal interpretation is missing.",
+          "warning": "TaxSorted has not asked for your facts and gives no eligibility result. A false consent statement can be a criminal offence; use independent legal advice for a difficult case."
+        }
+      },
+      "nomination": {
+        "summary": "Deliver the nomination form, home-address form and witnessed consent to nomination, plus the deposit and any party certificate or emblem request, to the correct officer.",
+        "deadlineExpression": "No later than 4pm on the nineteenth working day before the poll for a general election; use the official live timetable.",
+        "eventDateRule": "Calculate from the poll and notice of election published for the event; a Parliamentary by-election timetable can differ.",
+        "documents": [
+          {"id": "mp-nomination-form", "name": "Nomination form", "required": true, "originalNormallyRequired": true, "deliveryExceptions": [], "note": "Names the candidate and ten valid subscribers."},
+          {"id": "mp-home-address-form", "name": "Home address form", "required": true, "originalNormallyRequired": true, "deliveryExceptions": [], "note": "Submitted to the statutory officer; TaxSorted never collects or republishes it."},
+          {"id": "mp-consent-form", "name": "Consent to nomination", "required": true, "originalNormallyRequired": true, "deliveryExceptions": ["A candidate who is outside the United Kingdom may send the completed consent electronically under the current guidance."], "note": "Must be witnessed and made within the permitted period; use the overseas-candidate delivery exception only when it actually applies."},
+          {"id": "mp-party-certificate", "name": "Party certificate and optional emblem request", "required": false, "originalNormallyRequired": true, "deliveryExceptions": ["The original party authorisation and emblem-request forms may be posted if they reach the acting returning officer by the deadline."], "note": "Needed only to use a registered party description or emblem."}
+        ],
+        "delivery": ["The nomination form and home-address form must be hand-delivered as the official guide specifies; the consent normally follows the same route, subject to the stated overseas-candidate exception.", "Original party authorisation and emblem-request forms may be posted, but they must reach the acting returning officer by the deadline; confirm the correct address and hours.", "A TaxSorted upload is never a nomination delivery route. Ask the acting returning officer about permitted inspection and correction before the deadline."],
+        "consentTiming": "The consent must be signed no earlier than one month before the nomination deadline and delivered by that deadline.",
+        "subscribers": {
+          "count": 10,
+          "register": "The register in force for the election",
+          "geography": "the Parliamentary constituency",
+          "roles": ["proposer", "seconder", "eight assenters"],
+          "limits": ["Each must be a valid Parliamentary elector in the constituency.", "A subscriber may subscribe only one candidate at that election."],
+          "sourceIds": ["ec-mp-subscribers"]
+        },
+        "deposit": {
+          "applicable": true,
+          "amountMinor": 50000,
+          "currency": "GBP",
+          "dueExpression": "Deliver with the nomination by the nomination deadline using an accepted payment method.",
+          "returnedWhen": {"comparison": "greater-than", "percentage": 5, "denominator": "valid votes cast in the constituency", "plainLanguage": "more than 5% of the valid votes"},
+          "note": "The deposit is lost at exactly 5% or below; the rule is greater-than, not greater-than-or-equal.",
+          "sourceIds": ["ec-mp-deposit"]
+        },
+        "partyIdentity": {
+          "registeredParty": "Requires the authorised certificate for the registered description and a separate request for an emblem.",
+          "independent": "May use Independent, Annibynnol in Wales where permitted, or leave the description blank.",
+          "emblem": "An independent candidate cannot use a registered party emblem."
+        },
+        "sourceIds": ["ec-mp-nomination", "ec-mp-subscribers", "ec-mp-deposit"]
+      },
+      "agent": {
+        "mandatory": true,
+        "defaultWhenNoneAppointed": "If no other election agent is appointed by the deadline, the candidate becomes their own election agent.",
+        "appointmentDeadlineExpression": "No later than 4pm on the nineteenth working day before the poll for the general-election timetable.",
+        "responsibilities": ["Manage and authorise candidate election spending.", "Keep invoices, receipts and donation records.", "Complete and submit the candidate spending return and declaration process.", "Coordinate appointed polling, postal-vote and counting agents."],
+        "addressRequirement": "The agent must have a qualifying office address for the election; check the current geographic and publication rules.",
+        "ineligiblePeople": ["The acting returning officer and their staff", "People otherwise excluded by the current guidance"],
+        "privacyNote": "Use the official permitted address route. TaxSorted never collects a home address or agent appointment form.",
+        "sourceIds": ["ec-mp-agent"]
+      },
+      "finance": {
+        "regulatedPeriod": "The short campaign begins on the official date a person becomes a candidate and ends on polling day; an earlier long-campaign regime can apply when specified.",
+        "spendingLimit": {
+          "currency": "GBP",
+          "moneyUnit": "minor",
+          "expression": "£11,390 + 12p per elector in a county constituency, or £11,390 + 8p per elector in a borough or burgh constituency",
+          "baseMinor": 1139000,
+          "rates": [{"when": "county constituency", "amountMinorPerElector": 12}, {"when": "borough or burgh constituency", "amountMinorPerElector": 8}],
+          "electorateDatum": "Use the official electorate figure supplied for the spending calculation, not a postcode estimate.",
+          "jointCandidateAdjustments": [],
+          "warning": "Recheck the formula and regulated-period status when the election is called; TaxSorted does not calculate a live limit in this release.",
+          "sourceIds": ["candidate-spending-order-2023", "ec-candidate-finance", "ec-mp-master"]
+        },
+        "donations": {
+          "currency": "GBP",
+          "thresholdMinor": 5000,
+          "comparator": "greater-than",
+          "controlledRule": "Money, goods or services worth more than £50 for the candidate campaign must be treated under the candidate-donation rules and accepted only from a permissible source.",
+          "underThresholdRule": "Items worth £50 or less are not controlled candidate donations under this threshold, but campaign-spending records can still be required.",
+          "permissibleSources": ["An individual registered on a UK electoral register", "A qualifying UK-registered company, party, trade union, building society, limited-liability partnership, friendly society or unincorporated association", "Other sources permitted by the current election-specific guidance"],
+          "checkingPeriodDays": 30,
+          "impermissibleDonationAction": "Return an impermissible or unidentifiable donation within the permitted checking period and keep the required records.",
+          "sourceIds": ["ec-mp-master"]
+        },
+        "reportingDeadlines": [
+          {"id": "mp-candidate-personal-expenses", "responsibleRole": "candidate", "trigger": "The election result is declared", "due": "Send the election agent a written statement of personal expenses within 21 calendar days after the result, including a statement that none were paid where applicable", "nilReturnRequired": false, "sourceIds": ["ec-mp-master"]},
+          {"id": "mp-invoice-received", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Receive campaign invoices within 21 calendar days after the result", "nilReturnRequired": false, "sourceIds": ["ec-mp-master"]},
+          {"id": "mp-invoice-paid", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Pay admissible campaign invoices within 28 calendar days after the result", "nilReturnRequired": false, "sourceIds": ["ec-mp-master"]},
+          {"id": "mp-agent-return", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Submit the spending return and agent declaration within 35 calendar days", "nilReturnRequired": true, "sourceIds": ["ec-candidate-finance", "ec-mp-master"]},
+          {"id": "mp-candidate-declaration", "responsibleRole": "candidate", "trigger": "The agent submits the return", "due": "Submit the candidate declaration within seven working days of the return; if outside the United Kingdom when it is due, submit it within 14 days after returning", "nilReturnRequired": true, "sourceIds": ["ec-mp-master"]}
+        ],
+        "enforcement": ["Potential candidate-spending offences are investigated by police rather than decided by the Electoral Commission.", "When a 21, 28 or 35-day reporting deadline falls on a weekend or public holiday, the current next-working-day rule applies; check the exact guide before filing.", "An elected MP who has not delivered the required return or declaration is barred from sitting or voting and can forfeit £100 for each day they sit or vote while barred, subject to the law and court-relief routes."],
+        "sourceIds": ["ec-candidate-finance", "ec-mp-master", "candidate-spending-order-2023"]
+      },
+      "takingOffice": [
+        {"order": 1, "action": "Swear the oath or make the solemn affirmation in the House of Commons", "deadline": "Before sitting, speaking, voting or receiving salary", "consequence": "The member cannot exercise those functions or receive salary until sworn or affirmed", "sourceIds": ["parliament-swearing-in"]},
+        {"order": 2, "action": "Register the interests required by the House of Commons Code", "deadline": "Within one month of election for the initial registration", "consequence": "The Parliamentary standards and rectification or investigation processes can apply", "sourceIds": ["commons-register-interests"]}
+      ],
+      "remuneration": {
+        "kind": "national-salary",
+        "currency": "GBP",
+        "amountMinor": 9859900,
+        "period": "year",
+        "effectiveFrom": "2026-04-01",
+        "setter": "Independent Parliamentary Standards Authority",
+        "description": "The national MP salary is set independently and is separate from any additional salary for an office such as Speaker or minister.",
+        "businessCosts": "IPSA can fund eligible staffing, office, accommodation and travel costs for Parliamentary work under its scheme. Those funds are not personal pay.",
+        "taxTreatment": "The £98,599 figure is gross salary, not take-home pay. HMRC publishes dedicated tax and National Insurance guidance for parliamentarians; individual deductions and reporting depend on the member's complete facts and current guidance.",
+        "examples": [],
+        "sourceIds": ["ipsa-mp-pay-2026", "parliament-mp-pay-costs", "hmrc-mp-tax-nic-2026"]
+      },
+      "officeObligations": [
+        {"id": "mp-representation-scrutiny", "trigger": "Holding office", "action": "Represent constituents and participate in legislation, taxation, debate and government scrutiny", "deadline": "Continuing throughout the term", "consequence": "Political, Parliamentary and electoral accountability; no single attendance number captures the whole duty", "oversight": "House procedures, elections, standards bodies and public records cover different parts", "sourceIds": ["parliament-mp-role"]},
+        {"id": "mp-update-interests", "trigger": "A registrable interest changes", "action": "Notify the Registrar of Members' Financial Interests", "deadline": "Normally within 28 days under the current guide", "consequence": "Standards correction, rectification or investigation can follow", "oversight": "Parliamentary Commissioner for Standards and the House's standards system", "sourceIds": ["commons-register-interests"]}
+      ],
+      "contacts": [
+        {"id": "mp-contact-ec-guide", "label": "UK Parliamentary candidate and agent guidance", "organisation": "Electoral Commission", "role": "Rules and compliance guidance", "url": "https://www.electoralcommission.org.uk/full-guidance/guidance-candidates-and-agents-uk-parliamentary-general-elections-great-britain", "scope": "General guidance; it does not certify individual eligibility or receive nominations", "sourceIds": ["ec-mp-master"]},
+        {"id": "mp-contact-parliament", "label": "Become an MP", "organisation": "UK Parliament", "role": "Office and route orientation", "url": "https://www.parliament.uk/get-involved/become-a-member-of-parliament/", "scope": "Role introduction and official hand-offs, not party selection", "sourceIds": ["parliament-become-mp"]}
+      ],
+      "supportRouteIds": ["support-electoral-commission", "support-parliament-mp", "support-election-officer", "support-registered-party", "support-candidate-safety"],
+      "barrierIds": ["barrier-legal-complexity", "barrier-financial", "barrier-time-administration", "barrier-party-selection", "barrier-disclosure-privacy", "barrier-safety-abuse", "barrier-access-support"],
+      "sourceIds": ["ec-mp-master", "ec-mp-qualifications", "ec-mp-disqualifications", "ec-mp-nomination", "parliament-mp-role", "ipsa-mp-pay-2026"],
+      "notLegalAdvice": "This pathway explains public sources and does not determine any person's eligibility, accept a nomination or replace the current official guide or independent legal advice."
+    },
+    {
+      "id": "england-principal-councillor",
+      "coverageStatus": "deep",
+      "currentLawAsAt": "2026-07-15",
+      "identity": {
+        "name": "English principal councillor",
+        "officeType": "principal-local-councillor",
+        "jurisdiction": "Principal local government in England",
+        "contestGeography": "One ward or electoral division of a district, borough, county or unitary authority",
+        "electoralSystem": "First past the post for the number of seats being elected in the ward or division",
+        "administratorRoles": ["Returning Officer", "Electoral Registration Officer", "Council Monitoring Officer after election"],
+        "term": "Usually four years, but the authority's election cycle and reorganisation can vary"
+      },
+      "summary": "Represent a local ward or division; make and scrutinise council decisions about local services, budgets and policy; handle resident casework and follow the council's conduct and interest rules.",
+      "routes": [
+        {
+          "id": "councillor-registered-party-route",
+          "kind": "registered-party",
+          "title": "Seek selection from a registered political party",
+          "description": "The party controls its own selection. A valid party certificate is then required to use its registered description on the ballot.",
+          "requirements": ["Follow the party's current local selection process.", "Obtain the authorised party certificate and any emblem request.", "Complete the same statutory nomination, agent and finance process as other candidates."],
+          "tradeoffs": ["A party may offer a local team, training, materials and campaign knowledge.", "The selection gate, timing and support vary by party and local organisation and are not set by election law."],
+          "sourceIds": ["lga-be-councillor", "ec-local-master"]
+        },
+        {
+          "id": "councillor-independent-route",
+          "kind": "independent",
+          "title": "Stand independently",
+          "description": "An independent candidate can use the permitted independent description or leave it blank and does not need a registered-party certificate.",
+          "requirements": ["Meet one of the statutory local-connection qualifications as well as the age and citizenship conditions.", "Build a campaign and compliance team or act as your own election agent.", "Submit the same nomination and keep the same candidate-finance records."],
+          "tradeoffs": ["There is no party-selection gate or party-label discipline.", "The candidate must replace party infrastructure with personal organisation, support and training."],
+          "sourceIds": ["lga-be-councillor", "lga-independent-candidate-school", "ec-local-master"]
+        }
+      ],
+      "eligibility": {
+        "minimumAge": 18,
+        "citizenship": ["British citizen", "Citizen of the Republic of Ireland", "Eligible Commonwealth citizen", "Qualifying EU citizen or EU citizen with retained rights under the current definitions"],
+        "localConnection": "In addition to age and citizenship, meet at least one statutory connection with the local authority area: electoral registration, qualifying occupation of land or premises, principal or only work, or residence for the required period. The electoral-registration route has an additional continuity rule if elected.",
+        "rules": [
+          {"id": "local-age-citizenship", "title": "Age and current citizenship category", "plainLanguage": "You must be at least 18 and fall within one of the current British, Irish, eligible Commonwealth or defined EU citizenship categories.", "appliesAt": "nomination-and-poll", "status": "current-law", "seekAdviceWhen": "EU treaty-country, retained-rights or Commonwealth immigration status is not clear.", "sourceIds": ["ec-local-qualifications"]},
+          {"id": "local-connection", "title": "At least one local connection", "plainLanguage": "You must satisfy at least one statutory local-area route based on electoral registration, qualifying land occupation, principal or only work, or residence, for the nomination and poll dates required by the law.", "appliesAt": "nomination-and-poll", "status": "current-law", "seekAdviceWhen": "The property, work, residence, register entry, area boundary or continuity dates are not straightforward.", "sourceIds": ["ec-local-qualifications"]},
+          {"id": "local-elector-route-continuity", "title": "The registered-elector route continues during office", "plainLanguage": "If elected on the local-government electoral-registration qualification, your name must remain on that authority's register throughout the term of office.", "appliesAt": "while-in-office", "status": "current-law", "seekAdviceWhen": "Your registration may end, move to another area or cease to cover the relevant authority during the term.", "sourceIds": ["ec-local-qualifications"]}
+        ],
+        "disqualifications": [
+          {"id": "local-council-employment", "title": "Employment and paid office under the council", "plainLanguage": "A paid office or employment under the relevant local authority can disqualify a candidate. Specified committees, subcommittees, joint boards, joint or combined authorities and joint committees can also fall within the rule; politically restricted posts have a separate restriction.", "appliesAt": "nomination-and-poll", "status": "current-law", "seekAdviceWhen": "You hold a paid office or work for the council or any committee, board, joint or combined authority connected with it.", "sourceIds": ["ec-local-qualifications"]},
+          {"id": "local-other-disqualifications", "title": "Bankruptcy, sentences, election offences and specified other bars", "plainLanguage": "Specified bankruptcy restrictions, a qualifying custodial sentence in the preceding period, corrupt or illegal practice findings and specified sex-offender or intimidatory-offence rules can disqualify a person.", "appliesAt": "nomination-and-poll", "status": "current-law", "seekAdviceWhen": "Any insolvency restriction, sentence, order or election-law finding may apply.", "sourceIds": ["ec-local-qualifications"]}
+        ],
+        "evaluation": {
+          "allowedOutcomes": ["eligible", "ineligible", "uncertain"],
+          "method": "Match atomic current rules to dated facts. Treat ambiguous employment, area, continuity, citizenship or disqualification facts as uncertain.",
+          "warning": "TaxSorted has not asked for your facts and gives no eligibility result. The Returning Officer and Electoral Commission cannot adjudicate every hard case; seek independent legal advice before signing an uncertain consent."
+        }
+      },
+      "nomination": {
+        "summary": "Deliver the nomination form, home-address form and witnessed consent to nomination, plus any party certificate and emblem request, to the Returning Officer. An ordinary principal-council candidate pays no deposit.",
+        "deadlineExpression": "No later than 4pm on the nineteenth working day before the poll; use the official notice and timetable.",
+        "eventDateRule": "Calculate from the poll and notice of election for the specific principal-council contest; do not reuse an old scheduled-election date.",
+        "documents": [
+          {"id": "local-nomination-form", "name": "Nomination form", "required": true, "originalNormallyRequired": true, "deliveryExceptions": [], "note": "Names the candidate and two valid ward or division subscribers."},
+          {"id": "local-home-address-form", "name": "Home address form", "required": true, "originalNormallyRequired": true, "deliveryExceptions": [], "note": "Submitted to the Returning Officer; TaxSorted never collects or republishes it."},
+          {"id": "local-consent-form", "name": "Consent to nomination", "required": true, "originalNormallyRequired": true, "deliveryExceptions": [], "note": "Records the asserted qualification and must be witnessed."},
+          {"id": "local-party-certificate", "name": "Party certificate and optional emblem request", "required": false, "originalNormallyRequired": true, "deliveryExceptions": ["The original party authorisation and emblem-request forms may be posted if they reach the Returning Officer by the deadline."], "note": "Needed only for a registered party description or emblem."}
+        ],
+        "delivery": ["The nomination, home-address and consent forms must be hand-delivered as the current notice and guidance specify.", "Original party authorisation and emblem-request forms may be posted, but they must reach the Returning Officer by the deadline; confirm the correct address and hours.", "A TaxSorted upload is never a nomination delivery route. Ask the Returning Officer to check informally before the deadline where that service is offered."],
+        "consentTiming": "The consent must be signed no earlier than one calendar month before the nomination deadline and delivered by that deadline.",
+        "subscribers": {
+          "count": 2,
+          "register": "The register in force for the election",
+          "geography": "the ward or electoral division",
+          "roles": ["proposer", "seconder"],
+          "limits": ["Only the first two subscribers can be considered.", "Both must be valid registered electors for the ward or division; legacy references to ten subscribers are stale."],
+          "sourceIds": ["ec-local-subscribers"]
+        },
+        "deposit": {
+          "applicable": false,
+          "amountMinor": null,
+          "currency": null,
+          "dueExpression": null,
+          "returnedWhen": null,
+          "note": "No deposit applies to an ordinary principal-council candidate. This is not a £0 deposit and must not be copied to mayoral or Parliamentary elections.",
+          "sourceIds": ["castle-point-no-deposit"]
+        },
+        "partyIdentity": {"registeredParty": "Requires an authorised certificate for a registered description and a separate emblem request.", "independent": "May use Independent or leave the description blank under the current guidance.", "emblem": "An independent candidate cannot use a registered party emblem."},
+        "sourceIds": ["ec-local-master", "ec-local-subscribers", "castle-point-no-deposit"]
+      },
+      "agent": {
+        "mandatory": true,
+        "defaultWhenNoneAppointed": "If no other election agent is appointed, the candidate becomes their own election agent.",
+        "appointmentDeadlineExpression": "No later than 4pm on the nineteenth working day before the poll; use the official event timetable.",
+        "responsibilities": ["Control and authorise candidate spending.", "Keep invoices, receipts and donation checks.", "Submit the candidate spending return and declarations.", "Appoint and coordinate other permitted agents."],
+        "addressRequirement": "Use an office address permitted for the election and published by the Returning Officer.",
+        "ineligiblePeople": ["The Returning Officer and their staff", "People excluded by the current candidate and agent guidance"],
+        "privacyNote": "TaxSorted uses only official institutional contact doors and never collects the agent's or candidate's home address.",
+        "sourceIds": ["ec-local-master"]
+      },
+      "finance": {
+        "regulatedPeriod": "For a scheduled election, the candidate regulated period begins on the day after the date the person officially becomes a candidate and ends on polling day; use the exact event rule for a by-election.",
+        "spendingLimit": {
+          "currency": "GBP",
+          "moneyUnit": "minor",
+          "expression": "£960 + 8p per local-government elector in the ward or division, with statutory reductions for joint candidates",
+          "baseMinor": 96000,
+          "rates": [{"when": "each local-government elector in the ward or division", "amountMinorPerElector": 8}],
+          "electorateDatum": "Use the elector figure supplied by the Returning Officer for the spending calculation.",
+          "jointCandidateAdjustments": [{"jointCandidateCount": 2, "reductionFraction": "reduce each candidate's limit by one quarter"}, {"jointCandidateCount": 3, "reductionFraction": "reduce each candidate's limit by one third for three or more joint candidates"}],
+          "warning": "The £960 base and 8p elector rate were brought into force on 21 November 2023 by SI 2023/1235. Recheck before every election and do not reuse them for a mayor or another election family.",
+          "sourceIds": ["candidate-spending-order-2023", "ec-local-master", "ec-candidate-finance"]
+        },
+        "donations": {
+          "currency": "GBP",
+          "thresholdMinor": 5000,
+          "comparator": "greater-than",
+          "controlledRule": "Money, goods or services worth more than £50 for the candidate campaign enter the candidate-donation rules and must come from a permissible source.",
+          "underThresholdRule": "Items worth £50 or less are not controlled candidate donations under this threshold, but spending records can still be required.",
+          "permissibleSources": ["An individual registered on a UK electoral register", "A qualifying UK-registered organisation listed in the current guidance", "Other sources permitted for this exact election"],
+          "checkingPeriodDays": 30,
+          "impermissibleDonationAction": "Return an impermissible or unidentifiable donation within the permitted period and keep the required record.",
+          "sourceIds": ["ec-local-master"]
+        },
+        "reportingDeadlines": [
+          {"id": "local-candidate-personal-expenses", "responsibleRole": "candidate", "trigger": "The election result is declared", "due": "Send the election agent a written statement of personal expenses within 21 calendar days after the result, including a statement that none were paid where applicable", "nilReturnRequired": false, "sourceIds": ["ec-local-master"]},
+          {"id": "local-invoice-received", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Receive campaign invoices within 21 calendar days after the result", "nilReturnRequired": false, "sourceIds": ["ec-local-master"]},
+          {"id": "local-invoice-paid", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Pay admissible campaign invoices within 28 calendar days after the result", "nilReturnRequired": false, "sourceIds": ["ec-local-master"]},
+          {"id": "local-agent-return", "responsibleRole": "agent", "trigger": "The election result is declared", "due": "Submit the spending return and agent declaration within 35 calendar days", "nilReturnRequired": true, "sourceIds": ["ec-local-master", "ec-candidate-finance"]},
+          {"id": "local-candidate-declaration", "responsibleRole": "candidate", "trigger": "The agent submits the return", "due": "Submit the candidate declaration within seven working days of the return; if outside the United Kingdom when it is due, submit it within 14 days after returning", "nilReturnRequired": true, "sourceIds": ["ec-local-master"]}
+        ],
+        "enforcement": ["Potential candidate-spending offences are handled through police and court routes, not decided by the council or TaxSorted.", "When a 21, 28 or 35-day reporting deadline falls on a weekend or public holiday, the current next-working-day rule applies; check the exact guide before filing.", "A successful candidate who has not delivered the required return or declaration is barred from sitting or voting and can forfeit £50 for each day they sit or vote while barred, subject to the statutory relief route."],
+        "sourceIds": ["candidate-spending-order-2023", "ec-local-master", "ec-candidate-finance"]
+      },
+      "takingOffice": [
+        {"order": 1, "action": "Make and deliver the declaration of acceptance of office", "deadline": "Before acting in the office and within two months unless the council permits a later date", "consequence": "Failure within the permitted period causes the office to become vacant", "sourceIds": ["local-government-act-1972-s83"]},
+        {"order": 2, "action": "Register disclosable pecuniary and other interests required by the authority", "deadline": "Within 28 days of taking office under the current framework", "consequence": "The Monitoring Officer, standards and criminal-law routes can apply to different failures", "sourceIds": ["lga-code-conduct"]}
+      ],
+      "remuneration": {
+        "kind": "local-allowance-scheme",
+        "currency": "GBP",
+        "amountMinor": null,
+        "period": "year",
+        "effectiveFrom": null,
+        "setter": "The local authority through its members' allowances scheme, informed by an independent remuneration panel",
+        "description": "A principal councillor is not paid one national salary. Each council publishes its own basic and special-responsibility allowances and expense rules.",
+        "businessCosts": "Travel, subsistence, caring and other claimable costs depend on the authority's scheme and are not the basic allowance.",
+        "taxTreatment": "Councillor allowances are generally taxable earnings; individual tax treatment depends on the facts and current law.",
+        "examples": [
+          {"authority": "Wyre Forest District Council", "financialYear": "2026-27", "basicAllowanceMinor": 526100, "sourceIds": ["wyre-forest-allowance-2026"]},
+          {"authority": "Somerset Council", "financialYear": "2026-27", "basicAllowanceMinor": 1665100, "sourceIds": ["somerset-allowance-2026"]}
+        ],
+        "sourceIds": ["hmrc-councillor-allowances", "hmrc-councillor-tax-treatment", "wyre-forest-allowance-2026", "somerset-allowance-2026"]
+      },
+      "officeObligations": [
+        {"id": "councillor-code-interests", "trigger": "Taking and holding office", "action": "Follow the authority's adopted Code of Conduct and keep required interests registered", "deadline": "Initial registration within 28 days and updates under the adopted rules", "consequence": "Monitoring Officer, standards, correction and separate criminal routes can apply", "oversight": "The council's Monitoring Officer and standards arrangements; use the authority's adopted code, not the model alone", "sourceIds": ["lga-code-conduct"]},
+        {"id": "councillor-attendance", "trigger": "Six consecutive months without qualifying attendance", "action": "Attend a qualifying meeting or obtain approval for the reason for absence before the statutory period expires", "deadline": "Before the end of the six-month period", "consequence": "The person ceases to be a member unless the statutory approval route applies", "oversight": "The local authority applies section 85 to the specific meeting and approval facts", "sourceIds": ["local-government-act-1972-s85"]}
+      ],
+      "contacts": [
+        {"id": "local-contact-ec-guide", "label": "English local-government candidate and agent guidance", "organisation": "Electoral Commission", "role": "Rules and compliance guidance", "url": "https://www.electoralcommission.org.uk/full-guidance/guidance-candidates-and-agents-local-government-elections-england", "scope": "Principal-council general guidance; it does not receive nominations or certify eligibility", "sourceIds": ["ec-local-master"]},
+        {"id": "local-contact-lga", "label": "Be a Councillor", "organisation": "Local Government Association", "role": "Role orientation and public support", "url": "https://www.local.gov.uk/be-councillor", "scope": "Orientation and training; current legal details stay with the Electoral Commission and Returning Officer", "sourceIds": ["lga-be-councillor"]}
+      ],
+      "supportRouteIds": ["support-electoral-commission", "support-lga-councillor", "support-lga-independent", "support-election-officer", "support-registered-party", "support-candidate-safety"],
+      "barrierIds": ["barrier-legal-complexity", "barrier-financial", "barrier-time-administration", "barrier-party-selection", "barrier-local-variation", "barrier-disclosure-privacy", "barrier-safety-abuse", "barrier-access-support"],
+      "sourceIds": ["ec-local-master", "ec-local-qualifications", "ec-local-subscribers", "lga-be-councillor", "local-government-act-1972-s83", "hmrc-councillor-allowances"],
+      "notLegalAdvice": "This pathway explains public sources and does not determine any person's eligibility, accept a nomination or replace the current official guide or independent legal advice."
+    }
+  ],
+  "supportRoutes": [
+    {
+      "id": "support-electoral-commission",
+      "title": "Choose the exact candidate and agent guide",
+      "provider": "Electoral Commission",
+      "availability": "free-public",
+      "purpose": "Current election-specific rules, forms, spending guidance and reporting requirements.",
+      "helpsWith": ["Qualifications and disqualifications", "Nomination", "Agents", "Spending, donations and returns"],
+      "access": "Public website, no TaxSorted account; contact routes are listed by the Commission.",
+      "limitation": "The Commission gives guidance but does not certify an individual's eligibility or receive every nomination.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "sourceIds": ["ec-candidates-agents-hub", "ec-mp-master", "ec-local-master"]
+    },
+    {
+      "id": "support-parliament-mp",
+      "title": "Understand the MP role and public entry route",
+      "provider": "UK Parliament",
+      "availability": "free-public",
+      "purpose": "Role orientation, eligibility overview and hand-off to detailed candidate guidance.",
+      "helpsWith": ["Understanding Parliamentary work", "Seeing party and independent routes", "Finding official next steps"],
+      "access": "Public website and downloadable information.",
+      "limitation": "Parliament does not select party candidates or replace election-specific Electoral Commission guidance.",
+      "officePathIds": ["uk-mp-great-britain"],
+      "sourceIds": ["parliament-become-mp", "parliament-mp-role"]
+    },
+    {
+      "id": "support-lga-councillor",
+      "title": "Explore becoming a councillor",
+      "provider": "Local Government Association",
+      "availability": "free-public",
+      "purpose": "Role explanation, first steps, stories, events and party or independent orientation.",
+      "helpsWith": ["Understanding councillor work", "Finding public training", "Making first local contacts"],
+      "access": "Public website and advertised events; the campaign states that it is UK Government funded.",
+      "limitation": "It is not the statutory rule-maker and does not cover every council or election variant in one rule set.",
+      "officePathIds": ["england-principal-councillor"],
+      "sourceIds": ["lga-be-councillor"]
+    },
+    {
+      "id": "support-lga-independent",
+      "title": "Use independent and smaller-party candidate learning",
+      "provider": "Local Government Association Independent Group",
+      "availability": "free-public",
+      "purpose": "Candidate School and guidance on law, manifestos, canvassing, social media, expenses and polling day.",
+      "helpsWith": ["Independent route readiness", "Campaign administration", "Practical local-election knowledge"],
+      "access": "Public guidance and time-limited events or cohorts when offered.",
+      "limitation": "Availability and eligibility can vary; it is support, not nomination or legal certification.",
+      "officePathIds": ["england-principal-councillor"],
+      "sourceIds": ["lga-independent-candidate-school"]
+    },
+    {
+      "id": "support-election-officer",
+      "title": "Contact the proper election administrator",
+      "provider": "Acting Returning Officer or Returning Officer",
+      "availability": "local-event-specific",
+      "purpose": "Obtain the live notice, timetable, nomination pack, delivery instructions and official electorate figure.",
+      "helpsWith": ["Event deadlines", "Nomination delivery", "Agent appointment", "Candidate spending electorate figure"],
+      "access": "Use the official election notice or council election office; the person and contact details vary by event.",
+      "limitation": "The officer administers the process but cannot give general legal advice or decide every eligibility dispute.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "sourceIds": ["ec-mp-master", "ec-local-master"]
+    },
+    {
+      "id": "support-registered-party",
+      "title": "Ask a registered party about selection and training",
+      "provider": "The candidate's chosen registered political party",
+      "availability": "party-controlled",
+      "purpose": "Explain the party's membership, approval, selection, campaign and internal conduct process.",
+      "helpsWith": ["Party selection", "Party label authorisation", "Local campaign organisation"],
+      "access": "Controlled by each party and local or national organisation; requirements can change.",
+      "limitation": "TaxSorted does not rank parties, link a person to an ideology or treat selection practice as election law.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "sourceIds": ["parliament-become-mp", "ec-mp-nomination", "lga-be-councillor", "ec-local-master"]
+    },
+    {
+      "id": "support-candidate-safety",
+      "title": "Make a candidate safety and abuse-reporting plan",
+      "provider": "UK Government, Electoral Commission and police where appropriate",
+      "availability": "free-public",
+      "purpose": "Protective, cyber and information-security preparation plus routes for harassment and intimidation.",
+      "helpsWith": ["Personal and event safety", "Digital security", "Recording and reporting harassment", "High-risk planning"],
+      "access": "Public guidance; use police or emergency services for crimes, threats or immediate danger.",
+      "limitation": "A web guide is not an emergency response or a guarantee against harm.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "sourceIds": ["gov-candidate-security", "ec-harassment-intimidation"]
+    }
+  ],
+  "barriers": [
+    {
+      "id": "barrier-legal-complexity",
+      "title": "Eligibility is a legal test with hard edge cases",
+      "kind": "legal-complexity",
+      "mechanism": "Rules combine age, citizenship, office or employment status, insolvency, sentences and election-law restrictions at exact dates.",
+      "intendedSafeguard": "Protect the eligibility and independence requirements set by Parliament for the office.",
+      "burden": ["A person bears responsibility for the consent statement.", "Neither TaxSorted nor an election administrator can safely collapse every case into a yes or no."],
+      "lawfulLowFrictionRoutes": ["Start with the exact current candidate guide.", "Collect the dates and legal status needed for a difficult issue before nomination week.", "Use independent legal advice when the guidance says the case is complex."],
+      "doesNotMean": "Complexity does not give a party, platform or administrator power to invent extra statutory qualifications.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-electoral-commission", "support-election-officer"],
+      "sourceIds": ["ec-mp-qualifications", "ec-mp-disqualifications", "ec-local-qualifications"]
+    },
+    {
+      "id": "barrier-financial",
+      "title": "The route has money gates and compliance costs",
+      "kind": "financial",
+      "mechanism": "An MP candidate needs a £500 deposit and both offices have spending limits, donation checks, invoices, records and returns.",
+      "intendedSafeguard": "Limit campaign spending, expose regulated money and deter unserious Parliamentary nominations without making wealth a legal qualification.",
+      "burden": ["The MP deposit can be lost.", "Campaign administration has a real time cost even when spending is small.", "An ordinary councillor has no deposit but still has finance duties."],
+      "lawfulLowFrictionRoutes": ["Separate the deposit from the campaign budget.", "Become your own agent only after understanding the duties.", "Use the official formula and keep records from the first regulated day."],
+      "doesNotMean": "A spending limit is not a target, and expenses or public-office business costs are not personal income.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-electoral-commission", "support-lga-independent"],
+      "sourceIds": ["ec-mp-deposit", "ec-candidate-finance", "ec-local-master", "castle-point-no-deposit"]
+    },
+    {
+      "id": "barrier-time-administration",
+      "title": "Short deadlines make late learning expensive",
+      "kind": "time-and-administration",
+      "mechanism": "Nomination, agent appointment, invoices, payment, returns and declarations have linked event-relative deadlines.",
+      "intendedSafeguard": "Give administrators a final ballot, create equal time boundaries and preserve an auditable finance record.",
+      "burden": ["A missed deadline can end a nomination or create post-election sanctions.", "The legal work arrives while the candidate is also campaigning and working or caring."],
+      "lawfulLowFrictionRoutes": ["Learn the form and finance structure before an election is called.", "Use the published event timetable as the only calendar source.", "Assign a named owner and backup for every document and return."],
+      "doesNotMean": "A generic checklist can never override a live notice of election or extend a statutory deadline.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-electoral-commission", "support-election-officer"],
+      "sourceIds": ["ec-mp-nomination", "ec-mp-agent", "ec-mp-master", "ec-local-master"]
+    },
+    {
+      "id": "barrier-party-selection",
+      "title": "Party selection is a private gate beside public law",
+      "kind": "party-selection",
+      "mechanism": "A registered party controls who may use its label even when a person satisfies every statutory qualification.",
+      "intendedSafeguard": "Protect a party's registered identity and collective choice of candidates.",
+      "burden": ["Selection rules, timing, fees, vetting and local influence can vary.", "Deep practical campaign knowledge is often held inside party networks."],
+      "lawfulLowFrictionRoutes": ["Ask for the written current selection process early.", "Keep selection milestones separate from the statutory timetable.", "Use the independent route if that genuinely fits the intended public work and support plan."],
+      "doesNotMean": "Party rejection is not a statutory finding that a person cannot stand independently.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-registered-party", "support-parliament-mp", "support-lga-councillor", "support-lga-independent"],
+      "sourceIds": ["parliament-become-mp", "ec-mp-nomination", "lga-be-councillor", "lga-independent-candidate-school"]
+    },
+    {
+      "id": "barrier-local-variation",
+      "title": "Local office, allowance and support vary by council",
+      "kind": "local-variation",
+      "mechanism": "Each authority has its own election cycle, adopted code, allowance scheme, meetings, local issues and support arrangements within national law.",
+      "intendedSafeguard": "Local self-government lets the authority organise and publish arrangements for its circumstances within the legal framework.",
+      "burden": ["There is no single national councillor pay figure.", "A candidate has to find the correct local notice, scheme and Monitoring Officer route."],
+      "lawfulLowFrictionRoutes": ["Use the council's official election and constitution pages.", "Compare the basic allowance, special-responsibility allowance and expense scheme separately.", "Ask the council election office and Monitoring Officer role-based contacts."],
+      "doesNotMean": "Two published council examples define neither a national range nor what another authority will pay.",
+      "officePathIds": ["england-principal-councillor"],
+      "supportRouteIds": ["support-lga-councillor", "support-election-officer"],
+      "sourceIds": ["lga-be-councillor", "lga-code-conduct", "wyre-forest-allowance-2026", "somerset-allowance-2026"]
+    },
+    {
+      "id": "barrier-disclosure-privacy",
+      "title": "Public accountability requires some disclosure",
+      "kind": "disclosure-and-privacy",
+      "mechanism": "Candidate and agent appointments, spending returns and elected-office interests enter different public or institution-held records.",
+      "intendedSafeguard": "Let electors, regulators and standards bodies see who is responsible and identify relevant financial interests.",
+      "burden": ["A candidate must understand what address and finance information becomes public.", "Entry into office creates continuing interest-registration duties."],
+      "lawfulLowFrictionRoutes": ["Use the current permitted home-address and agent-office-address options.", "Keep a separate disclosure calendar after election.", "Publish only what the law or official process requires; do not feed extra personal data to TaxSorted."],
+      "doesNotMean": "Public office removes neither data-protection rights nor the need to keep home and family details out of unrelated datasets.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-electoral-commission", "support-candidate-safety"],
+      "sourceIds": ["ec-mp-agent", "ec-mp-nomination", "ec-local-master", "commons-register-interests", "lga-code-conduct"]
+    },
+    {
+      "id": "barrier-safety-abuse",
+      "title": "Harassment and intimidation can exclude people in practice",
+      "kind": "safety-and-abuse",
+      "mechanism": "Public visibility, canvassing, events and digital communication can expose candidates and their families or teams to abuse, threats and information-security risk.",
+      "intendedSafeguard": "Security guidance and reporting routes aim to protect democratic participation and distinguish robust debate from unlawful conduct.",
+      "burden": ["Safety planning consumes time and can deter participation.", "Some threats need police or emergency action rather than platform moderation."],
+      "lawfulLowFrictionRoutes": ["Make the safety, cyber and information plan before public launch.", "Record and report incidents through the appropriate police, platform and election routes.", "Use role-based contact details and the available address protections."],
+      "doesNotMean": "Abuse is not a test of commitment, and no candidate has to accept crime or intimidation as normal politics.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-candidate-safety"],
+      "sourceIds": ["gov-candidate-security", "ec-harassment-intimidation"]
+    },
+    {
+      "id": "barrier-access-support",
+      "title": "Knowledge and human support are unevenly distributed",
+      "kind": "access-and-support",
+      "mechanism": "Official law is public, but confidence, mentoring, agent practice, local networks, caring capacity and campaign experience are often supplied through selective or local organisations.",
+      "intendedSafeguard": "There is no single intended legal safeguard; this is a practical market structure rather than a statutory qualification.",
+      "burden": ["People outside established networks may find the lawful route but lack practical help.", "Free programmes and local events can have audience, cohort or timing limits."],
+      "lawfulLowFrictionRoutes": ["Use free official orientation before buying support.", "Ask providers exactly which stage, audience, date and cost they cover.", "Treat specialist representation programmes as complements to a universal public route."],
+      "doesNotMean": "A missing network is not lack of legal qualification or public-service ability.",
+      "officePathIds": ["uk-mp-great-britain", "england-principal-councillor"],
+      "supportRouteIds": ["support-parliament-mp", "support-lga-councillor", "support-lga-independent", "support-electoral-commission"],
+      "sourceIds": ["parliament-become-mp", "lga-be-councillor", "lga-independent-candidate-school", "ec-candidates-agents-hub"]
+    }
+  ],
+  "coverageGaps": [
+    {
+      "id": "gap-mp-northern-ireland",
+      "title": "UK Parliamentary elections in Northern Ireland",
+      "status": "intentionally-not-generalised",
+      "officeTypes": ["Member of the UK Parliament elected in Northern Ireland"],
+      "whySeparate": "Northern Ireland has separate election administration and political-donation rules and its own candidate guidance.",
+      "safeFallback": "Use the Electoral Commission's Northern Ireland guide and the Electoral Office for Northern Ireland for the event timetable.",
+      "sourceIds": ["ec-candidates-agents-hub", "ec-mp-master"]
+    },
+    {
+      "id": "gap-other-local-elections",
+      "title": "Parish, town, mayoral, GLA, PCC and non-English local elections",
+      "status": "intentionally-not-generalised",
+      "officeTypes": ["Parish or town councillor", "Local or combined-authority mayor", "Mayor of London or GLA member", "Police and Crime Commissioner", "Councillor outside England"],
+      "whySeparate": "The office subtype and nation change qualifications, subscribers, deposits, agent models, electoral systems, finance and pay.",
+      "safeFallback": "Choose the exact election and jurisdiction at the Electoral Commission candidate-and-agent hub.",
+      "sourceIds": ["ec-candidates-agents-hub", "ec-local-master"]
+    },
+    {
+      "id": "gap-devolved-legislatures",
+      "title": "Scottish Parliament, Senedd and Northern Ireland Assembly",
+      "status": "intentionally-not-generalised",
+      "officeTypes": ["MSP", "Member of the Senedd", "MLA"],
+      "whySeparate": "Constituency and list routes, electoral systems, deposits, nomination documents, party statements and post-election duties differ.",
+      "safeFallback": "Use the relevant legislature's role guide and exact Electoral Commission election guide.",
+      "sourceIds": ["ec-candidates-agents-hub"]
+    },
+    {
+      "id": "gap-live-election-events",
+      "title": "Live election notices, packs and calendar dates",
+      "status": "event-data-not-loaded",
+      "officeTypes": ["Every covered office at a particular election"],
+      "whySeparate": "A static law map cannot know that an election has been called or safely invent its notice, administrator, electorate or delivery place.",
+      "safeFallback": "Obtain the official notice and candidate pack from the acting returning officer or Returning Officer and use those event dates.",
+      "sourceIds": ["ec-mp-master", "ec-local-master"]
+    }
+  ],
+  "legalWatch": [
+    {
+      "id": "watch-representation-people-bill-2026",
+      "title": "Representation of the People Bill 2026",
+      "status": "proposed",
+      "checkedOn": "2026-07-15",
+      "affects": ["Voting age", "Political donations and expenditure", "Election-agent addresses", "Electoral Commission enforcement", "Harassment and intimidation offences"],
+      "possibleChanges": ["Extend voting rights to 16 and 17 year olds", "Change political-finance and donation rules, including a proposed £100,000 annual cap for overseas-elector donations", "Change agent-address and enforcement provisions"],
+      "currentLawImpact": "None of these proposals is merged into the current candidate pathways. The Bill completed Commons third reading on 14 July 2026 but had not received Royal Assent on the review date.",
+      "activateOnlyWhen": "Parliament enacts the final text and the relevant provision is commenced and applies to the election being mapped.",
+      "possibleEffectiveFrom": null,
+      "possibleRetrospectiveAnchor": "2026-03-25",
+      "sourceIds": ["representation-people-bill-2026", "ec-mp-master"]
+    }
+  ]
+}
