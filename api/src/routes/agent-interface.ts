@@ -13,6 +13,11 @@ import {
   type OpenDataRouteOptions,
 } from "./open-data.js";
 import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
+import {
+  professionalToolsAccess,
+  professionalToolsOpenApiPath,
+  professionalToolsPath,
+} from "../professional-tools-contract.js";
 import { ukCharities } from "../uk-charities.js";
 import {
   whyGraphAdoptersPath,
@@ -36,6 +41,7 @@ const taxExpertManifestPath = "/v1/uk/tax-expert";
 const taxExpertAssessmentPath =
   "/v1/uk/tax-expert/mtd-income-tax/assessments";
 const taxExpertOpenApiPath = "/openapi/tax-expert-uk.json";
+const sdltCalculationPath = "/v1/uk/sdlt/calculations";
 
 export const xeniaAttribution = {
   name: "XENIA",
@@ -88,6 +94,23 @@ observer-accountability: GET ${apiOrigin}${observerAccountabilityPath}
 observer-accountability-schema: GET ${apiOrigin}${observerAccountabilitySchemaPath}
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+professional-tools: GET ${apiOrigin}${professionalToolsPath}
+professional-tools-openapi: GET ${apiOrigin}${professionalToolsOpenApiPath}
+professional-tools-status: credentialed design partner; two executable stateless tasks
+professional-tools-audiences: solicitors and conveyancers; accountants and tax advisers
+professional-tools-access: operator-issued workspace keys for existing design partners
+professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake
+professional-tools-data-boundary: the key identifies the calling workspace; minimized financial or transaction facts may still be personal data without direct identifiers
+professional-tools-client-matter-records: none
+professional-tools-filing: none; the separate browser HMRC rail is sandbox-only and is not connected to workspace-key tasks
+professional-tools-evidence-archive: none; caller must retain the exact request, response, X-Request-ID, versions, sources and professional sign-off
+professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, key lifecycle, high-availability contract or SLA
+sdlt-calculation: POST ${apiOrigin}${sdltCalculationPath}
+sdlt-calculation-required-scope: sdlt:calculate
+sdlt-calculation-kind: stateless deterministic computation for one ordinary residential dwelling in England or Northern Ireland
+sdlt-calculation-review-boundary: recognised complex, unknown, out-of-scope or future-effective-date cases return needs_review without a tax figure
+sdlt-calculation-effects: calculation only; no client record, return preparation, filing or external state change
+sdlt-calculation-trust: request hash covers normalized facts and ruleset revision; evaluatedOn reports the separate server-date boundary
 tax-expert-manifest: GET ${apiOrigin}${taxExpertManifestPath}
 tax-expert-openapi: GET ${apiOrigin}${taxExpertOpenApiPath}
 tax-expert-assessment: POST ${apiOrigin}${taxExpertAssessmentPath}
@@ -104,7 +127,8 @@ tax-expert-assessment-effects: classification only; no signup, filing or externa
 tax-expert-assessment-cache: no-store
 tax-expert-assessment-cors: server-to-server; browser bearer calls are not supported
 tax-expert-assessment-repeatability: same facts, trusted server evaluation date and admitted ruleset/source ledger
-tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe
+tax-expert-assessment-retry-effects: none; no application state write or external submission
+tax-expert-assessment-result-stability: not byte-stable across trusted evaluation date or admitted ruleset/source ledger changes
 tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract; request fact values are not echoed in errors
 corrections: ${correctionsUrl}
 authentication: none on this doorway and public read resources
@@ -407,6 +431,7 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         },
         taskSlices: {
           taxExpert: taxExpertOpenApiPath,
+          professionalTools: professionalToolsOpenApiPath,
         },
       },
       releases: releaseDiscoveryHandles,
@@ -479,6 +504,36 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           graphIsDerivedNotCanonical: true,
         },
       },
+      professionalTools: {
+        publicManifest: {
+          method: "GET",
+          href: professionalToolsPath,
+          authentication: "none",
+        },
+        taskContract: {
+          method: "GET",
+          href: professionalToolsOpenApiPath,
+          authentication: "none",
+        },
+        status: "credentialed-design-partner",
+        audiences: [
+          "solicitors-and-conveyancers",
+          "accountants-and-tax-advisers",
+        ],
+        executableTaskCount: 2,
+        access: {
+          ...professionalToolsAccess,
+          authentication: "Bearer TaxSorted workspace key",
+          intendedClient: "server-to-server",
+        },
+        boundaries: {
+          clientOrMatterRecords: false,
+          portfolioOrBatchOperations: false,
+          filingOrSubmission: false,
+          immutableEvidenceArchive: false,
+          productionSla: false,
+        },
+      },
       taxExpert: {
         humanHref: `${humanOrigin}/uk/tax-expert`,
         publicManifest: {
@@ -524,6 +579,18 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           repeatabilityBoundary:
             "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
           idempotency: "not-declared",
+          idempotencyMeaning:
+            "no-Idempotency-Key-protocol; duplicate-calls-have-no-state-effect",
+          retry: {
+            applicationOrExternalStateChange: false,
+            duplicateRequestStateEffect: "none",
+            byteStabilityGuaranteedAcrossTime: false,
+            compareWhenRepeating: [
+              "capability version",
+              "evaluatedOn and knowledgeAsOf",
+              "source IDs, retrievedOn and reviewDueOn",
+            ],
+          },
           errorContract: {
             mediaType: "application/json",
             schema: "TaxExpertApiError",
@@ -656,6 +723,14 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         accepts: ["application/json"],
         description:
           "List current graph-producing endpoints, native subject versions, access boundaries and adopter-owned semantic checks.",
+      },
+      {
+        id: "inspect-professional-tools",
+        method: "GET",
+        href: professionalToolsPath,
+        accepts: ["application/json"],
+        description:
+          "Read the two executable professional tasks, complete examples, access gap, audit responsibilities and capabilities that are not live.",
       },
       {
         id: "inspect-tax-expert-task-contract",

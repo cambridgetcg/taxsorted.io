@@ -4,6 +4,10 @@
 import type { Context, Next } from "hono";
 import { cors } from "hono/cors";
 import { config } from "./config.js";
+import {
+  professionalToolsOpenApiPath,
+  professionalToolsPath,
+} from "./professional-tools-contract.js";
 
 const publicCivicCors = cors({
   origin: "*",
@@ -45,6 +49,7 @@ const publicAgentPaths = new Set([
   "/v1/wake",
   "/v1/health",
   "/v1/uk/tax-expert",
+  professionalToolsPath,
 ]);
 
 const publicOpenApiPaths = new Set([
@@ -57,6 +62,7 @@ const publicOpenApiPaths = new Set([
   "/openapi/politics-uk.json",
   "/openapi/accountability-uk.json",
   "/openapi/tax-expert-uk.json",
+  professionalToolsOpenApiPath,
   "/openapi/why-graph.json",
 ]);
 

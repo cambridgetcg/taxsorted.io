@@ -7,8 +7,8 @@ The truth, plainly:
 - **Frontend** — Next.js static export on **Cloudflare Pages** (project `taxsorted`).
   A push to `main` deploys it only after the API release and its live checks succeed.
 - **API** — Hono on **Fly.io** in London with Postgres. The release workflow deploys the
-  API first and checks both its public contracts and one authenticated, stateless tax-expert
-  answer before the frontend can move.
+  API first and checks its public contracts plus authenticated, stateless SDLT and tax-expert
+  answers before the frontend can move.
 - **CI** — `.github/workflows/deploy.yml` runs tests, typechecks, data validators, a
   high-severity production dependency audit and the static build on every push to `main`.
   It deploys the Fly API first, then Cloudflare Pages only after Fly succeeds. Both deployment
@@ -66,11 +66,12 @@ The canonical-host redirect lives in Cloudflare Dynamic Redirect ruleset
 `bbd9c61626624d659d5caaed3208eaf0`). DNSSEC uses key tag `2371`, algorithm `13`,
 and digest type `2`. These identifiers are operational metadata, not secrets.
 
-The authenticated release canary uses a test-mode workspace key with only the
-`tax-expert:assess` scope. Its plaintext exists only as the GitHub Actions secret
-`TAX_EXPERT_CANARY_API_KEY`; Postgres stores its digest. It expires on 12 July 2027. The
-off-switch is to revoke that database key and delete the GitHub secret; rotate both before the
-expiry rather than removing the success-path check.
+The authenticated release canaries use one test-mode workspace key with the
+`tax-expert:assess` and `sdlt:calculate` scopes. Its plaintext exists only as the GitHub Actions
+secret `TAX_EXPERT_CANARY_API_KEY`; Postgres stores its digest. The secret and database workspace
+names predate the SDLT canary. It expires on 12 July 2027. The off-switch is to revoke that database
+key and delete the GitHub secret; rotate both before the expiry rather than removing either
+success-path check.
 
 ## What comes next
 

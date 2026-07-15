@@ -5,6 +5,11 @@ import {
   SDLT_RULESET,
   type ResidentialSdltInput,
 } from "@taxsorted/engine/uk/sdlt";
+import { sdltCalculationRequestExample } from "../professional-tools-examples.js";
+import {
+  professionalAuthenticationResponseHeaders,
+  professionalTaskResponseHeaders,
+} from "../professional-tools-contract.js";
 
 const Jurisdiction = z.enum([
   "england",
@@ -97,6 +102,7 @@ const TrustSchema = z
   .object({
     method: z.literal("deterministic"),
     requestHash: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    evaluatedOn: z.iso.date(),
     ruleset: z.object({
       id: z.string(),
       revision: z.string(),
@@ -182,6 +188,28 @@ const ErrorSchema = z
     error: z.string(),
     message: z.string(),
     requestId: z.string().optional(),
+    requiredScope: z.string().optional(),
+    access: z
+      .object({
+        availability: z.literal("credentialed-design-partner"),
+        publicSelfServiceKeyProvisioning: z.literal(false),
+        confidentialAccessRequestIntake: z.literal(false),
+        browserAccountProvidesWorkspaceKey: z.literal(false),
+        workspaceKeyIdentifiesCallingWorkspace: z.literal(true),
+        requestFactsMayBePersonalData: z.literal(true),
+      })
+      .optional(),
+    nextActions: z
+      .array(
+        z.object({
+          id: z.string(),
+          method: z.literal("GET"),
+          href: z.string(),
+          accepts: z.array(z.string()),
+          description: z.string(),
+        }),
+      )
+      .optional(),
     issues: z
       .array(z.object({ path: z.string(), code: z.string(), message: z.string() }))
       .optional(),
@@ -191,6 +219,18 @@ const ErrorSchema = z
 const calculateRoute = createRoute({
   method: "post",
   path: "/calculations",
+  "x-taxsorted-required-workspace-scopes": ["sdlt:calculate"],
+  "x-taxsorted-retry": {
+    applicationOrExternalStateChange: false,
+    duplicateRequestStateEffect: "none",
+    byteStabilityGuaranteedAcrossTime: false,
+    compareWhenRepeating: [
+      "request hash",
+      "server evaluation date",
+      "ruleset revision",
+      "source review dates",
+    ],
+  },
   operationId: "calculateResidentialSdlt",
   summary: "Calculate one ordinary residential SDLT transaction",
   description:
@@ -201,17 +241,22 @@ const calculateRoute = createRoute({
     body: {
       required: true,
       content: {
-        "application/json": { schema: SdltCalculationRequestSchema },
+        "application/json": {
+          schema: SdltCalculationRequestSchema,
+          example: sdltCalculationRequestExample,
+        },
       },
     },
   },
   responses: {
     400: {
       description: "The request body is not valid JSON.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     200: {
       description: "A calculated result, or an explicit needs-review outcome.",
+      headers: professionalTaskResponseHeaders,
       content: {
         "application/json": {
           schema: z.discriminatedUnion("status", [CalculatedSchema, NeedsReviewSchema]),
@@ -220,26 +265,32 @@ const calculateRoute = createRoute({
     },
     401: {
       description: "The workspace key is missing, malformed, expired or revoked.",
+      headers: professionalAuthenticationResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     403: {
       description: "The workspace key lacks the sdlt:calculate scope.",
+      headers: professionalAuthenticationResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     413: {
       description: "The request body is larger than 16 KiB.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     415: {
       description: "The request body is not application/json.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     422: {
       description: "The JSON shape is invalid.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
     500: {
       description: "An unexpected server error. Request facts are never echoed.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: ErrorSchema } },
     },
   },
@@ -315,8 +366,9 @@ export function createSdltRoutes(options: SdltRouteOptions = {}) {
       );
     }
 
+    const evaluatedOn = today();
     const boundedResult =
-      input.effectiveDate > today()
+      input.effectiveDate > evaluatedOn
         ? {
             status: "needs_review" as const,
             calculation: null,
@@ -339,6 +391,7 @@ export function createSdltRoutes(options: SdltRouteOptions = {}) {
         trust: {
           ...boundedResult.trust,
           requestHash: hash,
+          evaluatedOn,
         },
       },
       200

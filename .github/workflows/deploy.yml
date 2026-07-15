@@ -205,7 +205,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${TAX_EXPERT_CANARY_API_KEY}" ]; then
-            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove the authenticated why-graph path.' >&2
+            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove the authenticated SDLT and tax-expert paths.' >&2
             exit 1
           fi
           for path in \
@@ -223,6 +223,7 @@ jobs:
             /openapi/accountability-uk.json \
             /openapi/why-graph.json \
             /openapi/tax-expert-uk.json \
+            /openapi/professional-tools-uk.json \
             /v1/open-data \
             /v1/open-data/releases \
             /v1/open-data/releases/feed.json \
@@ -241,6 +242,7 @@ jobs:
             /v1/why-graph \
             /v1/why-graph/adopters \
             /v1/why-graph/schema \
+            /v1/uk/professional-tools \
             /v1/uk/tax-expert \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
@@ -303,6 +305,27 @@ jobs:
             'charity-tax-treatment-why-graph: GET https://api.taxsorted.io/v1/charities/uk/tax-treatments/{id}/why-graph' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
+            'professional-tools: GET https://api.taxsorted.io/v1/uk/professional-tools' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-tools-openapi: GET https://api.taxsorted.io/openapi/professional-tools-uk.json' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-tools-data-boundary: the key identifies the calling workspace; minimized financial or transaction facts may still be personal data without direct identifiers' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, key lifecycle, high-availability contract or SLA' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'sdlt-calculation: POST https://api.taxsorted.io/v1/uk/sdlt/calculations' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'sdlt-calculation-required-scope: sdlt:calculate' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
             'tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
@@ -321,7 +344,10 @@ jobs:
             'tax-expert-assessment-request-fact-storage: not written to application storage' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
-            'tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe' \
+            'tax-expert-assessment-retry-effects: none; no application state write or external submission' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'tax-expert-assessment-result-stability: not byte-stable across trusted evaluation date or admitted ruleset/source ledger changes' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'tax-expert-assessment-cors: server-to-server; browser bearer calls are not supported' \
@@ -874,6 +900,7 @@ jobs:
             .resources.openApi.frameworkSlices.accountability == "/openapi/accountability-uk.json" and
             .resources.openApi.frameworkSlices.whyGraph == "/openapi/why-graph.json" and
             .resources.openApi.taskSlices.taxExpert == "/openapi/tax-expert-uk.json" and
+            .resources.openApi.taskSlices.professionalTools == "/openapi/professional-tools-uk.json" and
             .access.linkedTaskAccessDeclaredSeparately == true and
             .access.methods == ["GET", "HEAD", "OPTIONS"] and
             (.access.appliesTo | index("/v1/uk/tax-expert/mtd-income-tax/assessments") | not) and
@@ -892,7 +919,24 @@ jobs:
             .resources.taxExpert.assessment.browserCors == "not-supported-for-bearer-assessment" and
             .resources.taxExpert.assessment.browserCorsAuthorizationHeaderAllowed == false and
             .resources.taxExpert.assessment.idempotency == "not-declared" and
+            .resources.taxExpert.assessment.idempotencyMeaning == "no-Idempotency-Key-protocol; duplicate-calls-have-no-state-effect" and
+            .resources.taxExpert.assessment.retry.applicationOrExternalStateChange == false and
+            .resources.taxExpert.assessment.retry.duplicateRequestStateEffect == "none" and
+            .resources.taxExpert.assessment.retry.byteStabilityGuaranteedAcrossTime == false and
             .resources.taxExpert.assessment.errorContract.requestFactValuesEchoedInErrors == false and
+            .resources.professionalTools.publicManifest.href == "/v1/uk/professional-tools" and
+            .resources.professionalTools.taskContract.href == "/openapi/professional-tools-uk.json" and
+            .resources.professionalTools.status == "credentialed-design-partner" and
+            .resources.professionalTools.executableTaskCount == 2 and
+            .resources.professionalTools.access.availability == "credentialed-design-partner" and
+            .resources.professionalTools.access.publicSelfServiceKeyProvisioning == false and
+            .resources.professionalTools.access.confidentialAccessRequestIntake == false and
+            .resources.professionalTools.access.browserAccountProvidesWorkspaceKey == false and
+            .resources.professionalTools.access.workspaceKeyIdentifiesCallingWorkspace == true and
+            .resources.professionalTools.access.requestFactsMayBePersonalData == true and
+            .resources.professionalTools.boundaries.clientOrMatterRecords == false and
+            .resources.professionalTools.boundaries.filingOrSubmission == false and
+            .resources.professionalTools.boundaries.immutableEvidenceArchive == false and
             .resources.whyGraph.framework == "/v1/why-graph" and
             .resources.whyGraph.adopters == "/v1/why-graph/adopters" and
             .resources.whyGraph.schema == "/v1/why-graph/schema" and
@@ -919,11 +963,36 @@ jobs:
             .resources.whyGraph.boundaries.graphIsDerivedNotCanonical == true and
             (.nextActions | any(.id == "inspect-why-graph-contract" and .href == "/v1/why-graph")) and
             (.nextActions | any(.id == "inspect-why-graph-adopters" and .href == "/v1/why-graph/adopters")) and
+            (.nextActions | any(.id == "inspect-professional-tools" and .href == "/v1/uk/professional-tools")) and
             .resources.releases.ledger == "/v1/open-data/releases" and
             .resources.releases.jsonFeed == "/v1/open-data/releases/feed.json" and
             .resources.releases.atom == "/v1/open-data/releases/feed.atom" and
             .attribution.conformanceClaim == "none"
           ' "${wake_body}" >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/uk/professional-tools | \
+            jq --exit-status '
+              .schema == "taxsorted.uk.professional-tools/1" and
+              .status == "credentialed-design-partner" and
+              .access.publicSelfServiceKeyProvisioning == false and
+              .access.confidentialAccessRequestIntake == false and
+              .access.workspaceKeyIdentifiesCallingWorkspace == true and
+              .access.requestFactsMayBePersonalData == true and
+              .practiceRecord.applicationStoresRequestsOrResults == false and
+              .practiceRecord.immutableEvidenceArchiveAvailable == false and
+              .boundaries.clientOrMatterRecords == false and
+              .boundaries.filingOrSubmission == false and
+              .boundaries.publishedRateLimitContract == false and
+              .boundaries.publishedProfessionalPrivacyAndRetentionPolicy == false and
+              .boundaries.publishedSecurityAssessment == false and
+              .boundaries.selfServiceKeyRotationOrRevocation == false and
+              .boundaries.publishedHighAvailabilityContract == false and
+              (.tasks | length) == 2 and
+              (.tasks | any(.operationId == "calculateResidentialSdlt" and .requiredScope == "sdlt:calculate")) and
+              (.tasks | any(.operationId == "assessMtdIncomeTaxReadiness" and .requiredScope == "tax-expert:assess"))
+            ' >/dev/null
 
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -956,6 +1025,27 @@ jobs:
               .components.schemas.WhyGraph.properties.nodes.minItems == 1 and
               .components.schemas.WhyGraph.properties.nodes.maxItems == 250 and
               .components.schemas.WhyGraph.properties.edges.maxItems == 1000' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/openapi/professional-tools-uk.json | \
+            jq --exit-status '
+              .openapi == "3.1.0" and
+              .["x-taxsorted-slice"].id == "professional-tools-uk" and
+              (.paths | keys | sort) == [
+                "/v1/uk/professional-tools",
+                "/v1/uk/sdlt/calculations",
+                "/v1/uk/tax-expert",
+                "/v1/uk/tax-expert/mtd-income-tax/assessments"
+              ] and
+              .paths["/v1/uk/professional-tools"].get.security == [] and
+              .paths["/v1/uk/sdlt/calculations"].post.security == [{"WorkspaceKey": []}] and
+              .paths["/v1/uk/sdlt/calculations"].post["x-taxsorted-required-workspace-scopes"] == ["sdlt:calculate"] and
+              .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-required-workspace-scopes"] == ["tax-expert:assess"] and
+              .paths["/v1/uk/sdlt/calculations"].post.requestBody.content["application/json"].example.effectiveDate == "2026-07-10" and
+              .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.requestBody.content["application/json"].example.schema == "taxsorted.uk.mtd-income-tax.request/1" and
+              .components.securitySchemes.WorkspaceKey.scheme == "bearer"
+            ' >/dev/null
 
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -1002,8 +1092,47 @@ jobs:
             "${expert_headers}"
           jq --exit-status '
             .error == "invalid_api_key" and
+            .requiredScope == "tax-expert:assess" and
+            .access.publicSelfServiceKeyProvisioning == false and
+            .access.confidentialAccessRequestIntake == false and
+            (.nextActions | any(.id == "inspect-professional-tools" and .href == "/v1/uk/professional-tools")) and
+            (.nextActions | any(.id == "inspect-professional-openapi" and .href == "/openapi/professional-tools-uk.json")) and
             (.requestId | type == "string")
           ' "${expert_body}" >/dev/null
+
+          sdlt_canary_request="${RUNNER_TEMP}/sdlt-canary-request.json"
+          sdlt_canary_headers="${RUNNER_TEMP}/sdlt-canary.headers"
+          sdlt_canary_body="${RUNNER_TEMP}/sdlt-canary.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/openapi/professional-tools-uk.json | \
+            jq --exit-status \
+              '.paths["/v1/uk/sdlt/calculations"].post.requestBody.content["application/json"].example' \
+              >"${sdlt_canary_request}"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --request POST \
+            --header "Authorization: Bearer ${TAX_EXPERT_CANARY_API_KEY}" \
+            --header 'Content-Type: application/json' \
+            --data-binary "@${sdlt_canary_request}" \
+            --dump-header "${sdlt_canary_headers}" \
+            --output "${sdlt_canary_body}" \
+            https://api.taxsorted.io/v1/uk/sdlt/calculations
+          awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+            "${sdlt_canary_headers}"
+          if grep --ignore-case '^set-cookie:' "${sdlt_canary_headers}" >/dev/null; then
+            echo 'Authenticated SDLT canary set a browser cookie.' >&2
+            exit 1
+          fi
+          jq --exit-status '
+            .status == "calculated" and
+            .calculation.taxDuePence == 475000 and
+            .trust.method == "deterministic" and
+            (.trust.requestHash | test("^sha256:[0-9a-f]{64}$")) and
+            (.trust.evaluatedOn | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) and
+            (.trust.ruleset.revision | type == "string" and length > 0) and
+            (.trust.sources | length > 0)
+          ' "${sdlt_canary_body}" >/dev/null
 
           expert_canary_request="${RUNNER_TEMP}/tax-expert-canary-request.json"
           expert_canary_headers="${RUNNER_TEMP}/tax-expert-canary.headers"

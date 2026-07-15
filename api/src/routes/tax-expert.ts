@@ -4,6 +4,11 @@ import {
   assessMtdIncomeTax,
   type MtdIncomeTaxExpertRequest,
 } from "@taxsorted/engine/uk/expert";
+import { mtdIncomeTaxAssessmentRequestExample } from "../professional-tools-examples.js";
+import {
+  professionalAuthenticationResponseHeaders,
+  professionalTaskResponseHeaders,
+} from "../professional-tools-contract.js";
 import { WhyGraphSchema } from "../why-graph.js";
 
 const MAX_MONEY_PENCE = 1_000_000_000_000;
@@ -44,7 +49,11 @@ const MtdReturnIndicators = z.union([
 
 export const MtdIncomeTaxAssessmentRequestSchema = z.object({
   schema: z.literal("taxsorted.uk.mtd-income-tax.request/1"),
-  asOfDate: z.iso.date(),
+  asOfDate: z.iso.date().openapi({
+    description:
+      "The date the caller wants the readiness position assessed for. A later date returns an unsupported outcome instead of projecting the current rules forward.",
+    example: "2026-07-11",
+  }),
   person: z.object({
     relevantReturnPosition: z.enum([
       "required-and-submitted",
@@ -319,6 +328,22 @@ const ApiError = z.object({
   error: z.string(),
   message: z.string(),
   requestId: z.string().optional(),
+  requiredScope: z.string().optional(),
+  access: z.object({
+    availability: z.literal("credentialed-design-partner"),
+    publicSelfServiceKeyProvisioning: z.literal(false),
+    confidentialAccessRequestIntake: z.literal(false),
+    browserAccountProvidesWorkspaceKey: z.literal(false),
+    workspaceKeyIdentifiesCallingWorkspace: z.literal(true),
+    requestFactsMayBePersonalData: z.literal(true),
+  }).optional(),
+  nextActions: z.array(z.object({
+    id: z.string(),
+    method: z.literal("GET"),
+    href: z.string(),
+    accepts: z.array(z.string()),
+    description: z.string(),
+  })).optional(),
   issues: z.array(z.object({ path: z.string(), code: z.string(), message: z.string() })).optional(),
 }).openapi("TaxExpertApiError");
 
@@ -348,26 +373,45 @@ const assessmentRoute = createRoute({
     scope: "reached-result-trace-not-complete-law-map",
     currentlyEmitted: true,
   },
+  "x-taxsorted-retry": {
+    applicationOrExternalStateChange: false,
+    duplicateRequestStateEffect: "none",
+    byteStabilityGuaranteedAcrossTime: false,
+    compareWhenRepeating: [
+      "capability version",
+      "evaluatedOn and knowledgeAsOf",
+      "source IDs, retrievedOn and reviewDueOn",
+    ],
+  },
   operationId: "assessMtdIncomeTaxReadiness",
   summary: "Assess MTD Income Tax readiness and 2026/27 deadlines",
   description: "Stateless classification from explicit Self Assessment, gross-income and exemption facts, the trusted server evaluation date and the admitted ruleset and source ledger. Unknown is never read as zero. The route does not sign up, file or persist case facts.",
   tags: ["UK tax expert"],
   security: [{ WorkspaceKey: [] }],
   request: {
-    body: { required: true, content: { "application/json": { schema: MtdIncomeTaxAssessmentRequestSchema } } },
+    body: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: MtdIncomeTaxAssessmentRequestSchema,
+          example: mtdIncomeTaxAssessmentRequestExample,
+        },
+      },
+    },
   },
   responses: {
     200: {
       description: "A determined result or an explicit missing-fact, HMRC-decision, source-review or professional-review path.",
+      headers: professionalTaskResponseHeaders,
       content: { "application/json": { schema: MtdIncomeTaxAssessmentResponse } },
     },
-    400: { description: "Malformed JSON or duplicate object fields.", content: { "application/json": { schema: ApiError } } },
-    401: { description: "Missing, malformed, expired or revoked workspace key.", content: { "application/json": { schema: ApiError } } },
-    403: { description: "The workspace key lacks tax-expert:assess.", content: { "application/json": { schema: ApiError } } },
-    413: { description: "The body is larger than 16 KiB.", content: { "application/json": { schema: ApiError } } },
-    415: { description: "The body is not application/json.", content: { "application/json": { schema: ApiError } } },
-    422: { description: "The JSON facts do not match the strict request schema.", content: { "application/json": { schema: ApiError } } },
-    500: { description: "Unexpected server error; request facts are not echoed.", content: { "application/json": { schema: ApiError } } },
+    400: { description: "Malformed JSON or duplicate object fields.", headers: professionalTaskResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    401: { description: "Missing, malformed, expired or revoked workspace key.", headers: professionalAuthenticationResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    403: { description: "The workspace key lacks tax-expert:assess.", headers: professionalAuthenticationResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    413: { description: "The body is larger than 16 KiB.", headers: professionalTaskResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    415: { description: "The body is not application/json.", headers: professionalTaskResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    422: { description: "The JSON facts do not match the strict request schema.", headers: professionalTaskResponseHeaders, content: { "application/json": { schema: ApiError } } },
+    500: { description: "Unexpected server error; request facts are not echoed.", headers: professionalTaskResponseHeaders, content: { "application/json": { schema: ApiError } } },
   },
 });
 
@@ -413,7 +457,13 @@ export function createUkTaxExpertRoutes() {
   });
   routes.openapi(assessmentRoute, (c) => {
     c.header("Cache-Control", "no-store");
-    c.header("Link", '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"');
+    c.header(
+      "Link",
+      [
+        '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"; title="MTD Income Tax task"',
+        '</openapi/professional-tools-uk.json>; rel="related"; type="application/vnd.oai.openapi+json;version=3.1"; title="Professional tools"',
+      ].join(", "),
+    );
     const input: MtdIncomeTaxExpertRequest = c.req.valid("json");
     return c.json(assessMtdIncomeTax(input, {
       evaluatedOn: new Date().toISOString().slice(0, 10),

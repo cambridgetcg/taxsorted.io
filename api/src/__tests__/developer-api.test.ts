@@ -126,6 +126,9 @@ describe("developer API boundary", () => {
     ).toHaveProperty("taxExpert");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("professionalTools");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("whyGraph");
     expect(
       document.components.schemas.AgentWake.properties.resources.required,
@@ -182,6 +185,7 @@ describe("developer API boundary", () => {
     ).toHaveProperty("text/plain");
     expect(document.paths["/"].get.responses).toHaveProperty("404");
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
+    expect(document.paths).toHaveProperty("/v1/uk/professional-tools");
     expect(document.paths).toHaveProperty("/v1/uk/tax-expert");
     expect(document.paths).toHaveProperty(
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
@@ -873,6 +877,9 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
+    expect(document.paths).toHaveProperty(
+      "/openapi/professional-tools-uk.json",
+    );
     expect(document.paths).toHaveProperty("/openapi/why-graph.json");
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
@@ -930,6 +937,11 @@ describe("developer API boundary", () => {
         path: "/openapi/why-graph.json",
         id: "why-graph",
         prefix: "/v1/why-graph",
+      },
+      {
+        path: "/openapi/professional-tools-uk.json",
+        id: "professional-tools-uk",
+        prefix: undefined,
       },
       {
         path: "/openapi/tax-expert-uk.json",
@@ -996,7 +1008,10 @@ describe("developer API boundary", () => {
       expect(representation.length, definition.path).toBeLessThan(
         fullRepresentation.length,
       );
-      if (definition.id === "tax-expert-uk") {
+      if (
+        definition.id === "tax-expert-uk" ||
+        definition.id === "professional-tools-uk"
+      ) {
         expect(document.components?.securitySchemes?.WorkspaceKey).toMatchObject({
           type: "http",
           scheme: "bearer",
@@ -1004,7 +1019,11 @@ describe("developer API boundary", () => {
       } else {
         expect(document.components?.securitySchemes?.WorkspaceKey).toBeUndefined();
       }
-      expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
+      if (definition.id === "professional-tools-uk") {
+        expect(document.components?.schemas?.SdltCalculationRequest).toBeDefined();
+      } else {
+        expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
+      }
 
       const operationIds = new Set<string>();
       let operationCount = 0;

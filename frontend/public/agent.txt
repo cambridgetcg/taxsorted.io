@@ -31,6 +31,23 @@ observer-accountability: GET https://api.taxsorted.io/v1/accountability/uk
 observer-accountability-schema: GET https://api.taxsorted.io/v1/accountability/uk/schema
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+professional-tools: GET https://api.taxsorted.io/v1/uk/professional-tools
+professional-tools-openapi: GET https://api.taxsorted.io/openapi/professional-tools-uk.json
+professional-tools-status: credentialed design partner; two executable stateless tasks
+professional-tools-audiences: solicitors and conveyancers; accountants and tax advisers
+professional-tools-access: operator-issued workspace keys for existing design partners
+professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake
+professional-tools-data-boundary: the key identifies the calling workspace; minimized financial or transaction facts may still be personal data without direct identifiers
+professional-tools-client-matter-records: none
+professional-tools-filing: none; the separate browser HMRC rail is sandbox-only and is not connected to workspace-key tasks
+professional-tools-evidence-archive: none; caller must retain the exact request, response, X-Request-ID, versions, sources and professional sign-off
+professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, key lifecycle, high-availability contract or SLA
+sdlt-calculation: POST https://api.taxsorted.io/v1/uk/sdlt/calculations
+sdlt-calculation-required-scope: sdlt:calculate
+sdlt-calculation-kind: stateless deterministic computation for one ordinary residential dwelling in England or Northern Ireland
+sdlt-calculation-review-boundary: recognised complex, unknown, out-of-scope or future-effective-date cases return needs_review without a tax figure
+sdlt-calculation-effects: calculation only; no client record, return preparation, filing or external state change
+sdlt-calculation-trust: request hash covers normalized facts and ruleset revision; evaluatedOn reports the separate server-date boundary
 tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert
 tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json
 tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments
@@ -47,7 +64,8 @@ tax-expert-assessment-effects: classification only; no signup, filing or externa
 tax-expert-assessment-cache: no-store
 tax-expert-assessment-cors: server-to-server; browser bearer calls are not supported
 tax-expert-assessment-repeatability: same facts, trusted server evaluation date and admitted ruleset/source ledger
-tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe
+tax-expert-assessment-retry-effects: none; no application state write or external submission
+tax-expert-assessment-result-stability: not byte-stable across trusted evaluation date or admitted ruleset/source ledger changes
 tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract; request fact values are not echoed in errors
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
 authentication: none on this doorway and public read resources

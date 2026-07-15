@@ -81,6 +81,7 @@ GET /openapi/public-funding-uk.json
 GET /openapi/politics-uk.json
 GET /openapi/accountability-uk.json
 GET /openapi/tax-expert-uk.json
+GET /openapi/professional-tools-uk.json
 ```
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
@@ -88,7 +89,9 @@ Each slice is self-contained, cacheable by exact-byte ETag, and gives every oper
 selected operation does not explicitly declare `security: []`. The tax-expert task slice is a
 different class: it intentionally contains a public capability `GET` and a secured assessment
 `POST`, preserving the operation-level `WorkspaceKey` security declaration and required
-`tax-expert:assess` scope.
+`tax-expert:assess` scope. The professional-tools slice joins that assessment, the public
+capability registry and the residential SDLT calculation into one bounded contract while keeping
+each operation's own scope and security declaration.
 
 The observer-accountability doorway is a framework and candidate contract, not an admitted
 case dataset:
@@ -366,6 +369,49 @@ The graph keeps the caller, relevant-person duty holder, administrator and offic
 separate. It does not invent an authorised-agent identity: who will actually perform a duty and any
 authority to act remain an explicit gap unless a future capability can prove them.
 
+## Professional tools — lawyers and accountants
+
+Start here for the two professional jobs that are executable now:
+
+```text
+GET /v1/uk/professional-tools
+GET /openapi/professional-tools-uk.json
+```
+
+The public manifest is the honest integration doorway for solicitors, conveyancers, accountants
+and tax advisers. It contains complete request examples, required workspace scopes, review stops,
+retry boundaries, evidence returned, facts not to send and the practice capabilities that do not
+exist. The task-sized OpenAPI includes:
+
+```text
+POST /v1/uk/sdlt/calculations                         scope: sdlt:calculate
+POST /v1/uk/tax-expert/mtd-income-tax/assessments     scope: tax-expert:assess
+```
+
+Both calls are stateless and server-to-server. Repeating a request creates no application record,
+filing or other external state change, but a later response is not promised to be byte-identical
+after the trusted evaluation date, ruleset or source ledger changes. The OpenAPI request bodies
+contain complete examples and each `401` or `403` response links back to this manifest and slice.
+
+Access remains a material gap. Workspace keys are operator-issued to existing design partners.
+There is no public self-service provisioning, no confidential access-request intake, and a browser
+account does not provide a workspace key. Do not put client facts or access requests in the public
+GitHub issue tracker. A workspace key identifies the calling workspace. Financial and transaction
+facts may still be personal data even when the request omits names, NINOs, UTRs and addresses;
+the caller remains responsible for its lawful basis, minimisation and matter-file controls.
+
+These routes are not a professional practice system. They do not provide client or matter records,
+caller matter references, document storage, portfolio or batch operations, firm roles and
+approvals, HMRC agent authority, filing, an immutable evidence archive, a signed evidence pack or a
+production SLA. The separate browser HMRC rail is sandbox-only and is not connected to workspace
+keys. No professional rate-limit contract, privacy and retention policy, published security
+assessment, self-service key rotation or revocation, high-availability contract or SLA is published.
+
+A firm relying on a result must retain the exact request, exact response, `X-Request-ID`, returned
+request hash when present, capability or ruleset versions, relied-on sources, fact classification,
+reviewer and sign-off in its own matter file. TaxSorted returns a bounded computation, not a
+retrievable professional file or submission receipt.
+
 ## UK tax expert — coverage and first deep path
 
 The public capability registry separates product depth into six honest stages:
@@ -391,6 +437,7 @@ It requires the `tax-expert:assess` workspace scope. The task-sized OpenAPI 3.1 
 
 ```text
 GET /openapi/tax-expert-uk.json
+GET /openapi/professional-tools-uk.json
 ```
 
 The assessment is repeatable for the same request facts, trusted server evaluation date and
@@ -398,7 +445,7 @@ admitted ruleset and source ledger; the request alone does not promise byte-iden
 another date. It is stateless. It does not collect a name, NINO, UTR or address, does not sign
 anyone up, does not file, and does not write request facts to application storage. A workspace
 key still identifies the calling workspace. Keys are operator-created for credentialed design
-partners; there is no public self-service key-provisioning route.
+partners; there is no public self-service key-provisioning or confidential access-request route.
 The browser version at `/uk/tax-expert` runs the same engine locally without calling this route.
 
 Every fact is explicit. `"unknown"` is different from zero or false. Money is non-negative integer
@@ -504,6 +551,13 @@ or submit to HMRC.
 POST https://api.taxsorted.io/v1/uk/sdlt/calculations
 ```
 
+The professional doorway and the task-sized OpenAPI that includes SDLT are public:
+
+```text
+GET https://api.taxsorted.io/v1/uk/professional-tools
+GET https://api.taxsorted.io/openapi/professional-tools-uk.json
+```
+
 The calculation route is server-to-server. Give a workspace key in the standard header:
 
 ```text
@@ -568,6 +622,7 @@ pretend that `additionalProperty` or `livesAbroad` is enough to resolve the stat
 - reliefs and surcharges actually applied;
 - decisions such as a first-time-buyer claim being over its price cap;
 - primary sources, rule revision and review date;
+- the trusted server evaluation date used for the future-date boundary;
 - a SHA-256 hash of the canonical request and rule revision.
 
 `status: "needs_review"` is an equally successful HTTP 200 response. It carries stable,
@@ -587,7 +642,9 @@ same 401. A real key without the scope returns 403. Every response carries `X-Re
 ## What the hash means
 
 The request hash proves that the same normalized facts and rule revision were used. It helps
-callers deduplicate and compare calculations. It is not a receipt: nothing is stored by the
+callers deduplicate and compare calculations. It does not cover `trust.evaluatedOn`, which is
+returned separately because the hosted future-date stop depends on the server's UTC date. Compare
+all three before comparing two results. The hash is not a receipt: nothing is stored by the
 stateless calculation route, and the hash is not signed.
 
 A future `prepare` or `submit` call will need an idempotency key and a stored, retrievable,

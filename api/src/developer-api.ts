@@ -5,6 +5,11 @@ import { requireApiKey } from "./api-key.js";
 import { assertNoDuplicateJsonKeys, StrictJsonError } from "./strict-json.js";
 import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
+import { createProfessionalToolsRoutes } from "./routes/professional-tools.js";
+import {
+  professionalToolsOpenApiPath,
+  professionalToolsPath,
+} from "./professional-tools-contract.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
 import {
@@ -95,6 +100,16 @@ const openApiTags = [
       "Evidence-backed tax capability discovery and bounded deterministic assessments.",
   },
   {
+    name: "UK professional tools",
+    description:
+      "Current lawyer and accountant tasks, access boundaries, complete examples and practice-record responsibilities.",
+  },
+  {
+    name: "SDLT",
+    description:
+      "Bounded, deterministic residential Stamp Duty Land Tax calculations.",
+  },
+  {
     name: "Explanation contracts",
     description:
       "Shared, read-only contracts for tracing conclusions to support, responsibility, effects, challenge routes and explicit gaps.",
@@ -119,6 +134,7 @@ const publicAgentPaths = new Set([
   "/v1/wake",
   "/v1/health",
   "/v1/uk/tax-expert",
+  professionalToolsPath,
 ]);
 
 function hasPathPrefix(path: string, prefix: string): boolean {
@@ -191,6 +207,18 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
       "Task-sized contract for the shared explanation graph framework and structural schema.",
     componentReferences: ["#/components/schemas/WhyGraph"],
     matchesPath: (path) => hasPathPrefix(path, "/v1/why-graph"),
+  },
+  {
+    id: "professional-tools-uk",
+    path: professionalToolsOpenApiPath,
+    title: "TaxSorted UK Professional Tools API",
+    description:
+      "Task-sized contract for the professional doorway, residential SDLT calculation and MTD Income Tax readiness assessment.",
+    allowSecuredOperations: true,
+    matchesPath: (path) =>
+      path === professionalToolsPath ||
+      hasPathPrefix(path, "/v1/uk/sdlt") ||
+      hasPathPrefix(path, "/v1/uk/tax-expert"),
   },
   {
     id: "tax-expert-uk",
@@ -1026,7 +1054,12 @@ const AgentWake = z
           accountability: z.string(),
           whyGraph: z.string().optional(),
         }),
-        taskSlices: z.object({ taxExpert: z.string() }).optional(),
+        taskSlices: z
+          .object({
+            taxExpert: z.string(),
+            professionalTools: z.string().optional(),
+          })
+          .optional(),
       }),
       releases: z.object({
         ledger: z.string(),
@@ -1106,6 +1139,43 @@ const AgentWake = z
           }),
         })
         .optional(),
+      professionalTools: z
+        .object({
+          publicManifest: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          taskContract: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          status: z.literal("credentialed-design-partner"),
+          audiences: z.tuple([
+            z.literal("solicitors-and-conveyancers"),
+            z.literal("accountants-and-tax-advisers"),
+          ]),
+          executableTaskCount: z.literal(2),
+          access: z.object({
+            availability: z.literal("credentialed-design-partner"),
+            publicSelfServiceKeyProvisioning: z.literal(false),
+            confidentialAccessRequestIntake: z.literal(false),
+            browserAccountProvidesWorkspaceKey: z.literal(false),
+            workspaceKeyIdentifiesCallingWorkspace: z.literal(true),
+            requestFactsMayBePersonalData: z.literal(true),
+            authentication: z.literal("Bearer TaxSorted workspace key"),
+            intendedClient: z.literal("server-to-server"),
+          }),
+          boundaries: z.object({
+            clientOrMatterRecords: z.literal(false),
+            portfolioOrBatchOperations: z.literal(false),
+            filingOrSubmission: z.literal(false),
+            immutableEvidenceArchive: z.literal(false),
+            productionSla: z.literal(false),
+          }),
+        })
+        .optional(),
       taxExpert: z
         .object({
           humanHref: z.string().url(),
@@ -1157,6 +1227,19 @@ const AgentWake = z
               "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
             ),
             idempotency: z.literal("not-declared"),
+            idempotencyMeaning: z.literal(
+              "no-Idempotency-Key-protocol; duplicate-calls-have-no-state-effect",
+            ),
+            retry: z.object({
+              applicationOrExternalStateChange: z.literal(false),
+              duplicateRequestStateEffect: z.literal("none"),
+              byteStabilityGuaranteedAcrossTime: z.literal(false),
+              compareWhenRepeating: z.tuple([
+                z.literal("capability version"),
+                z.literal("evaluatedOn and knowledgeAsOf"),
+                z.literal("source IDs, retrievedOn and reviewDueOn"),
+              ]),
+            }),
             errorContract: z.object({
               mediaType: z.literal("application/json"),
               schema: z.literal("TaxExpertApiError"),
@@ -4948,6 +5031,7 @@ function isJsonObject(value: unknown): value is JsonObject {
 }
 
 function openApiTagForPath(path: string): string {
+  if (path === professionalToolsPath) return "UK professional tools";
   if (publicAgentPaths.has(path)) return "Agent discovery";
   if (hasPathPrefix(path, "/v1/open-data")) return "Open-data catalogue";
   if (hasPathPrefix(path, "/v1/tax-system/uk")) return "UK tax system";
@@ -4963,6 +5047,7 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/why-graph")) {
     return "Explanation contracts";
   }
+  if (hasPathPrefix(path, "/v1/uk/sdlt")) return "SDLT";
   if (hasPathPrefix(path, "/v1/uk/tax-expert")) return "UK tax expert";
   throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
 }
@@ -5369,7 +5454,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   app.openAPIRegistry.registerComponent("securitySchemes", "WorkspaceKey", {
     type: "http",
     scheme: "bearer",
-    bearerFormat: "ts_test_<32-byte-secret>",
+    bearerFormat: "ts_(test|live)_<32-byte-secret>",
     description:
       "A TaxSorted workspace key. Tax calculations and assessments declare their required scope, such as sdlt:calculate or tax-expert:assess.",
   });
@@ -5386,12 +5471,20 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerPoliticsOpenApi(app);
   registerStableRecordResolversOpenApi(app);
   registerOpenApiSliceDescriptions(app);
+  app.route(
+    professionalToolsPath,
+    createProfessionalToolsRoutes(apiOrigin),
+  );
 
   app.use("/v1/uk/sdlt/*", async (c, next) => {
     // SDLT requests and results contain transaction values. Apply the private
     // cache policy before size, media, JSON, auth and schema checks so every
     // early response inherits it too.
     c.header("Cache-Control", "no-store");
+    c.header(
+      "Link",
+      `<${professionalToolsOpenApiPath}>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+    );
     await next();
   });
   app.use(
@@ -5440,6 +5533,10 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
     // private to this call. Set the policy before size, media, JSON and auth
     // checks so an early response cannot become cacheable by omission.
     c.header("Cache-Control", "no-store");
+    c.header(
+      "Link",
+      `<${professionalToolsOpenApiPath}>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+    );
     await next();
   });
   app.use(
