@@ -751,6 +751,70 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/politics/uk/enforcement/forces");
     expect(document.paths).toHaveProperty("/v1/politics/uk/system");
     expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways/offices/{officeId}",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways/rights",
+    );
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.security,
+    ).toEqual([]);
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicOfficePathways");
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].get.responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicOfficePathwayDetail");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways/schema"].get
+        .responses[200].content,
+    ).toHaveProperty("application/schema+json");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.parameters,
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "If-None-Match", in: "header" }),
+      ]),
+    );
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].head.security,
+    ).toEqual([]);
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].head.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways/schema"].get
+        .responses,
+    ).toHaveProperty("503");
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].get.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses[503]
+        .description,
+    ).toMatch(/emergency stop/i);
+    expect(
+      document.components.schemas.UkPublicOfficePathways.properties,
+    ).toMatchObject({
+      meta: expect.any(Object),
+      officePaths: expect.any(Object),
+      legalWatch: expect.any(Object),
+      links: expect.any(Object),
+    });
+    expect(document.paths).toHaveProperty(
       "/v1/politics/uk/power/offices/{officeId}",
     );
     expect(document.paths).toHaveProperty("/v1/politics/uk/people");

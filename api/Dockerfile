@@ -16,6 +16,7 @@ COPY research/uk/tax-system/data/ research/uk/tax-system/data/
 COPY research/uk/tax-industry/data/ research/uk/tax-industry/data/
 COPY research/uk/charities/data/ research/uk/charities/data/
 COPY research/uk/public-funding/data/ research/uk/public-funding/data/
+COPY research/uk/politics/data/ research/uk/politics/data/
 
 USER node
 EXPOSE 8080

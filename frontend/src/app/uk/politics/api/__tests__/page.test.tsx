@@ -98,6 +98,14 @@ describe("UK politics API guide", () => {
     render(<PoliticsApiPage />);
 
     expect(screen.getByRole("link", { name: "/system" })).toHaveAttribute("href", `${base}/system`);
+    expect(screen.getByRole("link", { name: "/public-office-pathways" })).toHaveAttribute(
+      "href",
+      `${base}/public-office-pathways`,
+    );
+    expect(screen.getByRole("link", { name: /explore standing for office/i })).toHaveAttribute(
+      "href",
+      "/uk/politics/stand",
+    );
     expect(screen.getByRole("link", { name: "/enforcement/institutions" })).toHaveAttribute(
       "href",
       `${base}/enforcement/institutions`

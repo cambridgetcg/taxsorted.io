@@ -31,6 +31,7 @@ describe("public sitemap", () => {
     for (const path of [
       "/uk/personal-tax/",
       "/uk/tax-expert/",
+      "/uk/politics/stand/",
       "/itsa/records/",
       "/itsa/quarter/",
     ]) {

@@ -256,6 +256,51 @@ jobs:
               --output /dev/null "https://api.taxsorted.io${path}"
           done
 
+          politics_root="${RUNNER_TEMP}/politics-root.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 --retry-max-time 120 \
+            --retry 12 --retry-delay 5 --retry-all-errors \
+            --header 'Cache-Control: no-cache' \
+            --output "${politics_root}" \
+            https://api.taxsorted.io/v1/politics/uk
+          pathway_publication_status=$(jq --raw-output \
+            '.publicOfficePathways.status' "${politics_root}")
+
+          pathway_index=0
+          for path in \
+            /v1/politics/uk/public-office-pathways \
+            /v1/politics/uk/public-office-pathways/rights \
+            /v1/politics/uk/public-office-pathways/schema
+          do
+            pathway_index=$((pathway_index + 1))
+            pathway_headers="${RUNNER_TEMP}/pathway-${pathway_index}.headers"
+            pathway_body="${RUNNER_TEMP}/pathway-${pathway_index}.json"
+            pathway_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --dump-header "${pathway_headers}" --output "${pathway_body}" \
+              --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${pathway_publication_status}:${pathway_status}" in
+              open:200)
+                jq --exit-status \
+                  '(.schema == "taxsorted.uk.public-office-pathways/1") or (.schema == "taxsorted.uk.public-office-pathways-rights/1") or (."$id" == "https://api.taxsorted.io/v1/politics/uk/public-office-pathways/schema")' \
+                  "${pathway_body}" >/dev/null
+                ;;
+              emergency-stopped:503)
+                awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+                  "${pathway_headers}"
+                jq --exit-status \
+                  '.error == "bulk_data_emergency_stop" and .status == 503' \
+                  "${pathway_body}" >/dev/null
+                ;;
+              *)
+                echo "Public-office pathway state disagrees: ${pathway_publication_status}:${pathway_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/health | \
@@ -280,6 +325,12 @@ jobs:
             'schema-version: taxsorted.agent-manifest/1' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-accountability-status: schema-only-not-admitted' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-office-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-office-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-accountability-records: none' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
@@ -1334,7 +1385,7 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /uk/public-funding /uk/accountability /uk/tax-expert /agent.txt /.well-known/agent.txt
+          for path in /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /agent.txt /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -1410,7 +1461,8 @@ jobs:
           for page_and_marker in \
             '/uk/charities|Words beside actions' \
             '/uk/accountability|Watch the watchers' \
-            '/uk/tax-expert|A UK tax expert that knows where the edge is.'
+            '/uk/tax-expert|A UK tax expert that knows where the edge is.' \
+            '/uk/politics/stand|Start with the work, not the title.'
           do
             page=${page_and_marker%%|*}
             marker=${page_and_marker#*|}

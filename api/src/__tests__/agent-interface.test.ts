@@ -96,6 +96,12 @@ describe("agent interface", () => {
     );
     expect(body).toContain("charity-accountability-records: none");
     expect(body).toContain(
+      "politics-public-office-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways",
+    );
+    expect(body).toContain(
+      "politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation",
+    );
+    expect(body).toContain(
       "tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert",
     );
     expect(body).toContain(
@@ -278,6 +284,17 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.publicOfficePathways).toEqual({
+      href: "/v1/politics/uk/public-office-pathways",
+      schema: "/v1/politics/uk/public-office-pathways/schema",
+      humanGuide: "https://taxsorted.io/uk/politics/stand/",
+      availability: "conditional-public",
+      unavailableWhen: "politics-bulk-data-emergency-stop",
+      rights: "/v1/politics/uk/public-office-pathways/rights",
+      corrections: "/v1/politics/uk/integrity/corrections",
+      effects:
+        "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
     });
     expect(body.resources.whyGraph).toEqual({
       framework: "/v1/why-graph",

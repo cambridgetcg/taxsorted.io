@@ -1125,6 +1125,28 @@ console.log(dataset.id, dataset.licence, data);
 
 ### Query and method routes
 
+The public-office pathway slice is deliberately independent of both the named-person gate and
+the reviewed bulk-record gate. It contains TaxSorted-written, source-linked rules and provider
+doors only: no candidate, applicant, party-preference or voter records. It remains readable
+while those broader collections await approval. The politics emergency stop still closes it,
+so a misclassified API release has one immediate off-switch. The separately deployed static
+human page requires a Cloudflare Pages rollback and cache purge, as documented in the runbook.
+
+```text
+GET /v1/politics/uk/public-office-pathways
+GET /v1/politics/uk/public-office-pathways/offices
+GET /v1/politics/uk/public-office-pathways/offices/{officeId}
+GET /v1/politics/uk/public-office-pathways/support
+GET /v1/politics/uk/public-office-pathways/rights
+GET /v1/politics/uk/public-office-pathways/schema
+```
+
+Version 1 deeply maps only a UK Parliamentary candidate in Great Britain and a principal-
+council candidate in England. It records other office families as gaps rather than borrowing
+the wrong signatures, deposit, electoral system, finance or pay rules. It makes no personal
+eligibility decision and has no write method. The human rendering is
+[`/uk/politics/stand/`](https://taxsorted.io/uk/politics/stand/).
+
 ```text
 GET /v1/politics/uk/system
 GET /v1/politics/uk/elections/process
