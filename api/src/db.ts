@@ -2,9 +2,9 @@ import { readdir, readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
-import { config } from "./config.js";
+import { databaseUrl } from "./runtime-environment.js";
 
-export const sql = postgres(config.databaseUrl, {
+export const sql = postgres(databaseUrl, {
   max: 5,
   onnotice: () => {},
 });

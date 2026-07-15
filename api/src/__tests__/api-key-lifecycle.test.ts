@@ -579,6 +579,47 @@ describe("API key lifecycle", () => {
     expect(output.join("\n")).toMatch(/plaintext key exactly once/i);
   });
 
+  it("shows help and rejects invalid input without loading database dependencies", async () => {
+    const loadDependencies = vi.fn(async () => {
+      throw new Error("database dependencies must stay unloaded");
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      await manageApiKey(["--help"], undefined, loadDependencies);
+      await expect(
+        manageApiKey(
+          ["inspect", "--not-a-real-flag=value"],
+          undefined,
+          loadDependencies,
+        ),
+      ).rejects.toMatchObject(expectCode("unknown_flag"));
+      expect(loadDependencies).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("loads default dependencies once for a valid operation and closes them", async () => {
+    const database = new FakeSql([[keyRow()]]);
+    const close = vi.fn(async () => {});
+    const loadDependencies = vi.fn(async () => ({
+      database,
+      migrate: vi.fn(async () => {}),
+      close,
+      output: vi.fn(),
+    }));
+
+    await manageApiKey(
+      ["inspect", `--key-id=${KEY_ID}`],
+      undefined,
+      loadDependencies,
+    );
+
+    expect(loadDependencies).toHaveBeenCalledOnce();
+    expect(close).toHaveBeenCalledOnce();
+  });
+
   it("closes the database when migration fails", async () => {
     const close = vi.fn(async () => {});
     await expect(
@@ -662,6 +703,23 @@ describe("create API key CLI", () => {
     expect(() => parseCreateApiKeyArguments(argv)).toThrowError(
       expectCode(code),
     );
+  });
+
+  it("shows help and rejects invalid input without loading database dependencies", async () => {
+    const loadDependencies = vi.fn(async () => {
+      throw new Error("database dependencies must stay unloaded");
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    try {
+      await createApiKey(["--help"], undefined, loadDependencies);
+      await expect(
+        createApiKey(["Firm"], undefined, loadDependencies),
+      ).rejects.toMatchObject(expectCode("expiry_count"));
+      expect(loadDependencies).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it("prints a first key once and closes after migration", async () => {
