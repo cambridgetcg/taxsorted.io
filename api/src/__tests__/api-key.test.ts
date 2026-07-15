@@ -39,11 +39,36 @@ describe("machine API keys", () => {
       const headers = authorization ? { Authorization: authorization } : undefined;
       const response = await appFor().request("/", { headers });
       expect(response.status).toBe(401);
-      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+      expect(response.headers.get("www-authenticate")).toBe(
+        'Bearer realm="TaxSorted API", error="invalid_token"',
+      );
+      expect(response.headers.get("link")).toContain(
+        "</v1/uk/professional-tools>; rel=\"help\"",
+      );
+      expect(response.headers.get("link")).toContain(
+        "</openapi/professional-tools-uk.json>; rel=\"service-desc\"",
+      );
       expect(response.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
       expect(await response.json()).toMatchObject({
         error: "invalid_api_key",
         message: "Give a valid TaxSorted API key.",
+        requiredScope: "sdlt:calculate",
+        access: {
+          availability: "credentialed-design-partner",
+          publicSelfServiceKeyProvisioning: false,
+          confidentialAccessRequestIntake: false,
+          browserAccountProvidesWorkspaceKey: false,
+        },
+        nextActions: expect.arrayContaining([
+          expect.objectContaining({
+            id: "inspect-professional-tools",
+            href: "/v1/uk/professional-tools",
+          }),
+          expect.objectContaining({
+            id: "inspect-professional-openapi",
+            href: "/openapi/professional-tools-uk.json",
+          }),
+        ]),
       });
       expect(query).not.toHaveBeenCalled();
     }
@@ -73,6 +98,22 @@ describe("machine API keys", () => {
     expect(submittedValues).not.toContain(rawKey);
   });
 
+  it("treats the standard Bearer scheme name as case-insensitive", async () => {
+    query.mockResolvedValue([
+      {
+        id: "key-1",
+        workspace_id: "workspace-1",
+        mode: "test",
+        scopes: ["sdlt:calculate"],
+      },
+    ]);
+    const response = await appFor().request("/", {
+      headers: { Authorization: `bearer ${rawKey}` },
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ keyId: "key-1" });
+  });
+
   it("returns 403 when the key is real but lacks the scope", async () => {
     query.mockResolvedValue([
       { id: "key-1", workspace_id: "workspace-1", mode: "test", scopes: ["other:read"] },
@@ -81,7 +122,20 @@ describe("machine API keys", () => {
       headers: { Authorization: `Bearer ${rawKey}` },
     });
     expect(response.status).toBe(403);
-    expect(await response.json()).toMatchObject({ error: "insufficient_scope" });
+    expect(response.headers.get("www-authenticate")).toBe(
+      'Bearer realm="TaxSorted API", error="insufficient_scope", scope="sdlt:calculate"',
+    );
+    expect(await response.json()).toMatchObject({
+      error: "insufficient_scope",
+      requiredScope: "sdlt:calculate",
+      access: {
+        publicSelfServiceKeyProvisioning: false,
+        confidentialAccessRequestIntake: false,
+      },
+      nextActions: expect.arrayContaining([
+        expect.objectContaining({ href: "/v1/uk/professional-tools" }),
+      ]),
+    });
   });
 
   it("does not accept a test-prefixed secret stored as a live key", async () => {
