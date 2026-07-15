@@ -14,6 +14,7 @@ import {
 } from "./open-data.js";
 import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
 import {
+  apiWorkspacePath,
   professionalToolsAccess,
   professionalToolsOpenApiPath,
   professionalToolsPath,
@@ -103,11 +104,17 @@ professional-tools-status: credentialed design partner; two executable stateless
 professional-tools-audiences: solicitors and conveyancers; accountants and tax advisers
 professional-tools-access: operator-issued workspace keys for existing design partners
 professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake
+professional-workspace-key: GET ${apiOrigin}${apiWorkspacePath}
+professional-workspace-key-authentication: Bearer TaxSorted workspace key; no task scope required
+professional-workspace-key-cors: server-to-server; browser bearer calls are not supported
+professional-workspace-key-input: no query string and no declared request body; either is rejected with 400 before authentication; no client or tax facts
+professional-workspace-key-output: presented key and workspace IDs, key prefix, mode, scopes, creation and expiry or null for a legacy non-expiring key; no workspace name, sibling keys, hashes or secrets
+professional-key-lifecycle: operator-managed inspect, finite-expiry issue, overlapping rotate and explicit revoke; no self-service, public delivery or authenticated admin audit trail
 professional-tools-data-boundary: the key identifies the calling workspace; minimized financial or transaction facts may still be personal data without direct identifiers
 professional-tools-client-matter-records: none
 professional-tools-filing: none; the separate browser HMRC rail is sandbox-only and is not connected to workspace-key tasks
 professional-tools-evidence-archive: none; caller must retain the exact request, response, X-Request-ID, versions, sources and professional sign-off
-professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, key lifecycle, high-availability contract or SLA
+professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, self-service key lifecycle, authenticated admin audit trail, high-availability contract or SLA
 sdlt-calculation: POST ${apiOrigin}${sdltCalculationPath}
 sdlt-calculation-required-scope: sdlt:calculate
 sdlt-calculation-kind: stateless deterministic computation for one ordinary residential dwelling in England or Northern Ireland
@@ -536,6 +543,28 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           href: professionalToolsOpenApiPath,
           authentication: "none",
         },
+        credentialInspection: {
+          method: "GET",
+          href: apiWorkspacePath,
+          authentication: "Bearer TaxSorted workspace key",
+          requiredWorkspaceScopes: [],
+          intendedClient: "server-to-server",
+          browserCorsAuthorizationHeaderAllowed: false,
+          acceptsQueryParameters: false,
+          acceptsRequestBody: false,
+          acceptsClientFacts: false,
+          changesState: false,
+          returnsOtherKeys: false,
+        },
+        operatorKeyLifecycle: {
+          inspect: true,
+          issueWithFiniteExpiry: true,
+          overlappingRotation: true,
+          explicitRevocation: true,
+          selfService: false,
+          securePublicDelivery: false,
+          authenticatedAdminAuditTrail: false,
+        },
         status: "credentialed-design-partner",
         audiences: [
           "solicitors-and-conveyancers",
@@ -552,6 +581,7 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           portfolioOrBatchOperations: false,
           filingOrSubmission: false,
           immutableEvidenceArchive: false,
+          workspaceNameReturnedToCaller: false,
           productionSla: false,
         },
       },

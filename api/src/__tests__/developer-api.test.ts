@@ -185,6 +185,12 @@ describe("developer API boundary", () => {
     ).toHaveProperty("text/plain");
     expect(document.paths["/"].get.responses).toHaveProperty("404");
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
+    expect(document.paths).toHaveProperty("/v1/api-workspace");
+    expect(document.paths["/v1/api-workspace"].get).toMatchObject({
+      operationId: "inspectAuthenticatedApiWorkspace",
+      security: [{ WorkspaceKey: [] }],
+      "x-taxsorted-required-workspace-scopes": [],
+    });
     expect(document.paths).toHaveProperty("/v1/uk/professional-tools");
     expect(document.paths).toHaveProperty("/v1/uk/tax-expert");
     expect(document.paths).toHaveProperty(
@@ -1173,6 +1179,7 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).not.toHaveProperty(
       "/v1/uk/sdlt/calculations",
     );
+    expect(publicDocument.paths).not.toHaveProperty("/v1/api-workspace");
     expect(publicDocument.paths["/v1/politics/uk"].get).toMatchObject({
       operationId: "getV1PoliticsUk",
       tags: ["UK politics"],

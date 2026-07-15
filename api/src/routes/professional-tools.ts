@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import {
+  apiWorkspacePath,
   professionalToolsAccess,
   professionalToolsOpenApiPath,
   workspaceKeyRecoveryActions,
@@ -76,6 +77,18 @@ export const ProfessionalToolsManifestSchema = z
       browserAccountProvidesWorkspaceKey: z.literal(false),
       workspaceKeyIdentifiesCallingWorkspace: z.literal(true),
       requestFactsMayBePersonalData: z.literal(true),
+      credentialInspection: z.object({
+        method: z.literal("GET"),
+        href: z.literal("/v1/api-workspace"),
+        authentication: z.literal("Bearer TaxSorted workspace key"),
+        requiredWorkspaceScopes: z.array(z.string()).max(0),
+        intendedClient: z.literal("server-to-server"),
+        browserCorsAuthorizationHeaderAllowed: z.literal(false),
+        acceptsQueryParameters: z.literal(false),
+        acceptsRequestBody: z.literal(false),
+        acceptsClientFacts: z.literal(false),
+        changesState: z.literal(false),
+      }),
       currentGap: z.string(),
     }),
     openApi: z.object({
@@ -88,6 +101,17 @@ export const ProfessionalToolsManifestSchema = z
       immutableEvidenceArchiveAvailable: z.literal(false),
       signedEvidencePackAvailable: z.literal(false),
       callerMustRetain: z.array(z.string()),
+      statement: z.string(),
+    }),
+    keyLifecycle: z.object({
+      operatorManaged: z.literal(true),
+      issueExistingWorkspace: z.literal(true),
+      overlappingRotation: z.literal(true),
+      explicitRevocation: z.literal(true),
+      newKeysRequireFiniteExpiry: z.literal(true),
+      selfService: z.literal(false),
+      securePublicDeliveryAvailable: z.literal(false),
+      authenticatedAdminAuditTrailAvailable: z.literal(false),
       statement: z.string(),
     }),
     boundaries: z.object({
@@ -130,8 +154,20 @@ function buildProfessionalToolsManifest(apiOrigin: string) {
       ...professionalToolsAccess,
       authentication: "Bearer TaxSorted workspace key",
       intendedClient: "server-to-server",
+      credentialInspection: {
+        method: "GET",
+        href: apiWorkspacePath,
+        authentication: "Bearer TaxSorted workspace key",
+        requiredWorkspaceScopes: [],
+        intendedClient: "server-to-server",
+        browserCorsAuthorizationHeaderAllowed: false,
+        acceptsQueryParameters: false,
+        acceptsRequestBody: false,
+        acceptsClientFacts: false,
+        changesState: false,
+      },
       currentGap:
-        "Keys are issued by an operator to existing design partners. No public or confidential access-request route is live, and a browser account does not supply a workspace key. The key identifies the calling workspace, and minimized financial or transaction facts may still be personal data without direct identifiers.",
+        "Operators can issue, inspect, overlap-rotate and revoke keys for existing design partners. No public or confidential access-request route or secure public key-delivery channel is live, self-service lifecycle is not available, and a browser account does not supply a workspace key. The key identifies the calling workspace, and minimized financial or transaction facts may still be personal data without direct identifiers.",
     },
     openApi: {
       href: professionalToolsOpenApiPath,
@@ -289,6 +325,18 @@ function buildProfessionalToolsManifest(apiOrigin: string) {
       statement:
         "TaxSorted returns a bounded computation, not a retrievable professional file. The firm must preserve its own evidence and approval record at the time of reliance.",
     },
+    keyLifecycle: {
+      operatorManaged: true,
+      issueExistingWorkspace: true,
+      overlappingRotation: true,
+      explicitRevocation: true,
+      newKeysRequireFiniteExpiry: true,
+      selfService: false,
+      securePublicDeliveryAvailable: false,
+      authenticatedAdminAuditTrailAvailable: false,
+      statement:
+        "An operator can inspect, mint an expiring replacement without disabling the old key, and explicitly revoke a key by immutable ID plus prefix confirmation. The caller can inspect only the presented key. Public delivery, self-service and an authenticated operator audit trail are not live.",
+    },
     boundaries: {
       clientOrMatterRecords: false,
       clientMatterReference: false,
@@ -305,7 +353,7 @@ function buildProfessionalToolsManifest(apiOrigin: string) {
       selfServiceKeyRotationOrRevocation: false,
       publishedHighAvailabilityContract: false,
       statement:
-        "These task routes are not a practice-management, document-management, approval or filing system. The separate browser HMRC rail is sandbox-only and is not connected to workspace-key tasks. Rate-limit, professional privacy and retention, security assessment, key lifecycle, high-availability and SLA contracts are not published.",
+        "These task routes are not a practice-management, document-management, approval or filing system. The separate browser HMRC rail is sandbox-only and is not connected to workspace-key tasks. Rate-limit, professional privacy and retention, security assessment, self-service key lifecycle, authenticated operator audit, high-availability and SLA contracts are not published.",
     },
     workflow: [
       {
@@ -316,26 +364,39 @@ function buildProfessionalToolsManifest(apiOrigin: string) {
       {
         step: 2,
         action:
-          "Choose one bounded task and classify every required fact; use unknown instead of guessing.",
+          "With an issued key, inspect its mode, scopes and expiry without sending client facts.",
       },
       {
         step: 3,
         action:
-          "Send only the requested facts from a server and keep direct identifiers and documents in the firm's own system.",
+          "Choose one bounded task and classify every required fact; use unknown instead of guessing.",
       },
       {
         step: 4,
         action:
-          "Stop when the result requests review, more facts, an HMRC decision or source review.",
+          "Send only the requested facts from a server and keep direct identifiers and documents in the firm's own system.",
       },
       {
         step: 5,
+        action:
+          "Stop when the result requests review, more facts, an HMRC decision or source review.",
+      },
+      {
+        step: 6,
         action:
           "Archive the exact exchange, source versions, professional decision and sign-off in the firm's matter file.",
       },
     ],
     nextActions: [
       ...workspaceKeyRecoveryActions("selected task"),
+      {
+        id: "inspect-presented-workspace-key",
+        method: "GET",
+        href: apiWorkspacePath,
+        accepts: ["application/json"],
+        description:
+          "With a valid workspace key, verify only that key's mode, scopes, expiry and authorised tasks without sending client facts.",
+      },
       {
         id: "inspect-tax-capability-registry",
         method: "GET",

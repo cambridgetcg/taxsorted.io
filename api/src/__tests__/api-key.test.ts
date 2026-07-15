@@ -4,10 +4,28 @@ const query = vi.hoisted(() => vi.fn());
 vi.mock("../db.js", () => ({ sql: query }));
 
 import { Hono } from "hono";
-import { hashApiKey, requireApiKey } from "../api-key.js";
+import {
+  authenticateApiKey,
+  hashApiKey,
+  requireApiKey,
+} from "../api-key.js";
 import { requestId } from "../request-id.js";
 
 const rawKey = `ts_test_${"a".repeat(43)}`;
+const workspaceId = "11111111-1111-4111-8111-111111111111";
+const keyId = "22222222-2222-4222-8222-222222222222";
+
+function activeKeyRow(scopes = ["other:read"]) {
+  return {
+    id: keyId,
+    workspace_id: workspaceId,
+    key_prefix: rawKey.slice(0, 16),
+    mode: "test",
+    scopes,
+    created_at: new Date("2026-07-10T09:30:00.000Z"),
+    expires_at: new Date("2027-07-10T09:30:00.000Z"),
+  };
+}
 
 function appFor(scope = "sdlt:calculate") {
   const app = new Hono();
@@ -20,6 +38,17 @@ function appFor(scope = "sdlt:calculate") {
       mode: c.get("apiKeyMode"),
     })
   );
+  return app;
+}
+
+function authenticationApp() {
+  const app = new Hono();
+  app.use("*", requestId);
+  app.use("*", authenticateApiKey());
+  app.get("/", (c) => c.json({
+    workspace: c.get("apiWorkspace"),
+    presentedKey: c.get("apiPresentedKey"),
+  }));
   return app;
 }
 
@@ -96,6 +125,47 @@ describe("machine API keys", () => {
     const submittedValues = query.mock.calls[0]?.slice(1) ?? [];
     expect(submittedValues).toContain(hashApiKey(rawKey));
     expect(submittedValues).not.toContain(rawKey);
+  });
+
+  it("authenticates an active key without requiring a task scope", async () => {
+    query.mockResolvedValue([activeKeyRow()]);
+    const response = await authenticationApp().request("/", {
+      headers: { Authorization: `Bearer ${rawKey}` },
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      workspace: { id: workspaceId },
+      presentedKey: {
+        id: keyId,
+        prefix: rawKey.slice(0, 16),
+        mode: "test",
+        scopes: ["other:read"],
+        createdAt: "2026-07-10T09:30:00.000Z",
+        expiresAt: "2027-07-10T09:30:00.000Z",
+      },
+    });
+  });
+
+  it("does not invent a required scope for authentication-only failures", async () => {
+    const response = await authenticationApp().request("/", {
+      headers: { Authorization: "Bearer broken" },
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      'Bearer realm="TaxSorted API", error="invalid_token"',
+    );
+    const body = await response.json();
+    expect(body).not.toHaveProperty("requiredScope");
+    expect(JSON.stringify(body)).not.toContain("selected task");
+    expect(body.nextActions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "inspect-professional-openapi",
+        description: expect.stringContaining("each operation's required workspace scope"),
+      }),
+    ]));
+    expect(query).not.toHaveBeenCalled();
   });
 
   it("treats the standard Bearer scheme name as case-insensitive", async () => {
