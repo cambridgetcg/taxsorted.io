@@ -84,7 +84,9 @@ is destroyed when the console exits:
 
 ```bash
 curl --fail --silent --show-error --max-time 20 https://api.taxsorted.io/v1/health
-fly console --app taxsorted-api --region lhr --vm-memory 512 --user node --command /bin/sh
+fly console --app taxsorted-api --region lhr \
+  --vm-cpu-kind shared --vm-cpus 1 --vm-memory 512 \
+  --user node --command /bin/sh
 ```
 
 Do not use `fly ssh console` or `fly machine exec` on a serving API machine for key work. On 15 July
