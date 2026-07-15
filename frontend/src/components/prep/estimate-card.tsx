@@ -105,6 +105,13 @@ export function EstimateCard({ records, taxYear, election }: EstimateCardProps) 
             loss relief against other income isn&apos;t part of this estimate yet.
           </p>
         ) : null}
+        {figures.disallowedTradingExpenses > 0 ? (
+          <p className="rounded-xl border border-line bg-paper p-3 text-sm text-ink-soft">
+            The estimate adds back {gbp(figures.disallowedTradingExpenses)} of business
+            entertainment or depreciation. Those costs stay in your books and quarterly
+            categories, but they do not reduce this tax estimate.
+          </p>
+        ) : null}
 
         <ul className="space-y-1.5 text-sm text-ink-soft">
           {estimate.lines.map((line, i) => (

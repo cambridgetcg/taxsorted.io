@@ -13,6 +13,7 @@ export interface DerivedFigures {
   propertyIncome: number;
   propertyExpenses: number;
   residentialFinanceCosts: number;
+  disallowedTradingExpenses: number;
   recordCount: number;
 }
 
@@ -36,8 +37,11 @@ export function deriveFigures(
 
   let seIncome = 0;
   let seExpense = 0;
+  let disallowedTradingExpenses = 0;
   for (const [key, total] of Object.entries(se.totals)) {
-    if (categoryByKey(key, "self-employment").kind === "income") seIncome += total;
+    const definition = categoryByKey(key, "self-employment");
+    if (definition.kind === "income") seIncome += total;
+    else if (definition.taxDeductible === false) disallowedTradingExpenses += total;
     else seExpense += total;
   }
 
@@ -64,6 +68,7 @@ export function deriveFigures(
     propertyIncome,
     propertyExpenses,
     residentialFinanceCosts,
+    disallowedTradingExpenses,
     recordCount: se.recordCount + property.recordCount,
   };
 }

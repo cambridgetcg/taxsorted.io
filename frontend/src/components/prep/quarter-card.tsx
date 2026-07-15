@@ -67,8 +67,9 @@ function daysRemainingText(days: number): string {
  * One source's cumulative quarterly update: a Q1–Q4 + election picker, the
  * HMRC category totals table for the chosen quarter, its deadline, the
  * honest penalty-points position (always shown — HMRC never softens this),
- * and a copy-to-clipboard button formatted as the same plain-text block MTD
- * software would send.
+ * and a copy-to-clipboard aid for checking. Clipboard text is deliberately
+ * not described as a filing transfer; a digital link needs structured export
+ * or an API.
  *
  * `quarterIndex`/`election` are controlled by the caller; the buttons here
  * only report the click via `onQuarterChange`/`onElectionChange`, so two
@@ -183,9 +184,14 @@ export function QuarterCard({
 
         {canCopy ? (
           <Button type="button" variant="outline" size="sm" onClick={handleCopy} disabled={rows.length === 0}>
-            {copied ? "Copied ✓" : "Copy figures"}
+            {copied ? "Copied for checking ✓" : "Copy for checking"}
           </Button>
         ) : null}
+
+        <p className="text-sm text-ink-soft">
+          Clipboard text is for checking only. Do not retype it into filing software; use a
+          compatible structured export or API so the digital link stays intact.
+        </p>
 
         <div role="note" className="rounded-2xl border border-line bg-accent-soft p-3 text-base text-ink">
           <Cited cite={{ source: penalty.source, effectiveFrom: taxYearStart }}>{penalty.note}</Cited>

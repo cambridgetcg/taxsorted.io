@@ -21,6 +21,8 @@ export interface CumulativeUpdate {
  * while aggregating self-employment. Every record inside the window and matching source must
  * resolve via `categoryByKey(record.category, source)` and have a `kind` matching the category
  * definition — an unknown or mismatched category throws.
+ * `effect: 'decrease'` subtracts a refund/reversal from its tax category;
+ * legacy records without an effect increase the category as before.
  *
  * Consolidation (`opts.consolidated`) folds every expense category whose definition is
  * `consolidatable !== false` and not `alwaysSeparate` into a single `consolidatedExpenses`
@@ -52,7 +54,8 @@ export function cumulativeUpdate(
       ? 'consolidatedExpenses'
       : record.category
 
-    totals[key] = (totals[key] ?? 0) + record.amount
+    const signedAmount = record.effect === 'decrease' ? -record.amount : record.amount
+    totals[key] = (totals[key] ?? 0) + signedAmount
     recordCount += 1
   }
 

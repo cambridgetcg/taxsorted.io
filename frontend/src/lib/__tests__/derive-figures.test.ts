@@ -99,8 +99,21 @@ describe("deriveFigures", () => {
       propertyIncome: 0,
       propertyExpenses: 0,
       residentialFinanceCosts: 0,
+      disallowedTradingExpenses: 0,
       recordCount: 0,
     });
+  });
+
+  it("adds disallowed business entertainment and depreciation back for the tax estimate", () => {
+    const records: LedgerRecord[] = [
+      { id: "income", date: "2026-05-01", amount: 100000, kind: "income", category: "turnover", source: "self-employment" },
+      { id: "entertainment", date: "2026-05-02", amount: 10000, kind: "expense", category: "businessEntertainmentCosts", source: "self-employment" },
+      { id: "depreciation", date: "2026-05-03", amount: 20000, kind: "expense", category: "depreciation", source: "self-employment" },
+    ];
+
+    const figures = deriveFigures(records, TAX_YEAR, ELECTION, 1);
+    expect(figures.tradingProfitRaw).toBe(100000);
+    expect(figures.disallowedTradingExpenses).toBe(30000);
   });
 
   it("sums all four property income categories into propertyIncome", () => {
