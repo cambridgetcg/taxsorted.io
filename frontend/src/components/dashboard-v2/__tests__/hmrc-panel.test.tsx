@@ -87,6 +87,57 @@ describe("HmrcPanel", () => {
     expect(screen.queryByText(/sandbox source/i)).toBeNull();
   });
 
+  it("establishes the browser session before checking account status", async () => {
+    let resolveEntities!: (value: { entities: never[] }) => void;
+    mockApi.listEntities.mockImplementation(
+      () => new Promise((resolve) => {
+        resolveEntities = resolve;
+      })
+    );
+
+    render(<HmrcPanel taxYear="2026-27" />);
+
+    expect(mockApi.getAccount).not.toHaveBeenCalled();
+    resolveEntities({ entities: [] });
+
+    await screen.findByRole("button", { name: /start hmrc sandbox setup/i });
+    expect(mockApi.getAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it("creates no server-side workspace until the reader explicitly starts the sandbox", async () => {
+    mockApi.listEntities.mockResolvedValue({ entities: [] });
+    mockApi.createEntity.mockResolvedValue({
+      entity: {
+        id: "e-new",
+        name: "Self Assessment",
+        kind: "person",
+        vrn: null,
+        nino: null,
+        created_at: "2026-07-15T00:00:00.000Z",
+        connected: false,
+        connections: { vat: false, itsa: false },
+      },
+    });
+
+    render(<HmrcPanel taxYear="2026-27" />);
+
+    const start = await screen.findByRole("button", { name: /start hmrc sandbox setup/i });
+    expect(mockApi.createEntity).not.toHaveBeenCalled();
+    expect(screen.getByText(/no self assessment workspace has been created yet/i)).toBeInTheDocument();
+
+    fireEvent.click(start);
+    fireEvent.click(start);
+
+    await waitFor(() => {
+      expect(mockApi.createEntity).toHaveBeenCalledWith({
+        name: "Self Assessment",
+        kind: "person",
+      });
+    });
+    expect(mockApi.createEntity).toHaveBeenCalledTimes(1);
+    expect(await screen.findByLabelText(/national insurance number/i)).toBeInTheDocument();
+  });
+
   it("state (b): renders the connect button, permanent SANDBOX badge and recognition line when reachable but not connected", async () => {
     mockApi.listEntities.mockResolvedValue({
       entities: [

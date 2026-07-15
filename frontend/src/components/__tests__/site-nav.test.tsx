@@ -3,60 +3,25 @@ import { describe, it, expect } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SiteNav } from "../site-nav";
 
-// SiteNav reads i18n through useI18n, which has a safe English fallback when
-// rendered outside the provider — so no wrapper is needed here.
+// SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
-  it("keeps the open Learn book in the primary navigation", () => {
+  it("offers four clear doors plus the account utility", () => {
     render(<SiteNav />);
+
+    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
+      "href",
+      "/checkup",
+    );
+    expect(screen.getByRole("link", { name: "MTD & records" })).toHaveAttribute(
+      "href",
+      "/itsa",
+    );
     expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
+    expect(screen.getByRole("link", { name: "UK system" })).toHaveAttribute("href", "/uk");
+    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
   });
 
-  it("offers an Account link", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
-  });
-
-  it("offers the evidence-backed UK tax expert", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Tax expert" })).toHaveAttribute(
-      "href",
-      "/uk/tax-expert",
-    );
-  });
-
-  it("offers the public industry map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Industry" })).toHaveAttribute(
-      "href",
-      "/uk/tax-industry",
-    );
-  });
-
-  it("offers the public charities map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Charities" })).toHaveAttribute(
-      "href",
-      "/uk/charities",
-    );
-  });
-
-  it("offers the public money map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Public money" })).toHaveAttribute(
-      "href",
-      "/uk/public-funding",
-    );
-  });
-
-  it("offers the observer-accountability map", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Accountability" })).toHaveAttribute(
-      "href",
-      "/uk/accountability",
-    );
-  });
-
-  it("exposes an accessible mobile disclosure without dropping links or language", () => {
+  it("exposes an accessible mobile disclosure without dropping doors or language", () => {
     render(<SiteNav />);
 
     const menuButton = screen.getByRole("button", { name: "Open menu" });
@@ -68,9 +33,9 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: /^income tax \(mtd\)$/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
       "href",
-      "/itsa",
+      "/checkup",
     );
     expect(screen.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
   });
@@ -92,9 +57,9 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const learnLink = screen.getByRole("link", { name: "Learn" });
-    learnLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
-    fireEvent.click(learnLink);
+    const checkupLink = screen.getByRole("link", { name: "Check my tax" });
+    checkupLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    fireEvent.click(checkupLink);
 
     expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
       "aria-expanded",

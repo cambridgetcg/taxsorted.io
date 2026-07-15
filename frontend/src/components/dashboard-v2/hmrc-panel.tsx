@@ -11,7 +11,7 @@
 // unlocks with HMRC recognition — this whole rail 404s in prod, same door
 // pattern as the api's test-user mint).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { TaxYear } from "@taxsorted/engine/uk/itsa";
 import {
@@ -41,7 +41,13 @@ export interface HmrcPanelProps {
   taxYear: TaxYear;
 }
 
-type PanelStatus = "loading" | "unreachable" | "need-nino" | "not-connected" | "connected";
+type PanelStatus =
+  | "loading"
+  | "unreachable"
+  | "not-started"
+  | "need-nino"
+  | "not-connected"
+  | "connected";
 
 const RECOGNITION_LINE =
   "Production filing unlocks with HMRC recognition — we're walking that path in the open.";
@@ -161,6 +167,9 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
   const [ninoDraft, setNinoDraft] = useState("");
   const [ninoSaving, setNinoSaving] = useState(false);
   const [ninoError, setNinoError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+  const startInFlightRef = useRef(false);
 
   const [itsaStatus, setItsaStatus] = useState<ItsaStatusResponse | null>(null);
   const [itsaStatusError, setItsaStatusError] = useState<string | null>(null);
@@ -219,19 +228,36 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
         const { entities } = await api.listEntities();
         if (cancelled) return;
 
+        // `listEntities` establishes or resumes the anonymous browser
+        // session. Only start the account-status request after that response
+        // has completed, so two first-visit requests cannot race to create
+        // different sessions and overwrite one another's cookie.
+        void api
+          .getAccount()
+          .then((res) => {
+            if (!cancelled) setAccount(res);
+          })
+          .catch(() => {
+            // Account awareness is secondary. The sandbox rail works without
+            // this note, so a failure stays quiet.
+          });
+
         // An ITSA entity carries a NINO — a VAT-only entity (VRN, no NINO)
         // from /vat is never reused here; connections are per-rail in the
         // vault (unique entity+rail) but this panel keeps ITSA on its own
-        // entity anyway for a clean separation. A bare "Self
-        // Assessment" person is this panel's own earlier creation waiting
-        // for its NINO — reuse it, never mint a duplicate per visit.
-        let picked =
+        // entity anyway for a clean separation. A bare "Self Assessment"
+        // person is this panel's own earlier creation waiting for its NINO —
+        // reuse it. If none exists, show an explicit start action: merely
+        // visiting the cockpit may establish an anonymous session, but must
+        // never create a taxpayer workspace.
+        const picked =
           entities.find((e) => e.nino) ??
           entities.find((e) => e.kind === "person" && e.name === "Self Assessment") ??
           null;
         if (!picked) {
-          const created = await api.createEntity({ name: "Self Assessment", kind: "person" });
-          picked = created.entity;
+          setEntity(null);
+          setStatus("not-started");
+          return;
         }
         if (cancelled) return;
 
@@ -259,25 +285,27 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
     };
   }, [reloadToken, loadConnected]);
 
-  // Account awareness is a secondary, non-blocking signal — whether this
-  // browser's entities are anonymous or already tied to a signed-in
-  // account. Unlike the bootstrap above, a failure here stays silent: the
-  // connect/status rail works identically either way, this only decides
-  // whether AccountNote has anything honest to say.
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .getAccount()
-      .then((res) => {
-        if (!cancelled) setAccount(res);
-      })
-      .catch(() => {
-        // Silent by design — see comment above.
+  const startSandboxSetup = async () => {
+    if (startInFlightRef.current) return;
+    startInFlightRef.current = true;
+    setStarting(true);
+    setStartError(null);
+    try {
+      const { entity: created } = await api.createEntity({
+        name: "Self Assessment",
+        kind: "person",
       });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      setEntity(created);
+      setStatus("need-nino");
+    } catch (error) {
+      setStartError(
+        error instanceof ApiError ? error.message : "Could not start the sandbox setup — try again."
+      );
+    } finally {
+      startInFlightRef.current = false;
+      setStarting(false);
+    }
+  };
 
   const saveNino = async () => {
     if (!entity) return;
@@ -363,6 +391,22 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
           </Button>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (status === "not-started") {
+    return (
+      <PanelShell title="HMRC sandbox setup" notice={notice}>
+        <p className="text-sm text-ink-soft">
+          No Self Assessment workspace has been created yet. Starting makes one on TaxSorted&apos;s
+          api, tied to this browser. It does not contact HMRC until you choose the separate
+          connect step.
+        </p>
+        <Button type="button" variant="outline" size="sm" disabled={starting} onClick={startSandboxSetup}>
+          {starting ? "Starting…" : "Start HMRC sandbox setup"}
+        </Button>
+        {startError ? <p className="text-sm text-red-600">{startError}</p> : null}
+      </PanelShell>
     );
   }
 

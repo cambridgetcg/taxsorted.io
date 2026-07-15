@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "TaxSorted makes tax simple and fun for everyone — plain words in multiple languages, the UK tax game explained, and a deep, non-partisan look at UK tax politics.",
+    "Use the UK Tax Checkup to find the right source-backed check, prepare from your records, and follow the public rules, money and institutions around tax.",
 };
 
 export default function RootLayout({
