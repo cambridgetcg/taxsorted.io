@@ -22,6 +22,22 @@ derived services may charge fairly for work that saves time or money, but paymen
 become the practical gate to those base public materials. People file their own taxes; we pave
 the road.
 
+## The public front doors
+
+The site keeps its depth, but the way in is deliberately small:
+
+- **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
+  narrowest current check, record tool or guide. This routing step asks for no tax identifier and
+  does not calculate or file anything itself.
+- **`/itsa` — MTD and records.** Eligibility, local records, mileage, quarter figures and the
+  visible boundary between preparation, sandbox work and production filing.
+- **`/learn` — Understand the rules.** Plain guides with official sources and scope notes.
+- **`/uk` — Understand the system.** Personal-tax paths, public money, politics,
+  accountability, charities, the tax industry and the reusable API doors in one map.
+
+Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
+or a second copy of the datasets.
+
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →
 year-end return, aiming to be the first open-source software on HMRC's recognised list.

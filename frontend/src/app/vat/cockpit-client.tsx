@@ -41,15 +41,16 @@ export default function CockpitClient() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-ink">VAT, for real</h1>
+          <h1 className="text-2xl font-bold text-ink">VAT sandbox workspace</h1>
           <p className="text-sm text-ink-soft">
-            Your entity, your HMRC connection, your filings — receipts and all.
+            Prepare a return from your records. HMRC connections and receipts here are for
+            practice; production filing is not available yet.
           </p>
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard">
+          <Link href="/checkup">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Dashboard
+            Tax Checkup
           </Link>
         </Button>
       </div>
@@ -68,8 +69,8 @@ export default function CockpitClient() {
         <Alert className="mb-6">
           <AlertTitle>Connecting to HMRC isn&apos;t switched on yet</AlertTitle>
           <AlertDescription>
-            You can create entities now; connecting and filing light up the
-            moment our HMRC {rail.env} credentials are in place.
+            You can create entities now. HMRC sandbox connection and practice submission become
+            available when the {rail.env} credentials are in place.
           </AlertDescription>
         </Alert>
       )}
@@ -148,8 +149,8 @@ function EntityPicker() {
         <CardHeader>
           <CardTitle>Your entities</CardTitle>
           <CardDescription>
-            Who is filing? Each entity keeps its own connection and receipts,
-            tied to this browser — no account needed yet.
+            Who is preparing this return? Each entity keeps its own sandbox connection and
+            practice receipts, tied to this browser — no account needed yet.
           </CardDescription>
         </CardHeader>
         <CardContent>

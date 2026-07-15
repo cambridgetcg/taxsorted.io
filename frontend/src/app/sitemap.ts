@@ -7,6 +7,7 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["/", 1],
+    ["/checkup/", 1],
     ["/learn/", 0.9],
     ["/learn/mtd-income-tax/", 0.9],
     ["/learn/income-tax/", 0.8],
@@ -18,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/learn/gov/your-levers/", 0.7],
     ["/learn/gov/receipts/", 0.7],
     ["/uk/personal-tax/", 0.9],
+    ["/uk/", 0.9],
     ["/uk/tax-expert/", 1],
     ["/uk/tax-industry/", 0.9],
     ["/uk/charities/", 0.9],
