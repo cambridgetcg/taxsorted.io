@@ -28,7 +28,7 @@ describe("public-office pathfinder", () => {
       /nineteenth working day/i,
     );
     expect(screen.getByText(/consent timing:/i).parentElement).toHaveTextContent(
-      /one month/i,
+      /one calendar month/i,
     );
     expect(screen.getByText(/£100 for each day they sit or vote/i)).toBeInTheDocument();
   });

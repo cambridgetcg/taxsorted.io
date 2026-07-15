@@ -621,7 +621,7 @@
           {"id": "mp-party-certificate", "name": "Party certificate and optional emblem request", "required": false, "originalNormallyRequired": true, "deliveryExceptions": ["The original party authorisation and emblem-request forms may be posted if they reach the acting returning officer by the deadline."], "note": "Needed only to use a registered party description or emblem."}
         ],
         "delivery": ["The nomination form and home-address form must be hand-delivered as the official guide specifies; the consent normally follows the same route, subject to the stated overseas-candidate exception.", "Original party authorisation and emblem-request forms may be posted, but they must reach the acting returning officer by the deadline; confirm the correct address and hours.", "A TaxSorted upload is never a nomination delivery route. Ask the acting returning officer about permitted inspection and correction before the deadline."],
-        "consentTiming": "The consent must be signed no earlier than one month before the nomination deadline and delivered by that deadline.",
+        "consentTiming": "The consent must be signed no earlier than one calendar month before the nomination deadline and delivered by that deadline.",
         "subscribers": {
           "count": 10,
           "register": "The register in force for the election",

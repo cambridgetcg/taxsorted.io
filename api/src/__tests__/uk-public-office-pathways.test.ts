@@ -158,6 +158,7 @@ describe("UK public-office pathways API", () => {
       ).due,
     ).toMatch(/14 days after returning/i);
     expect(councillor.nomination.consentTiming).toMatch(/one calendar month/i);
+    expect(mp.nomination.consentTiming).toMatch(/one calendar month/i);
     expect(councillor.agent.appointmentDeadlineExpression).toMatch(
       /4pm on the nineteenth working day/i,
     );
