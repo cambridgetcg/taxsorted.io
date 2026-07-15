@@ -1,6 +1,7 @@
 export const professionalToolsPath = "/v1/uk/professional-tools";
 export const professionalToolsOpenApiPath =
   "/openapi/professional-tools-uk.json";
+export const apiWorkspacePath = "/v1/api-workspace";
 
 export const professionalToolsAccess = {
   availability: "credentialed-design-partner",
@@ -38,7 +39,7 @@ export const professionalAuthenticationResponseHeaders = {
   },
 } as const;
 
-export function workspaceKeyRecoveryActions(requiredScope: string) {
+export function workspaceKeyRecoveryActions(requiredScope?: string) {
   return [
     {
       id: "inspect-professional-tools",
@@ -56,7 +57,9 @@ export function workspaceKeyRecoveryActions(requiredScope: string) {
         "application/vnd.oai.openapi+json;version=3.1",
         "application/json",
       ],
-      description: `Inspect complete request examples and the operation that requires the ${requiredScope} scope.`,
+      description: requiredScope
+        ? `Inspect complete request examples and the operation that requires the ${requiredScope} scope.`
+        : "Inspect complete request examples and each operation's required workspace scope.",
     },
   ] as const;
 }

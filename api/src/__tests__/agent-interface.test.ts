@@ -132,6 +132,21 @@ describe("agent interface", () => {
       "professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake",
     );
     expect(body).toContain(
+      "professional-workspace-key: GET https://api.taxsorted.io/v1/api-workspace",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-authentication: Bearer TaxSorted workspace key; no task scope required",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-cors: server-to-server; browser bearer calls are not supported",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-input: no query string and no declared request body; either is rejected with 400 before authentication; no client or tax facts",
+    );
+    expect(body).toContain(
+      "professional-key-lifecycle: operator-managed inspect, finite-expiry issue, overlapping rotate and explicit revoke; no self-service, public delivery or authenticated admin audit trail",
+    );
+    expect(body).toContain(
       "sdlt-calculation: POST https://api.taxsorted.io/v1/uk/sdlt/calculations",
     );
     expect(body).toContain("methods: GET, HEAD, OPTIONS\n");
@@ -354,6 +369,28 @@ describe("agent interface", () => {
         href: "/openapi/professional-tools-uk.json",
         authentication: "none",
       },
+      credentialInspection: {
+        method: "GET",
+        href: "/v1/api-workspace",
+        authentication: "Bearer TaxSorted workspace key",
+        requiredWorkspaceScopes: [],
+        intendedClient: "server-to-server",
+        browserCorsAuthorizationHeaderAllowed: false,
+        acceptsQueryParameters: false,
+        acceptsRequestBody: false,
+        acceptsClientFacts: false,
+        changesState: false,
+        returnsOtherKeys: false,
+      },
+      operatorKeyLifecycle: {
+        inspect: true,
+        issueWithFiniteExpiry: true,
+        overlappingRotation: true,
+        explicitRevocation: true,
+        selfService: false,
+        securePublicDelivery: false,
+        authenticatedAdminAuditTrail: false,
+      },
       status: "credentialed-design-partner",
       audiences: [
         "solicitors-and-conveyancers",
@@ -375,6 +412,7 @@ describe("agent interface", () => {
         portfolioOrBatchOperations: false,
         filingOrSubmission: false,
         immutableEvidenceArchive: false,
+        workspaceNameReturnedToCaller: false,
         productionSla: false,
       },
     });

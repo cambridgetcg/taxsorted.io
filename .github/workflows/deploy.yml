@@ -78,7 +78,7 @@ jobs:
             exit 1
           fi
           if [ -z "${TAX_EXPERT_CANARY_API_KEY}" ]; then
-            echo 'TAX_EXPERT_CANARY_API_KEY is required before the API can be deployed.' >&2
+            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove workspace inspection and both professional tasks.' >&2
             exit 1
           fi
 
@@ -205,7 +205,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${TAX_EXPERT_CANARY_API_KEY}" ]; then
-            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove the authenticated SDLT and tax-expert paths.' >&2
+            echo 'TAX_EXPERT_CANARY_API_KEY is required to prove workspace inspection, SDLT and tax-expert paths.' >&2
             exit 1
           fi
           for path in \
@@ -365,10 +365,25 @@ jobs:
             'professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
+            'professional-workspace-key: GET https://api.taxsorted.io/v1/api-workspace' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-workspace-key-authentication: Bearer TaxSorted workspace key; no task scope required' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-workspace-key-cors: server-to-server; browser bearer calls are not supported' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-workspace-key-input: no query string and no declared request body; either is rejected with 400 before authentication; no client or tax facts' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'professional-key-lifecycle: operator-managed inspect, finite-expiry issue, overlapping rotate and explicit revoke; no self-service, public delivery or authenticated admin audit trail' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
             'professional-tools-data-boundary: the key identifies the calling workspace; minimized financial or transaction facts may still be personal data without direct identifiers' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
-            'professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, key lifecycle, high-availability contract or SLA' \
+            'professional-tools-production-contract-gaps: no published rate limit, professional privacy and retention policy, security assessment, self-service key lifecycle, authenticated admin audit trail, high-availability contract or SLA' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'sdlt-calculation: POST https://api.taxsorted.io/v1/uk/sdlt/calculations' \
@@ -977,6 +992,23 @@ jobs:
             .resources.taxExpert.assessment.errorContract.requestFactValuesEchoedInErrors == false and
             .resources.professionalTools.publicManifest.href == "/v1/uk/professional-tools" and
             .resources.professionalTools.taskContract.href == "/openapi/professional-tools-uk.json" and
+            .resources.professionalTools.credentialInspection.href == "/v1/api-workspace" and
+            .resources.professionalTools.credentialInspection.authentication == "Bearer TaxSorted workspace key" and
+            .resources.professionalTools.credentialInspection.requiredWorkspaceScopes == [] and
+            .resources.professionalTools.credentialInspection.intendedClient == "server-to-server" and
+            .resources.professionalTools.credentialInspection.browserCorsAuthorizationHeaderAllowed == false and
+            .resources.professionalTools.credentialInspection.acceptsQueryParameters == false and
+            .resources.professionalTools.credentialInspection.acceptsRequestBody == false and
+            .resources.professionalTools.credentialInspection.acceptsClientFacts == false and
+            .resources.professionalTools.credentialInspection.changesState == false and
+            .resources.professionalTools.credentialInspection.returnsOtherKeys == false and
+            .resources.professionalTools.operatorKeyLifecycle.inspect == true and
+            .resources.professionalTools.operatorKeyLifecycle.issueWithFiniteExpiry == true and
+            .resources.professionalTools.operatorKeyLifecycle.overlappingRotation == true and
+            .resources.professionalTools.operatorKeyLifecycle.explicitRevocation == true and
+            .resources.professionalTools.operatorKeyLifecycle.selfService == false and
+            .resources.professionalTools.operatorKeyLifecycle.securePublicDelivery == false and
+            .resources.professionalTools.operatorKeyLifecycle.authenticatedAdminAuditTrail == false and
             .resources.professionalTools.status == "credentialed-design-partner" and
             .resources.professionalTools.executableTaskCount == 2 and
             .resources.professionalTools.access.availability == "credentialed-design-partner" and
@@ -988,6 +1020,7 @@ jobs:
             .resources.professionalTools.boundaries.clientOrMatterRecords == false and
             .resources.professionalTools.boundaries.filingOrSubmission == false and
             .resources.professionalTools.boundaries.immutableEvidenceArchive == false and
+            .resources.professionalTools.boundaries.workspaceNameReturnedToCaller == false and
             .resources.whyGraph.framework == "/v1/why-graph" and
             .resources.whyGraph.adopters == "/v1/why-graph/adopters" and
             .resources.whyGraph.schema == "/v1/why-graph/schema" and
@@ -1031,8 +1064,24 @@ jobs:
               .access.confidentialAccessRequestIntake == false and
               .access.workspaceKeyIdentifiesCallingWorkspace == true and
               .access.requestFactsMayBePersonalData == true and
+              .access.credentialInspection.href == "/v1/api-workspace" and
+              .access.credentialInspection.requiredWorkspaceScopes == [] and
+              .access.credentialInspection.intendedClient == "server-to-server" and
+              .access.credentialInspection.browserCorsAuthorizationHeaderAllowed == false and
+              .access.credentialInspection.acceptsQueryParameters == false and
+              .access.credentialInspection.acceptsRequestBody == false and
+              .access.credentialInspection.acceptsClientFacts == false and
+              .access.credentialInspection.changesState == false and
               .practiceRecord.applicationStoresRequestsOrResults == false and
               .practiceRecord.immutableEvidenceArchiveAvailable == false and
+              .keyLifecycle.operatorManaged == true and
+              .keyLifecycle.issueExistingWorkspace == true and
+              .keyLifecycle.overlappingRotation == true and
+              .keyLifecycle.explicitRevocation == true and
+              .keyLifecycle.newKeysRequireFiniteExpiry == true and
+              .keyLifecycle.selfService == false and
+              .keyLifecycle.securePublicDeliveryAvailable == false and
+              .keyLifecycle.authenticatedAdminAuditTrailAvailable == false and
               .boundaries.clientOrMatterRecords == false and
               .boundaries.filingOrSubmission == false and
               .boundaries.publishedRateLimitContract == false and
@@ -1084,11 +1133,23 @@ jobs:
               .openapi == "3.1.0" and
               .["x-taxsorted-slice"].id == "professional-tools-uk" and
               (.paths | keys | sort) == [
+                "/v1/api-workspace",
                 "/v1/uk/professional-tools",
                 "/v1/uk/sdlt/calculations",
                 "/v1/uk/tax-expert",
                 "/v1/uk/tax-expert/mtd-income-tax/assessments"
               ] and
+              .paths["/v1/api-workspace"].get.operationId == "inspectAuthenticatedApiWorkspace" and
+              .paths["/v1/api-workspace"].get.security == [{"WorkspaceKey": []}] and
+              .paths["/v1/api-workspace"].get["x-taxsorted-required-workspace-scopes"] == [] and
+              (.paths["/v1/api-workspace"].get | has("parameters") | not) and
+              (.paths["/v1/api-workspace"].get | has("requestBody") | not) and
+              (.paths["/v1/api-workspace"].get.responses | has("400")) and
+              (.paths["/v1/api-workspace"].get.responses | has("403") | not) and
+              .paths["/v1/api-workspace"].get.responses["200"].headers["Cache-Control"].schema.enum == ["no-store"] and
+              .components.schemas.ApiWorkspaceResponse.additionalProperties == false and
+              (.components.schemas.ApiWorkspaceResponse.properties.workspace.properties | keys) == ["id"] and
+              (.components.schemas.ApiWorkspaceResponse.properties.presentedKey.properties | keys | sort) == ["createdAt", "expiresAt", "id", "mode", "prefix", "scopes"] and
               .paths["/v1/uk/professional-tools"].get.security == [] and
               .paths["/v1/uk/sdlt/calculations"].post.security == [{"WorkspaceKey": []}] and
               .paths["/v1/uk/sdlt/calculations"].post["x-taxsorted-required-workspace-scopes"] == ["sdlt:calculate"] and
@@ -1123,6 +1184,125 @@ jobs:
               .components.securitySchemes.WorkspaceKey.type == "http" and
               .components.securitySchemes.WorkspaceKey.scheme == "bearer"
             ' >/dev/null
+
+          workspace_unauthenticated_headers="${RUNNER_TEMP}/api-workspace-unauthenticated.headers"
+          workspace_unauthenticated_body="${RUNNER_TEMP}/api-workspace-unauthenticated.json"
+          workspace_unauthenticated_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --dump-header "${workspace_unauthenticated_headers}" \
+            --output "${workspace_unauthenticated_body}" \
+            --write-out '%{http_code}' \
+            https://api.taxsorted.io/v1/api-workspace)
+          test "${workspace_unauthenticated_status}" = "401"
+          jq --exit-status '
+            .error == "invalid_api_key" and
+            (has("requiredScope") | not) and
+            (.nextActions | length) >= 2
+          ' "${workspace_unauthenticated_body}" >/dev/null
+          grep --ignore-case --fixed-strings \
+            'www-authenticate: Bearer realm="TaxSorted API", error="invalid_token"' \
+            "${workspace_unauthenticated_headers}" >/dev/null
+
+          workspace_query_marker='workspace-query-canary-do-not-echo'
+          workspace_query_headers="${RUNNER_TEMP}/api-workspace-query.headers"
+          workspace_query_body="${RUNNER_TEMP}/api-workspace-query.json"
+          workspace_query_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --dump-header "${workspace_query_headers}" \
+            --output "${workspace_query_body}" \
+            --write-out '%{http_code}' \
+            "https://api.taxsorted.io/v1/api-workspace?clientFact=${workspace_query_marker}")
+          test "${workspace_query_status}" = "400"
+          jq --exit-status '.error == "query_not_allowed"' \
+            "${workspace_query_body}" >/dev/null
+          if grep --fixed-strings "${workspace_query_marker}" "${workspace_query_body}" >/dev/null; then
+            echo 'API workspace query rejection reflected a supplied value.' >&2
+            exit 1
+          fi
+
+          workspace_body_marker='workspace-body-canary-do-not-echo'
+          workspace_declared_body_headers="${RUNNER_TEMP}/api-workspace-declared-body.headers"
+          workspace_declared_body="${RUNNER_TEMP}/api-workspace-declared-body.json"
+          workspace_declared_body_status=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --request GET \
+            --header 'Content-Type: text/plain' \
+            --data-binary "${workspace_body_marker}" \
+            --dump-header "${workspace_declared_body_headers}" \
+            --output "${workspace_declared_body}" \
+            --write-out '%{http_code}' \
+            https://api.taxsorted.io/v1/api-workspace)
+          test "${workspace_declared_body_status}" = "400"
+          jq --exit-status '.error == "request_body_not_allowed"' \
+            "${workspace_declared_body}" >/dev/null
+          if grep --fixed-strings "${workspace_body_marker}" "${workspace_declared_body}" >/dev/null; then
+            echo 'API workspace body rejection reflected a supplied value.' >&2
+            exit 1
+          fi
+
+          for workspace_boundary_headers in \
+            "${workspace_unauthenticated_headers}" \
+            "${workspace_query_headers}" \
+            "${workspace_declared_body_headers}"; do
+            awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+              "${workspace_boundary_headers}"
+            if grep --ignore-case '^set-cookie:' "${workspace_boundary_headers}" >/dev/null; then
+              echo 'API workspace boundary response set a browser cookie.' >&2
+              exit 1
+            fi
+          done
+
+          workspace_canary_headers="${RUNNER_TEMP}/api-workspace-canary.headers"
+          workspace_canary_body="${RUNNER_TEMP}/api-workspace-canary.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header "Authorization: Bearer ${TAX_EXPERT_CANARY_API_KEY}" \
+            --dump-header "${workspace_canary_headers}" \
+            --output "${workspace_canary_body}" \
+            https://api.taxsorted.io/v1/api-workspace
+          awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+            "${workspace_canary_headers}"
+          awk 'tolower($1) == "x-request-id:" { gsub("\\r", "", $2); found = ($2 ~ /^[0-9a-f-]{36}$/) } END { exit !found }' \
+            "${workspace_canary_headers}"
+          if grep --ignore-case '^set-cookie:' "${workspace_canary_headers}" >/dev/null; then
+            echo 'Authenticated API workspace canary set a browser cookie.' >&2
+            exit 1
+          fi
+          if grep --fixed-strings "${TAX_EXPERT_CANARY_API_KEY}" "${workspace_canary_body}" >/dev/null; then
+            echo 'Authenticated API workspace canary reflected its secret.' >&2
+            exit 1
+          fi
+          workspace_expected_prefix="${TAX_EXPERT_CANARY_API_KEY:0:16}"
+          jq --exit-status --arg expectedPrefix "${workspace_expected_prefix}" '
+            .schema == "taxsorted.api-workspace/1" and
+            (.evaluatedAt | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T")) and
+            (.workspace | keys) == ["id"] and
+            (.workspace.id | test("^[0-9a-f-]{36}$")) and
+            (.presentedKey | keys | sort) == ["createdAt", "expiresAt", "id", "mode", "prefix", "scopes"] and
+            .presentedKey.mode == "test" and
+            .presentedKey.prefix == $expectedPrefix and
+            (.presentedKey.scopes | sort) == ["sdlt:calculate", "tax-expert:assess"] and
+            (.presentedKey.expiresAt | type) == "string" and
+            (.capabilities | length) == 2 and
+            ([.capabilities[].id] | sort) == ["mtd-income-tax-readiness", "residential-sdlt-calculation"] and
+            ([.capabilities[].authorized] | all(. == true)) and
+            .boundaries.acceptsClientFacts == false and
+            .boundaries.acceptsQueryParameters == false and
+            .boundaries.acceptsRequestBody == false and
+            .boundaries.storesClientFacts == false and
+            .boundaries.revealsOtherKeys == false and
+            .boundaries.workspaceNameReturned == false and
+            .boundaries.keyNameReturned == false and
+            .boundaries.keyHashReturned == false and
+            .boundaries.revocationHistoryReturned == false and
+            .boundaries.browserAccountLinked == false and
+            .boundaries.hmrcConnectionLinked == false and
+            .boundaries.intendedClient == "server-to-server" and
+            .boundaries.browserCorsAuthorizationHeaderAllowed == false and
+            .boundaries.mutatesWorkspaceOrKey == false and
+            (.boundaries | keys | sort) == ["acceptsClientFacts", "acceptsQueryParameters", "acceptsRequestBody", "browserAccountLinked", "browserCorsAuthorizationHeaderAllowed", "hmrcConnectionLinked", "intendedClient", "keyHashReturned", "keyNameReturned", "mutatesWorkspaceOrKey", "revealsOtherKeys", "revocationHistoryReturned", "statement", "storesClientFacts", "workspaceNameReturned"] and
+            (keys | sort) == ["boundaries", "capabilities", "evaluatedAt", "presentedKey", "schema", "workspace"]
+          ' "${workspace_canary_body}" >/dev/null
 
           expert_headers="${RUNNER_TEMP}/tax-expert-unauthenticated.headers"
           expert_body="${RUNNER_TEMP}/tax-expert-unauthenticated.json"

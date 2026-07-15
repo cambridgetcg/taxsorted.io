@@ -384,33 +384,59 @@ retry boundaries, evidence returned, facts not to send and the practice capabili
 exist. The task-sized OpenAPI includes:
 
 ```text
+GET  /v1/api-workspace                                valid key; no task scope
 POST /v1/uk/sdlt/calculations                         scope: sdlt:calculate
 POST /v1/uk/tax-expert/mtd-income-tax/assessments     scope: tax-expert:assess
 ```
 
-Both calls are stateless and server-to-server. Repeating a request creates no application record,
-filing or other external state change, but a later response is not promised to be byte-identical
-after the trusted evaluation date, ruleset or source ledger changes. The OpenAPI request bodies
-contain complete examples and each `401` or `403` response links back to this manifest and slice.
+The two POST task calls are stateless and server-to-server. Repeating one creates no application
+record, filing or other external state change, but a later response is not promised to be
+byte-identical after the trusted evaluation date, ruleset or source ledger changes. The OpenAPI
+request bodies contain complete examples, and each task's `401` or `403` response links back to
+this manifest and slice. The separate GET inspection has no task scope, query parameters, request
+body or `403` state.
 
 Access remains a material gap. Workspace keys are operator-issued to existing design partners.
-There is no public self-service provisioning, no confidential access-request intake, and a browser
-account does not provide a workspace key. Do not put client facts or access requests in the public
-GitHub issue tracker. A workspace key identifies the calling workspace. Financial and transaction
-facts may still be personal data even when the request omits names, NINOs, UTRs and addresses;
-the caller remains responsible for its lawful basis, minimisation and matter-file controls.
+Operators can issue an expiring key, inspect it, create an overlapping replacement and explicitly
+revoke it. A caller can use `GET /v1/api-workspace` to inspect only the presented key without
+sending client facts. There is still no public self-service provisioning, confidential
+access-request intake or secure public key-delivery channel, and a browser account does not provide
+a workspace key. Do not put client facts or access requests in the public GitHub issue tracker. A
+workspace key identifies the calling workspace. Financial and transaction facts may still be
+personal data even when the request omits names, NINOs, UTRs and addresses; the caller remains
+responsible for its lawful basis, minimisation and matter-file controls.
 
 These routes are not a professional practice system. They do not provide client or matter records,
 caller matter references, document storage, portfolio or batch operations, firm roles and
 approvals, HMRC agent authority, filing, an immutable evidence archive, a signed evidence pack or a
 production SLA. The separate browser HMRC rail is sandbox-only and is not connected to workspace
 keys. No professional rate-limit contract, privacy and retention policy, published security
-assessment, self-service key rotation or revocation, high-availability contract or SLA is published.
+assessment, self-service key lifecycle, authenticated operator audit trail, high-availability
+contract or SLA is published.
 
 A firm relying on a result must retain the exact request, exact response, `X-Request-ID`, returned
 request hash when present, capability or ruleset versions, relied-on sources, fact classification,
 reviewer and sign-off in its own matter file. TaxSorted returns a bounded computation, not a
 retrievable professional file or submission receipt.
+
+### Inspect the presented workspace key
+
+```text
+GET /v1/api-workspace
+Authorization: Bearer ts_test_...
+```
+
+This call requires a valid key but no task scope. Send no query string and no declared request body;
+either is rejected with `400` before authentication and supplied values are not echoed. It accepts
+no client facts, makes no change and returns `Cache-Control: no-store`. It is server-to-server;
+browser bearer calls are not enabled by CORS. The response identifies the workspace and presented
+key by UUID, gives the harmless key prefix, mode, sorted scopes, creation timestamp and expiry, and
+marks each current professional task as authorised or not authorised. `expiresAt` can be `null` on
+a legacy non-expiring key; every key created by the current operator commands has a finite expiry.
+The response does not return the workspace or key name, any sibling key, hash, secret, revocation
+history, browser identity or HMRC
+connection. A missing, expired, revoked or suspended credential returns the same `401 invalid_token`
+shape; this endpoint has no insufficient-scope `403` state.
 
 ## UK tax expert — coverage and first deep path
 
@@ -568,14 +594,49 @@ Keys are 32 random bytes. The database holds only their SHA-256 digest, a harmle
 their workspace, mode and scopes. Browser passkeys and machine keys are separate identities by
 design. New keys default to `sdlt:calculate`; request only the expert scope when that is the task:
 
-Create a local design-partner key with a configured API database:
+Create a design-partner workspace from a private terminal with the intended API database configured.
+The command requires a finite expiry no more than 400 days after the database clock:
 
 ```bash
-npm run create:api-key --workspace api -- "Firm name"
-npm run create:api-key --workspace api -- "Firm name" --scope=tax-expert:assess
+EXPIRES_AT="$(node -e 'console.log(new Date(Date.now() + 365 * 864e5).toISOString())')"
+npm run create:api-key --workspace api -- \
+  "Firm name" \
+  --expires-at="${EXPIRES_AT}" \
+  --scope=sdlt:calculate \
+  --scope=tax-expert:assess
 ```
 
-Add `--live` only for a production workspace. The plaintext key is shown once.
+Add `--live` only for a production workspace. The plaintext key is shown once; the database stores
+only its digest and safe prefix.
+
+Existing workspaces use the operator lifecycle command:
+
+```bash
+npm run manage:api-key --workspace api -- --help
+npm run manage:api-key --workspace api -- inspect --key-id="${KEY_ID}"
+npm run manage:api-key --workspace api -- issue \
+  --workspace-id="${WORKSPACE_ID}" \
+  --mode=test \
+  --scope=sdlt:calculate \
+  --scope=tax-expert:assess \
+  --expires-at="${EXPIRES_AT}" \
+  --name="design partner replacement"
+npm run manage:api-key --workspace api -- rotate \
+  --key-id="${OLD_KEY_ID}" \
+  --expires-at="${EXPIRES_AT}" \
+  --name="verified replacement"
+npm run manage:api-key --workspace api -- revoke \
+  --key-id="${OLD_KEY_ID}" \
+  --confirm-prefix="${OLD_KEY_PREFIX}"
+```
+
+`rotate` preserves the old key's mode and scopes and leaves it active. Deliver the new plaintext
+through an independently agreed private channel, call `GET /v1/api-workspace` with it, move the
+consumer, verify it, and only then revoke the old UUID and exact safe prefix. By default, revocation
+requires another active key in the same mode, containing every old scope and valid for more than
+five minutes. `--allow-last-key` is the explicit emergency off-switch; it can leave the workspace
+unable to authenticate. These commands are operator tools, not a self-service or authenticated
+administration API, and they do not create an operator audit trail.
 
 ## Request
 
@@ -656,9 +717,9 @@ The calculator does not need names, addresses, client files, Government Gateway 
 HMRC tokens. It reads the supplied transaction facts, returns the result, and does not create
 a browser session. Workspace and key records are the only persistent data in this slice.
 
-Production access still needs rate limits, a published privacy and retention statement,
-security testing, key rotation/revocation operations and design-partner review. None of those
-gaps is hidden by the OpenAPI document.
+Production access still needs rate limits, a published privacy and retention statement, security
+testing, self-service lifecycle, secure public key delivery, authenticated operator audit and
+design-partner review. None of those gaps is hidden by the OpenAPI document.
 
 ## The commons and the hosted service
 

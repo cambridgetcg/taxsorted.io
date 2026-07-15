@@ -67,11 +67,70 @@ The canonical-host redirect lives in Cloudflare Dynamic Redirect ruleset
 and digest type `2`. These identifiers are operational metadata, not secrets.
 
 The authenticated release canaries use one test-mode workspace key with the
-`tax-expert:assess` and `sdlt:calculate` scopes. Its plaintext exists only as the GitHub Actions
-secret `TAX_EXPERT_CANARY_API_KEY`; Postgres stores its digest. The secret and database workspace
-names predate the SDLT canary. It expires on 12 July 2027. The off-switch is to revoke that database
-key and delete the GitHub secret; rotate both before the expiry rather than removing either
-success-path check.
+`tax-expert:assess` and `sdlt:calculate` scopes. They first inspect that presented key without tax
+facts, then run both professional tasks. Its plaintext exists only as the GitHub Actions secret
+`TAX_EXPERT_CANARY_API_KEY`; Postgres stores its digest. The secret and database workspace names
+predate the SDLT canary. It expires on 12 July 2027. Use the operator lifecycle command to mint and
+verify an overlapping replacement before updating the GitHub secret, then explicitly revoke the
+old key. The emergency off-switch is an explicit last-key revocation plus deletion of the GitHub
+secret; do not remove any success-path check merely to avoid rotation.
+
+### Workspace-key operations
+
+Run these only from a private terminal connected to the intended database. For production, enter
+the existing API machine with `fly ssh console --app taxsorted-api`; the tracked image contains the
+commands and receives its database connection from Fly secrets. Start with the built-in contract:
+
+```bash
+npm run manage:api-key --workspace api -- --help
+EXPIRES_AT="$(node -e 'console.log(new Date(Date.now() + 365 * 864e5).toISOString())')"
+```
+
+Inspect a key without exposing its digest or plaintext:
+
+```bash
+npm run manage:api-key --workspace api -- inspect --key-id="${KEY_ID}"
+```
+
+Issue a finite-lived key when an active workspace has no usable source key:
+
+```bash
+npm run manage:api-key --workspace api -- issue \
+  --workspace-id="${WORKSPACE_ID}" \
+  --mode=test \
+  --scope=sdlt:calculate \
+  --scope=tax-expert:assess \
+  --expires-at="${EXPIRES_AT}" \
+  --name="canary replacement"
+```
+
+Normal rotation is deliberately overlapping and reversible until the final command:
+
+```bash
+npm run manage:api-key --workspace api -- rotate \
+  --key-id="${OLD_KEY_ID}" \
+  --expires-at="${EXPIRES_AT}" \
+  --name="canary replacement"
+
+curl --fail --silent --show-error \
+  --header "Authorization: Bearer ${NEW_KEY}" \
+  https://api.taxsorted.io/v1/api-workspace
+
+npm run manage:api-key --workspace api -- revoke \
+  --key-id="${OLD_KEY_ID}" \
+  --confirm-prefix="${OLD_KEY_PREFIX}"
+```
+
+The new plaintext appears once. Deliver it through an independently agreed private channel, verify
+its mode, scopes and expiry, move and test the consumer, then revoke the old key. A replacement must
+have the same mode, contain every old scope and remain valid for more than five minutes before the
+default revoke guard accepts it. New expiries must use a zoned RFC3339 timestamp in the future and
+cannot exceed 400 days from the database clock.
+
+For an intentional shutdown, repeat the revoke command with `--allow-last-key`, then delete the
+consumer secret. That off-switch can leave the workspace unable to authenticate. There is no undo;
+recovery uses `issue` with the active workspace UUID. Keys have creation and revocation timestamps
+but no authenticated actor audit trail, and public delivery and self-service remain unavailable.
 
 ## What comes next
 

@@ -17,11 +17,13 @@ to the api; demo "sample books" routes kept and labelled). Passkey accounts with
 codes now exist; anonymous device sessions remain only for the no-sign-up sandbox path, and
 production filing requires a recent passkey-backed data identity.
 
-Developer API slice added 2026-07-10: pure UK residential SDLT engine, primary-source
-ledger, workspace API keys hashed at rest, `POST /v1/uk/sdlt/calculations`, and generated
-OpenAPI 3.1 at `/openapi.json`. It is server-to-server and stateless; it never creates the
-browser sessions used by the human filing cockpit. Current scope is calculation/explanation,
-not SDLT XML submission or HMRC recognition.
+Developer API slice added 2026-07-10 and deepened through 2026-07-15: pure UK residential SDLT
+calculation and MTD Income Tax readiness assessment, primary-source ledgers, workspace API keys
+hashed at rest, a public professional-tools manifest, and task-sized OpenAPI 3.1. A valid caller can
+inspect only its presented key at `GET /v1/api-workspace`; operators can issue finite-lived keys,
+overlap rotation and explicitly revoke. It is server-to-server and stateless and never creates the
+browser sessions used by the human filing cockpit. Public key intake/delivery, self-service,
+authenticated operator audit, filing and HMRC recognition are not live.
 
 ## Tech Stack
 - Next.js 16 (App Router, **static export** — no server runtime in frontend)

@@ -5,8 +5,10 @@ import { requireApiKey } from "./api-key.js";
 import { assertNoDuplicateJsonKeys, StrictJsonError } from "./strict-json.js";
 import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
+import { createApiWorkspaceRoutes } from "./routes/api-workspace.js";
 import { createProfessionalToolsRoutes } from "./routes/professional-tools.js";
 import {
+  apiWorkspacePath,
   professionalToolsOpenApiPath,
   professionalToolsPath,
 } from "./professional-tools-contract.js";
@@ -107,7 +109,7 @@ const openApiTags = [
   {
     name: "UK professional tools",
     description:
-      "Current lawyer and accountant tasks, access boundaries, complete examples and practice-record responsibilities.",
+      "Current lawyer and accountant tasks, caller credential inspection, access boundaries, complete examples and practice-record responsibilities.",
   },
   {
     name: "SDLT",
@@ -218,10 +220,11 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     path: professionalToolsOpenApiPath,
     title: "TaxSorted UK Professional Tools API",
     description:
-      "Task-sized contract for the professional doorway, residential SDLT calculation and MTD Income Tax readiness assessment.",
+      "Task-sized contract for the professional doorway, caller credential inspection, residential SDLT calculation and MTD Income Tax readiness assessment.",
     allowSecuredOperations: true,
     matchesPath: (path) =>
       path === professionalToolsPath ||
+      path === apiWorkspacePath ||
       hasPathPrefix(path, "/v1/uk/sdlt") ||
       hasPathPrefix(path, "/v1/uk/tax-expert"),
   },
@@ -1166,6 +1169,28 @@ const AgentWake = z
             href: z.string(),
             authentication: z.literal("none"),
           }),
+          credentialInspection: z.object({
+            method: z.literal("GET"),
+            href: z.literal("/v1/api-workspace"),
+            authentication: z.literal("Bearer TaxSorted workspace key"),
+            requiredWorkspaceScopes: z.array(z.string()).max(0),
+            intendedClient: z.literal("server-to-server"),
+            browserCorsAuthorizationHeaderAllowed: z.literal(false),
+            acceptsQueryParameters: z.literal(false),
+            acceptsRequestBody: z.literal(false),
+            acceptsClientFacts: z.literal(false),
+            changesState: z.literal(false),
+            returnsOtherKeys: z.literal(false),
+          }),
+          operatorKeyLifecycle: z.object({
+            inspect: z.literal(true),
+            issueWithFiniteExpiry: z.literal(true),
+            overlappingRotation: z.literal(true),
+            explicitRevocation: z.literal(true),
+            selfService: z.literal(false),
+            securePublicDelivery: z.literal(false),
+            authenticatedAdminAuditTrail: z.literal(false),
+          }),
           status: z.literal("credentialed-design-partner"),
           audiences: z.tuple([
             z.literal("solicitors-and-conveyancers"),
@@ -1187,6 +1212,7 @@ const AgentWake = z
             portfolioOrBatchOperations: z.literal(false),
             filingOrSubmission: z.literal(false),
             immutableEvidenceArchive: z.literal(false),
+            workspaceNameReturnedToCaller: z.literal(false),
             productionSla: z.literal(false),
           }),
         })
@@ -5283,7 +5309,9 @@ function isJsonObject(value: unknown): value is JsonObject {
 }
 
 function openApiTagForPath(path: string): string {
-  if (path === professionalToolsPath) return "UK professional tools";
+  if (path === professionalToolsPath || path === apiWorkspacePath) {
+    return "UK professional tools";
+  }
   if (publicAgentPaths.has(path)) return "Agent discovery";
   if (hasPathPrefix(path, "/v1/open-data")) return "Open-data catalogue";
   if (hasPathPrefix(path, "/v1/tax-system/uk")) return "UK tax system";
@@ -5723,6 +5751,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerPoliticsOpenApi(app);
   registerStableRecordResolversOpenApi(app);
   registerOpenApiSliceDescriptions(app);
+  app.route(apiWorkspacePath, createApiWorkspaceRoutes());
   app.route(
     professionalToolsPath,
     createProfessionalToolsRoutes(apiOrigin),

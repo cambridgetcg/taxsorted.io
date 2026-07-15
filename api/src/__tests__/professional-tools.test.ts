@@ -61,11 +61,32 @@ describe("UK professional tools API", () => {
         browserAccountProvidesWorkspaceKey: false,
         workspaceKeyIdentifiesCallingWorkspace: true,
         requestFactsMayBePersonalData: true,
+        credentialInspection: {
+          method: "GET",
+          href: "/v1/api-workspace",
+          requiredWorkspaceScopes: [],
+          intendedClient: "server-to-server",
+          browserCorsAuthorizationHeaderAllowed: false,
+          acceptsQueryParameters: false,
+          acceptsRequestBody: false,
+          acceptsClientFacts: false,
+          changesState: false,
+        },
       },
       practiceRecord: {
         applicationStoresRequestsOrResults: false,
         immutableEvidenceArchiveAvailable: false,
         signedEvidencePackAvailable: false,
+      },
+      keyLifecycle: {
+        operatorManaged: true,
+        issueExistingWorkspace: true,
+        overlappingRotation: true,
+        explicitRevocation: true,
+        newKeysRequireFiniteExpiry: true,
+        selfService: false,
+        securePublicDeliveryAvailable: false,
+        authenticatedAdminAuditTrailAvailable: false,
       },
       boundaries: {
         clientOrMatterRecords: false,
@@ -124,6 +145,7 @@ describe("UK professional tools API", () => {
     expect(document.openapi).toBe("3.1.0");
     expect(document["x-taxsorted-slice"].id).toBe("professional-tools-uk");
     expect(Object.keys(document.paths).sort()).toEqual([
+      "/v1/api-workspace",
       "/v1/uk/professional-tools",
       "/v1/uk/sdlt/calculations",
       "/v1/uk/tax-expert",
@@ -133,6 +155,14 @@ describe("UK professional tools API", () => {
       [],
     );
     expect(document.paths["/v1/uk/tax-expert"].get.security).toEqual([]);
+    expect(document.paths["/v1/api-workspace"].get.security).toEqual([
+      { WorkspaceKey: [] },
+    ]);
+    expect(
+      document.paths["/v1/api-workspace"].get[
+        "x-taxsorted-required-workspace-scopes"
+      ],
+    ).toEqual([]);
     expect(
       document.paths["/v1/uk/sdlt/calculations"].post.security,
     ).toEqual([{ WorkspaceKey: [] }]);

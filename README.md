@@ -88,9 +88,12 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
 - **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
   public `GET /v1/uk/professional-tools` integration boundaries and task-sized OpenAPI,
+  authenticated no-task-scope `GET /v1/api-workspace` inspection of only the presented key,
   `POST /v1/uk/sdlt/calculations` and
   `POST /v1/uk/tax-expert/mtd-income-tax/assessments`. Tax requests are stateless, reject
-  duplicate JSON facts and never create the browser cookies used by the filing cockpit.
+  duplicate JSON facts and never create the browser cookies used by the filing cockpit. Operators
+  can issue finite-expiry keys, overlap rotation and explicitly revoke; public intake, delivery,
+  self-service lifecycle and an authenticated operator audit trail are not live.
 - **Machine doorway**: public, sessionless `/agent.txt`, `/.well-known/agent.txt` and
   `/v1/wake` routes orient agents with current dataset versions, publication states, rights,
   evidence lanes, safety walls and typed next actions. A separate professional-tools descriptor
