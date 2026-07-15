@@ -102,6 +102,23 @@ describe("config.webauthn — not a boot-config requirement", () => {
   });
 });
 
+describe("config.databaseUrl", () => {
+  it("shares the database-only runtime value and refreshes after a module reset", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://first");
+    let loaded = await import("../config.js");
+    let runtime = await import("../runtime-environment.js");
+    expect(loaded.config.databaseUrl).toBe("postgres://first");
+    expect(runtime.databaseUrl).toBe("postgres://first");
+
+    vi.resetModules();
+    vi.stubEnv("DATABASE_URL", "postgres://second");
+    loaded = await import("../config.js");
+    runtime = await import("../runtime-environment.js");
+    expect(loaded.config.databaseUrl).toBe("postgres://second");
+    expect(runtime.databaseUrl).toBe("postgres://second");
+  });
+});
+
 describe("config.politics — publication gates", () => {
   it("is open for local/test work but keeps Electoral Commission reuse closed", async () => {
     vi.stubEnv("NODE_ENV", "test");

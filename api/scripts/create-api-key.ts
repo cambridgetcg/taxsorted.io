@@ -3,7 +3,6 @@
 
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { migrate, sql } from "../src/db.js";
 import {
   ApiKeyLifecycleError,
   createWorkspaceWithFirstKey,
@@ -34,6 +33,20 @@ interface MainDependencies {
   migrate: () => Promise<void>;
   close: () => Promise<void>;
   output: (line: string) => void;
+}
+
+type LoadMainDependencies = () => Promise<MainDependencies>;
+
+async function loadDefaultDependencies(): Promise<MainDependencies> {
+  const { migrate, sql } = await import("../src/db.js");
+  return {
+    database: sql as unknown as LifecycleSql,
+    migrate,
+    close: async () => {
+      await sql.end({ timeout: 5 });
+    },
+    output: console.log,
+  };
 }
 
 export function parseCreateApiKeyArguments(
@@ -115,36 +128,33 @@ export function parseCreateApiKeyArguments(
 
 export async function main(
   argv: readonly string[] = process.argv.slice(2),
-  dependencies: MainDependencies = {
-    database: sql as unknown as LifecycleSql,
-    migrate,
-    close: async () => {
-      await sql.end({ timeout: 5 });
-    },
-    output: console.log,
-  },
+  dependencies?: MainDependencies,
+  loadDependencies: LoadMainDependencies = loadDefaultDependencies,
 ): Promise<void> {
   const parsed = parseCreateApiKeyArguments(argv);
   if (parsed === "help") {
-    dependencies.output(HELP);
+    (dependencies?.output ?? console.log)(HELP);
     return;
   }
+  const activeDependencies = dependencies ?? (await loadDependencies());
 
   try {
-    await dependencies.migrate();
+    await activeDependencies.migrate();
     const result = await createWorkspaceWithFirstKey(
-      dependencies.database,
+      activeDependencies.database,
       parsed,
     );
-    dependencies.output(`Workspace: ${result.metadata.workspace.name}`);
-    dependencies.output(`Workspace ID: ${result.metadata.workspace.id}`);
-    dependencies.output(`Key ID: ${result.metadata.key.id}`);
-    dependencies.output(`Scopes: ${result.metadata.key.scopes.join(", ")}`);
-    dependencies.output(`Expires at: ${result.metadata.key.expiresAt}`);
-    dependencies.output("API key (shown once):");
-    dependencies.output(result.plaintext);
+    activeDependencies.output(`Workspace: ${result.metadata.workspace.name}`);
+    activeDependencies.output(`Workspace ID: ${result.metadata.workspace.id}`);
+    activeDependencies.output(`Key ID: ${result.metadata.key.id}`);
+    activeDependencies.output(
+      `Scopes: ${result.metadata.key.scopes.join(", ")}`,
+    );
+    activeDependencies.output(`Expires at: ${result.metadata.key.expiresAt}`);
+    activeDependencies.output("API key (shown once):");
+    activeDependencies.output(result.plaintext);
   } finally {
-    await dependencies.close();
+    await activeDependencies.close();
   }
 }
 

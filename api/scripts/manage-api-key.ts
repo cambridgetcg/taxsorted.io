@@ -1,6 +1,5 @@
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
-import { migrate, sql } from "../src/db.js";
 import {
   ApiKeyLifecycleError,
   inspectApiKey,
@@ -74,6 +73,20 @@ interface MainDependencies {
   migrate: () => Promise<void>;
   close: () => Promise<void>;
   output: (line: string) => void;
+}
+
+type LoadMainDependencies = () => Promise<MainDependencies>;
+
+async function loadDefaultDependencies(): Promise<MainDependencies> {
+  const { migrate, sql } = await import("../src/db.js");
+  return {
+    database: sql as unknown as LifecycleSql,
+    migrate,
+    close: async () => {
+      await sql.end({ timeout: 5 });
+    },
+    output: console.log,
+  };
 }
 
 function parseArguments(argv: readonly string[]): ParsedArguments | "help" {
@@ -270,64 +283,59 @@ function printIssuedKey(
 
 export async function main(
   argv: readonly string[] = process.argv.slice(2),
-  dependencies: MainDependencies = {
-    database: sql as unknown as LifecycleSql,
-    migrate,
-    close: async () => {
-      await sql.end({ timeout: 5 });
-    },
-    output: console.log,
-  },
+  dependencies?: MainDependencies,
+  loadDependencies: LoadMainDependencies = loadDefaultDependencies,
 ): Promise<void> {
   const parsed = parseArguments(argv);
   if (parsed === "help") {
-    dependencies.output(HELP);
+    (dependencies?.output ?? console.log)(HELP);
     return;
   }
   const operation = buildOperation(parsed);
+  const activeDependencies = dependencies ?? (await loadDependencies());
 
   try {
-    await dependencies.migrate();
+    await activeDependencies.migrate();
     if (operation.command === "inspect") {
       const metadata = await inspectApiKey(
-        dependencies.database,
+        activeDependencies.database,
         operation.keyId,
       );
-      dependencies.output(JSON.stringify(metadata, null, 2));
+      activeDependencies.output(JSON.stringify(metadata, null, 2));
       return;
     }
 
     if (operation.command === "issue") {
-      const issued = await issueApiKey(dependencies.database, {
+      const issued = await issueApiKey(activeDependencies.database, {
         workspaceId: operation.workspaceId,
         mode: operation.mode,
         scopes: operation.scopes,
         expiresAt: operation.expiresAt,
         name: operation.name,
       });
-      printIssuedKey(issued, dependencies.output);
+      printIssuedKey(issued, activeDependencies.output);
       return;
     }
 
     if (operation.command === "rotate") {
-      const issued = await rotateApiKey(dependencies.database, {
+      const issued = await rotateApiKey(activeDependencies.database, {
         keyId: operation.keyId,
         expiresAt: operation.expiresAt,
         name: operation.name,
       });
-      printIssuedKey(issued, dependencies.output);
-      dependencies.output(
+      printIssuedKey(issued, activeDependencies.output);
+      activeDependencies.output(
         `Old key ${operation.keyId} remains active. Verify the replacement before revoking it.`,
       );
       return;
     }
 
-    const result = await revokeApiKey(dependencies.database, {
+    const result = await revokeApiKey(activeDependencies.database, {
       keyId: operation.keyId,
       confirmPrefix: operation.confirmPrefix,
       allowLastKey: operation.allowLastKey,
     });
-    dependencies.output(
+    activeDependencies.output(
       JSON.stringify(
         {
           ...result,
@@ -338,7 +346,7 @@ export async function main(
       ),
     );
   } finally {
-    await dependencies.close();
+    await activeDependencies.close();
   }
 }
 
