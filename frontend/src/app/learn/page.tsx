@@ -64,6 +64,15 @@ const GOV_GUIDES = [
   },
 ] as const;
 
+const HISTORY_GUIDES = [
+  {
+    slug: "history/window-tax",
+    tag: "Tax history",
+    title: "Window Tax: what the evidence actually shows",
+    desc: "Why it began, how the first bands changed behaviour, what blocked windows do and do not prove, and why repeal was also a redesign.",
+  },
+] as const;
+
 export default function LearnPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -78,6 +87,28 @@ export default function LearnPage() {
       <h2 className="mt-10 text-2xl font-bold text-ink">Your taxes, explained</h2>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {GUIDES.map((g) => (
+          <Link
+            key={g.slug}
+            href={`/learn/${g.slug}`}
+            className="block rounded-2xl border border-line bg-white p-5 transition hover:border-accent sm:p-6"
+          >
+            <span className="inline-block rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-deep">
+              {g.tag}
+            </span>
+            <h3 className="mt-3 text-lg font-semibold text-ink">{g.title}</h3>
+            <p className="mt-1.5 text-base text-ink-soft">{g.desc}</p>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className="mt-12 text-2xl font-bold text-ink">Taxes leave marks</h2>
+      <p className="mt-3 text-base text-ink-soft">
+        Historical tax stories told from laws, records, buildings and contemporary images.
+        The evidence limit and reuse terms stay beside every material.
+      </p>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {HISTORY_GUIDES.map((g) => (
           <Link
             key={g.slug}
             href={`/learn/${g.slug}`}

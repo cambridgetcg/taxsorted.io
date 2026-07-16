@@ -1,7 +1,7 @@
 # UK Window Tax: evidence and media pilot
 
 **Last reviewed:** 16 July 2026  
-**Status:** Material research complete; no media has been published or added to the repository  
+**Status:** First release implemented with three local media files; production publication remains governed by the release workflow
 **Confidence:** High for the cited legal chronology and reuse findings; historical causation remains qualified where the sources are qualified
 
 This is the canonical research home for a TaxSorted Window Tax story. It answers
@@ -15,9 +15,10 @@ an unsupported caption. An authoritative archive record can still require
 permission before its image is republished.
 
 The candidate-by-candidate record is
-[`materials.json`](materials.json). No external asset is approved for a local
-production path until that ledger records a reusable right, required credit and
-the claim the material does and does not support.
+[`materials.json`](materials.json). The three first-release assets now have
+local production paths, source and rendition hashes, dimensions, rights checks
+and change notices. Every other external asset remains pathless until the same
+conditions are met.
 
 ## Decision
 
@@ -257,18 +258,17 @@ material's required attribution.
 
 ## Build order
 
-1. Review and commit this research ledger.
-2. Acquire only the Heidelberg, NRS and Wikimedia assets selected for the first
-   release; retain original bytes and calculate hashes.
-3. Create pre-compressed local renditions with fixed dimensions and record every
-   change.
-4. Build one fixed `/learn/history/window-tax` static page and a reusable
-   `MaterialFigure` component.
-5. Add tests for alt text, captions, visible credit, source links, dimensions,
-   transcripts, missing assets and reduced motion.
-6. Ask TNA for permission only if the receipt scan adds enough value beyond the
+1. Done: review and commit this research ledger.
+2. Done: acquire only the Heidelberg, NRS and Wikimedia assets selected for the
+   first release and calculate source hashes.
+3. Done: create fixed local renditions and record every change and output hash.
+4. Done: build `/learn/history/window-tax` and a reusable `MaterialFigure`.
+5. Done: test alt text, visible credit, source links, dimensions, transcripts
+   and missing assets.
+6. Future: ask TNA for permission only if the receipt scan adds enough value beyond the
    usable transcript and NRS records.
-7. Recheck every external rights page immediately before publication.
+7. Done for this release: recheck each published asset and its rights page on
+   16 July 2026.
 
 ## Source ledger
 
@@ -301,5 +301,7 @@ material's required attribution.
   blanket open licence over the whole service.
 - The National Archives transcript and receipt image have different reuse
   boundaries.
-- No external asset is stored in the repository yet, and no public Window Tax
-  page or media component exists.
+- The first release uses three external images. The NRS image is number 1 of the
+  maximum 20 NRS Crown-copyright digital images currently used on TaxSorted.
+- The public page and deployment manifest are projections of this research
+  ledger; this file remains the canonical evidence and rights record.

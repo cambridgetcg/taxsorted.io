@@ -5,7 +5,7 @@
     "schemaVersion": "1.0.0",
     "lastReviewed": "2026-07-16",
     "reviewAfter": "2027-01-16",
-    "status": "research-only-no-assets-published",
+    "status": "first-release-assets-integrated",
     "canonicalResearch": "research/uk/tax-history/window-tax/README.md",
     "rightsStatuses": {
       "confirmed": "Reuse is supported by an item-level or collection-level rights statement and the required conditions are recorded.",
@@ -52,10 +52,10 @@
         "status": "confirmed",
         "statementUrl": "https://www.ub.uni-heidelberg.de/Englisch/helios/digi/nutzung/",
         "licence": {
-          "name": "Public Domain Mark 1.0; catalogue also records CC0 1.0",
+          "name": "Public Domain Mark 1.0",
           "url": "https://creativecommons.org/publicdomain/mark/1.0/"
         },
-        "creditLine": "Punch, 18.1850, January to June, 1850, p. 165. Universitätsbibliothek Heidelberg.",
+        "creditLine": "Universitätsbibliothek Heidelberg / H 634-3 Folio / p. 165.",
         "conditions": [
           "Keep the item-page link and library credit.",
           "Record any crop, rotation, compression or tonal adjustment."
@@ -66,9 +66,15 @@
         "sourceMime": "image/jpeg",
         "sourceWidth": 2574,
         "sourceHeight": 3701,
-        "publicationState": "not-downloaded",
-        "localPath": null,
-        "sha256": null
+        "sourceBytes": 2335353,
+        "sourceSha256": "99912e1083c28eabdff324b5639916616ef49fc7c5824b93bd37d8eefbdb5212",
+        "publicationState": "integrated-local-rendition",
+        "localPath": "frontend/public/media/window-tax/repeal-vision-1850.jpg",
+        "sha256": "e7081e709043b7206b4f4b08e740fe60551d655778adf3a14ffeabce2bbd366c",
+        "renditionWidth": 1600,
+        "renditionHeight": 1112,
+        "renditionBytes": 652714,
+        "modifications": "Rotated 270 degrees clockwise and resized to a 1600-pixel longest edge at JPEG quality 75; no crop or tonal adjustment."
       },
       "accessibility": {
         "requiredAlternative": "Describe the dark room, family and personified sun, and identify the work as satire.",
@@ -85,7 +91,7 @@
       "source": {
         "publisher": "National Records of Scotland via Scotland's People",
         "pageUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
-        "directAssetUrl": null,
+        "directAssetUrl": "https://www.scotlandspeople.gov.uk/sites/default/files/styles/maximum_size/public/2025-06/Extract%20from%20Window%20Tax%20-%20Windows%20closed%20up%20-%20Dumfriesshire%20-%20E326-1-32-73.jpg?itok=vtcgk8ip",
         "creator": "Tax-roll clerk; exact name not stated",
         "created": "1754",
         "locator": "NRS E326/1/32, page 73",
@@ -117,15 +123,28 @@
           "Acknowledge NRS.",
           "Resolve and record the exact source image URL at acquisition time."
         ],
-        "finalCheckRequired": true
+        "conditionCheck": {
+          "checkedOn": "2026-07-16",
+          "nrsCrownCopyrightImagesOnTaxSorted": 1,
+          "websiteImageLimit": 20,
+          "reproducedUnchanged": true,
+          "contextReviewedAsNonMisleading": true
+        },
+        "finalCheckRequired": false
       },
       "technical": {
         "sourceMime": "image/jpeg",
-        "sourceWidth": null,
-        "sourceHeight": null,
-        "publicationState": "not-downloaded",
-        "localPath": null,
-        "sha256": null
+        "sourceWidth": 1200,
+        "sourceHeight": 1460,
+        "sourceBytes": 255645,
+        "sourceSha256": "66eb0c4119dd356518a83587ff3b993156828ef1ced983955d5fc23f44273984",
+        "publicationState": "integrated-source-rendition",
+        "localPath": "frontend/public/media/window-tax/dumfriesshire-window-tax-roll-e326-1-32-p73.jpg",
+        "sha256": "66eb0c4119dd356518a83587ff3b993156828ef1ced983955d5fc23f44273984",
+        "renditionWidth": 1200,
+        "renditionHeight": 1460,
+        "renditionBytes": 255645,
+        "modifications": "No changes; the page-exposed source rendition is stored byte-for-byte."
       },
       "accessibility": {
         "requiredAlternative": "Describe the relevant rows and the handwritten closed-window notes without requiring the reader to decipher the scan.",
@@ -143,7 +162,7 @@
       "source": {
         "publisher": "National Records of Scotland via Scotland's People",
         "pageUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
-        "directAssetUrl": null,
+        "directAssetUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/3_Edgar_Street%2C_Worcester_-_geograph.org.uk_-_6461842.jpg",
         "creator": "Tax-roll clerk; exact name not stated",
         "created": "1748",
         "locator": "NRS E326/1/111, page 4",
@@ -294,9 +313,15 @@
         "sourceMime": "image/jpeg",
         "sourceWidth": 780,
         "sourceHeight": 1024,
-        "publicationState": "not-downloaded",
-        "localPath": null,
-        "sha256": null
+        "sourceBytes": 472799,
+        "sourceSha256": "43a42f977090817c048c50d208ebef6cb3ad2fb4058349825478f0a4222081f4",
+        "publicationState": "integrated-source-original",
+        "localPath": "frontend/public/media/window-tax/3-edgar-street-worcester.jpg",
+        "sha256": "43a42f977090817c048c50d208ebef6cb3ad2fb4058349825478f0a4222081f4",
+        "renditionWidth": 780,
+        "renditionHeight": 1024,
+        "renditionBytes": 472799,
+        "modifications": "No changes; the Wikimedia and Geograph source bytes are identical."
       },
       "accessibility": {
         "requiredAlternative": "Describe the paired ground-floor windows relevant to the 14-to-12 interpretation, without asserting certain motive.",

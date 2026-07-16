@@ -100,6 +100,12 @@ export default function AboutPage() {
           explains the separate data-protection gate.
         </p>
         <p>
+          Historical images keep their own rights terms. Each image shows its creator,
+          original item, credit, public-domain statement, licence or archive reuse
+          conditions, and any changes beside the image. TaxSorted&apos;s software licence
+          does not replace those terms.
+        </p>
+        <p>
           TaxSorted.io is a free, open-source software project. It is not connected to
           taxsorted.co.uk (a tax-refund service) or to Tax-Sorted Ltd.
         </p>

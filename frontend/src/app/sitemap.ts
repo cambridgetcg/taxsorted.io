@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/learn/income-tax/", 0.8],
     ["/learn/for-landlords/", 0.8],
     ["/learn/self-employed/", 0.8],
+    ["/learn/history/window-tax/", 0.8],
     ["/learn/gov/how-tax-law-is-made/", 0.7],
     ["/learn/gov/who-runs-your-taxes/", 0.7],
     ["/learn/gov/what-we-send-hmrc/", 0.7],
