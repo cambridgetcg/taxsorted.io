@@ -460,10 +460,12 @@ export const TaxPositionPassportSchema = z.object({
 
 const TaxPositionPassportJsonSchema = z.object({}).passthrough()
   .openapi("TaxPositionPassportJsonSchema");
+const TaxPositionPassportExample = z.object({}).passthrough()
+  .openapi("TaxPositionPassportExample");
 
 // This committed snapshot is generated from TaxPositionPassportSchema during
-// development and checked before API tests. Production only parses the JSON;
-// it never rebuilds the nested TaxAnswer/why-graph schema in memory.
+// development and checked before API tests. Production serves the JSON without
+// converting the nested Passport schema into a second JSON Schema graph.
 export const taxPositionPassportJsonSchemaDocument =
   taxPositionPassportJsonSchemaSnapshot as Record<string, unknown>;
 
@@ -551,7 +553,7 @@ const passportExampleRoute = createRoute({
       description: "Synthetic Tax Position Passport example.",
       content: {
         "application/json": {
-          schema: TaxPositionPassportSchema,
+          schema: TaxPositionPassportExample,
         },
       },
     },

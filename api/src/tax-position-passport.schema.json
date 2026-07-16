@@ -999,7 +999,8 @@
                             "married-couples-allowance",
                             "blind-persons-allowance"
                           ]
-                        }
+                        },
+                        "uniqueItems": true
                       },
                       {
                         "type": "string",
@@ -2568,7 +2569,7 @@
   "x-taxsorted-runtime-invariants": [
     "Income-source and evidence entries use the canonical order and exact definitions.",
     "Evidence marked not-expected must agree with the income-source map.",
-    "The complete MTD request and TaxAnswer must match the same capability and pass TaxAnswer semantic invariants.",
+    "The complete MTD request and TaxAnswer must match the same capability and pass their canonical runtime invariants, including cross-field cessation chronology.",
     "Forbidden identity, contact and tax-reference keys are rejected."
   ]
 }

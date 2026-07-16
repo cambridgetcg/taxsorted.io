@@ -304,6 +304,13 @@ describe("UK tax expert API", () => {
     missingEvidenceEntry.profile.evidence.pop();
     expect(validatePassport(missingEvidenceEntry)).toBe(false);
 
+    const duplicateReturnIndicator = structuredClone(example);
+    duplicateReturnIndicator.positions[0].request.exemption.returnIndicators = [
+      "sa109-residence",
+      "sa109-residence",
+    ];
+    expect(validatePassport(duplicateReturnIndicator)).toBe(false);
+
     const missingWhyGraph = structuredClone(example);
     delete missingWhyGraph.positions[0].answer.reasoning.whyGraph;
     expect(validatePassport(missingWhyGraph)).toBe(false);

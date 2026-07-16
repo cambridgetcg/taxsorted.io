@@ -337,7 +337,10 @@ function assertKnownMoney(value: KnownPence, path: string): void {
   }
 }
 
-function validateRequest(input: MtdIncomeTaxExpertRequest, evaluatedOn: string): void {
+export function assertMtdIncomeTaxRequestInvariants(
+  input: MtdIncomeTaxExpertRequest,
+  evaluatedOn: string,
+): void {
   assertIsoDate(input.asOfDate, "asOfDate");
   assertIsoDate(evaluatedOn, "evaluatedOn");
   for (const [taxYear, row] of Object.entries(input.income.taxYears)) {
@@ -934,7 +937,7 @@ export function assessMtdIncomeTax(
   options: MtdAssessmentOptions = {},
 ): TaxAnswer<MtdIncomeTaxDecision> {
   const evaluatedOn = options.evaluatedOn ?? todayUtc();
-  validateRequest(input, evaluatedOn);
+  assertMtdIncomeTaxRequestInvariants(input, evaluatedOn);
   const taxYears = ["2024-25", "2025-26", "2026-27"] as const;
   const phases = taxYears.map((taxYear) => phaseFor(taxYear, input.income.taxYears[taxYear]));
   const currentPhase = phases[0];

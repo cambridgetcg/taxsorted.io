@@ -4,6 +4,7 @@ import {
 } from "./contract";
 import {
   assessMtdIncomeTax,
+  assertMtdIncomeTaxRequestInvariants,
   type MtdIncomeTaxDecision,
   type MtdIncomeTaxExpertRequest,
 } from "./mtd-income-tax";
@@ -337,6 +338,10 @@ export function assertTaxPositionPassportInvariants(
     ) {
       throw new Error("Passport position request and answer capability do not match");
     }
+    assertMtdIncomeTaxRequestInvariants(
+      position.request,
+      position.answer.applicability.evaluatedOn,
+    );
     assertTaxAnswerInvariants(position.answer);
   }
 

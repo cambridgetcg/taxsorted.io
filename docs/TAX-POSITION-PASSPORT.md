@@ -111,8 +111,11 @@ canonical Zod contract before release. The API test gate checks that the
 snapshot is current, compiles the actual served schema with a Draft 2020-12
 validator, validates the synthetic example and rejects impossible dates,
 unexpected nested fields, incomplete why graphs and wrong capability IDs.
-Production only parses the JSON snapshot; it does not rebuild the nested schema
-graph in memory.
+Production serves the JSON snapshot without converting the nested Passport
+contract into a second JSON Schema graph. The runtime invariant check also
+revalidates embedded MTD request rules that JSON Schema cannot express across
+fields, including that a final cessation date is not after the request's
+assessment date.
 
 There is deliberately no Passport `POST`, upload, cloud store, share link or
 CRUD API. Adding one would create authentication, retention, deletion,

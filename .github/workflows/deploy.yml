@@ -244,6 +244,8 @@ jobs:
             /v1/why-graph/schema \
             /v1/uk/professional-tools \
             /v1/uk/tax-expert \
+            /v1/uk/tax-expert/tax-position-passport/schema \
+            /v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
             /v1/public-funding/uk/sources \
@@ -309,6 +311,35 @@ jobs:
               .hmrc.configured == true and
               .hmrc.env == "sandbox"
             ' >/dev/null
+
+          passport_schema="${RUNNER_TEMP}/tax-position-passport.schema.json"
+          passport_example="${RUNNER_TEMP}/tax-position-passport.example.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${passport_schema}" \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema
+          jq --exit-status '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema" and
+            ."$id" == "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema" and
+            ."x-taxsorted-generation" == "Committed build-time snapshot of TaxPositionPassportSchema; no runtime schema conversion."
+          ' "${passport_schema}" >/dev/null
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${passport_example}" \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax
+          jq --exit-status '
+            .schema == "taxsorted.uk.tax-position-passport/1" and
+            .assurance.identityVerified == false and
+            .assurance.signed == false and
+            .assurance.professionallyReviewed == false and
+            .assurance.filed == false and
+            .dataHandling.sentToTaxSorted == false and
+            .dataHandling.rawDocumentsIncluded == false and
+            (.positions | length) == 1 and
+            .positions[0].answer.capability.id == "uk.mtd-income-tax.readiness"
+          ' "${passport_example}" >/dev/null
 
           api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
           api_well_known_manifest="${RUNNER_TEMP}/api-well-known-agent.txt"

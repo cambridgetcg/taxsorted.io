@@ -34,6 +34,54 @@ function closeTupleSchemas(value: unknown): void {
 // published snapshot as well.
 closeTupleSchemas(generated);
 
+function schemaAt(
+  root: Record<string, unknown>,
+  path: readonly string[],
+): Record<string, unknown> {
+  let current: unknown = root;
+  for (const segment of path) {
+    if (!current || typeof current !== "object" || Array.isArray(current)) {
+      throw new Error(
+        `Passport schema generation could not find ${path.join(".")}`,
+      );
+    }
+    current = (current as Record<string, unknown>)[segment];
+  }
+  if (!current || typeof current !== "object" || Array.isArray(current)) {
+    throw new Error(
+      `Passport schema generation could not find ${path.join(".")}`,
+    );
+  }
+  return current as Record<string, unknown>;
+}
+
+const returnIndicators = schemaAt(generated, [
+  "properties",
+  "positions",
+  "items",
+  "properties",
+  "request",
+  "properties",
+  "exemption",
+  "properties",
+  "returnIndicators",
+]);
+const returnIndicatorChoices = returnIndicators.anyOf;
+if (!Array.isArray(returnIndicatorChoices)) {
+  throw new Error("Passport returnIndicators schema must contain anyOf");
+}
+const returnIndicatorList = returnIndicatorChoices.find(
+  (choice) =>
+    choice
+    && typeof choice === "object"
+    && !Array.isArray(choice)
+    && (choice as Record<string, unknown>).type === "array",
+);
+if (!returnIndicatorList || Array.isArray(returnIndicatorList)) {
+  throw new Error("Passport returnIndicators schema must contain an array");
+}
+(returnIndicatorList as Record<string, unknown>).uniqueItems = true;
+
 const document = {
   ...generated,
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -47,7 +95,7 @@ const document = {
   "x-taxsorted-runtime-invariants": [
     "Income-source and evidence entries use the canonical order and exact definitions.",
     "Evidence marked not-expected must agree with the income-source map.",
-    "The complete MTD request and TaxAnswer must match the same capability and pass TaxAnswer semantic invariants.",
+    "The complete MTD request and TaxAnswer must match the same capability and pass their canonical runtime invariants, including cross-field cessation chronology.",
     "Forbidden identity, contact and tax-reference keys are rejected.",
   ],
 };

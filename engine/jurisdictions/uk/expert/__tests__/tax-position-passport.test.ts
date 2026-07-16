@@ -135,6 +135,29 @@ describe("Tax Position Passport contract", () => {
     );
   });
 
+  it("rejects duplicate return indicators in an embedded MTD request", () => {
+    const broken = structuredClone(TAX_POSITION_PASSPORT_EXAMPLE);
+    broken.positions[0].request.exemption.returnIndicators = [
+      "sa109-residence",
+      "sa109-residence",
+    ];
+
+    expect(() => assertTaxPositionPassportInvariants(broken)).toThrow(
+      /returnIndicators must not contain duplicates/i,
+    );
+  });
+
+  it("rejects a cessation date after the embedded MTD as-of date", () => {
+    const broken = structuredClone(TAX_POSITION_PASSPORT_EXAMPLE);
+    broken.positions[0].request.income.lastRelevantActivityCessationDate =
+      "2026-07-12";
+    broken.positions[0].request.asOfDate = "2026-07-11";
+
+    expect(() => assertTaxPositionPassportInvariants(broken)).toThrow(
+      /cannot be after asOfDate/i,
+    );
+  });
+
   it("rejects exact forbidden personal-data fields", () => {
     const broken = structuredClone(employmentOnly()) as TaxPositionPassport & {
       nino?: string;
