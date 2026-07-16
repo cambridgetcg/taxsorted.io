@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import { z as zod } from "zod";
 import {
   PASSPORT_EVIDENCE_DEFINITIONS,
   PASSPORT_INCOME_SOURCE_IDS,
@@ -460,19 +459,232 @@ export const TaxPositionPassportSchema = z.object({
 const TaxPositionPassportJsonSchema = z.object({}).passthrough()
   .openapi("TaxPositionPassportJsonSchema");
 
-const generatedPassportJsonSchema = zod.toJSONSchema(
-  TaxPositionPassportSchema,
-  { target: "draft-2020-12" },
-) as Record<string, unknown>;
+// Keep this public schema compact and static. Converting the full nested
+// TaxAnswer/why-graph Zod tree at process startup exceeds the 256 MB API
+// machine boundary. The existing OpenAPI components remain canonical.
+const passportOpenApiSchemaBase =
+  "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas";
+const passportIsoInstantJsonSchema = {
+  type: "string",
+  format: "date-time",
+  pattern:
+    "^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}Z$",
+} as const;
+const passportIncomeSourceJsonSchemas = PASSPORT_INCOME_SOURCE_IDS.map(
+  (id) => ({
+    type: "object",
+    properties: {
+      id: { const: id },
+      answer: { enum: ["yes", "no", "unknown"] },
+      origin: { const: "user" },
+    },
+    required: ["id", "answer", "origin"],
+    additionalProperties: false,
+  }),
+);
+const passportEvidenceJsonSchemas = PASSPORT_EVIDENCE_DEFINITIONS.map(
+  (definition) => ({
+    type: "object",
+    properties: {
+      id: { const: definition.id },
+      label: { const: definition.label },
+      state: {
+        enum: ["held", "missing", "not-checked", "not-expected"],
+      },
+      assertion: { const: "named-by-user-not-inspected" },
+      supportsIncomeSourceIds: {
+        type: "array",
+        prefixItems: definition.supportsIncomeSourceIds.map((id) => ({
+          const: id,
+        })),
+        minItems: definition.supportsIncomeSourceIds.length,
+        maxItems: definition.supportsIncomeSourceIds.length,
+      },
+      guidanceHref: { const: definition.guidanceHref },
+    },
+    required: [
+      "id",
+      "label",
+      "state",
+      "assertion",
+      "supportsIncomeSourceIds",
+      "guidanceHref",
+    ],
+    additionalProperties: false,
+  }),
+);
 
 export const taxPositionPassportJsonSchemaDocument = {
-  ...generatedPassportJsonSchema,
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id:
     "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
   title: "TaxSorted UK Tax Position Passport",
   description:
     "Portable browser-local UK tax-position handoff. It contains no identity verification, signature, professional approval or filing receipt.",
+  type: "object",
+  properties: {
+    schema: { const: "taxsorted.uk.tax-position-passport/1" },
+    createdAt: passportIsoInstantJsonSchema,
+    assurance: {
+      type: "object",
+      properties: {
+        identityVerified: { const: false },
+        signed: { const: false },
+        professionallyReviewed: { const: false },
+        filed: { const: false },
+      },
+      required: [
+        "identityVerified",
+        "signed",
+        "professionallyReviewed",
+        "filed",
+      ],
+      additionalProperties: false,
+    },
+    dataHandling: {
+      type: "object",
+      properties: {
+        generationMode: { const: "browser-local" },
+        sentToTaxSorted: { const: false },
+        storedInBrowser: { type: "boolean" },
+        rawDocumentsIncluded: { const: false },
+      },
+      required: [
+        "generationMode",
+        "sentToTaxSorted",
+        "storedInBrowser",
+        "rawDocumentsIncluded",
+      ],
+      additionalProperties: false,
+    },
+    profile: {
+      type: "object",
+      properties: {
+        jurisdiction: { const: "UK" },
+        incomeSources: {
+          type: "array",
+          prefixItems: passportIncomeSourceJsonSchemas,
+          minItems: PASSPORT_INCOME_SOURCE_IDS.length,
+          maxItems: PASSPORT_INCOME_SOURCE_IDS.length,
+        },
+        evidence: {
+          type: "array",
+          prefixItems: passportEvidenceJsonSchemas,
+          minItems: PASSPORT_EVIDENCE_DEFINITIONS.length,
+          maxItems: PASSPORT_EVIDENCE_DEFINITIONS.length,
+        },
+      },
+      required: ["jurisdiction", "incomeSources", "evidence"],
+      additionalProperties: false,
+    },
+    positions: {
+      type: "array",
+      maxItems: 1,
+      items: {
+        type: "object",
+        properties: {
+          kind: { const: "mtd-income-tax-readiness" },
+          request: {
+            $ref:
+              `${passportOpenApiSchemaBase}/MtdIncomeTaxAssessmentRequest`,
+          },
+          answer: {
+            allOf: [
+              {
+                $ref:
+                  `${passportOpenApiSchemaBase}/MtdIncomeTaxAssessmentResponse`,
+              },
+              {
+                type: "object",
+                properties: {
+                  schema: {},
+                  capability: {
+                    type: "object",
+                    properties: {
+                      id: { const: "uk.mtd-income-tax.readiness" },
+                      version: { type: "string" },
+                      jurisdiction: { const: "United Kingdom" },
+                      taxType: {
+                        const: "Making Tax Digital for Income Tax",
+                      },
+                      task: { const: "classify" },
+                    },
+                    required: [
+                      "id",
+                      "version",
+                      "jurisdiction",
+                      "taxType",
+                      "task",
+                    ],
+                    additionalProperties: false,
+                  },
+                  status: {},
+                  applicability: {},
+                  facts: {},
+                  answer: {},
+                  reasoning: {
+                    type: "object",
+                    properties: {
+                      steps: {},
+                      whyGraph: {},
+                    },
+                    required: ["steps", "whyGraph"],
+                    additionalProperties: false,
+                  },
+                  evidence: {},
+                  confidence: {},
+                  escalation: {},
+                  dataUse: {},
+                },
+                required: ["capability", "reasoning"],
+                additionalProperties: false,
+              },
+            ],
+          },
+        },
+        required: ["kind", "request", "answer"],
+        additionalProperties: false,
+      },
+    },
+    coverage: {
+      type: "object",
+      properties: {
+        included: { type: "array", items: { type: "string" } },
+        excluded: { type: "array", items: { type: "string" } },
+      },
+      required: ["included", "excluded"],
+      additionalProperties: false,
+    },
+    userReview: {
+      type: "object",
+      properties: {
+        selfCheckedAt: {
+          anyOf: [passportIsoInstantJsonSchema, { type: "null" }],
+        },
+        meaning: {
+          const: "checked-by-user-not-professional-approval",
+        },
+      },
+      required: ["selfCheckedAt", "meaning"],
+      additionalProperties: false,
+    },
+    boundaries: { type: "array", items: { type: "string" } },
+  },
+  required: [
+    "schema",
+    "createdAt",
+    "assurance",
+    "dataHandling",
+    "profile",
+    "positions",
+    "coverage",
+    "userReview",
+    "boundaries",
+  ],
+  additionalProperties: false,
+  "x-taxsorted-structural-dependencies": [
+    "https://api.taxsorted.io/openapi/tax-expert-uk.json",
+  ],
   "x-taxsorted-runtime-invariants": [
     "Income-source and evidence entries use the canonical order and exact definitions.",
     "Evidence marked not-expected must agree with the income-source map.",

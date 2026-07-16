@@ -215,6 +215,27 @@ describe("UK tax expert API", () => {
       schema.properties.profile.properties.evidence.prefixItems,
     ).toHaveLength(8);
     expect(schema.properties.createdAt.pattern).toContain("\\.\\d{3}");
+    expect(schema["x-taxsorted-structural-dependencies"]).toContain(
+      "https://api.taxsorted.io/openapi/tax-expert-uk.json",
+    );
+    expect(
+      schema.properties.positions.items.properties.request.$ref,
+    ).toBe(
+      "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentRequest",
+    );
+    expect(
+      schema.properties.positions.items.properties.answer.allOf[0].$ref,
+    ).toBe(
+      "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentResponse",
+    );
+    expect(
+      schema.properties.positions.items.properties.answer.allOf[1]
+        .additionalProperties,
+    ).toBe(false);
+    expect(
+      schema.properties.positions.items.properties.answer.allOf[1]
+        .properties.reasoning.additionalProperties,
+    ).toBe(false);
 
     const unchanged = await app.request(
       "/v1/uk/tax-expert/tax-position-passport/schema",

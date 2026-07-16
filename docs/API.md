@@ -103,7 +103,9 @@ additionally checked by `assertTaxPositionPassportInvariants` from
 `@taxsorted/engine/uk/passport`; the schema lists those checks in
 `x-taxsorted-runtime-invariants`. The unsigned envelope keeps request and answer
 together but does not prove derivation; a relying consumer can replay the
-request.
+request. The Passport schema resolves its complete MTD request and TaxAnswer
+shapes through `$ref` links to `/openapi/tax-expert-uk.json`, listed in
+`x-taxsorted-structural-dependencies`.
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
 `operationId` and one plain domain tag. Dataset and framework slices fail construction if a
