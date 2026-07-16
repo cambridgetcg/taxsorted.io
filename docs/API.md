@@ -103,9 +103,11 @@ additionally checked by `assertTaxPositionPassportInvariants` from
 `@taxsorted/engine/uk/passport`; the schema lists those checks in
 `x-taxsorted-runtime-invariants`. The unsigned envelope keeps request and answer
 together but does not prove derivation; a relying consumer can replay the
-request. The Passport schema resolves its complete MTD request and TaxAnswer
-shapes through `$ref` links to `/openapi/tax-expert-uk.json`, listed in
-`x-taxsorted-structural-dependencies`.
+request. The served Passport schema is a self-contained, committed snapshot
+generated from the canonical Zod contract before release. API startup serves
+that JSON file without converting the nested Passport contract into a second
+JSON Schema graph. Cross-field MTD request rules, including cessation
+chronology, are enforced by the Passport runtime invariant check.
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
 `operationId` and one plain domain tag. Dataset and framework slices fail construction if a

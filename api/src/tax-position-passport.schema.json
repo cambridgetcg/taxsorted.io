@@ -1,0 +1,2575 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "taxsorted.uk.tax-position-passport/1"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$"
+    },
+    "assurance": {
+      "type": "object",
+      "properties": {
+        "identityVerified": {
+          "type": "boolean",
+          "const": false
+        },
+        "signed": {
+          "type": "boolean",
+          "const": false
+        },
+        "professionallyReviewed": {
+          "type": "boolean",
+          "const": false
+        },
+        "filed": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "identityVerified",
+        "signed",
+        "professionallyReviewed",
+        "filed"
+      ],
+      "additionalProperties": false
+    },
+    "dataHandling": {
+      "type": "object",
+      "properties": {
+        "generationMode": {
+          "type": "string",
+          "const": "browser-local"
+        },
+        "sentToTaxSorted": {
+          "type": "boolean",
+          "const": false
+        },
+        "storedInBrowser": {
+          "type": "boolean"
+        },
+        "rawDocumentsIncluded": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "generationMode",
+        "sentToTaxSorted",
+        "storedInBrowser",
+        "rawDocumentsIncluded"
+      ],
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "const": "UK"
+        },
+        "incomeSources": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "employment"
+                },
+                "answer": {
+                  "type": "string",
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                },
+                "origin": {
+                  "type": "string",
+                  "const": "user"
+                }
+              },
+              "required": [
+                "id",
+                "answer",
+                "origin"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "self-employment"
+                },
+                "answer": {
+                  "type": "string",
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                },
+                "origin": {
+                  "type": "string",
+                  "const": "user"
+                }
+              },
+              "required": [
+                "id",
+                "answer",
+                "origin"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "uk-property"
+                },
+                "answer": {
+                  "type": "string",
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                },
+                "origin": {
+                  "type": "string",
+                  "const": "user"
+                }
+              },
+              "required": [
+                "id",
+                "answer",
+                "origin"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "foreign-property"
+                },
+                "answer": {
+                  "type": "string",
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                },
+                "origin": {
+                  "type": "string",
+                  "const": "user"
+                }
+              },
+              "required": [
+                "id",
+                "answer",
+                "origin"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "other-or-complex"
+                },
+                "answer": {
+                  "type": "string",
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                },
+                "origin": {
+                  "type": "string",
+                  "const": "user"
+                }
+              },
+              "required": [
+                "id",
+                "answer",
+                "origin"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "minItems": 5,
+          "maxItems": 5,
+          "items": false
+        },
+        "evidence": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "employment-pay-and-tax"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "P45, P60, P11D or other pay-and-tax records"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "employment"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/keeping-your-pay-tax-records/employees-and-limited-company-directors"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "self-employment-return"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Self Assessment return or calculation showing self-employment income"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "self-employment"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/work-out-your-qualifying-income-for-making-tax-digital-for-income-tax"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "self-employment-records"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Sales, income, expense and supporting business records"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "self-employment"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/self-employed-records/what-records-to-keep"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "uk-property-return"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Self Assessment return or calculation showing UK property income"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "uk-property"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/work-out-your-qualifying-income-for-making-tax-digital-for-income-tax"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "uk-property-records"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Rent, expense and supporting UK property records"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "uk-property"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/create-digital-records"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "foreign-property-return"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Self Assessment return or calculation showing foreign property income"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "foreign-property"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/work-out-your-qualifying-income-for-making-tax-digital-for-income-tax"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "foreign-property-records"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "Rent, expense and supporting foreign property records"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "foreign-property"
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/create-digital-records"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "const": "mtd-exemption-evidence"
+                },
+                "label": {
+                  "type": "string",
+                  "const": "HMRC exemption decision or application evidence, if relevant"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "missing",
+                    "not-checked",
+                    "not-expected"
+                  ]
+                },
+                "assertion": {
+                  "type": "string",
+                  "const": "named-by-user-not-inspected"
+                },
+                "supportsIncomeSourceIds": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "self-employment"
+                    },
+                    {
+                      "type": "string",
+                      "const": "uk-property"
+                    },
+                    {
+                      "type": "string",
+                      "const": "foreign-property"
+                    }
+                  ],
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": false
+                },
+                "guidanceHref": {
+                  "type": "string",
+                  "const": "https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "state",
+                "assertion",
+                "supportsIncomeSourceIds",
+                "guidanceHref"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "minItems": 8,
+          "maxItems": 8,
+          "items": false
+        }
+      },
+      "required": [
+        "jurisdiction",
+        "incomeSources",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "positions": {
+      "maxItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "mtd-income-tax-readiness"
+          },
+          "request": {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "type": "string",
+                "const": "taxsorted.uk.mtd-income-tax.request/1"
+              },
+              "asOfDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              "person": {
+                "type": "object",
+                "properties": {
+                  "relevantReturnPosition": {
+                    "type": "string",
+                    "enum": [
+                      "required-and-submitted",
+                      "required-not-submitted",
+                      "not-required",
+                      "unknown"
+                    ]
+                  },
+                  "hadNationalInsuranceNumberAtStartOf2026To27": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "relevantReturnPosition",
+                  "hadNationalInsuranceNumberAtStartOf2026To27"
+                ],
+                "additionalProperties": false
+              },
+              "income": {
+                "type": "object",
+                "properties": {
+                  "taxYears": {
+                    "type": "object",
+                    "properties": {
+                      "2024-25": {
+                        "type": "object",
+                        "properties": {
+                          "basis": {
+                            "type": "string",
+                            "enum": [
+                              "submitted-return",
+                              "working-estimate",
+                              "unknown"
+                            ]
+                          },
+                          "residence": {
+                            "type": "string",
+                            "enum": [
+                              "uk-resident",
+                              "non-uk-resident",
+                              "unknown"
+                            ]
+                          },
+                          "selfEmploymentGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "ukPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "foreignPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "basis",
+                          "residence",
+                          "selfEmploymentGrossPence",
+                          "ukPropertyGrossPence",
+                          "foreignPropertyGrossPence"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "2025-26": {
+                        "type": "object",
+                        "properties": {
+                          "basis": {
+                            "type": "string",
+                            "enum": [
+                              "submitted-return",
+                              "working-estimate",
+                              "unknown"
+                            ]
+                          },
+                          "residence": {
+                            "type": "string",
+                            "enum": [
+                              "uk-resident",
+                              "non-uk-resident",
+                              "unknown"
+                            ]
+                          },
+                          "selfEmploymentGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "ukPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "foreignPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "basis",
+                          "residence",
+                          "selfEmploymentGrossPence",
+                          "ukPropertyGrossPence",
+                          "foreignPropertyGrossPence"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "2026-27": {
+                        "type": "object",
+                        "properties": {
+                          "basis": {
+                            "type": "string",
+                            "enum": [
+                              "submitted-return",
+                              "working-estimate",
+                              "unknown"
+                            ]
+                          },
+                          "residence": {
+                            "type": "string",
+                            "enum": [
+                              "uk-resident",
+                              "non-uk-resident",
+                              "unknown"
+                            ]
+                          },
+                          "selfEmploymentGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "ukPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          },
+                          "foreignPropertyGrossPence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              {
+                                "type": "string",
+                                "const": "unknown"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "basis",
+                          "residence",
+                          "selfEmploymentGrossPence",
+                          "ukPropertyGrossPence",
+                          "foreignPropertyGrossPence"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "2024-25",
+                      "2025-26",
+                      "2026-27"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "atLeastOneRelevantReturnActivityContinuedAtEntry": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  },
+                  "lastRelevantActivityCessationDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      {
+                        "type": "string",
+                        "const": "at-least-one-continues"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  },
+                  "relevantReturnWasAmended": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  },
+                  "annualisationOrOtherSpecialRulesMayApply": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "taxYears",
+                  "atLeastOneRelevantReturnActivityContinuedAtEntry",
+                  "lastRelevantActivityCessationDate",
+                  "relevantReturnWasAmended",
+                  "annualisationOrOtherSpecialRulesMayApply"
+                ],
+                "additionalProperties": false
+              },
+              "exemption": {
+                "type": "object",
+                "properties": {
+                  "returnIndicators": {
+                    "anyOf": [
+                      {
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "sa103l-lloyds",
+                            "incapable-with-legal-representative",
+                            "sa103-averaging-relief",
+                            "qualifying-care-relief",
+                            "sa107-trusts-or-estates",
+                            "sa109-residence",
+                            "sa102m-minister-of-religion",
+                            "married-couples-allowance",
+                            "blind-persons-allowance"
+                          ]
+                        },
+                        "uniqueItems": true
+                      },
+                      {
+                        "type": "string",
+                        "const": "not-checked"
+                      },
+                      {
+                        "type": "string",
+                        "const": "unknown"
+                      }
+                    ]
+                  },
+                  "digitalExclusion": {
+                    "type": "string",
+                    "enum": [
+                      "hmrc-approved",
+                      "application-pending",
+                      "not-approved-or-pending",
+                      "unknown"
+                    ]
+                  },
+                  "otherExemptionApplication": {
+                    "type": "string",
+                    "enum": [
+                      "hmrc-approved-for-2026-27",
+                      "application-pending",
+                      "none",
+                      "not-checked",
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "returnIndicators",
+                  "digitalExclusion",
+                  "otherExemptionApplication"
+                ],
+                "additionalProperties": false
+              },
+              "reporting": {
+                "type": "object",
+                "properties": {
+                  "updatePeriod": {
+                    "type": "string",
+                    "enum": [
+                      "standard",
+                      "calendar",
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "updatePeriod"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "schema",
+              "asOfDate",
+              "person",
+              "income",
+              "exemption",
+              "reporting"
+            ],
+            "additionalProperties": false
+          },
+          "answer": {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "type": "string",
+                "const": "taxsorted.tax-answer/1"
+              },
+              "capability": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "const": "uk.mtd-income-tax.readiness"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "jurisdiction": {
+                    "type": "string",
+                    "const": "United Kingdom"
+                  },
+                  "taxType": {
+                    "type": "string",
+                    "const": "Making Tax Digital for Income Tax"
+                  },
+                  "task": {
+                    "type": "string",
+                    "const": "classify"
+                  }
+                },
+                "required": [
+                  "id",
+                  "version",
+                  "jurisdiction",
+                  "taxType",
+                  "task"
+                ],
+                "additionalProperties": false
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "determined",
+                  "needs_facts",
+                  "needs_professional_review",
+                  "conflicting_authority",
+                  "unsupported"
+                ]
+              },
+              "applicability": {
+                "type": "object",
+                "properties": {
+                  "effectiveDate": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "evaluatedOn": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "knowledgeAsOf": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "taxPeriod": {
+                    "type": "object",
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "end": {
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "label": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end",
+                      "label"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "territories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "taxpayerTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "covered": {
+                    "type": "boolean"
+                  },
+                  "ruleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "effectiveDate",
+                  "evaluatedOn",
+                  "knowledgeAsOf",
+                  "territories",
+                  "taxpayerTypes",
+                  "covered",
+                  "ruleIds"
+                ],
+                "additionalProperties": false
+              },
+              "facts": {
+                "type": "object",
+                "properties": {
+                  "provided": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "material": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label",
+                        "value",
+                        "material"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "derived": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "material": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label",
+                        "value",
+                        "material"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "unknown": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "whyItMatters": {
+                          "type": "string"
+                        },
+                        "material": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "label",
+                        "whyItMatters",
+                        "material"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "assumptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "statement": {
+                          "type": "string"
+                        },
+                        "material": {
+                          "type": "boolean"
+                        },
+                        "acceptedByCaller": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "statement",
+                        "material",
+                        "acceptedByCaller"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "provided",
+                  "derived",
+                  "unknown",
+                  "assumptions"
+                ],
+                "additionalProperties": false
+              },
+              "answer": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "in_scope",
+                          "out_of_scope",
+                          "exempt",
+                          "exemption_possible",
+                          "hmrc_decision_needed",
+                          "insufficient_facts",
+                          "professional_review_needed",
+                          "source_review_required",
+                          "outside_supported_date"
+                        ]
+                      },
+                      "headline": {
+                        "type": "string"
+                      },
+                      "reasonCodes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "currentPhase": {
+                        "type": "object",
+                        "properties": {
+                          "incomeTaxYear": {
+                            "type": "string",
+                            "enum": [
+                              "2024-25",
+                              "2025-26",
+                              "2026-27"
+                            ]
+                          },
+                          "mandatedFrom": {
+                            "type": "string",
+                            "format": "date",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                          },
+                          "thresholdPence": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "qualifyingIncomePence": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "basis": {
+                            "type": "string",
+                            "enum": [
+                              "submitted-return",
+                              "working-estimate",
+                              "unknown"
+                            ]
+                          },
+                          "residence": {
+                            "type": "string",
+                            "enum": [
+                              "uk-resident",
+                              "non-uk-resident",
+                              "unknown"
+                            ]
+                          },
+                          "assessment": {
+                            "type": "string",
+                            "enum": [
+                              "above-threshold",
+                              "at-or-below-threshold",
+                              "forecast-above-threshold",
+                              "forecast-at-or-below-threshold",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "incomeTaxYear",
+                          "mandatedFrom",
+                          "thresholdPence",
+                          "qualifyingIncomePence",
+                          "basis",
+                          "residence",
+                          "assessment"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "phases": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "incomeTaxYear": {
+                              "type": "string",
+                              "enum": [
+                                "2024-25",
+                                "2025-26",
+                                "2026-27"
+                              ]
+                            },
+                            "mandatedFrom": {
+                              "type": "string",
+                              "format": "date",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            "thresholdPence": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "qualifyingIncomePence": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "basis": {
+                              "type": "string",
+                              "enum": [
+                                "submitted-return",
+                                "working-estimate",
+                                "unknown"
+                              ]
+                            },
+                            "residence": {
+                              "type": "string",
+                              "enum": [
+                                "uk-resident",
+                                "non-uk-resident",
+                                "unknown"
+                              ]
+                            },
+                            "assessment": {
+                              "type": "string",
+                              "enum": [
+                                "above-threshold",
+                                "at-or-below-threshold",
+                                "forecast-above-threshold",
+                                "forecast-at-or-below-threshold",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "incomeTaxYear",
+                            "mandatedFrom",
+                            "thresholdPence",
+                            "qualifyingIncomePence",
+                            "basis",
+                            "residence",
+                            "assessment"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "obligations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "dueDate": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "timing": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "upcoming",
+                                "due-today",
+                                "passed"
+                              ]
+                            },
+                            "conditional": {
+                              "type": "boolean"
+                            },
+                            "condition": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "periodStart": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "periodEnd": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "date",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "appliesPerBusiness": {
+                              "type": "boolean"
+                            },
+                            "expectedSubmissions": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "sourceIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "title",
+                            "dueDate",
+                            "timing",
+                            "conditional",
+                            "condition",
+                            "periodStart",
+                            "periodEnd",
+                            "appliesPerBusiness",
+                            "expectedSubmissions",
+                            "sourceIds"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "penaltyPosition": {
+                        "type": "object",
+                        "properties": {
+                          "applies": {
+                            "type": "boolean"
+                          },
+                          "conditional": {
+                            "type": "boolean"
+                          },
+                          "quarterlyPenaltyPoints2026To27": {
+                            "type": "boolean",
+                            "const": false
+                          },
+                          "quarterlyUpdatesStillRequired": {
+                            "type": "boolean"
+                          },
+                          "note": {
+                            "type": "string"
+                          },
+                          "sourceIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "applies",
+                          "conditional",
+                          "quarterlyPenaltyPoints2026To27",
+                          "quarterlyUpdatesStillRequired",
+                          "note",
+                          "sourceIds"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "excludedIncomeTypes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "boundaries": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "decision",
+                      "headline",
+                      "reasonCodes",
+                      "currentPhase",
+                      "phases",
+                      "obligations",
+                      "penaltyPosition",
+                      "excludedIncomeTypes",
+                      "boundaries"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reasoning": {
+                "type": "object",
+                "properties": {
+                  "steps": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "statement": {
+                          "type": "string"
+                        },
+                        "factPaths": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "claimIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "statement",
+                        "factPaths",
+                        "claimIds"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "whyGraph": {
+                    "type": "object",
+                    "properties": {
+                      "schema": {
+                        "type": "string",
+                        "const": "taxsorted.why-graph/1"
+                      },
+                      "rootNodeId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 180,
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                      },
+                      "context": {
+                        "type": "object",
+                        "properties": {
+                          "subject": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 180,
+                                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "assessment",
+                                  "calculation",
+                                  "dataset-record",
+                                  "comparison",
+                                  "explanation"
+                                ]
+                              },
+                              "version": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "version"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "jurisdiction": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "effectiveDate": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "date",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "evaluatedOn": {
+                            "type": "string",
+                            "format": "date",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                          },
+                          "knowledgeAsOf": {
+                            "type": "string",
+                            "format": "date",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                          },
+                          "authority": {
+                            "type": "string",
+                            "enum": [
+                              "taxsorted-analysis",
+                              "official-decision",
+                              "source-reported-claim",
+                              "deterministic-calculation"
+                            ]
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "advisory",
+                              "calculation",
+                              "preparation",
+                              "official-decision",
+                              "external-state-change"
+                            ]
+                          },
+                          "externalStateChange": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "subject",
+                          "jurisdiction",
+                          "effectiveDate",
+                          "evaluatedOn",
+                          "knowledgeAsOf",
+                          "authority",
+                          "effect",
+                          "externalStateChange"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "valueHandling": {
+                        "type": "object",
+                        "properties": {
+                          "factValues": {
+                            "type": "string",
+                            "const": "case-financial-and-identity-fact-values-not-copied-into-graph"
+                          },
+                          "nodeIds": {
+                            "type": "string",
+                            "const": "semantic-identifiers-without-fact-values-or-array-positions"
+                          }
+                        },
+                        "required": [
+                          "factValues",
+                          "nodeIds"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "ordering": {
+                        "type": "object",
+                        "properties": {
+                          "nodes": {
+                            "type": "string",
+                            "const": "id-ascii-ascending"
+                          },
+                          "edges": {
+                            "type": "string",
+                            "const": "id-ascii-ascending"
+                          },
+                          "setValues": {
+                            "type": "string",
+                            "const": "unique-ascii-ascending"
+                          }
+                        },
+                        "required": [
+                          "nodes",
+                          "edges",
+                          "setValues"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "nodes": {
+                        "minItems": 1,
+                        "maxItems": 250,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 180,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "conclusion",
+                                "reasoning-step",
+                                "fact",
+                                "rule",
+                                "claim",
+                                "source",
+                                "institution",
+                                "party-role",
+                                "consequence",
+                                "process",
+                                "route",
+                                "gap"
+                              ]
+                            },
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 4000
+                            },
+                            "state": {
+                              "type": "string",
+                              "enum": [
+                                "decisive",
+                                "supporting",
+                                "checked-not-decisive",
+                                "conditional",
+                                "blocking",
+                                "available",
+                                "not-mapped",
+                                "not-applicable",
+                                "context"
+                              ]
+                            },
+                            "record": {
+                              "anyOf": [
+                                {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "response-record"
+                                        },
+                                        "collection": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 160
+                                        },
+                                        "key": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 80
+                                        },
+                                        "value": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 500
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "collection",
+                                        "key",
+                                        "value"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "dataset-record"
+                                        },
+                                        "dataset": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 160
+                                        },
+                                        "collection": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 160
+                                        },
+                                        "recordId": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 500
+                                        },
+                                        "href": {
+                                          "type": "string",
+                                          "maxLength": 2000,
+                                          "pattern": "^(?:https:\\/\\/|\\/)"
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "dataset",
+                                        "collection",
+                                        "recordId",
+                                        "href"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "kind": {
+                                          "type": "string",
+                                          "const": "external-resource"
+                                        },
+                                        "href": {
+                                          "type": "string",
+                                          "maxLength": 2000,
+                                          "pattern": "^(?:https:\\/\\/|\\/)"
+                                        }
+                                      },
+                                      "required": [
+                                        "kind",
+                                        "href"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "label",
+                            "description",
+                            "state",
+                            "record"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "edges": {
+                        "maxItems": 1000,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                            },
+                            "from": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 180,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                            },
+                            "relation": {
+                              "type": "string",
+                              "enum": [
+                                "reasoned-by",
+                                "uses-fact",
+                                "uses-claim",
+                                "applies-rule",
+                                "considers-rule",
+                                "supported-by",
+                                "legal-authority-from",
+                                "published-by",
+                                "administered-by",
+                                "responsibility-held-by",
+                                "performed-by",
+                                "decision-made-by",
+                                "leads-to",
+                                "grounded-in",
+                                "enforced-through",
+                                "reviewable-through",
+                                "handled-by",
+                                "blocked-by",
+                                "limited-by",
+                                "addressed-by"
+                              ]
+                            },
+                            "to": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 180,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                            },
+                            "explanation": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "from",
+                            "relation",
+                            "to",
+                            "explanation"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "coverage": {
+                        "type": "object",
+                        "properties": {
+                          "scope": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1000
+                          },
+                          "completeWithinDeclaredScope": {
+                            "type": "boolean"
+                          },
+                          "gapNodeIds": {
+                            "maxItems": 100,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 180,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+                            }
+                          },
+                          "boundaries": {
+                            "maxItems": 50,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000
+                            }
+                          }
+                        },
+                        "required": [
+                          "scope",
+                          "completeWithinDeclaredScope",
+                          "gapNodeIds",
+                          "boundaries"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "schema",
+                      "rootNodeId",
+                      "context",
+                      "valueHandling",
+                      "ordering",
+                      "nodes",
+                      "edges",
+                      "coverage"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "steps",
+                  "whyGraph"
+                ],
+                "additionalProperties": false
+              },
+              "evidence": {
+                "type": "object",
+                "properties": {
+                  "claims": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "statement": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "law",
+                            "hmrc-position",
+                            "taxsorted-analysis",
+                            "calculation"
+                          ]
+                        },
+                        "support": {
+                          "type": "string",
+                          "enum": [
+                            "direct",
+                            "derived",
+                            "contrary"
+                          ]
+                        },
+                        "sourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "statement",
+                        "kind",
+                        "support",
+                        "sourceIds"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "publisher": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "primary-legislation",
+                            "secondary-legislation",
+                            "tertiary-legislation",
+                            "case-law",
+                            "hmrc-guidance",
+                            "hmrc-manual",
+                            "official-form",
+                            "policy-announcement",
+                            "professional-commentary"
+                          ]
+                        },
+                        "legalForce": {
+                          "type": "string",
+                          "enum": [
+                            "binding-law",
+                            "binding-in-stated-part",
+                            "precedent",
+                            "hmrc-position",
+                            "official-explanation",
+                            "proposal-only",
+                            "commentary"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "proposed",
+                            "enacted-not-commenced",
+                            "in-force",
+                            "partly-in-force",
+                            "superseded",
+                            "historical"
+                          ]
+                        },
+                        "citation": {
+                          "type": "string"
+                        },
+                        "territorialExtent": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "effectiveFrom": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "effectiveTo": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "format": "date",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "versionAsAt": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "publishedOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "updatedOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "retrievedOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "reviewDueOn": {
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                        },
+                        "contentHash": {
+                          "type": "string"
+                        },
+                        "supports": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "doesNotProve": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "publisher",
+                        "url",
+                        "kind",
+                        "legalForce",
+                        "status",
+                        "territorialExtent",
+                        "retrievedOn",
+                        "reviewDueOn",
+                        "supports",
+                        "doesNotProve"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "claims",
+                  "sources"
+                ],
+                "additionalProperties": false
+              },
+              "confidence": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "basis": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "blockers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "notProbability": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "level",
+                  "basis",
+                  "blockers",
+                  "notProbability"
+                ],
+                "additionalProperties": false
+              },
+              "escalation": {
+                "type": "object",
+                "properties": {
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "reasonCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "factsNeeded": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "nextActions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "href": {
+                          "type": "string"
+                        },
+                        "responsibleParty": {
+                          "type": "string",
+                          "enum": [
+                            "caller",
+                            "HMRC",
+                            "TaxSorted",
+                            "qualified-adviser"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "label",
+                        "responsibleParty"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "required",
+                  "reasonCodes",
+                  "factsNeeded",
+                  "nextActions"
+                ],
+                "additionalProperties": false
+              },
+              "dataUse": {
+                "type": "object",
+                "properties": {
+                  "stored": {
+                    "type": "boolean",
+                    "const": false
+                  },
+                  "retention": {
+                    "type": "string"
+                  },
+                  "usedForTraining": {
+                    "type": "boolean",
+                    "const": false
+                  }
+                },
+                "required": [
+                  "stored",
+                  "retention",
+                  "usedForTraining"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "schema",
+              "capability",
+              "status",
+              "applicability",
+              "facts",
+              "answer",
+              "reasoning",
+              "evidence",
+              "confidence",
+              "escalation",
+              "dataUse"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "kind",
+          "request",
+          "answer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "included": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "included",
+        "excluded"
+      ],
+      "additionalProperties": false
+    },
+    "userReview": {
+      "type": "object",
+      "properties": {
+        "selfCheckedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meaning": {
+          "type": "string",
+          "const": "checked-by-user-not-professional-approval"
+        }
+      },
+      "required": [
+        "selfCheckedAt",
+        "meaning"
+      ],
+      "additionalProperties": false
+    },
+    "boundaries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "createdAt",
+    "assurance",
+    "dataHandling",
+    "profile",
+    "positions",
+    "coverage",
+    "userReview",
+    "boundaries"
+  ],
+  "additionalProperties": false,
+  "$id": "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
+  "title": "TaxSorted UK Tax Position Passport",
+  "description": "Portable browser-local UK tax-position handoff. It contains no identity verification, signature, professional approval or filing receipt.",
+  "x-taxsorted-generation": "Committed build-time snapshot of TaxPositionPassportSchema; no runtime schema conversion.",
+  "x-taxsorted-runtime-invariants": [
+    "Income-source and evidence entries use the canonical order and exact definitions.",
+    "Evidence marked not-expected must agree with the income-source map.",
+    "The complete MTD request and TaxAnswer must match the same capability and pass their canonical runtime invariants, including cross-field cessation chronology.",
+    "Forbidden identity, contact and tax-reference keys are rejected."
+  ]
+}

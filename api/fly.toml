@@ -47,4 +47,6 @@ primary_region = "lhr"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "256mb"
+  # API startup materializes the complete public OpenAPI surface. Keep enough
+  # headroom for cold starts and rolling deploys.
+  memory = "512mb"
