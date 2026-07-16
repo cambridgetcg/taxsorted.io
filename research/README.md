@@ -12,6 +12,7 @@ research/
 └── uk/         # Country #1 — the proof, drawn deep
     ├── filing/        # Every form: who files, deadline formula, penalties, how to submit
     ├── laws/          # Statutes with amendment history & point-in-time lookups
+    ├── law-safety/    # Public-law boundaries, data sharing, review, remedies and product claims
     ├── entities/      # WHO files: all legal forms, mapped to person·business·charity·trust
     ├── tax-types/     # WHAT taxes exist (UK instance of the world ontology)
     ├── deadlines/     # The UK tax calendar
@@ -23,6 +24,7 @@ research/
     ├── observer-accountability/ # Watching-the-watchers principle, contract, source doors and walls
     ├── public-funding/ # Tax pools, authority, health, education, delivery and audit
     ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
+    ├── tax-history/   # Historical tax rules, evidence, material rights and public learning stories
     ├── tax-expert/    # Evidence contract, honest coverage stages and deep expert paths
     └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
 ```
@@ -47,6 +49,8 @@ honest, and marked so — guides first, rails later.
 | `uk/laws/legislation-by-entity/` | Deep — 16 entity profiles, section-level, point-in-time |
 | `uk/tax-types/sdlt.md` | Deep — current rates, source ledger, safe API boundary, XML rail |
 | `uk/tax-system/` | Deep — 4 collection lanes, permissions, infrastructure, collaborators, cases and gaps |
+| `uk/law-safety/` | Research memo — authority, fair execution, data boundaries, professional duties, public law reflection, claim tests and build order |
+| `uk/tax-history/window-tax/` | Evidence and rights-reviewed media pilot — legal chronology, claim limits, reusable materials and blocked permissions |
 | `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
 | `uk/tax-expert/` | Coverage-first expert architecture — one shared answer contract; MTD Income Tax is the first deep path |
 | `uk/charities/` | Deep sector map — conditional reliefs, registers, legal forms, funding, finance, control, duties and privacy boundaries |

@@ -1,0 +1,807 @@
+{
+  "meta": {
+    "id": "uk-window-tax-materials",
+    "title": "UK Window Tax material ledger",
+    "schemaVersion": "1.0.0",
+    "lastReviewed": "2026-07-16",
+    "reviewAfter": "2027-01-16",
+    "status": "research-only-no-assets-published",
+    "canonicalResearch": "research/uk/tax-history/window-tax/README.md",
+    "rightsStatuses": {
+      "confirmed": "Reuse is supported by an item-level or collection-level rights statement and the required conditions are recorded.",
+      "conditional": "Reuse is permitted only while stated limits or a final asset-specific check are satisfied.",
+      "permission-needed": "Do not publish the asset until written permission or another sufficient licence is recorded.",
+      "link-only": "Link to the item page but do not copy the material.",
+      "rights-conflict": "Two current or historical records conflict and the grant chain has not been established.",
+      "unknown": "No sufficient reuse statement was confirmed."
+    },
+    "publicationRule": "A localPath must remain null until rights are confirmed or every recorded condition is satisfied."
+  },
+  "materials": [
+    {
+      "id": "heidelberg-punch-repeal-cartoon-1850",
+      "kind": "illustration",
+      "storyBeat": "repeal-culture",
+      "title": "A vision of the repeal of the window-tax",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "Universitätsbibliothek Heidelberg",
+        "pageUrl": "https://digi.ub.uni-heidelberg.de/diglit/punch1850/0173",
+        "directAssetUrl": "https://digi.ub.uni-heidelberg.de/diglitData/image/punch1850/4/165.jpg",
+        "creator": "Richard Doyle",
+        "created": "circa 1850",
+        "locator": "Punch, volume 18, January-June 1850, page 165; H 634-3 Folio",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "contemporary-satire",
+        "claimStrength": "documented-cultural-response",
+        "description": "A family in a dark room welcomes an anthropomorphic sun in a visual argument for repeal.",
+        "supports": [
+          "A contemporary satirical representation of repeal as the return of daylight.",
+          "The cultural and political framing of the duty as a tax on light."
+        ],
+        "doesNotProve": [
+          "The prevalence of dark housing.",
+          "A quantified health effect.",
+          "That the depicted family is a real household."
+        ]
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://www.ub.uni-heidelberg.de/Englisch/helios/digi/nutzung/",
+        "licence": {
+          "name": "Public Domain Mark 1.0; catalogue also records CC0 1.0",
+          "url": "https://creativecommons.org/publicdomain/mark/1.0/"
+        },
+        "creditLine": "Punch, 18.1850, January to June, 1850, p. 165. Universitätsbibliothek Heidelberg.",
+        "conditions": [
+          "Keep the item-page link and library credit.",
+          "Record any crop, rotation, compression or tonal adjustment."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": 2574,
+        "sourceHeight": 3701,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Describe the dark room, family and personified sun, and identify the work as satire.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "nrs-dumfriesshire-closed-windows-1754",
+      "kind": "document",
+      "storyBeat": "recorded-behaviour",
+      "title": "Dumfriesshire Window Tax roll showing windows closed since the previous survey",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "National Records of Scotland via Scotland's People",
+        "pageUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
+        "directAssetUrl": null,
+        "creator": "Tax-roll clerk; exact name not stated",
+        "created": "1754",
+        "locator": "NRS E326/1/32, page 73",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "administrative-record",
+        "claimStrength": "documented",
+        "description": "The published extract and transcription contain entries recording one, three and five windows closed since the previous survey.",
+        "supports": [
+          "Specific assessed properties had fewer open windows than at the previous survey.",
+          "Window closure was recorded by the tax administration."
+        ],
+        "doesNotProve": [
+          "Why every listed opening was closed.",
+          "That closure was common across all households.",
+          "That every modern blocked window was caused by the tax."
+        ]
+      },
+      "rights": {
+        "status": "conditional",
+        "statementUrl": "https://www.scotlandspeople.gov.uk/content/copyright",
+        "licence": null,
+        "creditLine": "Crown copyright, National Records of Scotland, E326/1/32, page 73.",
+        "conditions": [
+          "Count this within the maximum of 20 NRS Crown-copyright digital images used online per website.",
+          "Reproduce accurately.",
+          "Do not use in a misleading context.",
+          "Acknowledge NRS.",
+          "Resolve and record the exact source image URL at acquisition time."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Describe the relevant rows and the handwritten closed-window notes without requiring the reader to decipher the scan.",
+        "transcriptRequired": true,
+        "transcriptUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past"
+      }
+    },
+    {
+      "id": "nrs-floors-castle-window-roll-1748",
+      "kind": "document",
+      "storyBeat": "scale-and-proxy",
+      "title": "Floors Castle Window Tax roll",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "National Records of Scotland via Scotland's People",
+        "pageUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
+        "directAssetUrl": null,
+        "creator": "Tax-roll clerk; exact name not stated",
+        "created": "1748",
+        "locator": "NRS E326/1/111, page 4",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "administrative-record",
+        "claimStrength": "documented",
+        "description": "The archive feature reports 294 windows surveyed at Floors Castle.",
+        "supports": [
+          "A high-window-count Scottish assessment in 1748.",
+          "How the visible proxy operated at the top end of the property scale."
+        ],
+        "doesNotProve": [
+          "How representative the castle was.",
+          "That the tax was proportionate across household types.",
+          "The owner's subjective view of the assessment."
+        ]
+      },
+      "rights": {
+        "status": "conditional",
+        "statementUrl": "https://www.scotlandspeople.gov.uk/content/copyright",
+        "licence": null,
+        "creditLine": "Crown copyright, National Records of Scotland, E326/1/111, page 4.",
+        "conditions": [
+          "Count this within the maximum of 20 NRS Crown-copyright digital images used online per website.",
+          "Reproduce accurately and in a non-misleading context.",
+          "Acknowledge NRS."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "State the record identity and the 294-window figure; do not require handwriting recognition.",
+        "transcriptRequired": true,
+        "transcriptUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past"
+      }
+    },
+    {
+      "id": "nrs-crail-window-roll-1748",
+      "kind": "document",
+      "storyBeat": "read-the-record",
+      "title": "Window Tax roll for Crail",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "National Records of Scotland via Scotland's People",
+        "pageUrl": "https://www.scotlandspeople.gov.uk/scottish-handwriting/posers/321q",
+        "directAssetUrl": null,
+        "creator": "Tax-roll clerk; exact name not stated",
+        "created": "1748",
+        "locator": "NRS E326/1/42, page 19",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "administrative-record",
+        "claimStrength": "documented",
+        "description": "A handwriting exercise built from the first Window Tax roll for Crail.",
+        "supports": [
+          "A real Scottish roll and the practical form of the record.",
+          "An accessible read-the-record interaction when paired with a transcription."
+        ],
+        "doesNotProve": [
+          "National representativeness.",
+          "Why a particular resident had a particular number of windows."
+        ]
+      },
+      "rights": {
+        "status": "conditional",
+        "statementUrl": "https://www.scotlandspeople.gov.uk/content/copyright",
+        "licence": null,
+        "creditLine": "Crown copyright, National Records of Scotland, E326/1/42, page 19.",
+        "conditions": [
+          "Count this within the maximum of 20 NRS Crown-copyright digital images used online per website.",
+          "Reproduce accurately and in a non-misleading context.",
+          "Acknowledge NRS."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Explain the page structure and provide the relevant transcription beside it.",
+        "transcriptRequired": true,
+        "transcriptUrl": "https://www.scotlandspeople.gov.uk/scottish-handwriting/posers/321q"
+      }
+    },
+    {
+      "id": "edgar-street-worcester-photograph",
+      "kind": "photograph",
+      "storyBeat": "probable-building-response",
+      "title": "3 Edgar Street, Worcester",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "Geograph Britain and Ireland via Wikimedia Commons",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:3_Edgar_Street,_Worcester_-_geograph.org.uk_-_6461842.jpg",
+        "directAssetUrl": null,
+        "creator": "Stephen Richards",
+        "created": "2014-07-15",
+        "locator": "Geograph image 6461842; building list entry 1389776",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "modern-photograph-with-official-item-description",
+        "claimStrength": "probable",
+        "description": "A modern photograph of the facade. Historic England says the ground-floor windows were paired to reduce the facade count from 14 to 12, presumably to reduce the Window Tax.",
+        "supports": [
+          "The visible present facade.",
+          "An official qualified interpretation of a probable tax-related alteration."
+        ],
+        "doesNotProve": [
+          "The owner's recorded intention.",
+          "When the alteration was made without further evidence.",
+          "That similar alterations on other buildings had the same cause."
+        ],
+        "corroboratingUrl": "https://historicengland.org.uk/listing/the-list/list-entry/1389776"
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://commons.wikimedia.org/wiki/File:3_Edgar_Street,_Worcester_-_geograph.org.uk_-_6461842.jpg#Licensing",
+        "licence": {
+          "name": "Creative Commons Attribution-ShareAlike 2.0 Generic",
+          "url": "https://creativecommons.org/licenses/by-sa/2.0/"
+        },
+        "creditLine": "3 Edgar Street, Worcester by Stephen Richards, CC BY-SA 2.0.",
+        "conditions": [
+          "Link the creator, source and licence.",
+          "Indicate changes.",
+          "Distribute adaptations under the same or a compatible licence."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": 780,
+        "sourceHeight": 1024,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Describe the paired ground-floor windows relevant to the 14-to-12 interpretation, without asserting certain motive.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "tna-window-tax-transcript",
+      "kind": "transcript",
+      "storyBeat": "archive-explainer",
+      "title": "The National Archives Window Tax transcript",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "The National Archives",
+        "pageUrl": "https://www.nationalarchives.gov.uk/education/resources/georgian-britain-age-modernity/window-tax/",
+        "directAssetUrl": null,
+        "creator": "The National Archives",
+        "created": null,
+        "locator": "Education resource accompanying QAB 1/13/27",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "official-archive-interpretation",
+        "claimStrength": "official-interpretation",
+        "description": "A short archive explainer connecting the tax to clipped coinage and the 1755 receipt.",
+        "supports": [
+          "The archive's interpretation of the tax's origin and later repeal.",
+          "An accessible text alternative for its narration."
+        ],
+        "doesNotProve": [
+          "That the interpretation replaces the enacted statute.",
+          "Rights to republish the receipt image."
+        ]
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://cdn.nationalarchives.gov.uk/documents/information-management/use-of-tna-materials.pdf",
+        "licence": {
+          "name": "Open Government Licence v3.0",
+          "url": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+        },
+        "creditLine": "Contains public sector information licensed under the Open Government Licence v3.0. Source: The National Archives.",
+        "conditions": [
+          "Keep source attribution and link.",
+          "Do not imply that the text licence clears the collection record image."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "text/html",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "link-and-summary-only",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "The transcript is itself the accessible alternative.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "tna-window-tax-audio",
+      "kind": "audio",
+      "storyBeat": "archive-explainer",
+      "title": "The National Archives Window Tax narration",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "The National Archives",
+        "pageUrl": "https://www.nationalarchives.gov.uk/education/resources/georgian-britain-age-modernity/window-tax/",
+        "directAssetUrl": "https://www.nationalarchives.gov.uk/documents/audio/window-tax.mp3",
+        "creator": "The National Archives",
+        "created": null,
+        "locator": "Audio embedded in the Window Tax education resource",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "official-archive-narration",
+        "claimStrength": "official-interpretation",
+        "description": "An audio version of the archive's short Window Tax account.",
+        "supports": [
+          "An optional listening route for the archive's interpretation."
+        ],
+        "doesNotProve": [
+          "Rights to republish the receipt image.",
+          "A stronger historical claim than the transcript supports."
+        ]
+      },
+      "rights": {
+        "status": "conditional",
+        "statementUrl": "https://cdn.nationalarchives.gov.uk/documents/information-management/use-of-tna-materials.pdf",
+        "licence": {
+          "name": "Open Government Licence v3.0, subject to a final audio-specific notice check",
+          "url": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+        },
+        "creditLine": "Contains public sector information licensed under the Open Government Licence v3.0. Source: The National Archives.",
+        "conditions": [
+          "Confirm that the MP3 carries no separate third-party notice immediately before integration.",
+          "Use native controls and no autoplay.",
+          "Publish the complete transcript beside the audio."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "audio/mpeg",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "not-downloaded",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Provide the complete written transcript and do not autoplay.",
+        "transcriptRequired": true,
+        "transcriptUrl": "https://www.nationalarchives.gov.uk/education/resources/georgian-britain-age-modernity/window-tax/"
+      }
+    },
+    {
+      "id": "tna-window-tax-receipt-1755",
+      "kind": "document",
+      "storyBeat": "payment-record",
+      "title": "Window Tax receipt dated 25 March 1755",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "The National Archives",
+        "pageUrl": "https://www.nationalarchives.gov.uk/education/resources/georgian-britain-age-modernity/window-tax/",
+        "directAssetUrl": "https://www.nationalarchives.gov.uk/wp-content/uploads/2016/01/georgians-window-tax-receipt-qab-1-13-27-1755.jpg",
+        "creator": "Unknown administrative creator",
+        "created": "1755-03-25",
+        "locator": "QAB 1/13/27",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "archival-record-image",
+        "claimStrength": "documented",
+        "description": "A genuine receipt for payment of Window Tax.",
+        "supports": [
+          "The practical existence and form of a 1755 tax receipt."
+        ],
+        "doesNotProve": [
+          "Typical liability or payment across the population.",
+          "Permission to republish the image merely because the page is public."
+        ]
+      },
+      "rights": {
+        "status": "permission-needed",
+        "statementUrl": "https://cdn.nationalarchives.gov.uk/documents/information-management/use-of-tna-materials.pdf",
+        "licence": null,
+        "creditLine": "The National Archives, QAB 1/13/27.",
+        "conditions": [
+          "Obtain Image Library permission before online publication.",
+          "Record the permission scope, duration, territory, credit and any fee."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": 1500,
+        "sourceHeight": 560,
+        "publicationState": "permission-blocked",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Provide a transcription and explain the fields relevant to the story.",
+        "transcriptRequired": true,
+        "transcriptUrl": "https://www.nationalarchives.gov.uk/education/resources/georgian-britain-age-modernity/window-tax/"
+      }
+    },
+    {
+      "id": "hansard-st-paul-covent-garden-petition-1833",
+      "kind": "transcript",
+      "storyBeat": "public-opposition",
+      "title": "St Paul, Covent Garden Window Tax petition report",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "UK Parliament Hansard",
+        "pageUrl": "https://hansard.parliament.uk/Commons/1833-04-24/debates/94fc1d8d-ec9f-4baf-b1d7-a1368c3054c0/WindowTax",
+        "directAssetUrl": null,
+        "creator": "House of Commons Hansard",
+        "created": "1833-04-24",
+        "locator": "Commons volume 17",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "contemporary-parliamentary-report",
+        "claimStrength": "documented-report",
+        "description": "Hansard reports a repeal petition signed by 400 inhabitants of the parish.",
+        "supports": [
+          "A documented petition report and public opposition route."
+        ],
+        "doesNotProve": [
+          "That the signatures represented the whole population.",
+          "The appearance of the original petition document.",
+          "That every statement in the reported speech was correct."
+        ]
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://www.parliament.uk/site-information/copyright/open-parliament-licence/",
+        "licence": {
+          "name": "Open Parliament Licence v3.0",
+          "url": "https://www.parliament.uk/site-information/copyright/open-parliament-licence/"
+        },
+        "creditLine": "Contains Parliamentary information licensed under the Open Parliament Licence v3.0.",
+        "conditions": [
+          "Keep the attribution and source link.",
+          "Identify the material as Hansard archive text, which may contain typographical errors.",
+          "Do not present styled text as a facsimile of the original petition."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "text/html",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "link-and-excerpt-ready",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Render the selected text as real HTML, not text embedded in an image.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "hansard-bath-petition-1851",
+      "kind": "transcript",
+      "storyBeat": "public-opposition",
+      "title": "St James, Bath petition for unconditional repeal",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "UK Parliament Hansard",
+        "pageUrl": "https://hansard.parliament.uk/Commons/1851-02-19/debates/532617ce-0f0f-4a8c-baa6-80863e2a25de/TheWindowTax%E2%80%94RuleForPetitions",
+        "directAssetUrl": null,
+        "creator": "House of Commons Hansard",
+        "created": "1851-02-19",
+        "locator": "Commons volume 114",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "contemporary-parliamentary-report",
+        "claimStrength": "documented-report",
+        "description": "Hansard reports a Bath petition seeking unconditional repeal without a substitute tax, and records why the petition was ruled informal.",
+        "supports": [
+          "The content of a reported petition and the Parliamentary receiving rule discussed that day."
+        ],
+        "doesNotProve": [
+          "That Parliament accepted the petition.",
+          "The appearance of the original petition.",
+          "That unconditional repeal was representative national opinion."
+        ]
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://www.parliament.uk/site-information/copyright/open-parliament-licence/",
+        "licence": {
+          "name": "Open Parliament Licence v3.0",
+          "url": "https://www.parliament.uk/site-information/copyright/open-parliament-licence/"
+        },
+        "creditLine": "Contains Parliamentary information licensed under the Open Parliament Licence v3.0.",
+        "conditions": [
+          "Keep the attribution and source link.",
+          "Identify the material as Hansard archive text, which may contain typographical errors.",
+          "Do not present styled text as a facsimile of the original petition."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "text/html",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "link-and-excerpt-ready",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Render the selected text as real HTML, not text embedded in an image.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "historic-england-window-tax-map-md93-03177",
+      "kind": "map",
+      "storyBeat": "local-assessment-map",
+      "title": "Map 12 Showing 1770 Window Tax",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "Historic England Archive",
+        "pageUrl": "https://historicengland.org.uk/images-books/photos/item/MD93/03177",
+        "directAssetUrl": null,
+        "creator": null,
+        "created": null,
+        "locator": "MD93/03177",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "archive-catalogue-lead",
+        "claimStrength": "unknown-until-inspected",
+        "description": "A catalogue lead for a measured-drawings collection item concerning the 1770 Window Tax.",
+        "supports": [
+          "The existence of a potentially useful archive map."
+        ],
+        "doesNotProve": [
+          "The map's detailed content before inspection.",
+          "Reuse rights.",
+          "That the map is necessary for the first story."
+        ]
+      },
+      "rights": {
+        "status": "permission-needed",
+        "statementUrl": "https://historicengland.org.uk/about/what-we-do/access-to-information/re-using-information/",
+        "licence": null,
+        "creditLine": "To be supplied by Historic England Archive.",
+        "conditions": [
+          "Request a reproduction licence and price before publication.",
+          "Record creator, date, rights holder, permitted uses and exact credit."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": null,
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "permission-blocked",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "If acquired, provide a long description of the map's relevant labels, boundaries and meaning.",
+        "transcriptRequired": false,
+        "longDescriptionRequired": true
+      }
+    },
+    {
+      "id": "wellcome-repeal-cartoon-m0012506",
+      "kind": "illustration",
+      "storyBeat": "repeal-culture",
+      "title": "Wellcome glass-plate reproduction of A vision of the repeal of the Window Tax",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "Wellcome Collection",
+        "pageUrl": "https://wellcomecollection.org/works/qbbsvn7v",
+        "directAssetUrl": null,
+        "creator": "1952 reproduction of an illustration from Punch",
+        "created": "1952-04",
+        "locator": "M0012506; WT/D/1/20/1/111/78",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "later-photographic-reproduction",
+        "claimStrength": "documented-object",
+        "description": "A glass-plate photographic reproduction of the same Punch illustration available directly from Heidelberg.",
+        "supports": [
+          "The existence of Wellcome's 1952 reproduction."
+        ],
+        "doesNotProve": [
+          "A clear current reuse grant.",
+          "Any historical claim stronger than the original Punch page."
+        ]
+      },
+      "rights": {
+        "status": "rights-conflict",
+        "statementUrl": "https://wellcomecollection.org/works/qbbsvn7v",
+        "licence": null,
+        "creditLine": "Do not publish this copy.",
+        "conditions": [
+          "The current Wellcome record says in copyright.",
+          "An older Wikimedia Commons record says CC BY 4.0.",
+          "Do not rely on the older record without establishing the licence grant chain.",
+          "Use the Heidelberg public-domain scan instead."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "rights-conflict-blocked",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Not applicable while publication is blocked.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "parliament-sunderland-window-tax-illustration",
+      "kind": "document",
+      "storyBeat": "health-campaign",
+      "title": "Sunderland Corporation Window Tax illustration",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "UK Parliament Living Heritage",
+        "pageUrl": "https://www.parliament.uk/about/living-heritage/transformingsociety/towncountry/towns/tyne-and-wear-case-study/about-the-group/housing/window-tax/",
+        "directAssetUrl": null,
+        "creator": null,
+        "created": "1850-02",
+        "locator": "Exact archive reference not exposed in accessible page markup",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "unresolved-archive-illustration",
+        "claimStrength": "link-only",
+        "description": "The page says a February 1850 Sunderland Corporation entry is illustrated, but does not expose sufficient item provenance or rights.",
+        "supports": [
+          "A research lead and the page's official historical interpretation."
+        ],
+        "doesNotProve": [
+          "The exact identity or rights status of the displayed illustration.",
+          "Permission to copy a Parliamentary Archives image."
+        ]
+      },
+      "rights": {
+        "status": "link-only",
+        "statementUrl": "https://www.parliament.uk/copyright/",
+        "licence": null,
+        "creditLine": "Link to the Parliament page only.",
+        "conditions": [
+          "Do not copy the illustration.",
+          "Parliamentary Archives images are excluded from the Open Parliament Licence.",
+          "Seek an item reference and separate permission if the image becomes necessary."
+        ],
+        "finalCheckRequired": true
+      },
+      "technical": {
+        "sourceMime": null,
+        "sourceWidth": null,
+        "sourceHeight": null,
+        "publicationState": "link-only",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Use the page's sourced text summary unless the original item is identified and cleared.",
+        "transcriptRequired": false
+      }
+    },
+    {
+      "id": "portland-street-southampton-photograph",
+      "kind": "photograph",
+      "storyBeat": "what-an-image-does-not-prove",
+      "title": "Blank windows at Portland Street, Southampton",
+      "reviewedOn": "2026-07-16",
+      "reviewAfter": "2027-01-16",
+      "source": {
+        "publisher": "Wikimedia Commons",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Window_Tax.jpg",
+        "directAssetUrl": null,
+        "creator": "Gary Burt, Wikimedia user Whilesteps",
+        "created": "2008-06",
+        "locator": "Historic England list entry 1091994",
+        "retrievedOn": "2026-07-16"
+      },
+      "evidence": {
+        "class": "modern-photograph-with-unverified-causal-caption",
+        "claimStrength": "visible-feature-only",
+        "description": "A modern photograph of blank windows in a terrace built around 1830.",
+        "supports": [
+          "The visible blank-window arrangement.",
+          "The building identity and date when paired with the official list entry."
+        ],
+        "doesNotProve": [
+          "That Window Tax caused the blank windows.",
+          "That the uploader's causal caption is independently verified."
+        ],
+        "corroboratingUrl": "https://historicengland.org.uk/listing/the-list/list-entry/1091994"
+      },
+      "rights": {
+        "status": "confirmed",
+        "statementUrl": "https://commons.wikimedia.org/wiki/File:Window_Tax.jpg#Licensing",
+        "licence": {
+          "name": "Creative Commons Attribution-ShareAlike 3.0 Unported",
+          "url": "https://creativecommons.org/licenses/by-sa/3.0/"
+        },
+        "creditLine": "Gary Burt (Whilesteps), CC BY-SA 3.0.",
+        "conditions": [
+          "Link the creator, source and licence.",
+          "Indicate changes.",
+          "Distribute adaptations under the same or a compatible licence.",
+          "Do not repeat the causal caption as fact."
+        ],
+        "finalCheckRequired": false
+      },
+      "technical": {
+        "sourceMime": "image/jpeg",
+        "sourceWidth": 1048,
+        "sourceHeight": 1485,
+        "publicationState": "not-selected-for-first-release",
+        "localPath": null,
+        "sha256": null
+      },
+      "accessibility": {
+        "requiredAlternative": "Describe the visible blank openings and state that the image alone cannot establish why they are blank.",
+        "transcriptRequired": false
+      }
+    }
+  ]
+}
