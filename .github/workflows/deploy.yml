@@ -1639,10 +1639,12 @@ jobs:
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
-            '/uk/charities|Words beside actions' \
-            '/uk/accountability|Watch the watchers' \
-            '/uk/tax-expert|A UK tax expert that knows where the edge is.' \
-            '/uk/politics/stand|Start with the work, not the title.'
+            '/uk/charities|Check a charity, understand its tax, ask it for help.' \
+            '/uk/accountability|Who checks the checkers' \
+            '/uk/tax-expert|Check which tax rules apply to you' \
+            '/uk/politics/stand|Start with the work, not the title.' \
+            '/itsa/records|Starter Books' \
+            '/itsa/quarter|Quarterly figures'
           do
             page=${page_and_marker%%|*}
             marker=${page_and_marker#*|}
