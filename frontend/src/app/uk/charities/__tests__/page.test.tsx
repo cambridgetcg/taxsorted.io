@@ -23,9 +23,9 @@ describe("UK charities page", () => {
 
     expect(screen.getByRole("heading", { name: /the short version/i })).toBeInTheDocument();
     const trail = screen.getByRole("navigation", { name: /you are here/i });
-    expect(within(trail).getByRole("link", { name: /follow the money/i })).toHaveAttribute(
+    expect(within(trail).getByRole("link", { name: /the uk system/i })).toHaveAttribute(
       "href",
-      "/uk/money",
+      "/uk",
     );
   });
 

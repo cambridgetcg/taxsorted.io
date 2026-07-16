@@ -122,6 +122,16 @@ describe("UK politics open dataset catalogue", () => {
     expect(root.status).toBe(200);
     expect(rootBody.access.authentication).toBe("none");
     expect(rootBody.start).toBe("/v1/politics/uk/datasets");
+    expect(rootBody.links.publicOfficePathways).toBe(
+      "/v1/politics/uk/public-office-pathways",
+    );
+    expect(rootBody.publicOfficePathways).toEqual({
+      status: "open",
+      normalPublicationGates: "independent",
+      emergencyStop: "politics-bulk-data-emergency-stop",
+      methods: ["GET", "HEAD"],
+      writes: false,
+    });
     expect(root.headers.get("x-dataset-id")).toBeNull();
     expect(root.headers.get("x-record-count")).toBeNull();
     expect(root.headers.get("link")).toContain('</v1/politics/uk>; rel="canonical"');

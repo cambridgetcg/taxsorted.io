@@ -269,6 +269,22 @@ describe("UK tax expert API", () => {
     });
     expect(missing.status).toBe(401);
     expect(missing.headers.get("cache-control")).toBe("no-store");
+    expect(missing.headers.get("www-authenticate")).toBe(
+      'Bearer realm="TaxSorted API", error="invalid_token"',
+    );
+    expect(missing.headers.get("link")).toContain(
+      "/openapi/professional-tools-uk.json",
+    );
+    expect(await missing.json()).toMatchObject({
+      requiredScope: "tax-expert:assess",
+      access: {
+        publicSelfServiceKeyProvisioning: false,
+        confidentialAccessRequestIntake: false,
+      },
+      nextActions: expect.arrayContaining([
+        expect.objectContaining({ href: "/v1/uk/professional-tools" }),
+      ]),
+    });
     expect(browserSessionCalls()).toBe(0);
 
     query.mockResolvedValueOnce([{
@@ -284,7 +300,13 @@ describe("UK tax expert API", () => {
     });
     expect(insufficient.status).toBe(403);
     expect(insufficient.headers.get("cache-control")).toBe("no-store");
-    expect((await insufficient.json()).message).toContain("tax-expert:assess");
+    expect(insufficient.headers.get("www-authenticate")).toContain(
+      'error="insufficient_scope"',
+    );
+    expect(await insufficient.json()).toMatchObject({
+      message: expect.stringContaining("tax-expert:assess"),
+      requiredScope: "tax-expert:assess",
+    });
     expect(browserSessionCalls()).toBe(0);
   });
 

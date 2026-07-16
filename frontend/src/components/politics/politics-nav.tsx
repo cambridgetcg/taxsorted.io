@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 const doors = [
   { href: "/uk/politics", label: "Start" },
   { href: "/uk/politics/system", label: "How power works" },
+  { href: "/uk/politics/stand", label: "Stand for office" },
   { href: "/uk/politics/integrity", label: "Police & public money" },
   { href: "/uk/politics/people", label: "Your MP" },
   { href: "/uk/politics/funding", label: "Party donations" },

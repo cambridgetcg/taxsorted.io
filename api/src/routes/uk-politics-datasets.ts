@@ -504,8 +504,16 @@ export function createUkPoliticsDatasetRoutes(
             }
           : politicsDatasetRelease.humanApproval,
       },
+      publicOfficePathways: {
+        status: bulkDataEmergencyStop ? "emergency-stopped" : "open",
+        normalPublicationGates: "independent",
+        emergencyStop: "politics-bulk-data-emergency-stop",
+        methods: ["GET", "HEAD"],
+        writes: false,
+      },
       start: DATASETS_ROOT,
       links: {
+        publicOfficePathways: `${API_ROOT}/public-office-pathways`,
         datasets: DATASETS_ROOT,
         manifest: `${API_ROOT}/manifest`,
         sources: `${API_ROOT}/sources`,

@@ -14,7 +14,7 @@ export default function PoliticsPeoplePage() {
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <Breadcrumbs
         items={[
-          { href: "/uk/money", label: "Follow the money" },
+          { href: "/uk", label: "The UK system" },
           { href: "/uk/politics", label: "UK politics" },
         ]}
         current="Your MP"

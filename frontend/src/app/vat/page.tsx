@@ -25,8 +25,9 @@ export default function VatCockpitPage() {
       </h1>
       <p className="mt-2 max-w-2xl text-base text-ink-soft">
         Add your business, connect it to HM Revenue &amp; Customs (HMRC), see what you must
-        send, and file a return with a receipt. Your list lives in this browser — no account
-        needed yet.
+        send, and build a return from your records. Connections here use HMRC&apos;s practice
+        system — production filing is not available yet. Your list lives in this browser —
+        no account needed.
       </p>
 
       <Suspense

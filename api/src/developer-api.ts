@@ -5,6 +5,13 @@ import { requireApiKey } from "./api-key.js";
 import { assertNoDuplicateJsonKeys, StrictJsonError } from "./strict-json.js";
 import { ifNoneMatchMatches, representationEtag } from "./open-data.js";
 import { sdltRoutes } from "./routes/sdlt.js";
+import { createApiWorkspaceRoutes } from "./routes/api-workspace.js";
+import { createProfessionalToolsRoutes } from "./routes/professional-tools.js";
+import {
+  apiWorkspacePath,
+  professionalToolsOpenApiPath,
+  professionalToolsPath,
+} from "./professional-tools-contract.js";
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
 import {
@@ -18,6 +25,11 @@ import {
   ukCharitiesSchema,
 } from "./uk-charities.js";
 import { ukPublicFundingSchema } from "./uk-public-funding.js";
+import {
+  publicOfficePathSchema,
+  publicOfficePathwayRightsSchema,
+  publicOfficePathwaysSchema,
+} from "./uk-public-office-pathways.js";
 import {
   releaseAtomFeedPath,
   releaseCheckpointSchema,
@@ -95,6 +107,16 @@ const openApiTags = [
       "Evidence-backed tax capability discovery and bounded deterministic assessments.",
   },
   {
+    name: "UK professional tools",
+    description:
+      "Current lawyer and accountant tasks, caller credential inspection, access boundaries, complete examples and practice-record responsibilities.",
+  },
+  {
+    name: "SDLT",
+    description:
+      "Bounded, deterministic residential Stamp Duty Land Tax calculations.",
+  },
+  {
     name: "Explanation contracts",
     description:
       "Shared, read-only contracts for tracing conclusions to support, responsibility, effects, challenge routes and explicit gaps.",
@@ -119,6 +141,7 @@ const publicAgentPaths = new Set([
   "/v1/wake",
   "/v1/health",
   "/v1/uk/tax-expert",
+  professionalToolsPath,
 ]);
 
 function hasPathPrefix(path: string, prefix: string): boolean {
@@ -191,6 +214,19 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
       "Task-sized contract for the shared explanation graph framework and structural schema.",
     componentReferences: ["#/components/schemas/WhyGraph"],
     matchesPath: (path) => hasPathPrefix(path, "/v1/why-graph"),
+  },
+  {
+    id: "professional-tools-uk",
+    path: professionalToolsOpenApiPath,
+    title: "TaxSorted UK Professional Tools API",
+    description:
+      "Task-sized contract for the professional doorway, caller credential inspection, residential SDLT calculation and MTD Income Tax readiness assessment.",
+    allowSecuredOperations: true,
+    matchesPath: (path) =>
+      path === professionalToolsPath ||
+      path === apiWorkspacePath ||
+      hasPathPrefix(path, "/v1/uk/sdlt") ||
+      hasPathPrefix(path, "/v1/uk/tax-expert"),
   },
   {
     id: "tax-expert-uk",
@@ -1026,7 +1062,12 @@ const AgentWake = z
           accountability: z.string(),
           whyGraph: z.string().optional(),
         }),
-        taskSlices: z.object({ taxExpert: z.string() }).optional(),
+        taskSlices: z
+          .object({
+            taxExpert: z.string(),
+            professionalTools: z.string().optional(),
+          })
+          .optional(),
       }),
       releases: z.object({
         ledger: z.string(),
@@ -1054,6 +1095,16 @@ const AgentWake = z
         schema: z.string(),
         status: z.literal("schema-only-not-admitted"),
         recordsAvailable: z.literal(false),
+      }),
+      publicOfficePathways: z.object({
+        href: z.string(),
+        schema: z.string(),
+        humanGuide: z.string().url(),
+        availability: z.literal("conditional-public"),
+        unavailableWhen: z.literal("politics-bulk-data-emergency-stop"),
+        rights: z.string(),
+        corrections: z.string(),
+        effects: z.string(),
       }),
       whyGraph: z
         .object({
@@ -1103,6 +1154,66 @@ const AgentWake = z
             changesExternalState: z.literal(false),
             infersOfficialAppealRights: z.literal(false),
             graphIsDerivedNotCanonical: z.literal(true),
+          }),
+        })
+        .optional(),
+      professionalTools: z
+        .object({
+          publicManifest: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          taskContract: z.object({
+            method: z.literal("GET"),
+            href: z.string(),
+            authentication: z.literal("none"),
+          }),
+          credentialInspection: z.object({
+            method: z.literal("GET"),
+            href: z.literal("/v1/api-workspace"),
+            authentication: z.literal("Bearer TaxSorted workspace key"),
+            requiredWorkspaceScopes: z.array(z.string()).max(0),
+            intendedClient: z.literal("server-to-server"),
+            browserCorsAuthorizationHeaderAllowed: z.literal(false),
+            acceptsQueryParameters: z.literal(false),
+            acceptsRequestBody: z.literal(false),
+            acceptsClientFacts: z.literal(false),
+            changesState: z.literal(false),
+            returnsOtherKeys: z.literal(false),
+          }),
+          operatorKeyLifecycle: z.object({
+            inspect: z.literal(true),
+            issueWithFiniteExpiry: z.literal(true),
+            overlappingRotation: z.literal(true),
+            explicitRevocation: z.literal(true),
+            selfService: z.literal(false),
+            securePublicDelivery: z.literal(false),
+            authenticatedAdminAuditTrail: z.literal(false),
+          }),
+          status: z.literal("credentialed-design-partner"),
+          audiences: z.tuple([
+            z.literal("solicitors-and-conveyancers"),
+            z.literal("accountants-and-tax-advisers"),
+          ]),
+          executableTaskCount: z.literal(2),
+          access: z.object({
+            availability: z.literal("credentialed-design-partner"),
+            publicSelfServiceKeyProvisioning: z.literal(false),
+            confidentialAccessRequestIntake: z.literal(false),
+            browserAccountProvidesWorkspaceKey: z.literal(false),
+            workspaceKeyIdentifiesCallingWorkspace: z.literal(true),
+            requestFactsMayBePersonalData: z.literal(true),
+            authentication: z.literal("Bearer TaxSorted workspace key"),
+            intendedClient: z.literal("server-to-server"),
+          }),
+          boundaries: z.object({
+            clientOrMatterRecords: z.literal(false),
+            portfolioOrBatchOperations: z.literal(false),
+            filingOrSubmission: z.literal(false),
+            immutableEvidenceArchive: z.literal(false),
+            workspaceNameReturnedToCaller: z.literal(false),
+            productionSla: z.literal(false),
           }),
         })
         .optional(),
@@ -1157,6 +1268,19 @@ const AgentWake = z
               "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
             ),
             idempotency: z.literal("not-declared"),
+            idempotencyMeaning: z.literal(
+              "no-Idempotency-Key-protocol; duplicate-calls-have-no-state-effect",
+            ),
+            retry: z.object({
+              applicationOrExternalStateChange: z.literal(false),
+              duplicateRequestStateEffect: z.literal("none"),
+              byteStabilityGuaranteedAcrossTime: z.literal(false),
+              compareWhenRepeating: z.tuple([
+                z.literal("capability version"),
+                z.literal("evaluatedOn and knowledgeAsOf"),
+                z.literal("source IDs, retrievedOn and reviewDueOn"),
+              ]),
+            }),
             errorContract: z.object({
               mediaType: z.literal("application/json"),
               schema: z.literal("TaxExpertApiError"),
@@ -1546,6 +1670,78 @@ const PoliticsPublicJson = z
   .object({})
   .passthrough()
   .openapi("UkPoliticsOpenDataResponse");
+const PublicOfficePathwaysResponse = z
+  .object({
+    ...publicOfficePathwaysSchema.shape,
+    availability: z.object({
+      status: z.literal("open"),
+      normalPublicationGates: z.literal("independent"),
+      emergencyStop: z.literal("politics-bulk-data-emergency-stop"),
+      methods: z.tuple([z.literal("GET"), z.literal("HEAD")]),
+      writes: z.literal(false),
+    }).strict(),
+    links: z.object({
+      self: z.string(),
+      offices: z.string(),
+      support: z.string(),
+      schema: z.string(),
+      humanGuide: z.string().url(),
+      openApi: z.string(),
+      rights: z.string(),
+      corrections: z.string(),
+    }).strict(),
+  })
+  .strict()
+  .openapi("UkPublicOfficePathways");
+const PublicOfficePathwayDetail = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-office-pathways/1"),
+    meta: publicOfficePathwaysSchema.shape.meta,
+    office: publicOfficePathSchema,
+    sources: publicOfficePathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicOfficePathwayDetail");
+const PublicOfficePathwayList = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-office-pathways/1"),
+    meta: publicOfficePathwaysSchema.shape.meta,
+    comparisonRules: z.array(z.string()),
+    offices: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        officeType: z.string(),
+        jurisdiction: z.string(),
+        contestGeography: z.string(),
+        electoralSystem: z.string(),
+        coverageStatus: z.literal("deep"),
+        summary: z.string(),
+        routeKinds: z.array(z.enum(["registered-party", "independent"])),
+        currentLawAsAt: z.string(),
+        sourceIds: z.array(z.string()),
+        detail: z.string(),
+      }).strict(),
+    ),
+    sources: publicOfficePathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicOfficePathwayList");
+const PublicOfficePathwaySupport = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-office-pathways/1"),
+    meta: publicOfficePathwaysSchema.shape.meta,
+    selectionRule: z.string(),
+    barriers: publicOfficePathwaysSchema.shape.barriers,
+    supportRoutes: publicOfficePathwaysSchema.shape.supportRoutes,
+    sources: publicOfficePathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicOfficePathwaySupport");
+const PublicOfficePathwayRights = z
+  .object({ ...publicOfficePathwayRightsSchema.shape })
+  .strict()
+  .openapi("UkPublicOfficePathwayRights");
 const PoliticsDatasetField = z
   .object({
     name: z.string(),
@@ -4721,31 +4917,110 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     ],
     ["/v1/politics/uk/law/watch", "Read proposed political-system legislation"],
     [
+      "/v1/politics/uk/public-office-pathways",
+      "Read the non-partisan public-office pathway map",
+    ],
+    [
+      "/v1/politics/uk/public-office-pathways/offices",
+      "Compare the deeply mapped elected-office routes",
+    ],
+    [
+      "/v1/politics/uk/public-office-pathways/support",
+      "Read support routes and documented barriers to standing",
+    ],
+    [
+      "/v1/politics/uk/public-office-pathways/rights",
+      "Read the curation and upstream-source rights boundary",
+    ],
+    [
       "/v1/politics/uk/sources",
       "Read politics coverage, sources, licences and gaps",
     ],
   ] as const;
 
   for (const [path, summary] of staticPoliticsRoutes) {
+    const isPublicOfficePathwayRoute = path.startsWith(
+      "/v1/politics/uk/public-office-pathways",
+    );
+    const responseSchema =
+      path === "/v1/politics/uk/public-office-pathways"
+        ? PublicOfficePathwaysResponse
+        : path === "/v1/politics/uk/public-office-pathways/offices"
+          ? PublicOfficePathwayList
+          : path === "/v1/politics/uk/public-office-pathways/support"
+            ? PublicOfficePathwaySupport
+            : path === "/v1/politics/uk/public-office-pathways/rights"
+              ? PublicOfficePathwayRights
+            : PoliticsPublicJson;
     app.openAPIRegistry.registerPath({
       method: "get",
       path,
       summary,
+      ...(isPublicOfficePathwayRoute
+        ? { request: { headers: ConditionalRequestHeaders } }
+        : {}),
       security: [],
       responses: {
         200: {
           description: "Source-linked public reference data.",
-          content: { "application/json": { schema: PoliticsPublicJson } },
+          ...(isPublicOfficePathwayRoute
+            ? { headers: publicResponseHeaders }
+            : {}),
+          content: {
+            "application/json": {
+              schema: responseSchema,
+            },
+          },
         },
+        ...(isPublicOfficePathwayRoute
+          ? {
+              304: {
+                description: "The supplied ETag still identifies this representation.",
+                headers: publicResponseHeaders,
+              },
+            }
+          : {}),
         503: {
-          description:
-            "Bulk publication is awaiting approval or has been emergency-stopped.",
+          description: isPublicOfficePathwayRoute
+            ? "The politics bulk emergency stop is active. Pending bulk-record and named-person approval alone do not close this rules-only route."
+            : "Bulk publication is awaiting approval or has been emergency-stopped.",
+          ...(isPublicOfficePathwayRoute ? { content: problemContent } : {}),
         },
       },
     });
   }
 
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/politics/uk/public-office-pathways/schema",
+    summary: "Read the public-office pathway JSON Schema",
+    request: { headers: ConditionalRequestHeaders },
+    security: [],
+    responses: {
+      200: {
+        description: "Strict structural schema and runtime invariant notes.",
+        headers: publicResponseHeaders,
+        content: {
+          "application/schema+json": { schema: PoliticsPublicJson },
+        },
+      },
+      304: {
+        description: "The supplied ETag still identifies this schema.",
+        headers: publicResponseHeaders,
+      },
+      503: {
+        description: "The politics bulk emergency stop is active.",
+        content: problemContent,
+      },
+    },
+  });
+
   const dynamicPoliticsRoutes = [
+    [
+      "/v1/politics/uk/public-office-pathways/offices/{officeId}",
+      "officeId",
+      "Read one elected-office pathway",
+    ],
     [
       "/v1/politics/uk/power/offices/{officeId}",
       "officeId",
@@ -4781,19 +5056,105 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       security: [],
       request: {
         params: z.object({ [parameter]: z.string().min(1).max(200) }),
+        ...(path ===
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+          ? { headers: ConditionalRequestHeaders }
+          : {}),
       },
       responses: {
         200: {
           description: "Source-linked public response.",
-          content: { "application/json": { schema: PoliticsPublicJson } },
+          ...(path ===
+          "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+            ? { headers: publicResponseHeaders }
+            : {}),
+          content: {
+            "application/json": {
+              schema:
+                path === "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+                  ? PublicOfficePathwayDetail
+                  : PoliticsPublicJson,
+            },
+          },
         },
+        ...(path ===
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+          ? {
+              304: {
+                description: "The supplied ETag still identifies this office representation.",
+                headers: publicResponseHeaders,
+              },
+            }
+          : {}),
         404: { description: "No matching public record." },
         503: {
-          description: "A named-data or bulk-data safety gate is closed.",
+          description:
+            path ===
+            "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+              ? "The politics bulk emergency stop is active."
+              : "A named-data or bulk-data safety gate is closed.",
+          ...(path ===
+          "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+            ? { content: problemContent }
+            : {}),
         },
       },
     });
   }
+
+  for (const [path, summary] of [
+    ...staticPoliticsRoutes.filter(([path]) =>
+      path.startsWith("/v1/politics/uk/public-office-pathways"),
+    ),
+    [
+      "/v1/politics/uk/public-office-pathways/schema",
+      "Check the public-office pathway JSON Schema",
+    ] as const,
+  ]) {
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path,
+      summary: summary.replace(/^Read /, "Check "),
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current public-office pathway representation metadata.",
+          headers: publicResponseHeaders,
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: publicResponseHeaders,
+        },
+        503: {
+          description: "The politics bulk emergency stop is active.",
+        },
+      },
+    });
+  }
+
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/politics/uk/public-office-pathways/offices/{officeId}",
+    summary: "Check one elected-office pathway",
+    request: {
+      params: z.object({ officeId: z.string().min(1).max(200) }),
+      headers: ConditionalRequestHeaders,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current office-pathway representation metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description: "The supplied ETag still identifies this office representation.",
+        headers: publicResponseHeaders,
+      },
+      404: { description: "No matching public-office pathway." },
+      503: { description: "The politics bulk emergency stop is active." },
+    },
+  });
 
   app.openAPIRegistry.registerPath({
     method: "get",
@@ -4948,6 +5309,9 @@ function isJsonObject(value: unknown): value is JsonObject {
 }
 
 function openApiTagForPath(path: string): string {
+  if (path === professionalToolsPath || path === apiWorkspacePath) {
+    return "UK professional tools";
+  }
   if (publicAgentPaths.has(path)) return "Agent discovery";
   if (hasPathPrefix(path, "/v1/open-data")) return "Open-data catalogue";
   if (hasPathPrefix(path, "/v1/tax-system/uk")) return "UK tax system";
@@ -4963,6 +5327,7 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/why-graph")) {
     return "Explanation contracts";
   }
+  if (hasPathPrefix(path, "/v1/uk/sdlt")) return "SDLT";
   if (hasPathPrefix(path, "/v1/uk/tax-expert")) return "UK tax expert";
   throw new Error(`No OpenAPI slice tag is defined for ${path}.`);
 }
@@ -5369,7 +5734,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   app.openAPIRegistry.registerComponent("securitySchemes", "WorkspaceKey", {
     type: "http",
     scheme: "bearer",
-    bearerFormat: "ts_test_<32-byte-secret>",
+    bearerFormat: "ts_(test|live)_<32-byte-secret>",
     description:
       "A TaxSorted workspace key. Tax calculations and assessments declare their required scope, such as sdlt:calculate or tax-expert:assess.",
   });
@@ -5386,12 +5751,21 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerPoliticsOpenApi(app);
   registerStableRecordResolversOpenApi(app);
   registerOpenApiSliceDescriptions(app);
+  app.route(apiWorkspacePath, createApiWorkspaceRoutes());
+  app.route(
+    professionalToolsPath,
+    createProfessionalToolsRoutes(apiOrigin),
+  );
 
   app.use("/v1/uk/sdlt/*", async (c, next) => {
     // SDLT requests and results contain transaction values. Apply the private
     // cache policy before size, media, JSON, auth and schema checks so every
     // early response inherits it too.
     c.header("Cache-Control", "no-store");
+    c.header(
+      "Link",
+      `<${professionalToolsOpenApiPath}>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+    );
     await next();
   });
   app.use(
@@ -5440,6 +5814,10 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
     // private to this call. Set the policy before size, media, JSON and auth
     // checks so an early response cannot become cacheable by omission.
     c.header("Cache-Control", "no-store");
+    c.header(
+      "Link",
+      `<${professionalToolsOpenApiPath}>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"`,
+    );
     await next();
   });
   app.use(

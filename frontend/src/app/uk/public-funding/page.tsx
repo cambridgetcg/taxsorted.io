@@ -313,7 +313,7 @@ export default function UkPublicFundingPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <Breadcrumbs
-        items={[{ href: "/uk/money", label: "Follow the money" }]}
+        items={[{ href: "/uk", label: "The UK system" }]}
         current="Public money"
         className="mb-6"
       />

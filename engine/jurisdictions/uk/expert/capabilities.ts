@@ -52,9 +52,9 @@ export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
     title: "VAT records, returns and HMRC connection",
     status: "limited",
     stages: ["mapped", "explained", "classified", "calculated", "prepared"],
-    scope: "UK VAT records, common schemes, nine-box return preparation and HMRC sandbox/live connection when configured.",
-    exclusions: ["A universal VAT place-of-supply classifier", "Production availability without HMRC credentials", "Every sector scheme"],
-    humanHref: "/dashboard",
+    scope: "UK VAT records, common schemes, nine-box return preparation and an HMRC sandbox connection when configured.",
+    exclusions: ["A universal VAT place-of-supply classifier", "Production filing before HMRC recognition", "Every sector scheme"],
+    humanHref: "/vat",
     review: { reviewedOn, owner: "TaxSorted UK tax rules" },
   },
   {

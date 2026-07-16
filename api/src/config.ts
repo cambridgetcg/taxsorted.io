@@ -2,9 +2,12 @@ import {
   isPoliticsBulkPublicationApproval,
   type PoliticsBulkPublicationApproval,
 } from "./uk-politics-datasets.js";
+import { databaseUrl } from "./runtime-environment.js";
 
-// All environment in one place. The api boots without HMRC credentials —
-// the rail simply reports itself unconfigured until they arrive.
+// Server configuration is assembled here. The database URL is read by the
+// small runtime module so database-only tools do not load the full server.
+// The api boots without HMRC credentials; that rail reports itself
+// unconfigured until they arrive.
 
 const env = process.env;
 const politicsPersonalDataEmergencyStop =
@@ -46,7 +49,7 @@ const publicFundingPublicDataEnabled =
 
 export const config = {
   port: Number(env.PORT || 8787),
-  databaseUrl: env.DATABASE_URL || "",
+  databaseUrl,
   // 64 hex chars = 32 bytes. Encrypts tokens at rest, signs OAuth state.
   tokenKey: env.TOKEN_KEY || "",
   appOrigin: env.APP_ORIGIN || "https://taxsorted.io",

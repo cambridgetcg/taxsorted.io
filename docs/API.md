@@ -81,6 +81,7 @@ GET /openapi/public-funding-uk.json
 GET /openapi/politics-uk.json
 GET /openapi/accountability-uk.json
 GET /openapi/tax-expert-uk.json
+GET /openapi/professional-tools-uk.json
 ```
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
@@ -88,7 +89,9 @@ Each slice is self-contained, cacheable by exact-byte ETag, and gives every oper
 selected operation does not explicitly declare `security: []`. The tax-expert task slice is a
 different class: it intentionally contains a public capability `GET` and a secured assessment
 `POST`, preserving the operation-level `WorkspaceKey` security declaration and required
-`tax-expert:assess` scope.
+`tax-expert:assess` scope. The professional-tools slice joins that assessment, the public
+capability registry and the residential SDLT calculation into one bounded contract while keeping
+each operation's own scope and security declaration.
 
 The observer-accountability doorway is a framework and candidate contract, not an admitted
 case dataset:
@@ -366,6 +369,75 @@ The graph keeps the caller, relevant-person duty holder, administrator and offic
 separate. It does not invent an authorised-agent identity: who will actually perform a duty and any
 authority to act remain an explicit gap unless a future capability can prove them.
 
+## Professional tools — lawyers and accountants
+
+Start here for the two professional jobs that are executable now:
+
+```text
+GET /v1/uk/professional-tools
+GET /openapi/professional-tools-uk.json
+```
+
+The public manifest is the honest integration doorway for solicitors, conveyancers, accountants
+and tax advisers. It contains complete request examples, required workspace scopes, review stops,
+retry boundaries, evidence returned, facts not to send and the practice capabilities that do not
+exist. The task-sized OpenAPI includes:
+
+```text
+GET  /v1/api-workspace                                valid key; no task scope
+POST /v1/uk/sdlt/calculations                         scope: sdlt:calculate
+POST /v1/uk/tax-expert/mtd-income-tax/assessments     scope: tax-expert:assess
+```
+
+The two POST task calls are stateless and server-to-server. Repeating one creates no application
+record, filing or other external state change, but a later response is not promised to be
+byte-identical after the trusted evaluation date, ruleset or source ledger changes. The OpenAPI
+request bodies contain complete examples, and each task's `401` or `403` response links back to
+this manifest and slice. The separate GET inspection has no task scope, query parameters, request
+body or `403` state.
+
+Access remains a material gap. Workspace keys are operator-issued to existing design partners.
+Operators can issue an expiring key, inspect it, create an overlapping replacement and explicitly
+revoke it. A caller can use `GET /v1/api-workspace` to inspect only the presented key without
+sending client facts. There is still no public self-service provisioning, confidential
+access-request intake or secure public key-delivery channel, and a browser account does not provide
+a workspace key. Do not put client facts or access requests in the public GitHub issue tracker. A
+workspace key identifies the calling workspace. Financial and transaction facts may still be
+personal data even when the request omits names, NINOs, UTRs and addresses; the caller remains
+responsible for its lawful basis, minimisation and matter-file controls.
+
+These routes are not a professional practice system. They do not provide client or matter records,
+caller matter references, document storage, portfolio or batch operations, firm roles and
+approvals, HMRC agent authority, filing, an immutable evidence archive, a signed evidence pack or a
+production SLA. The separate browser HMRC rail is sandbox-only and is not connected to workspace
+keys. No professional rate-limit contract, privacy and retention policy, published security
+assessment, self-service key lifecycle, authenticated operator audit trail, high-availability
+contract or SLA is published.
+
+A firm relying on a result must retain the exact request, exact response, `X-Request-ID`, returned
+request hash when present, capability or ruleset versions, relied-on sources, fact classification,
+reviewer and sign-off in its own matter file. TaxSorted returns a bounded computation, not a
+retrievable professional file or submission receipt.
+
+### Inspect the presented workspace key
+
+```text
+GET /v1/api-workspace
+Authorization: Bearer ts_test_...
+```
+
+This call requires a valid key but no task scope. Send no query string and no declared request body;
+either is rejected with `400` before authentication and supplied values are not echoed. It accepts
+no client facts, makes no change and returns `Cache-Control: no-store`. It is server-to-server;
+browser bearer calls are not enabled by CORS. The response identifies the workspace and presented
+key by UUID, gives the harmless key prefix, mode, sorted scopes, creation timestamp and expiry, and
+marks each current professional task as authorised or not authorised. `expiresAt` can be `null` on
+a legacy non-expiring key; every key created by the current operator commands has a finite expiry.
+The response does not return the workspace or key name, any sibling key, hash, secret, revocation
+history, browser identity or HMRC
+connection. A missing, expired, revoked or suspended credential returns the same `401 invalid_token`
+shape; this endpoint has no insufficient-scope `403` state.
+
 ## UK tax expert — coverage and first deep path
 
 The public capability registry separates product depth into six honest stages:
@@ -391,6 +463,7 @@ It requires the `tax-expert:assess` workspace scope. The task-sized OpenAPI 3.1 
 
 ```text
 GET /openapi/tax-expert-uk.json
+GET /openapi/professional-tools-uk.json
 ```
 
 The assessment is repeatable for the same request facts, trusted server evaluation date and
@@ -398,7 +471,7 @@ admitted ruleset and source ledger; the request alone does not promise byte-iden
 another date. It is stateless. It does not collect a name, NINO, UTR or address, does not sign
 anyone up, does not file, and does not write request facts to application storage. A workspace
 key still identifies the calling workspace. Keys are operator-created for credentialed design
-partners; there is no public self-service key-provisioning route.
+partners; there is no public self-service key-provisioning or confidential access-request route.
 The browser version at `/uk/tax-expert` runs the same engine locally without calling this route.
 
 Every fact is explicit. `"unknown"` is different from zero or false. Money is non-negative integer
@@ -504,6 +577,13 @@ or submit to HMRC.
 POST https://api.taxsorted.io/v1/uk/sdlt/calculations
 ```
 
+The professional doorway and the task-sized OpenAPI that includes SDLT are public:
+
+```text
+GET https://api.taxsorted.io/v1/uk/professional-tools
+GET https://api.taxsorted.io/openapi/professional-tools-uk.json
+```
+
 The calculation route is server-to-server. Give a workspace key in the standard header:
 
 ```text
@@ -514,14 +594,49 @@ Keys are 32 random bytes. The database holds only their SHA-256 digest, a harmle
 their workspace, mode and scopes. Browser passkeys and machine keys are separate identities by
 design. New keys default to `sdlt:calculate`; request only the expert scope when that is the task:
 
-Create a local design-partner key with a configured API database:
+Create a design-partner workspace from a private terminal with the intended API database configured.
+The command requires a finite expiry no more than 400 days after the database clock:
 
 ```bash
-npm run create:api-key --workspace api -- "Firm name"
-npm run create:api-key --workspace api -- "Firm name" --scope=tax-expert:assess
+EXPIRES_AT="$(node -e 'console.log(new Date(Date.now() + 365 * 864e5).toISOString())')"
+npm run create:api-key --workspace api -- \
+  "Firm name" \
+  --expires-at="${EXPIRES_AT}" \
+  --scope=sdlt:calculate \
+  --scope=tax-expert:assess
 ```
 
-Add `--live` only for a production workspace. The plaintext key is shown once.
+Add `--live` only for a production workspace. The plaintext key is shown once; the database stores
+only its digest and safe prefix.
+
+Existing workspaces use the operator lifecycle command:
+
+```bash
+npm run manage:api-key --workspace api -- --help
+npm run manage:api-key --workspace api -- inspect --key-id="${KEY_ID}"
+npm run manage:api-key --workspace api -- issue \
+  --workspace-id="${WORKSPACE_ID}" \
+  --mode=test \
+  --scope=sdlt:calculate \
+  --scope=tax-expert:assess \
+  --expires-at="${EXPIRES_AT}" \
+  --name="design partner replacement"
+npm run manage:api-key --workspace api -- rotate \
+  --key-id="${OLD_KEY_ID}" \
+  --expires-at="${EXPIRES_AT}" \
+  --name="verified replacement"
+npm run manage:api-key --workspace api -- revoke \
+  --key-id="${OLD_KEY_ID}" \
+  --confirm-prefix="${OLD_KEY_PREFIX}"
+```
+
+`rotate` preserves the old key's mode and scopes and leaves it active. Deliver the new plaintext
+through an independently agreed private channel, call `GET /v1/api-workspace` with it, move the
+consumer, verify it, and only then revoke the old UUID and exact safe prefix. By default, revocation
+requires another active key in the same mode, containing every old scope and valid for more than
+five minutes. `--allow-last-key` is the explicit emergency off-switch; it can leave the workspace
+unable to authenticate. These commands are operator tools, not a self-service or authenticated
+administration API, and they do not create an operator audit trail.
 
 ## Request
 
@@ -568,6 +683,7 @@ pretend that `additionalProperty` or `livesAbroad` is enough to resolve the stat
 - reliefs and surcharges actually applied;
 - decisions such as a first-time-buyer claim being over its price cap;
 - primary sources, rule revision and review date;
+- the trusted server evaluation date used for the future-date boundary;
 - a SHA-256 hash of the canonical request and rule revision.
 
 `status: "needs_review"` is an equally successful HTTP 200 response. It carries stable,
@@ -587,7 +703,9 @@ same 401. A real key without the scope returns 403. Every response carries `X-Re
 ## What the hash means
 
 The request hash proves that the same normalized facts and rule revision were used. It helps
-callers deduplicate and compare calculations. It is not a receipt: nothing is stored by the
+callers deduplicate and compare calculations. It does not cover `trust.evaluatedOn`, which is
+returned separately because the hosted future-date stop depends on the server's UTC date. Compare
+all three before comparing two results. The hash is not a receipt: nothing is stored by the
 stateless calculation route, and the hash is not signed.
 
 A future `prepare` or `submit` call will need an idempotency key and a stored, retrievable,
@@ -599,9 +717,9 @@ The calculator does not need names, addresses, client files, Government Gateway 
 HMRC tokens. It reads the supplied transaction facts, returns the result, and does not create
 a browser session. Workspace and key records are the only persistent data in this slice.
 
-Production access still needs rate limits, a published privacy and retention statement,
-security testing, key rotation/revocation operations and design-partner review. None of those
-gaps is hidden by the OpenAPI document.
+Production access still needs rate limits, a published privacy and retention statement, security
+testing, self-service lifecycle, secure public key delivery, authenticated operator audit and
+design-partner review. None of those gaps is hidden by the OpenAPI document.
 
 ## The commons and the hosted service
 
@@ -1067,6 +1185,28 @@ console.log(dataset.id, dataset.licence, data);
 ```
 
 ### Query and method routes
+
+The public-office pathway slice is deliberately independent of both the named-person gate and
+the reviewed bulk-record gate. It contains TaxSorted-written, source-linked rules and provider
+doors only: no candidate, applicant, party-preference or voter records. It remains readable
+while those broader collections await approval. The politics emergency stop still closes it,
+so a misclassified API release has one immediate off-switch. The separately deployed static
+human page requires a Cloudflare Pages rollback and cache purge, as documented in the runbook.
+
+```text
+GET /v1/politics/uk/public-office-pathways
+GET /v1/politics/uk/public-office-pathways/offices
+GET /v1/politics/uk/public-office-pathways/offices/{officeId}
+GET /v1/politics/uk/public-office-pathways/support
+GET /v1/politics/uk/public-office-pathways/rights
+GET /v1/politics/uk/public-office-pathways/schema
+```
+
+Version 1 deeply maps only a UK Parliamentary candidate in Great Britain and a principal-
+council candidate in England. It records other office families as gaps rather than borrowing
+the wrong signatures, deposit, electoral system, finance or pay rules. It makes no personal
+eligibility decision and has no write method. The human rendering is
+[`/uk/politics/stand/`](https://taxsorted.io/uk/politics/stand/).
 
 ```text
 GET /v1/politics/uk/system

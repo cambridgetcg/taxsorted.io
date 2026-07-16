@@ -7,9 +7,9 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["/", 1],
+    ["/checkup/", 1],
     ["/about/", 0.6],
     ["/tools/", 0.9],
-    ["/uk/money/", 0.9],
     ["/learn/", 0.9],
     ["/learn/mtd-income-tax/", 0.9],
     ["/learn/income-tax/", 0.8],
@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/learn/gov/your-levers/", 0.7],
     ["/learn/gov/receipts/", 0.7],
     ["/uk/personal-tax/", 0.9],
+    ["/uk/", 0.9],
     ["/uk/tax-expert/", 1],
     ["/uk/tax-industry/", 0.9],
     ["/uk/charities/", 0.9],
@@ -28,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/accountability/", 0.9],
     ["/uk/politics/", 0.9],
     ["/uk/politics/system/", 0.9],
+    ["/uk/politics/stand/", 0.9],
     ["/uk/politics/integrity/", 0.9],
     ["/uk/politics/api/", 0.8],
     ["/uk/politics/method/", 0.7],

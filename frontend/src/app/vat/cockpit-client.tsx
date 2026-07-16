@@ -42,9 +42,9 @@ export default function CockpitClient() {
     <div className="mt-6">
       <div className="mb-6 flex justify-end">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard">
+          <Link href="/checkup">
             <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
-            Your Income Tax home
+            Tax Checkup
           </Link>
         </Button>
       </div>
@@ -63,8 +63,8 @@ export default function CockpitClient() {
         <Alert className="mb-6">
           <AlertTitle>Connecting to HMRC isn&apos;t switched on yet</AlertTitle>
           <AlertDescription>
-            You can add your business now; connecting and filing switch on the moment our HMRC{" "}
-            {rail.env} credentials are in place.
+            You can add your business now. Connecting to HMRC&apos;s practice system and sending
+            practice returns switch on when the {rail.env} credentials are in place.
           </AlertDescription>
         </Alert>
       )}
@@ -142,8 +142,8 @@ function EntityPicker() {
         <CardHeader>
           <CardTitle>Who&apos;s filing?</CardTitle>
           <CardDescription>
-            Each business or person keeps its own HMRC connection and receipts, tied to this
-            browser — no account needed yet.
+            Each business or person keeps its own practice HMRC connection and practice
+            receipts, tied to this browser — no account needed yet.
           </CardDescription>
         </CardHeader>
         <CardContent>

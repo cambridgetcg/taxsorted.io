@@ -11,6 +11,7 @@ import {
 } from "../uk-politics-datasets.js";
 import { formalPowerReferencesForPerson } from "../uk-politics-system.js";
 import { createUkPoliticsDatasetRoutes } from "./uk-politics-datasets.js";
+import { createUkPublicOfficePathwayRoutes } from "./uk-public-office-pathways.js";
 import { createUkPoliticsSystemRoutes } from "./uk-politics-system.js";
 import { createUkPublicIntegrityRoutes } from "./uk-public-integrity.js";
 import { problemDetails, type ProblemNextAction } from "../problem-details.js";
@@ -72,11 +73,27 @@ function politicsRelativePath(path: string): string {
   return relative || "/";
 }
 
-function isAlwaysPublicSystemPath(path: string): boolean {
+function isPublicOfficePathwayRead(method: string, path: string) {
+  if (method !== "GET" && method !== "HEAD") return false;
+  const relative = politicsRelativePath(path);
+  return (
+    [
+      "/public-office-pathways",
+      "/public-office-pathways/offices",
+      "/public-office-pathways/support",
+      "/public-office-pathways/rights",
+      "/public-office-pathways/schema",
+    ].includes(relative) ||
+    /^\/public-office-pathways\/offices\/[a-z0-9][a-z0-9-]*$/.test(relative)
+  );
+}
+
+function isAlwaysPublicSystemPath(path: string, method: string): boolean {
   const relative = politicsRelativePath(path);
   return (
     ALWAYS_PUBLIC_SYSTEM_PATHS.includes(relative) ||
     relative.startsWith("/datasets/") ||
+    isPublicOfficePathwayRead(method, path) ||
     relative.startsWith("/power/") ||
     relative.startsWith("/enforcement/institutions/") ||
     relative.startsWith("/enforcement/power/offices/") ||
@@ -805,7 +822,11 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
     if (
       !bulkDataAvailable &&
       c.req.method !== "OPTIONS" &&
-      !isBulkStopExempt(c.req.path)
+      !isBulkStopExempt(c.req.path) &&
+      !(
+        !bulkDataEmergencyStop &&
+        isPublicOfficePathwayRead(c.req.method, c.req.path)
+      )
     ) {
       return errorJson(
         c,
@@ -835,7 +856,10 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
   // landed. Non-personal system/method records remain visible so the closed
   // door and the rules around it can still be audited.
   routes.use("*", async (c, next) => {
-    if (!publicDataEnabled && !isAlwaysPublicSystemPath(c.req.path)) {
+    if (
+      !publicDataEnabled &&
+      !isAlwaysPublicSystemPath(c.req.path, c.req.method)
+    ) {
       const retrievedAt = now().toISOString();
       return errorJson(
         c,
@@ -858,6 +882,7 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
   });
 
   routes.route("/", createUkPoliticsSystemRoutes());
+  routes.route("/", createUkPublicOfficePathwayRoutes());
   routes.route(
     "/",
     createUkPoliticsDatasetRoutes({
@@ -1415,6 +1440,17 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
               "Every curated assertion carries official source IDs. Follow each source's own licence and attribution; the API software licence does not replace a dataset licence.",
           },
           {
+            id: "uk-public-office-pathways-curation",
+            publisher: "TaxSorted, citing Electoral Commission, UK Parliament, GOV.UK and local-government sources",
+            dataset: "Non-partisan public-office entry pathways",
+            url: "https://api.taxsorted.io/v1/politics/uk/public-office-pathways",
+            status: "live_rules_only",
+            coverage:
+              "Current-law pathway records for UK Parliamentary candidates in Great Britain and principal-council candidates in England, plus explicit gaps for office families whose rules differ.",
+            attribution:
+              "TaxSorted-written summaries link to primary or first-party sources. Follow each linked source's own reuse terms.",
+          },
+          {
             id: "uk-public-integrity-source-registry",
             publisher: "TaxSorted, citing official UK registers, APIs, legislation and guidance",
             dataset: "Finance, corporate-relationship and law-enforcement source registry",
@@ -1506,6 +1542,12 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
             path: "/system",
             coverage: "Non-personal political-system record and source registry",
             status: "live",
+          },
+          {
+            path: "/public-office-pathways and /public-office-pathways/offices/:officeId",
+            coverage:
+              "Read-only, non-personal candidacy steps, legal boundaries, nomination, money, support, safety and after-election duties",
+            status: "live_rules_only",
           },
           {
             path: "/elections/process",

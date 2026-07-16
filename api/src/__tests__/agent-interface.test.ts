@@ -43,6 +43,8 @@ describe("agent interface", () => {
       "/.well-known/agent.txt",
       "/v1/wake",
       "/v1/health",
+      "/v1/uk/professional-tools",
+      "/openapi/professional-tools-uk.json",
     ]) {
       expect(isPublicCivicPath(path), path).toBe(true);
     }
@@ -51,6 +53,8 @@ describe("agent interface", () => {
       "/.well-known/agent.txt/extra",
       "/v1/wake-up",
       "/v1/healthcheck",
+      "/v1/uk/professional-tools/extra",
+      "/openapi/professional-tools-uk.json/extra",
     ]) {
       expect(isPublicCivicPath(path), path).toBe(false);
     }
@@ -92,6 +96,12 @@ describe("agent interface", () => {
     );
     expect(body).toContain("charity-accountability-records: none");
     expect(body).toContain(
+      "politics-public-office-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways",
+    );
+    expect(body).toContain(
+      "politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation",
+    );
+    expect(body).toContain(
       "tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert",
     );
     expect(body).toContain(
@@ -110,7 +120,34 @@ describe("agent interface", () => {
       "tax-expert-assessment-request-fact-storage: not written to application storage",
     );
     expect(body).toContain(
-      "tax-expert-assessment-idempotency: not declared; do not assume automatic retries are safe",
+      "tax-expert-assessment-retry-effects: none; no application state write or external submission",
+    );
+    expect(body).toContain(
+      "tax-expert-assessment-result-stability: not byte-stable across trusted evaluation date or admitted ruleset/source ledger changes",
+    );
+    expect(body).toContain(
+      "professional-tools: GET https://api.taxsorted.io/v1/uk/professional-tools",
+    );
+    expect(body).toContain(
+      "professional-tools-access-gap: no public self-service key provisioning and no confidential access-request intake",
+    );
+    expect(body).toContain(
+      "professional-workspace-key: GET https://api.taxsorted.io/v1/api-workspace",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-authentication: Bearer TaxSorted workspace key; no task scope required",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-cors: server-to-server; browser bearer calls are not supported",
+    );
+    expect(body).toContain(
+      "professional-workspace-key-input: no query string and no declared request body; either is rejected with 400 before authentication; no client or tax facts",
+    );
+    expect(body).toContain(
+      "professional-key-lifecycle: operator-managed inspect, finite-expiry issue, overlapping rotate and explicit revoke; no self-service, public delivery or authenticated admin audit trail",
+    );
+    expect(body).toContain(
+      "sdlt-calculation: POST https://api.taxsorted.io/v1/uk/sdlt/calculations",
     );
     expect(body).toContain("methods: GET, HEAD, OPTIONS\n");
     expect(body).toContain("methods-scope: this doorway only");
@@ -243,6 +280,7 @@ describe("agent interface", () => {
       },
       taskSlices: {
         taxExpert: "/openapi/tax-expert-uk.json",
+        professionalTools: "/openapi/professional-tools-uk.json",
       },
     });
     expect(body.resources.releases).toEqual({
@@ -261,6 +299,17 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.publicOfficePathways).toEqual({
+      href: "/v1/politics/uk/public-office-pathways",
+      schema: "/v1/politics/uk/public-office-pathways/schema",
+      humanGuide: "https://taxsorted.io/uk/politics/stand/",
+      availability: "conditional-public",
+      unavailableWhen: "politics-bulk-data-emergency-stop",
+      rights: "/v1/politics/uk/public-office-pathways/rights",
+      corrections: "/v1/politics/uk/integrity/corrections",
+      effects:
+        "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
     });
     expect(body.resources.whyGraph).toEqual({
       framework: "/v1/why-graph",
@@ -309,6 +358,64 @@ describe("agent interface", () => {
         graphIsDerivedNotCanonical: true,
       },
     });
+    expect(body.resources.professionalTools).toEqual({
+      publicManifest: {
+        method: "GET",
+        href: "/v1/uk/professional-tools",
+        authentication: "none",
+      },
+      taskContract: {
+        method: "GET",
+        href: "/openapi/professional-tools-uk.json",
+        authentication: "none",
+      },
+      credentialInspection: {
+        method: "GET",
+        href: "/v1/api-workspace",
+        authentication: "Bearer TaxSorted workspace key",
+        requiredWorkspaceScopes: [],
+        intendedClient: "server-to-server",
+        browserCorsAuthorizationHeaderAllowed: false,
+        acceptsQueryParameters: false,
+        acceptsRequestBody: false,
+        acceptsClientFacts: false,
+        changesState: false,
+        returnsOtherKeys: false,
+      },
+      operatorKeyLifecycle: {
+        inspect: true,
+        issueWithFiniteExpiry: true,
+        overlappingRotation: true,
+        explicitRevocation: true,
+        selfService: false,
+        securePublicDelivery: false,
+        authenticatedAdminAuditTrail: false,
+      },
+      status: "credentialed-design-partner",
+      audiences: [
+        "solicitors-and-conveyancers",
+        "accountants-and-tax-advisers",
+      ],
+      executableTaskCount: 2,
+      access: {
+        availability: "credentialed-design-partner",
+        publicSelfServiceKeyProvisioning: false,
+        confidentialAccessRequestIntake: false,
+        browserAccountProvidesWorkspaceKey: false,
+        workspaceKeyIdentifiesCallingWorkspace: true,
+        requestFactsMayBePersonalData: true,
+        authentication: "Bearer TaxSorted workspace key",
+        intendedClient: "server-to-server",
+      },
+      boundaries: {
+        clientOrMatterRecords: false,
+        portfolioOrBatchOperations: false,
+        filingOrSubmission: false,
+        immutableEvidenceArchive: false,
+        workspaceNameReturnedToCaller: false,
+        productionSla: false,
+      },
+    });
     expect(body.resources.taxExpert).toEqual({
       humanHref: "https://taxsorted.io/uk/tax-expert",
       publicManifest: {
@@ -354,6 +461,18 @@ describe("agent interface", () => {
         repeatabilityBoundary:
           "same-request-facts-trusted-server-evaluation-date-and-admitted-ruleset-source-ledger",
         idempotency: "not-declared",
+        idempotencyMeaning:
+          "no-Idempotency-Key-protocol; duplicate-calls-have-no-state-effect",
+        retry: {
+          applicationOrExternalStateChange: false,
+          duplicateRequestStateEffect: "none",
+          byteStabilityGuaranteedAcrossTime: false,
+          compareWhenRepeating: [
+            "capability version",
+            "evaluatedOn and knowledgeAsOf",
+            "source IDs, retrievedOn and reviewDueOn",
+          ],
+        },
         errorContract: {
           mediaType: "application/json",
           schema: "TaxExpertApiError",
@@ -425,6 +544,11 @@ describe("agent interface", () => {
           id: "inspect-why-graph-adopters",
           method: "GET",
           href: "/v1/why-graph/adopters",
+        }),
+        expect.objectContaining({
+          id: "inspect-professional-tools",
+          method: "GET",
+          href: "/v1/uk/professional-tools",
         }),
         expect.objectContaining({
           id: "inspect-tax-expert-task-contract",

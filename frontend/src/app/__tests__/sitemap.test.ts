@@ -29,8 +29,11 @@ describe("public sitemap", () => {
   it("keeps the deep tax paths and ITSA tools discoverable", () => {
     const urls = sitemap().map((entry) => entry.url);
     for (const path of [
+      "/checkup/",
+      "/uk/",
       "/uk/personal-tax/",
       "/uk/tax-expert/",
+      "/uk/politics/stand/",
       "/itsa/records/",
       "/itsa/quarter/",
     ]) {
@@ -43,7 +46,7 @@ describe("public sitemap", () => {
     for (const path of [
       "/about/",
       "/tools/",
-      "/uk/money/",
+      "/checkup/",
       "/vat/",
       "/uk/politics/people/",
       "/uk/politics/funding/",

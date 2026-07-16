@@ -107,7 +107,7 @@ export default function AccountabilityPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <Breadcrumbs
-        items={[{ href: "/uk/money", label: "Follow the money" }]}
+        items={[{ href: "/uk", label: "The UK system" }]}
         current="Accountability"
         className="mb-6"
       />

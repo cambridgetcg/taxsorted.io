@@ -126,6 +126,9 @@ describe("developer API boundary", () => {
     ).toHaveProperty("taxExpert");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("professionalTools");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("whyGraph");
     expect(
       document.components.schemas.AgentWake.properties.resources.required,
@@ -182,6 +185,13 @@ describe("developer API boundary", () => {
     ).toHaveProperty("text/plain");
     expect(document.paths["/"].get.responses).toHaveProperty("404");
     expect(document.paths).toHaveProperty("/v1/uk/sdlt/calculations");
+    expect(document.paths).toHaveProperty("/v1/api-workspace");
+    expect(document.paths["/v1/api-workspace"].get).toMatchObject({
+      operationId: "inspectAuthenticatedApiWorkspace",
+      security: [{ WorkspaceKey: [] }],
+      "x-taxsorted-required-workspace-scopes": [],
+    });
+    expect(document.paths).toHaveProperty("/v1/uk/professional-tools");
     expect(document.paths).toHaveProperty("/v1/uk/tax-expert");
     expect(document.paths).toHaveProperty(
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
@@ -747,6 +757,70 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/politics/uk/enforcement/forces");
     expect(document.paths).toHaveProperty("/v1/politics/uk/system");
     expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways/offices/{officeId}",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-office-pathways/rights",
+    );
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.security,
+    ).toEqual([]);
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses[200]
+        .content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicOfficePathways");
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].get.responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicOfficePathwayDetail");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways/schema"].get
+        .responses[200].content,
+    ).toHaveProperty("application/schema+json");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.parameters,
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "If-None-Match", in: "header" }),
+      ]),
+    );
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].head.security,
+    ).toEqual([]);
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].head.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways/schema"].get
+        .responses,
+    ).toHaveProperty("503");
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+      ].get.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-office-pathways"].get.responses[503]
+        .description,
+    ).toMatch(/emergency stop/i);
+    expect(
+      document.components.schemas.UkPublicOfficePathways.properties,
+    ).toMatchObject({
+      meta: expect.any(Object),
+      officePaths: expect.any(Object),
+      legalWatch: expect.any(Object),
+      links: expect.any(Object),
+    });
+    expect(document.paths).toHaveProperty(
       "/v1/politics/uk/power/offices/{officeId}",
     );
     expect(document.paths).toHaveProperty("/v1/politics/uk/people");
@@ -873,6 +947,9 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
+    expect(document.paths).toHaveProperty(
+      "/openapi/professional-tools-uk.json",
+    );
     expect(document.paths).toHaveProperty("/openapi/why-graph.json");
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
@@ -930,6 +1007,11 @@ describe("developer API boundary", () => {
         path: "/openapi/why-graph.json",
         id: "why-graph",
         prefix: "/v1/why-graph",
+      },
+      {
+        path: "/openapi/professional-tools-uk.json",
+        id: "professional-tools-uk",
+        prefix: undefined,
       },
       {
         path: "/openapi/tax-expert-uk.json",
@@ -996,7 +1078,10 @@ describe("developer API boundary", () => {
       expect(representation.length, definition.path).toBeLessThan(
         fullRepresentation.length,
       );
-      if (definition.id === "tax-expert-uk") {
+      if (
+        definition.id === "tax-expert-uk" ||
+        definition.id === "professional-tools-uk"
+      ) {
         expect(document.components?.securitySchemes?.WorkspaceKey).toMatchObject({
           type: "http",
           scheme: "bearer",
@@ -1004,7 +1089,11 @@ describe("developer API boundary", () => {
       } else {
         expect(document.components?.securitySchemes?.WorkspaceKey).toBeUndefined();
       }
-      expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
+      if (definition.id === "professional-tools-uk") {
+        expect(document.components?.schemas?.SdltCalculationRequest).toBeDefined();
+      } else {
+        expect(document.components?.schemas?.SdltCalculationRequest).toBeUndefined();
+      }
 
       const operationIds = new Set<string>();
       let operationCount = 0;
@@ -1090,6 +1179,7 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).not.toHaveProperty(
       "/v1/uk/sdlt/calculations",
     );
+    expect(publicDocument.paths).not.toHaveProperty("/v1/api-workspace");
     expect(publicDocument.paths["/v1/politics/uk"].get).toMatchObject({
       operationId: "getV1PoliticsUk",
       tags: ["UK politics"],

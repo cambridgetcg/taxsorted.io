@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "Tax explained in plain words, in six languages. Check, record and build your returns — free, open-source, no account.",
+    "Use the UK Tax Checkup to find the right source-backed check, prepare from your records, and follow the public rules, money and institutions around tax.",
 };
 
 // Runs before first paint (static export — no server): reads the saved
@@ -61,6 +61,13 @@ export default function RootLayout({
                   className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
                 >
                   About
+                </Link>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/tools"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                >
+                  All tools
                 </Link>
                 <span aria-hidden="true">·</span>
                 <Link

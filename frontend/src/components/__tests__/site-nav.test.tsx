@@ -3,48 +3,25 @@ import { describe, it, expect } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SiteNav } from "../site-nav";
 
-// SiteNav reads i18n through useI18n, which has a safe English fallback when
-// rendered outside the provider — so no wrapper is needed here.
-//
-// The nav is four doors + Account + language. Every destination that left the
-// old flat nav is one click away behind its door's hub page (see the hub-pages
-// test), so these assertions pin the doors, not the deep links.
+// SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
-  it("keeps the open Learn book in the primary navigation", () => {
+  it("offers four clear doors plus the account utility", () => {
     render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
-  });
 
-  it("offers the Do my tax door to the tools hub", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
-  });
-
-  it("offers the Follow the money door to the civic hub", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "Follow the money" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
       "href",
-      "/uk/money",
+      "/checkup",
     );
+    expect(screen.getByRole("link", { name: "MTD & records" })).toHaveAttribute(
+      "href",
+      "/itsa",
+    );
+    expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
+    expect(screen.getByRole("link", { name: "UK system" })).toHaveAttribute("href", "/uk");
+    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
   });
 
-  it("offers the About door", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
-  });
-
-  it("offers an Account link", () => {
-    render(<SiteNav />);
-    expect(screen.getByRole("link", { name: /^account$/i })).toHaveAttribute("href", "/account");
-  });
-
-  it("shows exactly the four doors plus Account — no flat link pile", () => {
-    render(<SiteNav />);
-    // Logo link + 4 doors + Account = 6 links total.
-    expect(screen.getAllByRole("link")).toHaveLength(6);
-  });
-
-  it("exposes an accessible mobile disclosure without dropping links or language", () => {
+  it("exposes an accessible mobile disclosure without dropping doors or language", () => {
     render(<SiteNav />);
 
     const menuButton = screen.getByRole("button", { name: "Open menu" });
@@ -56,7 +33,10 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
+    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
+      "href",
+      "/checkup",
+    );
     expect(screen.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
   });
 
@@ -77,9 +57,9 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const learnLink = screen.getByRole("link", { name: "Learn" });
-    learnLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
-    fireEvent.click(learnLink);
+    const checkupLink = screen.getByRole("link", { name: "Check my tax" });
+    checkupLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    fireEvent.click(checkupLink);
 
     expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute(
       "aria-expanded",

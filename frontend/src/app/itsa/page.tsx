@@ -37,6 +37,12 @@ const CARDS = [
     desc: "Your running totals for each quarter, ready to copy into any MTD software, plus a cited estimate of your bill.",
   },
   {
+    href: "/dashboard",
+    tag: "Step 4",
+    title: "Your ITSA cockpit",
+    desc: "See your records, estimate and quarter timing together. HMRC sandbox setup starts only when you choose it.",
+  },
+  {
     href: "/tools/mileage",
     tag: "Tool",
     title: "Mileage",

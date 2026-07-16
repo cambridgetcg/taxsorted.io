@@ -6,13 +6,11 @@ import { Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
 
-// Four doors, one account, one language switcher. Every deep page is one click
-// from its door's hub, so nothing that left the old flat nav is lost.
 const DOORS = [
-  { href: "/learn", labelKey: "nav.learn" },
-  { href: "/tools", labelKey: "nav.tools" },
-  { href: "/uk/money", labelKey: "nav.money" },
-  { href: "/about", labelKey: "nav.about" },
+  { href: "/checkup", labelKey: "nav.checkup", primary: true },
+  { href: "/itsa", labelKey: "nav.prepare", primary: false },
+  { href: "/learn", labelKey: "nav.learn", primary: false },
+  { href: "/uk", labelKey: "nav.publicSystem", primary: false },
 ] as const;
 
 export function SiteNav() {
@@ -67,7 +65,11 @@ export function SiteNav() {
               key={door.href}
               href={door.href}
               onClick={closeMenu}
-              className="inline-flex min-h-11 items-center text-ink-soft hover:text-ink"
+              className={`inline-flex min-h-11 items-center ${
+                door.primary
+                  ? "font-semibold text-accent hover:text-accent-deep"
+                  : "text-ink-soft hover:text-ink"
+              }`}
             >
               {t(door.labelKey)}
             </Link>

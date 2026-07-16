@@ -69,6 +69,15 @@ const endpointGroups: Array<{
     ],
   },
   {
+    heading: "Standing for office",
+    intro: "Public, non-personal routes into elected office — law, nomination, money, duties.",
+    endpoints: [
+      { method: "GET", path: "/public-office-pathways", does: "Public, non-personal routes outside the pending record gates: current law, nomination, agents, money, support, safety, pay, duties, sources and explicit coverage gaps. The politics emergency stop still closes this API." },
+      { method: "GET", path: "/public-office-pathways/offices/uk-mp-great-britain", does: "One deeply mapped office route. The sibling offices and schema doors use the same stable source-linked contract." },
+      { method: "GET", path: "/public-office-pathways/rights", does: "The CC BY-SA curation boundary, upstream source-specific rights, AGPL software boundary and correction door." },
+    ],
+  },
+  {
     heading: "Money records",
     intro: "Rules and records about political money — each says what it does not prove.",
     endpoints: [
@@ -129,7 +138,7 @@ export default function PoliticsApiPage() {
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <Breadcrumbs
         items={[
-          { href: "/uk/money", label: "Follow the money" },
+          { href: "/uk", label: "The UK system" },
           { href: "/uk/politics", label: "UK politics" },
         ]}
         current="For developers"
@@ -153,6 +162,9 @@ export default function PoliticsApiPage() {
         <div className="mt-5 flex flex-wrap gap-4 text-base font-semibold">
           <a href="/uk/politics/system" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See the human-readable map <span aria-hidden="true">→</span>
+          </a>
+          <a href="/uk/politics/stand" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
+            See standing for office <span aria-hidden="true">→</span>
           </a>
           <a href="/uk/politics/integrity" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See police & public money <span aria-hidden="true">→</span>

@@ -15,7 +15,7 @@ export default function UkPoliticsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <Breadcrumbs
-        items={[{ href: "/uk/money", label: "Follow the money" }]}
+        items={[{ href: "/uk", label: "The UK system" }]}
         current="UK politics"
         className="mb-4"
       />
@@ -43,6 +43,18 @@ export default function UkPoliticsPage() {
             See who runs elections and what each office controls.
           </p>
           <p className="mt-5 text-base font-semibold">See the full map <span aria-hidden="true">→</span></p>
+        </Link>
+        <Link
+          href="/uk/politics/stand"
+          className="rounded-3xl border border-accent bg-accent-soft p-6 shadow-sm transition-transform hover:-translate-y-0.5"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Start with the work</p>
+          <h2 className="mt-3 text-2xl font-semibold text-ink">Stand for public office</h2>
+          <p className="mt-3 text-sm text-ink-soft">
+            Compare the lawful routes to becoming an MP or an English principal councillor:
+            eligibility, nomination, money, agents, safety, pay and duties after election.
+          </p>
+          <p className="mt-5 text-sm font-semibold text-accent">Find a route →</p>
         </Link>
         <Link
           href="/uk/politics/integrity"

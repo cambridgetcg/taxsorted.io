@@ -11,6 +11,11 @@ export const metadata: Metadata = {
 
 const TOOLS = [
   {
+    href: "/checkup",
+    title: "Tax Checkup",
+    line: "Start here — find the right check for you.",
+  },
+  {
     href: "/itsa",
     title: "Income Tax",
     line: "Check if you're in, keep records, see deadlines.",

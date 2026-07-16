@@ -48,6 +48,7 @@ describe("POST /calculations", () => {
     expect(result.calculation.rounding).toBe("down-to-whole-pound");
     expect(result.trust.method).toBe("deterministic");
     expect(result.trust.requestHash).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(result.trust.evaluatedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(repeated.trust.requestHash).toBe(result.trust.requestHash);
     expect(result.trust.sources.some((source: { authority: string }) => source.authority === "UK Parliament")).toBe(true);
     expect(first.headers.get("set-cookie")).toBeNull();
@@ -136,5 +137,6 @@ describe("POST /calculations", () => {
     expect(result.reviewReasons[0]).toMatchObject({ code: "future-effective-date" });
     expect(result.trust.ruleset.effectiveTo).toBeNull();
     expect(result.trust.ruleset.reviewedOn).toBe("2026-07-10");
+    expect(result.trust.evaluatedOn).toBe("2026-07-10");
   });
 });

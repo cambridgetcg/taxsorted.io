@@ -2,13 +2,12 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ToolsPage from "../tools/page";
-import MoneyPage from "../uk/money/page";
 import AboutPage from "../about/page";
 
-// The nav shrank from 11 flat links to 4 doors. These tests prove no old
-// destination was lost: every page that left the nav is one click away
-// behind its hub, and the licence text that left the footer lives at
-// /about#licences.
+// The nav is 4 doors. These tests prove no old destination was lost:
+// every tool that left the nav is one click away behind /tools (the civic
+// pages live behind main's /uk hub, tested in uk/__tests__), and the
+// licence text that left the footer lives at /about#licences.
 
 describe("Do my tax hub (/tools)", () => {
   it("links every tool the old nav and orphaned routes offered", () => {
@@ -26,32 +25,6 @@ describe("Do my tax hub (/tools)", () => {
     expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
       "href",
       "/dashboard",
-    );
-  });
-});
-
-describe("Follow the money hub (/uk/money)", () => {
-  it("links all five civic pages that left the flat nav", () => {
-    render(<MoneyPage />);
-    expect(screen.getByRole("link", { name: /uk politics/i })).toHaveAttribute(
-      "href",
-      "/uk/politics",
-    );
-    expect(screen.getByRole("link", { name: /public money/i })).toHaveAttribute(
-      "href",
-      "/uk/public-funding",
-    );
-    expect(screen.getByRole("link", { name: /charities/i })).toHaveAttribute(
-      "href",
-      "/uk/charities",
-    );
-    expect(screen.getByRole("link", { name: /accountability/i })).toHaveAttribute(
-      "href",
-      "/uk/accountability",
-    );
-    expect(screen.getByRole("link", { name: /tax industry/i })).toHaveAttribute(
-      "href",
-      "/uk/tax-industry",
     );
   });
 });

@@ -350,7 +350,7 @@ export default function TaxIndustryPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <Breadcrumbs
-        items={[{ href: "/uk/money", label: "Follow the money" }]}
+        items={[{ href: "/uk", label: "The UK system" }]}
         current="The tax industry"
         className="mb-6"
       />

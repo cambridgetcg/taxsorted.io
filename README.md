@@ -22,6 +22,22 @@ derived services may charge fairly for work that saves time or money, but paymen
 become the practical gate to those base public materials. People file their own taxes; we pave
 the road.
 
+## The public front doors
+
+The site keeps its depth, but the way in is deliberately small:
+
+- **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
+  narrowest current check, record tool or guide. This routing step asks for no tax identifier and
+  does not calculate or file anything itself.
+- **`/itsa` — MTD and records.** Eligibility, local records, mileage, quarter figures and the
+  visible boundary between preparation, sandbox work and production filing.
+- **`/learn` — Understand the rules.** Plain guides with official sources and scope notes.
+- **`/uk` — Understand the system.** Personal-tax paths, public money, politics,
+  accountability, charities, the tax industry and the reusable API doors in one map.
+
+Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
+or a second copy of the datasets.
+
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →
 year-end return, aiming to be the first open-source software on HMRC's recognised list.
@@ -87,15 +103,20 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   submission, immutable receipts. One typed API for humans and agents alike.
   Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
 - **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
+  public `GET /v1/uk/professional-tools` integration boundaries and task-sized OpenAPI,
+  authenticated no-task-scope `GET /v1/api-workspace` inspection of only the presented key,
   `POST /v1/uk/sdlt/calculations` and
   `POST /v1/uk/tax-expert/mtd-income-tax/assessments`. Tax requests are stateless, reject
-  duplicate JSON facts and never create the browser cookies used by the filing cockpit.
+  duplicate JSON facts and never create the browser cookies used by the filing cockpit. Operators
+  can issue finite-expiry keys, overlap rotation and explicitly revoke; public intake, delivery,
+  self-service lifecycle and an authenticated operator audit trail are not live.
 - **Machine doorway**: public, sessionless `/agent.txt`, `/.well-known/agent.txt` and
   `/v1/wake` routes orient agents with current dataset versions, publication states, rights,
-  evidence lanes, safety walls and typed next actions. A separate tax-expert task descriptor
-  names its authenticated `POST`, workspace scope, input/storage boundary and OpenAPI contract
-  without changing the doorway's read-only access claim. The design is inspired by XENIA; no
-  conformance claim or agent identity/session is created.
+  evidence lanes, safety walls and typed next actions. A separate professional-tools descriptor
+  names both authenticated tasks, workspace scopes, complete examples, input/storage boundaries,
+  practice-record duties and capabilities that are not live, without changing the doorway's
+  read-only access claim. The design is inspired by XENIA; no conformance claim or agent
+  identity/session is created.
 - **Shared why graph**: sessionless `GET /v1/why-graph`, its structural schema at
   `/v1/why-graph/schema`, adopter index at `/v1/why-graph/adopters` and task-sized
   `/openapi/why-graph.json` publish the connective contract used by the MTD expert and charity
@@ -139,17 +160,18 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   there are no people dossiers, private networks, live-case records, motive inferences or scores.
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
   all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
-  checkpoints with JSON Feed and Atom views. `/openapi-public.json`, five dataset slices, a
-  separate observer-accountability and why-graph framework slices and one secured tax-expert task slice give
-  agents bounded, cacheable contracts; the full `/openapi.json` remains available. Public errors
+  checkpoints with JSON Feed and Atom views. `/openapi-public.json`, five dataset slices,
+  separate observer-accountability and why-graph framework slices, a tax-expert task slice and a
+  professional-tools slice give agents bounded, cacheable contracts; the full `/openapi.json`
+  remains available. Public errors
   carry RFC 9457 fields and recovery actions without reflecting query values.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
 
 Agents can begin at `/agent.txt` or `/.well-known/agent.txt`. Those byte-identical small text
 manifests point to the canonical JSON orientation at `/v1/wake`, public/full OpenAPI, the
 open-data catalogue and release feeds,
-the charity and observer accountability shapes, the why-graph contract, the separately credentialed tax-expert task and
-the safety walls. The API root returns the same wake bytes
+  the charity and observer accountability shapes, the why-graph contract, and the separately
+  credentialed professional tasks with their exact gaps and safety walls. The API root returns the same wake bytes
 only when a caller explicitly asks for JSON; its ordinary closed-door response is unchanged. The
 charity API also turns errors into instructions:
 a refusal names the reason, confirms the walls remain intact and gives bounded next actions.
