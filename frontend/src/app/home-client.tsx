@@ -43,7 +43,7 @@ export function HomeClient() {
       status: t("home.journey.share.status"),
       title: t("home.journey.share.title"),
       body: t("home.journey.share.body"),
-      href: "/uk/tax-expert#coverage-map",
+      href: "/passport",
       action: t("home.journey.share.action"),
     },
   ];

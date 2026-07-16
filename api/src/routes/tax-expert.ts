@@ -1,5 +1,9 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { z as zod } from "zod";
 import {
+  PASSPORT_EVIDENCE_DEFINITIONS,
+  PASSPORT_INCOME_SOURCE_IDS,
+  TAX_POSITION_PASSPORT_EXAMPLE,
   UK_TAX_EXPERT_MANIFEST,
   assessMtdIncomeTax,
   type MtdIncomeTaxExpertRequest,
@@ -9,6 +13,11 @@ import {
   professionalAuthenticationResponseHeaders,
   professionalTaskResponseHeaders,
 } from "../professional-tools-contract.js";
+import {
+  canonicalJson,
+  ifNoneMatchMatches,
+  representationEtag,
+} from "../open-data.js";
 import { WhyGraphSchema } from "../why-graph.js";
 
 const MAX_MONEY_PENCE = 1_000_000_000_000;
@@ -324,6 +333,163 @@ const MtdIncomeTaxAssessmentResponse = z.object({
   }),
 }).openapi("MtdIncomeTaxAssessmentResponse");
 
+const PassportIsoInstant = z.iso.datetime({
+  offset: false,
+  local: false,
+  precision: 3,
+});
+const PassportAnswer = z.enum(["yes", "no", "unknown"]);
+const PassportIncomeSource = <const T extends (typeof PASSPORT_INCOME_SOURCE_IDS)[number]>(
+  id: T,
+) => z.object({
+  id: z.literal(id),
+  answer: PassportAnswer,
+  origin: z.literal("user"),
+}).strict();
+const PassportEvidenceState = z.enum([
+  "held",
+  "missing",
+  "not-checked",
+  "not-expected",
+]);
+const PassportEvidenceReference = (
+  definition: (typeof PASSPORT_EVIDENCE_DEFINITIONS)[number],
+  supportsIncomeSourceIds: z.ZodType,
+) => z.object({
+  id: z.literal(definition.id),
+  label: z.literal(definition.label),
+  state: PassportEvidenceState,
+  assertion: z.literal("named-by-user-not-inspected"),
+  supportsIncomeSourceIds,
+  guidanceHref: z.literal(definition.guidanceHref),
+}).strict();
+const PassportMtdIncomeTaxAssessmentResponse =
+  MtdIncomeTaxAssessmentResponse.extend({
+    capability: z.object({
+      id: z.literal("uk.mtd-income-tax.readiness"),
+      version: z.string(),
+      jurisdiction: z.literal("United Kingdom"),
+      taxType: z.literal("Making Tax Digital for Income Tax"),
+      task: z.literal("classify"),
+    }).strict(),
+    reasoning: z.object({
+      steps: z.array(ReasoningStep),
+      whyGraph: WhyGraphSchema,
+    }).strict(),
+  }).strict();
+
+export const TaxPositionPassportSchema = z.object({
+  schema: z.literal("taxsorted.uk.tax-position-passport/1"),
+  createdAt: PassportIsoInstant,
+  assurance: z.object({
+    identityVerified: z.literal(false),
+    signed: z.literal(false),
+    professionallyReviewed: z.literal(false),
+    filed: z.literal(false),
+  }).strict(),
+  dataHandling: z.object({
+    generationMode: z.literal("browser-local"),
+    sentToTaxSorted: z.literal(false),
+    storedInBrowser: z.boolean(),
+    rawDocumentsIncluded: z.literal(false),
+  }).strict(),
+  profile: z.object({
+    jurisdiction: z.literal("UK"),
+    incomeSources: z.tuple([
+      PassportIncomeSource("employment"),
+      PassportIncomeSource("self-employment"),
+      PassportIncomeSource("uk-property"),
+      PassportIncomeSource("foreign-property"),
+      PassportIncomeSource("other-or-complex"),
+    ]),
+    evidence: z.tuple([
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[0],
+        z.tuple([z.literal("employment")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[1],
+        z.tuple([z.literal("self-employment")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[2],
+        z.tuple([z.literal("self-employment")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[3],
+        z.tuple([z.literal("uk-property")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[4],
+        z.tuple([z.literal("uk-property")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[5],
+        z.tuple([z.literal("foreign-property")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[6],
+        z.tuple([z.literal("foreign-property")]),
+      ),
+      PassportEvidenceReference(
+        PASSPORT_EVIDENCE_DEFINITIONS[7],
+        z.tuple([
+          z.literal("self-employment"),
+          z.literal("uk-property"),
+          z.literal("foreign-property"),
+        ]),
+      ),
+    ]),
+  }).strict(),
+  positions: z.array(z.object({
+    kind: z.literal("mtd-income-tax-readiness"),
+    request: MtdIncomeTaxAssessmentRequestSchema,
+    answer: PassportMtdIncomeTaxAssessmentResponse,
+  }).strict()).max(1),
+  coverage: z.object({
+    included: z.array(z.string()),
+    excluded: z.array(z.string()),
+  }).strict(),
+  userReview: z.object({
+    selfCheckedAt: PassportIsoInstant.nullable(),
+    meaning: z.literal("checked-by-user-not-professional-approval"),
+  }).strict(),
+  boundaries: z.array(z.string()),
+}).strict().openapi("TaxPositionPassport");
+
+const TaxPositionPassportJsonSchema = z.object({}).passthrough()
+  .openapi("TaxPositionPassportJsonSchema");
+
+const generatedPassportJsonSchema = zod.toJSONSchema(
+  TaxPositionPassportSchema,
+  { target: "draft-2020-12" },
+) as Record<string, unknown>;
+
+export const taxPositionPassportJsonSchemaDocument = {
+  ...generatedPassportJsonSchema,
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id:
+    "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
+  title: "TaxSorted UK Tax Position Passport",
+  description:
+    "Portable browser-local UK tax-position handoff. It contains no identity verification, signature, professional approval or filing receipt.",
+  "x-taxsorted-runtime-invariants": [
+    "Income-source and evidence entries use the canonical order and exact definitions.",
+    "Evidence marked not-expected must agree with the income-source map.",
+    "The complete MTD request and TaxAnswer must match the same capability and pass TaxAnswer semantic invariants.",
+    "Forbidden identity, contact and tax-reference keys are rejected.",
+  ],
+};
+
+const passportSchemaRepresentation = canonicalJson(
+  taxPositionPassportJsonSchemaDocument,
+);
+const passportSchemaEtag = representationEtag(passportSchemaRepresentation);
+const passportExampleRepresentation = canonicalJson(
+  TAX_POSITION_PASSPORT_EXAMPLE,
+);
+const passportExampleEtag = representationEtag(passportExampleRepresentation);
+
 const ApiError = z.object({
   error: z.string(),
   message: z.string(),
@@ -360,6 +526,50 @@ const manifestRoute = createRoute({
       description: "Current UK tax-expert coverage and boundaries.",
       content: { "application/json": { schema: TaxExpertManifest } },
     },
+  },
+});
+
+const passportSchemaRoute = createRoute({
+  method: "get",
+  path: "/tax-position-passport/schema",
+  operationId: "getTaxPositionPassportSchema",
+  summary: "Read the Tax Position Passport JSON Schema",
+  description:
+    "Static public schema only. TaxSorted has no Passport upload, cloud-storage or share-link endpoint.",
+  tags: ["UK tax expert"],
+  security: [],
+  responses: {
+    200: {
+      description: "JSON Schema for taxsorted.uk.tax-position-passport/1.",
+      content: {
+        "application/schema+json": {
+          schema: TaxPositionPassportJsonSchema,
+        },
+      },
+    },
+    304: { description: "The exact schema representation is unchanged." },
+  },
+});
+
+const passportExampleRoute = createRoute({
+  method: "get",
+  path: "/tax-position-passport/examples/mtd-income-tax",
+  operationId: "getTaxPositionPassportMtdExample",
+  summary: "Read a synthetic MTD Tax Position Passport",
+  description:
+    "Static example containing invented facts. It demonstrates the complete request-and-answer handoff without publishing taxpayer data.",
+  tags: ["UK tax expert"],
+  security: [],
+  responses: {
+    200: {
+      description: "Synthetic Tax Position Passport example.",
+      content: {
+        "application/json": {
+          schema: TaxPositionPassportSchema,
+        },
+      },
+    },
+    304: { description: "The exact example representation is unchanged." },
   },
 });
 
@@ -439,7 +649,14 @@ export function createUkTaxExpertRoutes() {
 
   routes.openapi(manifestRoute, (c) => {
     c.header("Cache-Control", "public, max-age=300, must-revalidate");
-    c.header("Link", '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"');
+    c.header(
+      "Link",
+      [
+        '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"',
+        '</v1/uk/tax-expert/tax-position-passport/schema>; rel="describedby"; type="application/schema+json"; title="Tax Position Passport"',
+        '</v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax>; rel="example"; type="application/json"; title="Synthetic Tax Position Passport"',
+      ].join(", "),
+    );
     return c.json({
       ...UK_TAX_EXPERT_MANIFEST,
       stages: [...UK_TAX_EXPERT_MANIFEST.stages],
@@ -454,6 +671,54 @@ export function createUkTaxExpertRoutes() {
       },
       boundaries: [...UK_TAX_EXPERT_MANIFEST.boundaries],
     }, 200);
+  });
+  routes.openapi(passportSchemaRoute, (c) => {
+    c.header("Cache-Control", "public, max-age=300, must-revalidate");
+    c.header("Content-Type", "application/schema+json; charset=utf-8");
+    c.header("ETag", passportSchemaEtag);
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("X-Schema-Version", "taxsorted.uk.tax-position-passport/1");
+    c.header(
+      "Link",
+      [
+        '</v1/uk/tax-expert/tax-position-passport/schema>; rel="canonical"; type="application/schema+json"',
+        '</v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax>; rel="example"; type="application/json"',
+        '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"',
+      ].join(", "),
+    );
+    if (
+      ifNoneMatchMatches(
+        c.req.header("If-None-Match"),
+        passportSchemaEtag,
+      )
+    ) {
+      return c.body(null, 304);
+    }
+    return c.body(passportSchemaRepresentation, 200);
+  });
+  routes.openapi(passportExampleRoute, (c) => {
+    c.header("Cache-Control", "public, max-age=300, must-revalidate");
+    c.header("Content-Type", "application/json; charset=utf-8");
+    c.header("ETag", passportExampleEtag);
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("X-Schema-Version", "taxsorted.uk.tax-position-passport/1");
+    c.header(
+      "Link",
+      [
+        '</v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax>; rel="canonical"; type="application/json"',
+        '</v1/uk/tax-expert/tax-position-passport/schema>; rel="describedby"; type="application/schema+json"',
+        '</openapi/tax-expert-uk.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"',
+      ].join(", "),
+    );
+    if (
+      ifNoneMatchMatches(
+        c.req.header("If-None-Match"),
+        passportExampleEtag,
+      )
+    ) {
+      return c.body(null, 304);
+    }
+    return c.body(passportExampleRepresentation, 200);
   });
   routes.openapi(assessmentRoute, (c) => {
     c.header("Cache-Control", "no-store");

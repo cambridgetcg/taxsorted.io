@@ -150,6 +150,8 @@ describe("UK professional tools API", () => {
       "/v1/uk/sdlt/calculations",
       "/v1/uk/tax-expert",
       "/v1/uk/tax-expert/mtd-income-tax/assessments",
+      "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+      "/v1/uk/tax-expert/tax-position-passport/schema",
     ]);
     expect(document.paths["/v1/uk/professional-tools"].get.security).toEqual(
       [],

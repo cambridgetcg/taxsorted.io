@@ -16,6 +16,11 @@ const TOOLS = [
     line: "Start here — find the right check for you.",
   },
   {
+    href: "/passport",
+    title: "Tax Position Passport",
+    line: "Keep facts, unknowns, evidence states and checked positions together.",
+  },
+  {
     href: "/itsa",
     title: "Income Tax",
     line: "Check if you're in, keep records, see deadlines.",

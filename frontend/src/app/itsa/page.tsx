@@ -43,6 +43,12 @@ const CARDS = [
     desc: "See your records, estimate and quarter timing together. HMRC sandbox setup starts only when you choose it.",
   },
   {
+    href: "/passport",
+    tag: "Handoff",
+    title: "Carry the position in your Tax Passport",
+    desc: "Keep the complete MTD request, answer, unknown facts and official receipts with your wider income and evidence map.",
+  },
+  {
     href: "/tools/mileage",
     tag: "Tool",
     title: "Mileage",

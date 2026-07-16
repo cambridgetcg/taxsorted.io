@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type PathId = "mtd" | "thresholds" | "records" | "vat" | "understand";
+type PathId =
+  | "mtd"
+  | "thresholds"
+  | "records"
+  | "passport"
+  | "vat"
+  | "understand";
 
 interface CheckupPath {
   id: PathId;
@@ -95,6 +101,30 @@ const PATHS: readonly CheckupPath[] = [
         href: "/dashboard",
         title: "Open the ITSA cockpit",
         detail: "See the whole position together; starting the optional HMRC sandbox is explicit.",
+      },
+    ],
+  },
+  {
+    id: "passport",
+    label: "I need one tax picture I can keep or hand over",
+    hint:
+      "Map facts, unknowns and evidence, then carry a checked position into JSON or a printable report.",
+    title: "Build your Tax Position Passport",
+    status: "Browser-local handoff available now",
+    boundary:
+      "The Passport asks for no name, address, NINO value or UTR. Evidence is named by you, not inspected. The first live position is MTD Income Tax; PAYE and full liability calculations remain outside this version.",
+    steps: [
+      {
+        href: "/passport",
+        title: "Start or resume my Passport",
+        detail:
+          "Nothing is saved until you choose Save this Passport. Unknown facts stay unknown.",
+      },
+      {
+        href: "/uk/tax-expert#coverage-map",
+        title: "Check the wider capability boundary",
+        detail:
+          "See which UK tax positions are available, limited or still planned.",
       },
     ],
   },

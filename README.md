@@ -29,6 +29,9 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
   narrowest current check, record tool or guide. This routing step asks for no tax identifier and
   does not calculate or file anything itself.
+- **`/passport` — Carry my tax position.** Keep explicit income-source facts, unknowns,
+  user-named evidence states and a complete checked MTD request and answer in this browser, then
+  export versioned JSON or a printable accountant handoff.
 - **`/itsa` — MTD and records.** Eligibility, local records, mileage, quarter figures and the
   visible boundary between preparation, sandbox work and production filing.
 - **`/learn` — Understand the rules.** Plain guides with official sources and scope notes.
@@ -55,6 +58,16 @@ explicit gaps in challenge routing without copying supplied case values into gra
 authenticated assessment sits beside
 the source-backed SDLT calculator; both use strict bounded requests and never guess zero. See
 [`docs/API.md`](docs/API.md), `GET /v1/uk/tax-expert` and `GET /openapi.json`.
+
+**Tax Position Passport:** `/passport` is local by explicit consent. Opening the page creates
+no Passport record and stores no tax facts; only **Save this Passport** stores its separate
+IndexedDB draft. That draft is ordinary browser site data, not TaxSorted-encrypted storage, and
+clearing site data can erase it. The portable
+`taxsorted.uk.tax-position-passport/1` envelope asks for no name, address, NINO value or UTR,
+labels evidence as named rather than inspected, and states that identity, signature,
+professional review and filing are all false. The API publishes only a static schema and
+synthetic example — no upload, cloud Passport or share link. See
+[`docs/TAX-POSITION-PASSPORT.md`](docs/TAX-POSITION-PASSPORT.md).
 
 The browser HICBC path is a simplified full-year-payment estimate. Relationship, claimant, award
 or payment opt-out changes need the Child Benefit amount split into relevant periods and checked
@@ -110,6 +123,11 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   duplicate JSON facts and never create the browser cookies used by the filing cockpit. Operators
   can issue finite-expiry keys, overlap rotation and explicitly revoke; public intake, delivery,
   self-service lifecycle and an authenticated operator audit trail are not live.
+- **Portable Passport contract**: public, sessionless
+  `GET /v1/uk/tax-expert/tax-position-passport/schema` and the synthetic
+  `/examples/mtd-income-tax` resource expose the browser-local handoff contract with
+  deterministic bytes and ETags. They accept no personal facts and create no Passport server
+  record.
 - **Machine doorway**: public, sessionless `/agent.txt`, `/.well-known/agent.txt` and
   `/v1/wake` routes orient agents with current dataset versions, publication states, rights,
   evidence lanes, safety walls and typed next actions. A separate professional-tools descriptor
@@ -195,6 +213,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   obligation: forms, deadline formulas, penalties, API specs, submission workflow
 - [`research/uk/personal-tax/README.md`](research/uk/personal-tax/README.md) — UK personal-tax optimisation playbook (玩爆英國個税), source ledger, and safe boundaries
 - [`research/uk/tax-expert/README.md`](research/uk/tax-expert/README.md) — the shared evidence contract, capability map, privacy boundary and first deep MTD path
+- [`docs/TAX-POSITION-PASSPORT.md`](docs/TAX-POSITION-PASSPORT.md) — the local-storage,
+  portable export, assurance, API schema and privacy boundaries of the Tax Position Passport
 - [`research/uk/tax-types/sdlt.md`](research/uk/tax-types/sdlt.md) — the first SDLT ruleset,
   its primary sources, exclusions, rounding and legacy XML recognition path
 - [`research/uk/tax-system/README.md`](research/uk/tax-system/README.md) — who makes,

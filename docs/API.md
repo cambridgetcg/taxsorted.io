@@ -84,6 +84,27 @@ GET /openapi/tax-expert-uk.json
 GET /openapi/professional-tools-uk.json
 ```
 
+The tax-expert slice also publishes the portable, browser-local Tax Position
+Passport contract:
+
+```text
+GET /v1/uk/tax-expert/tax-position-passport/schema
+GET /v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax
+```
+
+Both are static public reads with synthetic or structural data only. They do
+not accept a Passport, taxpayer facts or documents and do not create a server
+record. The human browser builds and optionally saves the Passport locally,
+then exports `taxsorted.uk.tax-position-passport/1`. See
+[`TAX-POSITION-PASSPORT.md`](TAX-POSITION-PASSPORT.md).
+
+The JSON Schema covers the bounded wire structure. Cross-field meaning is
+additionally checked by `assertTaxPositionPassportInvariants` from
+`@taxsorted/engine/uk/passport`; the schema lists those checks in
+`x-taxsorted-runtime-invariants`. The unsigned envelope keeps request and answer
+together but does not prove derivation; a relying consumer can replay the
+request.
+
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
 `operationId` and one plain domain tag. Dataset and framework slices fail construction if a
 selected operation does not explicitly declare `security: []`. The tax-expert task slice is a
