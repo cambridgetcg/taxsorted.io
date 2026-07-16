@@ -322,7 +322,12 @@ jobs:
           jq --exit-status '
             ."$schema" == "https://json-schema.org/draft/2020-12/schema" and
             ."$id" == "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema" and
-            ."x-taxsorted-generation" == "Committed build-time snapshot of TaxPositionPassportSchema; no runtime schema conversion."
+            ."x-taxsorted-generation" == "Committed build-time snapshot of TaxPositionPassportSchema; no runtime schema conversion." and
+            .additionalProperties == false and
+            (has("x-taxsorted-structural-dependencies") | not) and
+            .properties.positions.items.properties.request.additionalProperties == false and
+            .properties.positions.items.properties.answer.additionalProperties == false and
+            .properties.positions.items.properties.request.properties.exemption.properties.returnIndicators.anyOf[0].uniqueItems == true
           ' "${passport_schema}" >/dev/null
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -337,6 +342,8 @@ jobs:
             .assurance.filed == false and
             .dataHandling.sentToTaxSorted == false and
             .dataHandling.rawDocumentsIncluded == false and
+            (.profile.incomeSources | length) == 5 and
+            (.profile.evidence | length) == 8 and
             (.positions | length) == 1 and
             .positions[0].answer.capability.id == "uk.mtd-income-tax.readiness"
           ' "${passport_example}" >/dev/null
@@ -1209,7 +1216,7 @@ jobs:
               .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.responses["200"].content["application/schema+json"].schema["$ref"] == "#/components/schemas/TaxPositionPassportJsonSchema" and
               .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.operationId == "getTaxPositionPassportMtdExample" and
               .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.security == [] and
-              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/TaxPositionPassport" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/TaxPositionPassportExample" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.operationId == "assessMtdIncomeTaxReadiness" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security == [{"WorkspaceKey": []}] and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-required-workspace-scopes"] == ["tax-expert:assess"] and
@@ -1224,39 +1231,6 @@ jobs:
               ((.components.schemas.MtdIncomeTaxAssessmentResponse.properties.reasoning.required | index("whyGraph")) | not) and
               .components.securitySchemes.WorkspaceKey.type == "http" and
               .components.securitySchemes.WorkspaceKey.scheme == "bearer"
-            ' >/dev/null
-
-          curl --fail --silent --show-error \
-            --connect-timeout 10 --max-time 30 \
-            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema | \
-            jq --exit-status '
-              .["$id"] == "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema" and
-              .additionalProperties == false and
-              .["x-taxsorted-structural-dependencies"] == [
-                "https://api.taxsorted.io/openapi/tax-expert-uk.json"
-              ] and
-              .properties.positions.items.properties.request["$ref"] == "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentRequest" and
-              .properties.positions.items.properties.answer.allOf[0]["$ref"] == "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentResponse" and
-              .properties.positions.items.properties.answer.allOf[1].additionalProperties == false
-            ' >/dev/null
-
-          curl --fail --silent --show-error \
-            --connect-timeout 10 --max-time 30 \
-            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax | \
-            jq --exit-status '
-              .schema == "taxsorted.uk.tax-position-passport/1" and
-              .assurance == {
-                "filed": false,
-                "identityVerified": false,
-                "professionallyReviewed": false,
-                "signed": false
-              } and
-              .dataHandling.generationMode == "browser-local" and
-              .dataHandling.sentToTaxSorted == false and
-              .dataHandling.rawDocumentsIncluded == false and
-              (.profile.incomeSources | length) == 5 and
-              (.profile.evidence | length) == 8 and
-              (.positions | length) == 1
             ' >/dev/null
 
           workspace_unauthenticated_headers="${RUNNER_TEMP}/api-workspace-unauthenticated.headers"
