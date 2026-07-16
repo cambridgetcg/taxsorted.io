@@ -6,7 +6,7 @@ import QuarterClient from "./quarter-client";
 export const metadata: Metadata = {
   title: "Quarterly figures & estimate — Making Tax Digital for Income Tax | TaxSorted",
   description:
-    "Your cumulative quarterly figures, ready to copy into any MTD software, plus a cited estimate of your Self Assessment bill.",
+    "Your cumulative quarterly figures from reviewed digital records, with structured export and a cited Self Assessment estimate.",
 };
 
 export default function QuarterPage() {

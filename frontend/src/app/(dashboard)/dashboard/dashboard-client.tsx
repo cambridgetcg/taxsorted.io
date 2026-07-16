@@ -14,10 +14,13 @@ import Link from "next/link";
 import {
   estimateLiability,
   quarterForDate,
-  type LedgerRecord,
   type TaxYear,
 } from "@taxsorted/engine/uk/itsa";
 import { createRecordsStore, type RecordsStore } from "@/lib/records";
+import {
+  projectReadyRecords,
+  type LocalBooksState,
+} from "@/lib/local-books";
 import { quarterSummaryFor } from "@/lib/quarter-summary";
 import { deriveFigures } from "@/lib/derive-figures";
 import { SOURCES } from "@/lib/sources";
@@ -61,18 +64,49 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
   // default, or an injected Map-backed one when a test renders this
   // component directly.
   const store = useMemo<RecordsStore>(() => injectedStore ?? createRecordsStore(), [injectedStore]);
-  const [records, setRecords] = useState<LedgerRecord[]>([]);
+  const [books, setBooks] = useState<LocalBooksState | null>(null);
+  const [recordsError, setRecordsError] = useState<string | null>(null);
   const mounted = useMounted();
 
   useEffect(() => {
     let cancelled = false;
-    store.list().then((all) => {
-      if (!cancelled) setRecords(all);
-    });
+    const load = () => {
+      store.state().then(
+        (state) => {
+          if (!cancelled) {
+            setBooks(state);
+            setRecordsError(null);
+          }
+        },
+        (caught) => {
+          if (!cancelled) {
+            setBooks(null);
+            setRecordsError(
+              caught instanceof Error ? caught.message : "Your local books could not be read."
+            );
+          }
+        }
+      );
+    };
+    load();
+    const unsubscribe = store.subscribe(load);
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [store]);
+
+  const readyRecords = useMemo(
+    () => (books ? projectReadyRecords(books) : []),
+    [books]
+  );
+  const hasMultipleLedgersForOneActivity = Boolean(
+    books &&
+      SOURCES.some(
+        (source) =>
+          books.ledgers.filter((ledger) => ledger.activity === source.value).length > 1
+      )
+  );
 
   // "Today" can only be known client-side — null until mounted (the
   // deterministic pre-hydration state), then the reader's own clock. Two
@@ -88,7 +122,7 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
   // year's periods (the full year's records are then what's worth showing).
   const quarterIndex = quarter?.index ?? 4;
 
-  const figures = deriveFigures(records, TAX_YEAR, ELECTION, quarterIndex);
+  const figures = deriveFigures(readyRecords, TAX_YEAR, ELECTION, quarterIndex);
   const estimate = estimateLiability({
     taxYear: TAX_YEAR,
     tradingProfit: figures.tradingProfit,
@@ -127,22 +161,32 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {todayIso === null ? (
+            {recordsError ? (
+              <p role="alert" className="text-sm text-red-700">{recordsError}</p>
+            ) : books === null ? (
+              <p className="text-sm text-ink-soft">Loading your confirmed local books…</p>
+            ) : hasMultipleLedgersForOneActivity ? (
+              <p className="text-sm text-ink-soft">
+                Totals are paused because separate businesses must not be combined.
+              </p>
+            ) : todayIso === null ? (
               <p className="text-sm text-ink-soft">Loading your quarter-to-date totals…</p>
             ) : quarter === null ? (
               <p className="text-sm text-ink-soft">
                 Today&apos;s date falls outside the {TAX_YEAR} quarterly periods, so there&apos;s
                 no quarter-to-date summary to show right now — your records are unaffected.
               </p>
-            ) : records.length === 0 ? (
+            ) : readyRecords.length === 0 ? (
               <p className="text-sm text-ink-soft">
-                No records yet — add your first one and totals will appear here.
+                {books.events.length > 0
+                  ? "Your saved records are still waiting for review or a separate-business scope check in Starter Books."
+                  : "No local-book records yet. Add your first one in Starter Books."}
               </p>
             ) : (
               <ul className="space-y-2">
                 {SOURCES.map((s) => {
                   const summary = quarterSummaryFor(
-                    records,
+                    readyRecords,
                     s.value,
                     TAX_YEAR,
                     quarter.index,
@@ -177,11 +221,23 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-4xl font-bold text-ink">{gbp(estimate.totalLiability)}</p>
-            {figures.recordCount === 0 ? (
+            {recordsError ? (
+              <p role="alert" className="text-sm text-red-700">
+                The estimate is hidden because your local books could not be read.
+              </p>
+            ) : books === null ? (
+              <p className="text-sm text-ink-soft">Loading your estimate…</p>
+            ) : hasMultipleLedgersForOneActivity ? (
               <p className="text-sm text-ink-soft">
-                No records yet — this estimate assumes zero income and expenses until you add
-                some.
+                The estimate is paused because separate businesses must not be combined.
+              </p>
+            ) : (
+              <p className="text-4xl font-bold text-ink">{gbp(estimate.totalLiability)}</p>
+            )}
+            {books !== null && !recordsError && !hasMultipleLedgersForOneActivity && figures.recordCount === 0 ? (
+              <p className="text-sm text-ink-soft">
+                No confirmed local-book records are available yet, so this estimate assumes zero
+                income and expenses.
               </p>
             ) : null}
             <Link
@@ -194,7 +250,19 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
         </Card>
       </div>
 
-      <QuarterTimeline records={records} taxYear={TAX_YEAR} election={ELECTION} today={today} />
+      {books !== null && !recordsError && !hasMultipleLedgersForOneActivity ? (
+        <QuarterTimeline records={readyRecords} taxYear={TAX_YEAR} election={ELECTION} today={today} />
+      ) : (
+        <Card>
+          <CardContent className="p-5 text-sm text-ink-soft">
+            {recordsError
+              ? "Quarter timeline hidden until your local books can be read."
+              : hasMultipleLedgersForOneActivity
+                ? "Quarter timeline paused because separate businesses must not be combined."
+                : "Loading your quarter timeline…"}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Row 3 — HMRC connect panel (real sandbox OAuth) + your voice (civic panel) */}
       <div className="grid gap-4 sm:grid-cols-2">

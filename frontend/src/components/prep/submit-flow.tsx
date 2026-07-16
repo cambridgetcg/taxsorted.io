@@ -42,7 +42,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { deriveFigures } from "@/lib/derive-figures";
 import { gbp, gbpFromPounds, formatUkDate, formatUkDateTime } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
@@ -63,6 +62,21 @@ export interface SubmitFlowProps {
   /** Override for tests only — production callers should omit this and get
       the real backoff plan (1.5s, 3s, 5s, 8s, 12s). */
   pollBackoffMs?: number[];
+  /** False until local records are confirmed as exactly one separate business. */
+  ledgerScopeConfirmed?: boolean;
+  /**
+   * The deliberately linked HMRC business. `null` means production linking is
+   * incomplete; `undefined` keeps older isolated callers backwards-compatible.
+   */
+  hmrcBusinessId?: string | null;
+  /** Revision of the local-books snapshot currently shown on screen. */
+  storeRevision?: number;
+  /** Re-read local books at the last possible moment before sending. */
+  prepareSubmission?: () => Promise<{
+    records: LedgerRecord[];
+    ledgerScopeConfirmed: boolean;
+    storeRevision: number;
+  }>;
 }
 
 const DEFAULT_POLL_BACKOFF_MS = [1500, 3000, 5000, 8000, 12000];
@@ -72,7 +86,7 @@ type BusinessesState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "none" }
-  | { kind: "choose"; businesses: ItsaBusiness[] }
+  | { kind: "multiple"; businesses: ItsaBusiness[] }
   | { kind: "ready"; business: ItsaBusiness };
 
 type FlowStep =
@@ -140,6 +154,10 @@ export function SubmitFlow({
   quarterIndex,
   election,
   pollBackoffMs = DEFAULT_POLL_BACKOFF_MS,
+  ledgerScopeConfirmed = true,
+  hmrcBusinessId,
+  storeRevision,
+  prepareSubmission,
 }: SubmitFlowProps) {
   const sourceLabel = SOURCES.find((s) => s.value === source)?.label ?? source;
 
@@ -154,8 +172,16 @@ export function SubmitFlow({
     () => categoriesFor(source).filter((c) => c.key in update.totals),
     [source, update]
   );
+  const hasNegativeTotal = Object.values(update.totals).some((amount) => amount < 0);
+  const businessLinkRequired = hmrcBusinessId !== undefined;
+  const businessLinkReady = !businessLinkRequired || hmrcBusinessId !== null;
 
-  const unlocked = connectedItsa && update.recordCount > 0;
+  const unlocked =
+    connectedItsa &&
+    update.recordCount > 0 &&
+    ledgerScopeConfirmed &&
+    !hasNegativeTotal &&
+    businessLinkReady;
 
   const [businessesState, setBusinessesState] = useState<BusinessesState>({ kind: "loading" });
   const [receiptsState, setReceiptsState] = useState<ReceiptsState>({ kind: "loading" });
@@ -177,10 +203,14 @@ export function SubmitFlow({
       try {
         const { businesses } = await api.businesses(entityId as string);
         if (cancelled) return;
-        const matches = businesses.filter((b) => b.typeOfBusiness === source);
+        const matches = businesses.filter(
+          (business) =>
+            business.typeOfBusiness === source &&
+            (!businessLinkRequired || business.businessId === hmrcBusinessId)
+        );
         if (matches.length === 0) setBusinessesState({ kind: "none" });
         else if (matches.length === 1) setBusinessesState({ kind: "ready", business: matches[0] });
-        else setBusinessesState({ kind: "choose", businesses: matches });
+        else setBusinessesState({ kind: "multiple", businesses: matches });
       } catch (e) {
         if (cancelled) return;
         setBusinessesState({ kind: "error", message: unreachableMessage(e) });
@@ -191,7 +221,7 @@ export function SubmitFlow({
     return () => {
       cancelled = true;
     };
-  }, [entityId, unlocked, source]);
+  }, [businessLinkRequired, entityId, hmrcBusinessId, unlocked, source]);
 
   // The receipt list survives reload server-side — fetched up front so a
   // quarter that was already submitted greets the reader with its receipt
@@ -245,6 +275,21 @@ export function SubmitFlow({
     );
   }
 
+  if (!ledgerScopeConfirmed) {
+    return (
+      <FlowShell title={`Send ${sourceLabel} to HMRC`}>
+        <p className="text-base text-ink-soft">
+          Sending is locked because these records have not yet been confirmed as one separate
+          {" "}{sourceLabel.toLowerCase()} business. Confirm the book&apos;s scope in{" "}
+          <Link href="/itsa/records" className="font-medium text-accent underline">
+            Starter Books
+          </Link>
+          .
+        </p>
+      </FlowShell>
+    );
+  }
+
   if (update.recordCount === 0) {
     return (
       <FlowShell title={`Send ${sourceLabel} to HMRC`}>
@@ -256,9 +301,76 @@ export function SubmitFlow({
     );
   }
 
+  if (hasNegativeTotal) {
+    return (
+      <FlowShell title={`Send ${sourceLabel} to HMRC`}>
+        <p className="text-base text-ink-soft">
+          Sending is locked because at least one cumulative category total is below zero.
+          TaxSorted will not guess HMRC&apos;s sign treatment; review the corrections in Starter
+          Books before sending.
+        </p>
+      </FlowShell>
+    );
+  }
+
+  if (!businessLinkReady) {
+    return (
+      <FlowShell title={`Send ${sourceLabel} to HMRC`}>
+        <p className="text-base text-ink-soft">
+          Sending is locked until you deliberately link this local book to one HMRC business.
+          Choose the person and business in the linking section above, then confirm the book&apos;s
+          scope again.
+        </p>
+      </FlowShell>
+    );
+  }
+
   async function submit(business: ItsaBusiness) {
     if (!entityId) return;
     setFlowStep({ kind: "submitting" });
+
+    if (prepareSubmission) {
+      let fresh;
+      try {
+        fresh = await prepareSubmission();
+      } catch {
+        setFlowStep({
+          kind: "submit-error",
+          message: "Could not recheck your local books, so nothing was sent. Try again.",
+        });
+        return;
+      }
+
+      const freshUpdate = cumulativeUpdate(fresh.records, source, taxYear, quarterIndex, {
+        election,
+      });
+      const keys = new Set([...Object.keys(update.totals), ...Object.keys(freshUpdate.totals)]);
+      const totalsChanged = [...keys].some(
+        (key) => (update.totals[key] ?? 0) !== (freshUpdate.totals[key] ?? 0)
+      );
+      if (
+        !fresh.ledgerScopeConfirmed ||
+        totalsChanged ||
+        freshUpdate.recordCount !== update.recordCount ||
+        (storeRevision !== undefined && fresh.storeRevision !== storeRevision)
+      ) {
+        setFlowStep({
+          kind: "submit-error",
+          message:
+            "Your local books changed after this page loaded, so nothing was sent. Review the refreshed figures and try again.",
+        });
+        return;
+      }
+      if (Object.values(freshUpdate.totals).some((amount) => amount < 0)) {
+        setFlowStep({
+          kind: "submit-error",
+          message:
+            "A cumulative category total is below zero, so nothing was sent. Review the correction first.",
+        });
+        return;
+      }
+    }
+
     try {
       const { receipt } = await api.submitQuarterlyUpdate(entityId, {
         taxYear,
@@ -361,32 +473,24 @@ export function SubmitFlow({
 
       {businessesState.kind === "none" && (
         <p className="text-base text-ink-soft">
-          HMRC&apos;s practice system (the sandbox) has no {sourceLabel.toLowerCase()} business
-          registered for your National Insurance number yet — nothing to send to.
+          {businessLinkRequired
+            ? "The linked HMRC business was not returned for this person and activity. Relink the book before sending."
+            : `HMRC's practice system (the sandbox) has no ${sourceLabel.toLowerCase()} business registered for your National Insurance number yet — nothing to send to.`}
         </p>
       )}
 
-      {businessesState.kind === "choose" && (
-        <div className="space-y-2">
+      {businessesState.kind === "multiple" && (
+        <div className="space-y-2 rounded-2xl border border-amber-300 bg-amber-50 p-4">
           <p className="text-base text-ink-soft">
-            More than one {sourceLabel.toLowerCase()} business — pick which one this quarter&apos;s
-            figures belong to:
+            HMRC returned more than one {sourceLabel.toLowerCase()} business. TaxSorted does not
+            yet link each local ledger to one HMRC business, so sending is locked rather than
+            risking combined figures.
           </p>
-          <PillRadioGroup
-            label="Business"
-            hideLabel
-            options={businessesState.businesses.map((b) => ({
-              value: b.businessId,
-              label: b.tradingName ?? b.businessId,
-            }))}
-            value={null}
-            onChange={(businessId) => {
-              const business = businessesState.businesses.find(
-                (b) => b.businessId === businessId
-              );
-              if (business) setBusinessesState({ kind: "ready", business });
-            }}
-          />
+          <ul className="list-disc pl-5 text-sm text-ink-soft">
+            {businessesState.businesses.map((business) => (
+              <li key={business.businessId}>{business.tradingName ?? business.businessId}</li>
+            ))}
+          </ul>
         </div>
       )}
 

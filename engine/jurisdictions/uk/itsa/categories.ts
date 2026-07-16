@@ -21,6 +21,7 @@ export interface CategoryDef {
   saBox?: string // SA103F / SA105 box ref
   alwaysSeparate?: true // survives consolidation (residentialFinancialCost)
   consolidatable?: false // excluded from consolidatedExpenses
+  taxDeductible?: false // tracked in books/updates but added back for the tax estimate
 }
 
 // Self-employment: 2 income + 15 expense fields (SA103F boxes 15-30).
@@ -116,6 +117,7 @@ export const SE_CATEGORIES: CategoryDef[] = [
     label: 'Business entertainment costs',
     saBox: 'SA103F box 24',
     consolidatable: false,
+    taxDeductible: false,
     plain: 'Entertaining clients or contacts — always disallowed for tax, so it is tracked apart even under simplified reporting.',
   },
   {
@@ -157,6 +159,7 @@ export const SE_CATEGORIES: CategoryDef[] = [
     label: 'Depreciation and loss/(profit) on sale of assets',
     saBox: 'SA103F box 29',
     consolidatable: false,
+    taxDeductible: false,
     plain: "This is accounting wear-and-tear, not a tax expense — it's always disallowed, so it is tracked apart.",
   },
   {

@@ -27,14 +27,14 @@ const CARDS = [
   {
     href: "/itsa/records",
     tag: "Step 2",
-    title: "Your records",
-    desc: "Keep your income and costs in this browser, sorted into HMRC's own categories. Nothing leaves your device.",
+    title: "Starter Books",
+    desc: "Bring in transactions, review plain-language suggestions, and keep source-linked books in this browser.",
   },
   {
     href: "/itsa/quarter",
     tag: "Step 3",
     title: "Quarterly figures & estimate",
-    desc: "Your running totals for each quarter, ready to copy into any MTD software, plus a cited estimate of your bill.",
+    desc: "Your running totals for each quarter, built from reviewed records and exportable for compatible MTD software, plus a cited estimate.",
   },
   {
     href: "/dashboard",

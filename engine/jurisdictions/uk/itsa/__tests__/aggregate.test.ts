@@ -52,4 +52,13 @@ describe('cumulative quarterly updates', () => {
       'self-employment', '2026-27', 1,
     )).toThrow(/unknown category/i)
   })
+  it('a refund or reversal can decrease a category without changing its tax kind', () => {
+    const sale = R('2026-05-01', 10000, 'income', 'turnover')
+    const refund = { ...R('2026-05-02', 2500, 'income', 'turnover'), effect: 'decrease' as const }
+
+    const u = cumulativeUpdate([sale, refund], 'self-employment', '2026-27', 1)
+
+    expect(u.totals.turnover).toBe(7500)
+    expect(u.recordCount).toBe(2)
+  })
 })
