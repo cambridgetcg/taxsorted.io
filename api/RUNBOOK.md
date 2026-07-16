@@ -8,14 +8,24 @@ Only a human can mint those.
 
 ## UK politics publication controls
 
-### Public-office pathways are a narrow rules-only surface
+### Public pathway guides are narrow rules-only surfaces
 
 `/v1/politics/uk/public-office-pathways` and its `offices`, `support`, `rights` and `schema`
 children are intentionally readable when the named-person and bulk-record gates are closed.
 They contain no applicant, candidate, voter, party-preference or live-election record and make
-no eligibility decision. The politics bulk emergency stop still closes this route; the normal
-pending-approval state does not. Do not add any such field to this exemption. A proposal to collect
-answers, save a checklist or load live election events needs a separate privacy, source and
+no eligibility decision.
+
+`/v1/politics/uk/public-decision-pathways` and its exact `decisions`, decision
+detail, `doors`, `rights` and `schema` reads follow the same containment. They
+contain source-linked public procedure and bounded official hand-offs, not a
+political profile, postcode, message, submission, personal tax case, appeal
+decision or prediction of influence.
+
+The politics bulk emergency stop still closes both guides; the normal
+pending-approval state does not. Only the exact GET and HEAD routes listed in
+the politics router may bypass the pending gates. Do not broaden the exemption
+with a prefix match. A proposal to collect answers, save a checklist, accept a
+message or load live event records needs a separate privacy, source and
 publication decision first.
 
 Successful pathway responses are cacheable for one hour and require revalidation after that;
@@ -30,13 +40,19 @@ curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways
 curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights
 curl --fail https://api.taxsorted.io/v1/politics/uk/public-office-pathways/schema
 curl --fail https://taxsorted.io/uk/politics/stand/
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-decision-pathways
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions/uk-central-tax-policy-primary-law
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/doors
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/rights
+curl --fail https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/schema
+curl --fail https://taxsorted.io/uk/politics/decisions/
 ```
 
 When bulk publication is still awaiting approval, `/v1/politics/uk/system` should continue to
 return its documented `503`; opening the pathway slice is not authority to open that corpus.
-The API emergency stop cannot erase the separately deployed static HTML. If this rules corpus
-itself is found unsafe or materially wrong, also roll Cloudflare Pages back to the last safe
-deployment and purge the affected page cache; do not claim the stop covers the human page.
+The API emergency stop cannot erase the separately deployed static HTML. If either rules corpus
+is found unsafe or materially wrong, also roll Cloudflare Pages back to the last safe deployment
+and purge the affected page cache; do not claim the stop covers either human page.
 
 ### Public-safe dataset distribution
 

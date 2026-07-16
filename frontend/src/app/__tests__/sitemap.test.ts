@@ -34,6 +34,7 @@ describe("public sitemap", () => {
       "/uk/",
       "/uk/personal-tax/",
       "/uk/tax-expert/",
+      "/uk/politics/decisions/",
       "/uk/politics/stand/",
       "/itsa/records/",
       "/itsa/quarter/",

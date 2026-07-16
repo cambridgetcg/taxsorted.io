@@ -267,6 +267,8 @@ jobs:
             https://api.taxsorted.io/v1/politics/uk
           pathway_publication_status=$(jq --raw-output \
             '.publicOfficePathways.status' "${politics_root}")
+          decision_pathway_publication_status=$(jq --raw-output \
+            '.publicDecisionPathways.status' "${politics_root}")
 
           pathway_index=0
           for path in \
@@ -298,6 +300,82 @@ jobs:
                 ;;
               *)
                 echo "Public-office pathway state disagrees: ${pathway_publication_status}:${pathway_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+          decision_pathway_index=0
+          for path in \
+            /v1/politics/uk/public-decision-pathways \
+            /v1/politics/uk/public-decision-pathways/decisions \
+            /v1/politics/uk/public-decision-pathways/decisions/uk-central-tax-policy-primary-law \
+            /v1/politics/uk/public-decision-pathways/doors \
+            /v1/politics/uk/public-decision-pathways/rights \
+            /v1/politics/uk/public-decision-pathways/schema
+          do
+            decision_pathway_index=$((decision_pathway_index + 1))
+            decision_headers="${RUNNER_TEMP}/decision-pathway-${decision_pathway_index}.headers"
+            decision_body="${RUNNER_TEMP}/decision-pathway-${decision_pathway_index}.json"
+            decision_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --dump-header "${decision_headers}" --output "${decision_body}" \
+              --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${decision_pathway_publication_status}:${decision_status}" in
+              open:200)
+                case "${path}" in
+                  /v1/politics/uk/public-decision-pathways)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      .availability.status == "open" and
+                      .availability.writes == false
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/decisions)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      (.decisions | length == 1) and
+                      (.personalRoutes | length == 2)
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/decisions/uk-central-tax-policy-primary-law)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      .pathway.id == "uk-central-tax-policy-primary-law" and
+                      (.pathway.stages | length == 10)
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/doors)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      (.publicDoors | length == 8) and
+                      (.eventWindows[0].checkedOn == "2026-07-16")
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/rights)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways-rights/1" and
+                      .status == "mixed-rights-read-before-reuse"
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/schema)
+                    jq --exit-status '
+                      ."$id" == "https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/schema"
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                esac
+                ;;
+              emergency-stopped:503)
+                awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+                  "${decision_headers}"
+                jq --exit-status \
+                  '.error == "bulk_data_emergency_stop" and .status == 503' \
+                  "${decision_body}" >/dev/null
+                ;;
+              *)
+                echo "Public-decision pathway state disagrees: ${decision_pathway_publication_status}:${decision_status} for ${path}" >&2
                 exit 1
                 ;;
             esac
@@ -369,6 +447,14 @@ jobs:
             'politics-public-office-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'politics-public-office-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-decisions: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-event-status: every event window is dated; compare checkedOn and closesOn, then verify the official source before acting' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/rights' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-accountability-records: none' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
@@ -1613,7 +1699,7 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /passport /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /agent.txt /.well-known/agent.txt
+          for path in /passport /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /uk/politics/decisions /agent.txt /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -1692,6 +1778,7 @@ jobs:
             '/uk/accountability|Who checks the checkers' \
             '/uk/tax-expert|Check which tax rules apply to you' \
             '/uk/politics/stand|Start with the work, not the title.' \
+            '/uk/politics/decisions|Find where the decision lives.' \
             '/itsa/records|Starter Books' \
             '/itsa/quarter|Quarterly figures'
           do

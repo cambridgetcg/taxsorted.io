@@ -1233,6 +1233,38 @@ the wrong signatures, deposit, electoral system, finance or pay rules. It makes 
 eligibility decision and has no write method. The human rendering is
 [`/uk/politics/stand/`](https://taxsorted.io/uk/politics/stand/).
 
+The public-decision pathway slice starts with a desired outcome and maps where
+formal authority sits. Version 1 deeply covers one UK central-tax primary-law
+chain and deliberately separates policy change, HMRC administration, a
+personal tax appeal and an HMRC service complaint.
+
+```text
+GET /v1/politics/uk/public-decision-pathways
+GET /v1/politics/uk/public-decision-pathways/decisions
+GET /v1/politics/uk/public-decision-pathways/decisions/{decisionId}
+GET /v1/politics/uk/public-decision-pathways/doors
+GET /v1/politics/uk/public-decision-pathways/rights
+GET /v1/politics/uk/public-decision-pathways/schema
+```
+
+The deep record keeps proposer, formal decider, implementer, scrutineer and
+adjudicator roles distinct. Each lawful public door states its procedural
+effect, deadline rule, identity and publication boundary, limit and
+no-guarantee statement. Dated event windows carry `checkedOn`, `closesOn`,
+`reviewAfter` and `scopeStatus`; callers must verify the official source before
+acting. Barriers distinguish official procedure from a labelled TaxSorted
+inference.
+
+This slice has no political profile, personalised, ideological or ranked
+recommendation, influence score, account, tracking, message, submission,
+appeal decision or representation method. Its general process options are
+unranked TaxSorted-written guidance and are labelled separately from official
+mechanism descriptions.
+Unknown child paths and every write method remain closed. Like the public-office
+slice, it stays readable while broader politics gates await approval but closes
+under the politics bulk emergency stop. The human guide is
+[`/uk/politics/decisions/`](https://taxsorted.io/uk/politics/decisions/).
+
 ```text
 GET /v1/politics/uk/system
 GET /v1/politics/uk/elections/process

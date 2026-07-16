@@ -511,9 +511,17 @@ export function createUkPoliticsDatasetRoutes(
         methods: ["GET", "HEAD"],
         writes: false,
       },
+      publicDecisionPathways: {
+        status: bulkDataEmergencyStop ? "emergency-stopped" : "open",
+        normalPublicationGates: "independent",
+        emergencyStop: "politics-bulk-data-emergency-stop",
+        methods: ["GET", "HEAD"],
+        writes: false,
+      },
       start: DATASETS_ROOT,
       links: {
         publicOfficePathways: `${API_ROOT}/public-office-pathways`,
+        publicDecisionPathways: `${API_ROOT}/public-decision-pathways`,
         datasets: DATASETS_ROOT,
         manifest: `${API_ROOT}/manifest`,
         sources: `${API_ROOT}/sources`,
