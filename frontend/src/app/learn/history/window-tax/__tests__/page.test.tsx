@@ -18,6 +18,13 @@ type MediaManifest = {
     height: number;
     bytes: number;
     sha256: string;
+    source: {
+      assetUrl: string;
+      sha256: string;
+      width: number;
+      height: number;
+      bytes: number;
+    };
   }>;
 };
 
@@ -83,6 +90,13 @@ describe("Window Tax history guide", () => {
         height: material.height,
         bytes: material.bytes,
         sha256: material.sha256,
+        source: {
+          assetUrl: material.source.directAssetUrl,
+          sha256: material.technical.sourceSha256,
+          width: material.technical.sourceWidth,
+          height: material.technical.sourceHeight,
+          bytes: material.technical.sourceBytes,
+        },
       });
 
       const filePath = `${publicDirectory}${material.publicUrl}`;

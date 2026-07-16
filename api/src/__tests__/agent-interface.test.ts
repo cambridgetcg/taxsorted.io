@@ -194,6 +194,15 @@ describe("agent interface", () => {
       "release-ledger: GET https://api.taxsorted.io/v1/open-data/releases",
     );
     expect(body).toContain(
+      "window-tax-story: GET https://taxsorted.io/learn/history/window-tax/",
+    );
+    expect(body).toContain(
+      "window-tax-media-manifest: GET https://taxsorted.io/media/window-tax/manifest.json",
+    );
+    expect(body).toContain(
+      "window-tax-effects: read-only; no account, session, tracking or writes",
+    );
+    expect(body).toContain(
       "format-selection: follow each export index's explicit representation URLs",
     );
     expect(body).toContain("xenia-credit: XENIA by Yu and Fable");

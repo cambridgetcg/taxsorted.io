@@ -69,7 +69,7 @@ const HISTORY_GUIDES = [
     slug: "history/window-tax",
     tag: "Tax history",
     title: "Window Tax: what the evidence actually shows",
-    desc: "Why it began, how the first bands changed behaviour, what blocked windows do and do not prove, and why repeal was also a redesign.",
+    desc: "Why it began, how sharp bands created incentives, what later records document, and why repeal was also a redesign.",
   },
 ] as const;
 
@@ -79,9 +79,9 @@ export default function LearnPage() {
       <Breadcrumbs current="Learn" />
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Learn</h1>
       <p className="mt-3 text-base text-ink-soft">
-        Plain-words UK tax guides. Each one tells you what it means, what you must do, and what
-        you can safely skip. Every figure links to the official rule it comes from. Free, open,
-        no account.
+        Plain-words UK tax guides and sourced tax history. Current-law guides explain what a
+        rule means, what you must do, and what you can safely skip. Rules, figures and historical
+        materials link to their sources. Free, open, no account.
       </p>
 
       <h2 className="mt-10 text-2xl font-bold text-ink">Your taxes, explained</h2>

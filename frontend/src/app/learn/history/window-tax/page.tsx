@@ -12,7 +12,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "Window Tax: what the evidence actually shows - TaxSorted",
   description:
-    "Why Window Tax began, how its bands changed behaviour, what blocked windows do and do not prove, and why repeal was also a redesign.",
+    "Why Window Tax began, how sharp bands created incentives, what later records document, and why repeal was also a redesign.",
 };
 
 const ACT_1696 = "https://www.legislation.gov.uk/aep/Will3/7-8/18/enacted";

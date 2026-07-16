@@ -1,6 +1,6 @@
 # UK Window Tax: evidence and media pilot
 
-**Last reviewed:** 16 July 2026  
+**Last reviewed:** 16 July 2026
 **Status:** First release implemented with three local media files; production publication remains governed by the release workflow
 **Confidence:** High for the cited legal chronology and reuse findings; historical causation remains qualified where the sources are qualified
 

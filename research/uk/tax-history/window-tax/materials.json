@@ -162,7 +162,7 @@
       "source": {
         "publisher": "National Records of Scotland via Scotland's People",
         "pageUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
-        "directAssetUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/3_Edgar_Street%2C_Worcester_-_geograph.org.uk_-_6461842.jpg",
+        "directAssetUrl": "https://www.scotlandspeople.gov.uk/sites/default/files/styles/maximum_size/public/2025-06/Detail%20from%20Window%20Tax%20-%20Floors%20Castle%20-%20E326-1-111-4.jpg?itok=tF_cEn7L",
         "creator": "Tax-roll clerk; exact name not stated",
         "created": "1748",
         "locator": "NRS E326/1/111, page 4",
@@ -196,9 +196,11 @@
       },
       "technical": {
         "sourceMime": "image/jpeg",
-        "sourceWidth": null,
-        "sourceHeight": null,
-        "publicationState": "not-downloaded",
+        "sourceWidth": 1127,
+        "sourceHeight": 551,
+        "sourceBytes": 88690,
+        "sourceSha256": "8e7249eea7436f7bfb6e62eac8fdc6370e37fbfaae0e5f53b904bd20aaaf8347",
+        "publicationState": "source-rendition-verified-not-integrated",
         "localPath": null,
         "sha256": null
       },
@@ -273,7 +275,7 @@
       "source": {
         "publisher": "Geograph Britain and Ireland via Wikimedia Commons",
         "pageUrl": "https://commons.wikimedia.org/wiki/File:3_Edgar_Street,_Worcester_-_geograph.org.uk_-_6461842.jpg",
-        "directAssetUrl": null,
+        "directAssetUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/3_Edgar_Street%2C_Worcester_-_geograph.org.uk_-_6461842.jpg",
         "creator": "Stephen Richards",
         "created": "2014-07-15",
         "locator": "Geograph image 6461842; building list entry 1389776",

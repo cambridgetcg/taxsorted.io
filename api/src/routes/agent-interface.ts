@@ -96,6 +96,10 @@ release-ledger: GET ${apiOrigin}${releaseDiscoveryHandles.ledger}
 release-json-feed: GET ${apiOrigin}${releaseDiscoveryHandles.jsonFeed}
 release-atom-feed: GET ${apiOrigin}${releaseDiscoveryHandles.atom}
 public-funding-changes: GET ${apiOrigin}/v1/public-funding/uk/changes
+window-tax-story: GET ${humanOrigin}/learn/history/window-tax/
+window-tax-media-manifest: GET ${humanOrigin}/media/window-tax/manifest.json
+window-tax-scope: sourced public history; image rights and evidence strength remain separate
+window-tax-effects: read-only; no account, session, tracking or writes
 charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
 charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
 charity-accountability-status: schema-only-not-admitted

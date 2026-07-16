@@ -5,12 +5,24 @@ type MaterialRights = {
   statementUrl: string;
   licence: { name: string; url: string } | null;
   creditLine: string;
+  conditions: string[];
+  conditionCheck?: {
+    checkedOn: string;
+    nrsCrownCopyrightImagesOnTaxSorted: number;
+    websiteImageLimit: number;
+    reproducedUnchanged: boolean;
+    contextReviewedAsNonMisleading: boolean;
+  };
   finalCheckRequired: boolean;
 };
 
 type MaterialTechnical = {
   localPath: string | null;
   sha256: string | null;
+  sourceWidth?: number;
+  sourceHeight?: number;
+  sourceBytes?: number;
+  sourceSha256?: string;
   renditionWidth?: number;
   renditionHeight?: number;
   renditionBytes?: number;
@@ -23,6 +35,7 @@ type MaterialRecord = {
   source: {
     publisher: string;
     pageUrl: string;
+    directAssetUrl: string | null;
     creator: string;
     created: string | null;
     locator: string;
@@ -65,9 +78,42 @@ function requirePublishedMaterial(id: string): PublishedWindowTaxMaterial {
   if (material.rights.finalCheckRequired) {
     throw new Error(`Window Tax material still needs a final rights check: ${id}`);
   }
+  if (material.rights.status === "conditional") {
+    const check = material.rights.conditionCheck;
+    if (
+      !check?.checkedOn ||
+      check.nrsCrownCopyrightImagesOnTaxSorted > check.websiteImageLimit ||
+      !check.reproducedUnchanged ||
+      !check.contextReviewedAsNonMisleading
+    ) {
+      throw new Error(`Window Tax material has an incomplete conditional-rights check: ${id}`);
+    }
+  }
 
-  const { localPath, sha256, renditionWidth, renditionHeight, renditionBytes, modifications } =
-    material.technical;
+  const {
+    localPath,
+    sha256,
+    sourceWidth,
+    sourceHeight,
+    sourceBytes,
+    sourceSha256,
+    renditionWidth,
+    renditionHeight,
+    renditionBytes,
+    modifications,
+  } = material.technical;
+  if (!material.source.directAssetUrl) {
+    throw new Error(`Window Tax material has no exact source asset URL: ${id}`);
+  }
+  if (
+    !sourceWidth ||
+    !sourceHeight ||
+    !sourceBytes ||
+    !sourceSha256 ||
+    !/^[0-9a-f]{64}$/.test(sourceSha256)
+  ) {
+    throw new Error(`Window Tax material has incomplete source metadata: ${id}`);
+  }
   if (!localPath?.startsWith(`${publicPathPrefix}/`)) {
     throw new Error(`Window Tax material has no public local path: ${id}`);
   }
