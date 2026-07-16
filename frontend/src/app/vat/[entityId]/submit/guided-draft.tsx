@@ -75,11 +75,11 @@ export function GuidedDraft({
           Step 1 · Check the fit
         </p>
         <h2 className="mt-2 text-xl font-semibold text-ink">
-          Can this narrow estimate handle the example?
+          Is the quick estimate right for you?
         </h2>
-        <p className="mt-2 text-sm leading-6 text-ink-soft">
-          It uses only the {standardRatePercent}% rate recorded for this fictional {exampleYear}{" "}
-          period. Confirm the assumptions before entering figures, and check the{" "}
+        <p className="mt-2 text-base leading-6 text-ink-soft">
+          It only handles standard-rated amounts — the normal {standardRatePercent}% VAT rate
+          for this {exampleYear} example. Check the{" "}
           <a
             href="https://www.gov.uk/vat-rates"
             target="_blank"
@@ -87,9 +87,16 @@ export function GuidedDraft({
             className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
           >
             official VAT rates
-          </a>
-          .
+          </a>{" "}
+          if unsure. Two things must be true:
         </p>
+        <ul className="mt-3 list-disc space-y-1 pl-5 text-base leading-6 text-ink">
+          <li>Every sale in your totals is standard-rated ({standardRatePercent}%).</li>
+          <li>
+            Every purchase in your totals is a standard-rated business cost, and you&apos;ve
+            checked its VAT can be reclaimed.
+          </li>
+        </ul>
 
         <label className="mt-5 flex items-start gap-3 rounded-lg border border-line bg-paper p-4">
           <input
@@ -101,21 +108,17 @@ export function GuidedDraft({
             }}
             className="mt-1 h-4 w-4 accent-accent"
           />
-          <span className="text-sm leading-6 text-ink">
-            Every sale in these totals is standard-rated, and the purchase total contains
-            only standard-rated business costs whose VAT has been checked as eligible to
-            reclaim.
-          </span>
+          <span className="text-base leading-6 text-ink">Yes — both are true.</span>
         </label>
 
-        <details className="mt-4 rounded-lg border border-line p-4 text-sm">
+        <details className="mt-4 rounded-lg border border-line p-4 text-base">
           <summary className="cursor-pointer font-medium text-ink">
             When should I avoid the quick estimate?
           </summary>
           <p className="mt-3 leading-6 text-ink-soft">
-            Use suitable records or software when another VAT rate, an exemption, a special
-            accounting scheme, imports, reverse charge, Northern Ireland or EU goods rules,
-            or adjustments are involved.
+            Use suitable records or software when any of these are involved: another VAT rate,
+            an exemption, a special accounting scheme, imports, reverse charge, Northern
+            Ireland or EU goods rules, or adjustments.
           </p>
           <Button type="button" variant="outline" size="sm" className="mt-3" onClick={onUseDetailed}>
             Use the detailed boxes
@@ -129,8 +132,8 @@ export function GuidedDraft({
           Step 2 · Add the totals
         </p>
         <h2 className="mt-2 text-xl font-semibold text-ink">Standard-rate figures</h2>
-        <p className="mt-2 text-sm leading-6 text-ink-soft">
-          Fictional period ending {formatDate(obligation.end)}. Nothing entered here is
+        <p className="mt-2 text-base leading-6 text-ink-soft">
+          Example period ending {formatDate(obligation.end)}. Nothing entered here is
           stored or sent.
         </p>
 
@@ -138,7 +141,7 @@ export function GuidedDraft({
           <AmountField
             id="guided-sales"
             label="Standard-rated sales, before VAT"
-            help="The net sales value included in this narrow estimate."
+            help="Your sales total, before VAT, for this estimate."
             value={sales}
             disabled={!fitsQuickEstimate}
             error={sales !== "" && !salesResult.ok ? salesResult.error : undefined}
@@ -153,7 +156,7 @@ export function GuidedDraft({
           <AmountField
             id="guided-costs"
             label="Eligible standard-rated purchases, before VAT"
-            help="Only the purchase value included in this narrow estimate."
+            help="Your purchase total, before VAT, for this estimate."
             value={costs}
             disabled={!fitsQuickEstimate}
             error={costs !== "" && !costsResult.ok ? costsResult.error : undefined}
@@ -168,7 +171,7 @@ export function GuidedDraft({
         </div>
 
         {fitsQuickEstimate && !figuresReady ? (
-          <p className="mt-5 flex items-start gap-2 rounded-lg bg-accent-soft p-3 text-sm leading-6 text-ink">
+          <p className="mt-5 flex items-start gap-2 rounded-lg bg-accent-soft p-3 text-base leading-6 text-ink">
             <Info aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-accent" />
             Enter both totals to see an estimate. Enter 0 only when the real total was zero.
           </p>
@@ -189,8 +192,8 @@ export function GuidedDraft({
             <h2 id="guided-estimate-heading" className="mt-2 text-2xl font-semibold text-ink">
               {presentation.headline}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-ink-soft">{presentation.detail}</p>
-            <p className="mt-3 text-sm font-medium text-ink">
+            <p className="mt-2 text-base leading-6 text-ink-soft">{presentation.detail}</p>
+            <p className="mt-3 text-base font-medium text-ink">
               Example only · based on the assumptions above · not checked by HMRC
             </p>
           </div>
@@ -220,7 +223,7 @@ export function GuidedDraft({
               onChange={(event) => setConfirmed(event.target.checked)}
               className="mt-1 h-4 w-4 accent-accent"
             />
-            <span className="text-sm leading-6 text-ink">
+            <span className="text-base leading-6 text-ink">
               I checked this example draft against the figures I entered. Completing it still
               does not save or send anything.
             </span>
@@ -264,7 +267,7 @@ function AmountField({
       <label htmlFor={id} className="font-medium text-ink">
         {label}
       </label>
-      <p id={helpId} className="mt-1 text-sm leading-6 text-ink-soft">
+      <p id={helpId} className="mt-1 text-base leading-6 text-ink-soft">
         {help}
       </p>
       <div className="relative mt-2">
@@ -287,7 +290,7 @@ function AmountField({
         />
       </div>
       {error ? (
-        <p id={errorId} className="mt-1 text-sm text-red-700">
+        <p id={errorId} className="mt-1 text-base text-red-700">
           {error}
         </p>
       ) : null}

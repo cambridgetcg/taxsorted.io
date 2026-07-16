@@ -14,9 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cited } from "@/components/prep/cited";
+import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { gbp, formatUkDate } from "@/lib/format";
 import { SOURCES } from "@/lib/sources";
-import { cn } from "@/lib/utils";
 import { useMounted } from "@/lib/use-mounted";
 
 export interface QuarterCardProps {
@@ -30,16 +30,24 @@ export interface QuarterCardProps {
   onElectionChange?: (election: "standard" | "calendar") => void;
 }
 
-const QUARTERS: (1 | 2 | 3 | 4)[] = [1, 2, 3, 4];
-const ELECTIONS: { value: "standard" | "calendar"; label: string }[] = [
-  { value: "standard", label: "Standard (6th)" },
-  { value: "calendar", label: "Calendar (1st)" },
+const QUARTERS: { value: "1" | "2" | "3" | "4"; label: string }[] = [
+  { value: "1", label: "Q1" },
+  { value: "2", label: "Q2" },
+  { value: "3", label: "Q3" },
+  { value: "4", label: "Q4" },
 ];
-
-const TOGGLE_BASE =
-  "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2";
-const TOGGLE_ON = "border-accent bg-accent text-white";
-const TOGGLE_OFF = "border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
+const ELECTIONS: { value: "standard" | "calendar"; label: string; title: string }[] = [
+  {
+    value: "standard",
+    label: "Standard (from the 6th)",
+    title: "The usual quarter dates — each quarter starts on the 6th",
+  },
+  {
+    value: "calendar",
+    label: "Calendar (from the 1st)",
+    title: "Calendar quarter dates, if you chose them with HMRC — each quarter starts on the 1st",
+  },
+];
 
 /** Whole days from today to an ISO deadline date, floor-of-noon-safe (both sides at midnight). */
 function daysUntil(iso: string): number {
@@ -108,56 +116,48 @@ export function QuarterCard({
     <Card>
       <CardHeader>
         <CardTitle>
-          {sourceLabel} — Q{quarterIndex} {taxYear} cumulative
+          {sourceLabel} — Q{quarterIndex} {taxYear} running total
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-2" role="radiogroup" aria-label="Quarter">
-            {QUARTERS.map((q) => (
-              <button
-                key={q}
-                type="button"
-                role="radio"
-                aria-checked={quarterIndex === q}
-                onClick={() => onQuarterChange?.(q)}
-                className={cn(TOGGLE_BASE, quarterIndex === q ? TOGGLE_ON : TOGGLE_OFF)}
-              >
-                Q{q}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2" role="radiogroup" aria-label="Quarter election">
-            {ELECTIONS.map((e) => (
-              <button
-                key={e.value}
-                type="button"
-                role="radio"
-                aria-checked={election === e.value}
-                onClick={() => onElectionChange?.(e.value)}
-                className={cn(TOGGLE_BASE, election === e.value ? TOGGLE_ON : TOGGLE_OFF)}
-              >
-                {e.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <PillRadioGroup
+            label="Quarter"
+            hideLabel
+            options={QUARTERS}
+            value={String(quarterIndex) as "1" | "2" | "3" | "4"}
+            onChange={(q) => onQuarterChange?.(Number(q) as 1 | 2 | 3 | 4)}
+          />
+          <PillRadioGroup
+            label="Quarter dates"
+            hideLabel
+            options={ELECTIONS}
+            value={election}
+            onChange={(e) => onElectionChange?.(e)}
+          />
         </div>
 
+        <p className="text-base text-ink-soft">
+          Counted from {formatUkDate(update.quarter.cumulativeStart)} to{" "}
+          {formatUkDate(update.quarter.periodEnd)} — each update covers the year so far, so a
+          corrected earlier quarter fixes itself in the next one.
+        </p>
+
         {rows.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-ink-soft">
+          <p className="rounded-2xl border border-dashed border-line p-4 text-base text-ink-soft">
             No {sourceLabel.toLowerCase()} records yet for this quarter — figures will appear here
             as soon as you add some.
           </p>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-line">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-ink-soft">
+              <thead className="bg-paper text-ink-soft">
                 <tr>
                   <th scope="col" className="p-3 font-medium">
                     Category
                   </th>
                   <th scope="col" className="p-3 text-right font-medium">
-                    Cumulative amount
+                    Running total
                   </th>
                 </tr>
               </thead>
@@ -166,7 +166,7 @@ export function QuarterCard({
                   <tr key={c.key} className="border-t border-line">
                     <td className="p-3">
                       <span className="font-medium text-ink">{c.label}</span>
-                      <span className="block text-xs text-ink-soft">{c.plain}</span>
+                      <span className="block text-sm text-ink-soft">{c.plain}</span>
                     </td>
                     <td className="p-3 text-right">{gbp(update.totals[c.key])}</td>
                   </tr>
@@ -176,7 +176,7 @@ export function QuarterCard({
           </div>
         )}
 
-        <p className="text-sm text-ink-soft">
+        <p className="text-base text-ink-soft">
           Deadline: {formatUkDate(update.quarter.deadline)}
           {daysRemaining !== null ? ` — ${daysRemainingText(daysRemaining)}` : null}
         </p>
@@ -187,7 +187,7 @@ export function QuarterCard({
           </Button>
         ) : null}
 
-        <div role="note" className="rounded-2xl border border-line bg-accent-soft p-3 text-sm text-ink">
+        <div role="note" className="rounded-2xl border border-line bg-accent-soft p-3 text-base text-ink">
           <Cited cite={{ source: penalty.source, effectiveFrom: taxYearStart }}>{penalty.note}</Cited>
         </div>
       </CardContent>

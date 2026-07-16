@@ -7,6 +7,7 @@ import {
   MTD_ELIGIBILITY_URL,
 } from "@taxsorted/engine/uk/itsa";
 import { Cited } from "@/components/prep/cited";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { formatUkDate, gbpCompact } from "@/lib/format";
 
 // i18n: deferred to M2 — plain English for launch
@@ -36,29 +37,31 @@ export default function MtdDePanicPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/itsa" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to Income Tax (MTD)
-      </Link>
+      <Breadcrumbs
+        items={[{ href: "/learn", label: "Learn" }]}
+        current="Making Tax Digital: don’t panic"
+      />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">
-        MTD Income Tax: don&apos;t panic — here&apos;s what&apos;s actually true
+        Making Tax Digital: don&apos;t panic — here&apos;s what&apos;s actually true
       </h1>
-      <p className="mt-3 text-ink-soft">
-        Making Tax Digital for Income Tax gets talked about like a cliff edge. It isn&apos;t.
-        Here&apos;s the actual mechanism — who it applies to, what it asks you to send, the real
-        dates, and the real cost of getting something wrong — with every figure cited to its
-        source so you can check it yourself.
+      <p className="mt-3 text-base text-ink-soft">
+        Making Tax Digital (MTD) for Income Tax gets talked about like a cliff edge. It
+        isn&apos;t. Here&apos;s who it applies to, what it asks you to send, the real dates, and
+        the real cost of getting something wrong. Every figure is cited to its source, so you
+        can check it yourself.
       </p>
 
       {/* Who's in */}
       <section className="mt-10 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Who&apos;s in</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          You&apos;re mandated in phases, by a threshold on your qualifying income measured in an
-          earlier tax year:
+        <p className="mt-2 text-base text-ink-soft">
+          People are brought in (&ldquo;mandated&rdquo;) in phases. What counts is your
+          qualifying income — self-employment plus UK property income, before expenses —
+          measured in an earlier tax year:
         </p>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-full text-left text-sm">
+          <table className="w-full min-w-full text-left text-base">
             <thead>
               <tr className="border-b border-line text-ink-soft">
                 <th className="py-2 pr-4 font-medium">Qualifying income measured in</th>
@@ -79,7 +82,7 @@ export default function MtdDePanicPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           This schedule is set in law:{" "}
           <a
             href={thresholds.source}
@@ -91,7 +94,7 @@ export default function MtdDePanicPage() {
           </a>
           .
         </p>
-        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-sm text-ink">
+        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-base text-ink">
           <p>
             <strong>The gotcha:</strong>{" "}
             <Cited
@@ -113,7 +116,7 @@ export default function MtdDePanicPage() {
       {/* What you actually send */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you actually send</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited
             cite={{
               source: QUARTERLY_UPDATES_URL,
@@ -128,13 +131,13 @@ export default function MtdDePanicPage() {
             adjustments are made at this stage.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           That cumulative design has a practical upside:{" "}
           <strong>miss one, the next one heals it.</strong> A late or wrong update is corrected by
           resending the year-to-date figures in the next update — there is no separate amendment
           process to learn.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Cumulative reporting was introduced by the Income Tax (Digital Requirements)
           (Amendment) Regulations 2024:{" "}
           <a
@@ -152,14 +155,15 @@ export default function MtdDePanicPage() {
       {/* The deadlines */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">The deadlines</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: QUARTERLY_UPDATES_URL, effectiveFrom: "2026-04-06" }}>
-            Four quarterly updates a year, standard (6th-of-month) election shown below — the
-            calendar-quarter election shifts the period edges but not the deadlines.
+            Four quarterly updates a year. The standard quarters (starting on the 6th of the
+            month) are shown below; choosing calendar quarters instead shifts the period edges,
+            but not the deadlines.
           </Cited>
         </p>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-full text-left text-sm">
+          <table className="w-full min-w-full text-left text-base">
             <thead>
               <tr className="border-b border-line text-ink-soft">
                 <th className="py-2 pr-4 font-medium">Quarter</th>
@@ -180,7 +184,7 @@ export default function MtdDePanicPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           The 31 January return deadline for the full year sits after all four — unchanged by any
           of this.
         </p>
@@ -189,16 +193,20 @@ export default function MtdDePanicPage() {
       {/* The penalty truth */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">The penalty truth</h2>
-        <p className="mt-2 text-sm text-ink">
+        <p className="mt-2 text-base text-ink-soft">
+          HMRC fines lateness with points, a bit like a driving licence — collect enough points
+          and a fine follows. Here is the official position for this first year:
+        </p>
+        <p className="mt-3 text-base text-ink">
           <Cited cite={{ source: penalty.source, effectiveFrom: "2026-04-06" }}>
             {penalty.note}
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Read both halves of that: the easement removes points for LATE quarterly updates only.
+        <p className="mt-3 text-base text-ink-soft">
+          Read both halves of that: the let-off covers points for LATE quarterly updates only.
           It changes nothing about paying what you owe on time.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Angry about MTD?{" "}
           <Link
             href="/learn/gov/your-levers"
@@ -213,7 +221,7 @@ export default function MtdDePanicPage() {
       {/* What it costs elsewhere vs here */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What it costs elsewhere vs here</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Commercial MTD software is usually a paid monthly subscription. TaxSorted is free, and
           the code that produces every figure on this site is open — AGPL-3.0 licensed, published
           on GitHub. If you don&apos;t trust a number, go read the function that made it.
@@ -222,16 +230,17 @@ export default function MtdDePanicPage() {
           href={REPO_URL}
           target="_blank"
           rel="noreferrer noopener"
-          className="mt-3 inline-block text-sm font-medium text-accent underline hover:text-accent-deep"
+          className="mt-3 inline-block text-base font-medium text-accent underline hover:text-accent-deep"
         >
-          {REPO_URL.replace("https://", "")}
+          Read the code on GitHub
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
       </section>
 
       {/* What to do this month */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What to do this month</h2>
-        <ol className="mt-3 space-y-3 text-sm text-ink-soft">
+        <ol className="mt-3 space-y-3 text-base text-ink-soft">
           <li className="flex gap-3">
             <span className="font-semibold text-accent">1.</span>
             <span>
@@ -239,10 +248,10 @@ export default function MtdDePanicPage() {
                 href="/itsa/am-i-in"
                 className="font-medium text-accent underline hover:text-accent-deep"
               >
-                Check eligibility
+                Check if I&apos;m in
               </Link>{" "}
               — enter your gross self-employment and UK property income and see whether, and
-              from when, the mandate applies to you.
+              from when, the rules apply to you.
             </span>
           </li>
           <li className="flex gap-3">
@@ -266,7 +275,7 @@ export default function MtdDePanicPage() {
             </span>
           </li>
         </ol>
-        <p className="mt-4 text-sm text-ink-soft">
+        <p className="mt-4 text-base text-ink-soft">
           Signing up itself stays manual, directly with HMRC — no software can enrol you.{" "}
           <a
             href={SIGN_UP_URL}

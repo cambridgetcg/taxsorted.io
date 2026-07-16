@@ -259,7 +259,7 @@ export default function AccountClient() {
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <div>
         <h1 className="text-2xl font-bold text-ink sm:text-3xl">Your account</h1>
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-1 text-base text-ink-soft">
           An account here is just your passkeys — no email, no password, no personal details.
         </p>
       </div>
@@ -282,7 +282,7 @@ export default function AccountClient() {
           {account === null ? (
             // A failed first load already shows its error above — don't also
             // claim to still be loading.
-            error ? null : <p className="text-sm text-ink-soft">Loading your account…</p>
+            error ? null : <p className="text-base text-ink-soft">Loading your account…</p>
           ) : account.signedIn === false ? (
             <SignedOut
               supported={supported}
@@ -346,7 +346,7 @@ function ShowCodesOnce({
           </Button>
           {copied ? <span className="text-sm text-green-700">Copied</span> : null}
         </div>
-        <p className="text-sm text-ink-soft">
+        <p className="text-base text-ink-soft">
           Each code works exactly once. {UNRECOVERABLE}
         </p>
         <Button onClick={onDismiss}>I&apos;ve saved them</Button>
@@ -394,8 +394,9 @@ function SignedOut({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-ink-soft">
-                Creating an account claims this browser&apos;s tax entities into it.
+              <p className="text-base text-ink-soft">
+                Anything you&apos;ve already set up in this browser will be saved into your new
+                account.
               </p>
               <Button onClick={onCreate} disabled={busy}>
                 Create an account
@@ -539,8 +540,8 @@ function SignedIn({
           <CardTitle>Recovery codes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="text-sm text-ink">{account.recoveryCodesLeft} codes left</p>
-          <p className="text-xs text-ink-soft">{UNRECOVERABLE}</p>
+          <p className="text-base text-ink">{account.recoveryCodesLeft} codes left</p>
+          <p className="text-sm text-ink-soft">{UNRECOVERABLE}</p>
           <Button variant="outline" onClick={onRegenerate} disabled={busy}>
             Regenerate codes
           </Button>
@@ -550,16 +551,17 @@ function SignedIn({
       {account.claimableEntities > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Unclaimed entities on this browser</CardTitle>
+            <CardTitle>Not yet in your account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm text-ink-soft">
-              This browser has {account.claimableEntities} tax{" "}
-              {account.claimableEntities === 1 ? "entity" : "entities"} that aren&apos;t in your
-              account yet.
+            <p className="text-base text-ink-soft">
+              This browser has {account.claimableEntities}{" "}
+              {account.claimableEntities === 1 ? "business or person" : "businesses or people"}{" "}
+              set up that {account.claimableEntities === 1 ? "isn't" : "aren't"} in your account
+              yet.
             </p>
             <Button onClick={onAdopt} disabled={busy}>
-              Keep this browser&apos;s entities in your account
+              Keep this browser&apos;s businesses in your account
             </Button>
           </CardContent>
         </Card>

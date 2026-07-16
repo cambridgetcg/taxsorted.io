@@ -16,7 +16,7 @@ describe("UK politics API guide", () => {
     expect(screen.getByText(/no key · no account · no charge/i)).toBeInTheDocument();
     expect(screen.getByText(/there is no token or request header to add/i)).toBeInTheDocument();
     expect(screen.getByText(/datasets marked open can be read/i)).toBeInTheDocument();
-    expect(screen.getByText(/production record bodies fail closed/i)).toBeInTheDocument();
+    expect(screen.getByText(/most record downloads are switched off/i)).toBeInTheDocument();
     expect(
       screen.getByText(
         (_content, element) =>
@@ -90,7 +90,7 @@ describe("UK politics API guide", () => {
       "href",
       `${base}/datasets/admissions`
     );
-    expect(screen.getByText(/agent and technical screening, not human approval/i)).toBeInTheDocument();
+    expect(screen.getByText(/no human has approved a release yet/i)).toBeInTheDocument();
     expect(screen.getAllByText(/after api deployment/i).length).toBeGreaterThan(0);
   });
 
@@ -102,7 +102,7 @@ describe("UK politics API guide", () => {
       "href",
       `${base}/public-office-pathways`,
     );
-    expect(screen.getByRole("link", { name: /explore standing for office/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /see standing for office/i })).toHaveAttribute(
       "href",
       "/uk/politics/stand",
     );

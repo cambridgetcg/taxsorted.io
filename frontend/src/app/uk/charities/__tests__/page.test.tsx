@@ -4,18 +4,38 @@ import { describe, expect, it } from "vitest";
 import CharitiesPage, { metadata } from "../page";
 
 describe("UK charities page", () => {
-  it("leads with the sector-first publication boundary", () => {
+  it("leads with a plain human promise and keeps the people-protection boundary", () => {
     render(<CharitiesPage />);
 
-    expect(metadata.description).toMatch(/^A sector-first guide/);
+    expect(metadata.description).toMatch(/^Find a charity on its official register/);
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /see the public bargain.*keep people out of the bulk graph/i,
+        name: /check a charity, understand its tax, ask it for help/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/no local charity mirror.*no bulk people export/i)).toBeInTheDocument();
     expect(screen.getByText(/no person-to-religion graph/i)).toBeInTheDocument();
+  });
+
+  it("opens with the short version and a breadcrumb back to the money hub", () => {
+    render(<CharitiesPage />);
+
+    expect(screen.getByRole("heading", { name: /the short version/i })).toBeInTheDocument();
+    const trail = screen.getByRole("navigation", { name: /you are here/i });
+    expect(within(trail).getByRole("link", { name: /the uk system/i })).toHaveAttribute(
+      "href",
+      "/uk",
+    );
+  });
+
+  it("collapses the data-governance rulebook behind a plain summary", () => {
+    render(<CharitiesPage />);
+
+    expect(
+      screen.getByRole("heading", { name: /how we protect people in this data/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^for developers$/i })).toBeInTheDocument();
   });
 
   it("opens each territorial official register rather than a TaxSorted mirror", () => {

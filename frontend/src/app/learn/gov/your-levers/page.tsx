@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Cited } from "@/components/prep/cited";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ShortVersion } from "@/components/ui/short-version";
+import { ExternalLink, PageSources } from "@/components/gov/sources";
 import { RoleCard } from "@/components/gov/role-card";
 import { ROLES, HMRC_CHANNELS } from "@/lib/gov/contacts";
 
@@ -108,25 +111,81 @@ export default function YourLeversPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/learn" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to Learn
-      </Link>
+      <Breadcrumbs items={[{ href: "/learn", label: "Learn" }]} current="Your levers on tax policy" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Your levers on tax policy</h1>
-      <p className="mt-3 text-ink-soft">
-        Not happy with a tax, a threshold or a deadline? There are real, official channels for
-        saying so — and some are on record as having moved policy —{" "}
+      <p className="mt-3 text-base text-ink-soft">
+        Not happy with a tax, a threshold or a deadline? This page maps every official channel
+        for saying so, with the honest odds attached. Some have genuinely moved policy —{" "}
         <Link
           href="/learn/gov/receipts"
           className="font-medium text-accent underline hover:text-accent-deep"
         >
           see the receipts
         </Link>
-        . Here&apos;s every one of them, with the honest odds attached and every fact cited to its
-        official source.
+        .
       </p>
 
-      <div role="note" className="mt-6 rounded-2xl border border-line bg-accent-soft p-4 text-sm text-ink sm:p-5">
+      <ShortVersion className="mt-6">
+        <li>There are real, official ways to push for a tax rule change — every one is below.</li>
+        <li>
+          The strongest general move: one letter to your own MP, in your own words, with your
+          real numbers.
+        </li>
+        <li>Identical mass letters and most petitions move nothing. Evidence does — slowly.</li>
+        <li>Expect months or years, not days.</li>
+      </ShortVersion>
+
+      {/* Router: which lever is for me? */}
+      <section className="mt-6 rounded-2xl border border-line bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-ink">Which lever is yours?</h2>
+        <ul className="mt-3 space-y-3 text-base text-ink-soft">
+          <li>
+            <strong className="text-ink">A rule hurts you, and you can show how much:</strong>{" "}
+            <a href="#mp" className="font-medium text-accent underline hover:text-accent-deep">
+              write to your own MP
+            </a>{" "}
+            — the general-purpose lever.
+          </li>
+          <li>
+            <strong className="text-ink">A consultation is open on your issue:</strong>{" "}
+            <a href="#consultations" className="font-medium text-accent underline hover:text-accent-deep">
+              respond with your own figures
+            </a>{" "}
+            — the door built for input.
+          </li>
+          <li>
+            <strong className="text-ink">The Finance Bill is in Parliament right now:</strong>{" "}
+            <a href="#finance-bill" className="font-medium text-accent underline hover:text-accent-deep">
+              email evidence to its committee
+            </a>{" "}
+            — the window is weeks, not months.
+          </li>
+          <li>
+            <strong className="text-ink">You know a tax problem deeply:</strong>{" "}
+            <a href="#select-committee" className="font-medium text-accent underline hover:text-accent-deep">
+              give written evidence to a select committee
+            </a>
+            .
+          </li>
+          <li>
+            <strong className="text-ink">You want a public, on-the-record answer:</strong>{" "}
+            <a href="#petitions" className="font-medium text-accent underline hover:text-accent-deep">
+              a petition
+            </a>{" "}
+            — honest thresholds below.
+          </li>
+          <li>
+            <strong className="text-ink">You want to know how the system works:</strong>{" "}
+            <a href="#foi" className="font-medium text-accent underline hover:text-accent-deep">
+              ask under Freedom of Information (FOI)
+            </a>
+            .
+          </li>
+        </ul>
+      </section>
+
+      <div role="note" className="mt-6 rounded-2xl border border-line bg-accent-soft p-4 text-base text-ink sm:p-5">
         <p>
           <strong>Mechanism, not opinion — for any position.</strong> Every lever below works the
           same whether you want a tax raised, cut, simplified or delayed. This page endorses no
@@ -136,30 +195,15 @@ export default function YourLeversPage() {
       </div>
 
       {/* 1. Find and contact your MP */}
-      <section className="mt-10 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="mp" className="mt-10 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Find and contact your MP</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Find who represents you at{" "}
-          <a
-            href={MP_FINDER_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            members.parliament.uk/FindYourMP
-          </a>
-          , or write to them through{" "}
-          <a
-            href={WRITETOTHEM_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            WriteToThem
-          </a>{" "}
-          — a free mySociety service that turns your postcode into your MP&apos;s contact details.
+        <p className="mt-2 text-base text-ink-soft">
+          <ExternalLink href={MP_FINDER_URL}>Find who represents you</ExternalLink> on the UK
+          Parliament site, or write to them through{" "}
+          <ExternalLink href={WRITETOTHEM_URL}>WriteToThem</ExternalLink> — a free mySociety
+          service that turns your postcode into your MP&apos;s contact details.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: MP_CONTACT_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
             &ldquo;MPs will generally only act on behalf of people who live in their own
             constituency&rdquo; — so write to your own MP, not a well-known one on your issue.
@@ -175,7 +219,7 @@ export default function YourLeversPage() {
         <div className="mt-4">
           <RoleCard role={yourMp} />
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited
             cite={{
               source: WRITETOTHEM_QA_URL,
@@ -187,23 +231,18 @@ export default function YourLeversPage() {
             works for your own representatives, and it wants your own words, not a template.
           </Cited>
         </p>
-        <p className="mt-4 text-sm font-semibold text-ink">What an MP can actually do for you</p>
-        <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-ink-soft">
+        <h3 className="mt-4 text-base font-semibold text-ink">What an MP can actually do for you</h3>
+        <ul className="mt-2 list-disc space-y-2 pl-5 text-base text-ink-soft">
           <li>
             <Cited cite={{ source: MP_RAISING_LEVERS_URL, effectiveFrom: VERIFIED_ON }}>
               Ask a parliamentary question — oral or written. It &ldquo;may secure information or
               a commitment from the government and guarantees that the minister&apos;s reply is
               put on the record.&rdquo;
             </Cited>{" "}
-            Written questions and answers are published at{" "}
-            <a
-              href={QUESTIONS_STATEMENTS_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="font-medium text-accent underline hover:text-accent-deep"
-            >
-              questions-statements.parliament.uk
-            </a>
+            Written questions and answers are published on{" "}
+            <ExternalLink href={QUESTIONS_STATEMENTS_URL}>
+              Parliament&apos;s questions and statements site
+            </ExternalLink>
             .
           </li>
           <li>
@@ -239,15 +278,8 @@ export default function YourLeversPage() {
               &ldquo;MPs can also propose an amendment or New Clause to a relevant government bill
               while it is being considered in the Commons.&rdquo;
             </Cited>{" "}
-            Tabled amendments appear in the publications section of the bill&apos;s page on{" "}
-            <a
-              href={BILLS_PARLIAMENT_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="font-medium text-accent underline hover:text-accent-deep"
-            >
-              bills.parliament.uk
-            </a>
+            Tabled amendments appear on{" "}
+            <ExternalLink href={BILLS_PARLIAMENT_URL}>the bill&apos;s page at Parliament</ExternalLink>
             . The window is short — Finance Bills usually move from second reading to Royal
             Assent in well under four months (see{" "}
             <Link
@@ -272,31 +304,12 @@ export default function YourLeversPage() {
             </Cited>
           </li>
         </ul>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={MP_CONTACT_GUIDANCE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Contact your MP — UK Parliament
-          </a>
-          ,{" "}
-          <a href={MP_RAISING_LEVERS_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Raising an issue as an MP or Lord
-          </a>
-          ,{" "}
-          <a href={EDM_REALITY_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Early Day Motions
-          </a>
-          ,{" "}
-          <a href={WRITETOTHEM_QA_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            WriteToThem — about &amp; Q&amp;A
-          </a>
-          .
-        </p>
       </section>
 
       {/* 2. Treasury Committee written evidence */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="select-committee" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Give written evidence to a select committee</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: TREASURY_COMMITTEE_URL, effectiveFrom: VERIFIED_ON }}>
             The Treasury Committee is &ldquo;appointed by the House of Commons to examine the
             expenditure, administration and policy of HM Treasury, HM Revenue &amp; Customs, and
@@ -307,62 +320,50 @@ export default function YourLeversPage() {
         <div className="mt-4">
           <RoleCard role={treasuryCommitteeChair} />
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: GIVE_EVIDENCE_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
             Committees launch inquiries with a &ldquo;call for evidence&rdquo; — anyone with
             relevant knowledge or personal experience can submit.
           </Cited>{" "}
-          The live list of inquiries currently accepting evidence is at{" "}
-          <a
-            href={INQUIRIES_PORTAL_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            committees.parliament.uk/inquiries
-          </a>
+          The live list of inquiries currently accepting evidence is on{" "}
+          <ExternalLink href={INQUIRIES_PORTAL_URL}>
+            Parliament&apos;s open-inquiries page
+          </ExternalLink>{" "}
           — each inquiry page links its own submission form and deadline.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-4 text-base font-semibold text-ink">
           <Cited cite={{ source: GIVE_EVIDENCE_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
-            Format, quoted exactly: &ldquo;Keep your evidence short and to the point. Use section
-            headings and numbered paragraphs.&rdquo; Send &ldquo;a single file in Microsoft Word
-            or another editable format&rdquo; — not a PDF, under 25MB — and &ldquo;Do not include
-            your contact details&rdquo; in the document itself. Your contribution &ldquo;must be
-            original&rdquo;, not already published elsewhere.
+            The format rules, from Parliament&apos;s own guidance:
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <ul className="mt-2 list-disc space-y-2 pl-5 text-base text-ink-soft">
+          <li>Keep it short and to the point.</li>
+          <li>Use section headings and numbered paragraphs.</li>
+          <li>Send one file, in Microsoft Word or another editable format — not a PDF, under 25MB.</li>
+          <li>Don&apos;t put your contact details inside the document itself.</li>
+          <li>It &ldquo;must be original&rdquo; — not already published elsewhere.</li>
+        </ul>
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: GIVE_EVIDENCE_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
-            Evidence is normally published permanently under your name; you can ask for anonymity
+            Evidence is normally published permanently under your name. You can ask for anonymity
             or confidentiality, but &ldquo;it is for the committee to say whether it will
-            agree&rdquo;. And plainly: &ldquo;Committees cannot help you with an individual
-            problem or a specific complaint.&rdquo; — that&apos;s the wrong door for this route.
+            agree&rdquo;.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: GIVE_EVIDENCE_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
-            Committee recommendations &ldquo;are not binding on the Government. But they are
+            Two honest limits: &ldquo;Committees cannot help you with an individual problem or a
+            specific complaint&rdquo; — that&apos;s the wrong door for this route. And committee
+            recommendations &ldquo;are not binding on the Government. But they are
             influential.&rdquo;
           </Cited>
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={TREASURY_COMMITTEE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Treasury Committee
-          </a>
-          ,{" "}
-          <a href={GIVE_EVIDENCE_GUIDANCE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Give evidence to a select committee
-          </a>
-          .
         </p>
       </section>
 
       {/* 3. Finance Bill Public Bill Committee evidence */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="finance-bill" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Write to the Finance Bill&apos;s Public Bill Committee</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: PBC_EVIDENCE_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
             After a bill&apos;s second reading, it&apos;s usually referred to a Public Bill
             Committee. If that committee issues a &ldquo;call for evidence&rdquo;, anyone can
@@ -370,7 +371,7 @@ export default function YourLeversPage() {
             the MPs serving on the committee.
           </Cited>
         </p>
-        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-sm text-ink">
+        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-base text-ink">
           <p>
             <strong>The route, exactly:</strong>{" "}
             <Cited
@@ -388,7 +389,7 @@ export default function YourLeversPage() {
             </Cited>
           </p>
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           The Finance Bill&apos;s committee stage is compressed into weeks, not months — see{" "}
           <Link
             href="/learn/gov/how-tax-law-is-made"
@@ -399,23 +400,12 @@ export default function YourLeversPage() {
           for the real dates. If you want to influence this year&apos;s Bill, send evidence as
           soon as second reading happens, not after.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={PBC_EVIDENCE_GUIDANCE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Input into legislation — UK Parliament
-          </a>
-          ,{" "}
-          <a href={PBC_WRITTEN_EVIDENCE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Scrutiny Unit — written submissions
-          </a>
-          .
-        </p>
       </section>
 
       {/* 4. Budget representations */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="budget-representation" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Send a Budget representation to HM Treasury</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: BUDGET_REPS_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
             &ldquo;A Budget representation is a written representation from an interest group,
             individual or representative body to HM Treasury&rdquo; — suggestions should
@@ -425,34 +415,27 @@ export default function YourLeversPage() {
         <div className="mt-4">
           <RoleCard role={chancellor} />
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: BUDGET_REPS_GUIDANCE_URL, effectiveFrom: VERIFIED_ON }}>
             Channels: a per-event online portal once one is announced, email
             public.enquiries@hmtreasury.gov.uk, or post to The Correspondence and Enquiry Unit, HM
-            Treasury, 1 Horse Guards Road, London, SW1A 2HQ. Be honest with yourself: the
-            guidance says plainly, &ldquo;Representations will not receive a bespoke written
-            reply.&rdquo;
-          </Cited>{" "}
-          It&apos;s cheap to do and genuinely read as an input sweep before each Budget — but be
-          honest about the whole picture: no bespoke reply <em>and</em> a zero feedback loop, so
-          you&apos;ll likely never learn whether your representation was read, considered, or
-          changed anything. Best used for one specific, costed, deliverable ask, not a general
-          complaint. Watch gov.uk for the representations portal once the next Budget date is
-          announced.
+            Treasury, 1 Horse Guards Road, London, SW1A 2HQ. The guidance says plainly:
+            &ldquo;Representations will not receive a bespoke written reply.&rdquo;
+          </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Source:{" "}
-          <a href={BUDGET_REPS_GUIDANCE_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Guidance for submitting your Budget representation
-          </a>
-          .
+        <p className="mt-3 text-base text-ink-soft">
+          It&apos;s cheap to do and genuinely read as an input sweep before each Budget. But be
+          honest about the whole picture: no reply and no feedback loop, so you&apos;ll likely
+          never learn whether it changed anything. Best used for one specific, costed,
+          deliverable ask — not a general complaint. Watch gov.uk for the portal once the next
+          Budget date is announced.
         </p>
       </section>
 
       {/* 5. Petitions */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="petitions" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Petitions — honest thresholds</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: PETITIONS_HELP_URL, effectiveFrom: VERIFIED_ON }}>
             &ldquo;Petitions that get 10,000 signatures get a response from the UK
             Government.&rdquo; &ldquo;All petitions that get 100,000 signatures will be considered
@@ -460,7 +443,7 @@ export default function YourLeversPage() {
             petition needs 5 supporters to publish and runs for 6 months.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Two real tax petitions show the range:{" "}
           <Cited
             cite={{
@@ -484,64 +467,39 @@ export default function YourLeversPage() {
             was debated
           </Cited>{" "}
           in the{" "}
-          <a
-            href={HANSARD_PERSONAL_ALLOWANCE_DEBATE_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
+          <ExternalLink href={HANSARD_PERSONAL_ALLOWANCE_DEBATE_URL}>
             Commons on 12 May 2025
-          </a>
+          </ExternalLink>{" "}
           — but the government&apos;s position on the allowance itself did not change.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Honest takeaway: petitions reliably produce an on-the-record government statement at
-          10,000 signatures and sometimes a Westminster Hall debate at 100,000 signatures — they
-          put an issue on record and give MPs a peg to raise it. But{" "}
-          <strong>no recent tax petition has by itself changed tax policy.</strong> Treat petitions
-          as an awareness tool, not a decision-making one.
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Source:{" "}
-          <a href={PETITIONS_HELP_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            petition.parliament.uk/help
-          </a>
-          .
+        <p className="mt-3 text-base text-ink-soft">
+          Honest takeaway: petitions reliably put an issue on record, and give MPs a peg to raise
+          it. But <strong>no recent tax petition has by itself changed tax policy.</strong> Treat
+          petitions as an awareness tool, not a decision-making one.
         </p>
       </section>
 
       {/* 6. FOI + WhatDoTheyKnow + confidentiality carve-out + SAR cross-link */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="foi" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Freedom of Information — ask how the system works</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: MYSOCIETY_TRANSPARENCY_URL, effectiveFrom: VERIFIED_ON }}>
             mySociety describes WhatDoTheyKnow plainly: &ldquo;Make FOI requests to over 24,000
             public authorities in the UK, or browse a massive online public archive of
             information, for free.&rdquo;
           </Cited>{" "}
           Because both the request and HMRC&apos;s answer are published, one person&apos;s FOI
-          answer becomes everyone&apos;s answer — try{" "}
-          <a
-            href={WHATDOTHEYKNOW_HMRC_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            HMRC&apos;s page on WhatDoTheyKnow
-          </a>{" "}
-          or the{" "}
-          <a
-            href={WHATDOTHEYKNOW_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            WhatDoTheyKnow
-          </a>{" "}
-          archive generally before you write a fresh request. You can also write to HMRC directly:{" "}
-          {foiChannel.details}
+          answer becomes everyone&apos;s answer.
         </p>
-        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-sm text-ink">
+        <p className="mt-3 text-base text-ink-soft">
+          Before writing a fresh request, try{" "}
+          <ExternalLink href={WHATDOTHEYKNOW_HMRC_URL}>
+            HMRC&apos;s page on WhatDoTheyKnow
+          </ExternalLink>{" "}
+          or the <ExternalLink href={WHATDOTHEYKNOW_URL}>WhatDoTheyKnow</ExternalLink> archive
+          generally. You can also write to HMRC directly: {foiChannel.details}
+        </p>
+        <div className="mt-4 rounded-xl border border-line bg-accent-soft p-4 text-base text-ink">
           <p>
             <strong>The carve-out: HMRC will never release your — or anyone&apos;s — tax
             affairs.</strong>{" "}
@@ -565,19 +523,19 @@ export default function YourLeversPage() {
             >
               That duty makes any information that would identify a taxpayer exempt from FOI
               outright.
-            </Cited>{" "}
+            </Cited>
+          </p>
+          <p className="mt-3">
             <Cited cite={{ source: HMRC_MANUAL_IDG40150_URL, effectiveFrom: VERIFIED_ON }}>
               HMRC&apos;s own manual is explicit: on any identifiable taxpayer, &ldquo;our response
               under FOIA will always &lsquo;neither confirm nor deny&rsquo; we hold
               information.&rdquo;
             </Cited>{" "}
-            Plainly: HMRC will never release information that would reveal an identifiable
-            person&apos;s or company&apos;s tax affairs through FOI — not yours, and not anyone
-            else&apos;s. FOI gets you policy, process, statistics and internal guidance, never a
-            case file.
+            Plainly: FOI gets you policy, process, statistics and internal guidance — never a
+            case file, not yours and not anyone else&apos;s.
           </p>
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Want your own data instead of general policy information? That&apos;s a Subject Access
           Request (SAR), not FOI — HMRC&apos;s SAR route (and the full FOI-vs-SAR explainer) is
           covered on{" "}
@@ -589,41 +547,15 @@ export default function YourLeversPage() {
           </Link>
           .
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={MYSOCIETY_TRANSPARENCY_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            mySociety — WhatDoTheyKnow
-          </a>
-          ,{" "}
-          <a href={CRCA_S18_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            CRCA 2005, s.18
-          </a>
-          ,{" "}
-          <a href={CRCA_S23_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            CRCA 2005, s.23
-          </a>
-          ,{" "}
-          <a href={HMRC_MANUAL_IDG40150_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            HMRC Information Disclosure Guide, IDG40150
-          </a>
-          .
-        </p>
       </section>
 
       {/* 7. Consultations */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="consultations" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Respond to a consultation so it actually counts</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Live HMRC and HM Treasury consultations are listed on the{" "}
-          <a
-            href={CONSULTATION_HUB_HMRC_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            gov.uk consultations hub
-          </a>
-          , filterable by department.{" "}
+          <ExternalLink href={CONSULTATION_HUB_HMRC_URL}>gov.uk consultations hub</ExternalLink>,
+          filterable by department.{" "}
           <Cited cite={{ source: CONSULTATION_PRINCIPLES_URL, effectiveFrom: VERIFIED_ON }}>
             The Cabinet Office&apos;s Consultation Principles say government should consult
             &ldquo;only on issues that are genuinely undecided&rdquo;, using &ldquo;clear language
@@ -635,16 +567,19 @@ export default function YourLeversPage() {
             getting shorter, so watch for openings.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          What actually gets read: evidence of impact beats opinion. A response that says &ldquo;I
-          don&apos;t like this&rdquo; is easy to set aside; a response with your own hours, £ cost,
-          software cost, or a specific broken scenario is the kind that has visibly changed detail
-          in past Finance Bills. Structure it simply: who you are (one line), the specific proposal
-          paragraph you&apos;re answering, your real numbers, and the change you&apos;re proposing.
-          Nothing restricts consultations to professional bodies — an individual sole trader&apos;s
-          response with real figures is rare, and memorable for it.
+        <p className="mt-3 text-base text-ink-soft">
+          What actually gets read: evidence of impact beats opinion. &ldquo;I don&apos;t like
+          this&rdquo; is easy to set aside; your own hours, £ costs, software costs, or a
+          specific broken scenario is the kind of response that has visibly changed detail in
+          past Finance Bills.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
+          Structure it simply: who you are (one line), the proposal paragraph you&apos;re
+          answering, your real numbers, and the change you propose. Nothing restricts
+          consultations to professional bodies — an individual sole trader&apos;s response with
+          real figures is rare, and memorable for it.
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
           <Cited
             cite={{
               source: TIMELY_PAYMENTS_CONSULTATION_URL,
@@ -658,41 +593,18 @@ export default function YourLeversPage() {
             itself.
           </Cited>
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={CONSULTATION_PRINCIPLES_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Consultation Principles
-          </a>
-          ,{" "}
-          <a href={TAX_POLICY_PRINCIPLES_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Tax Policy Making Principles
-          </a>
-          ,{" "}
-          <a href={TIMELY_PAYMENTS_CONSULTATION_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            Timely Payments in income tax Self Assessment
-          </a>
-          .
-        </p>
       </section>
 
       {/* 8. Transparency toolbox */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <section id="toolbox" className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">The transparency toolbox</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={{ source: THEYWORKFORYOU_ABOUT_URL, effectiveFrom: VERIFIED_ON }}>
             TheyWorkForYou lets you &ldquo;discover who represents you, how they&apos;ve voted and
             what they&apos;ve said in debates&rdquo;, free.
           </Cited>{" "}
-          Set up an{" "}
-          <a
-            href={THEYWORKFORYOU_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            email alert
-          </a>{" "}
-          on a keyword you care about —{" "}
+          Set up an <ExternalLink href={THEYWORKFORYOU_URL}>email alert</ExternalLink> on a
+          keyword you care about —{" "}
           <Cited
             cite={{
               source: HANSARD_API_MTD_SEARCH_URL,
@@ -705,62 +617,32 @@ export default function YourLeversPage() {
           </Cited>{" "}
           — Hansard is the official transcript of everything said in Parliament.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: SI_2021_1076_EM_URL, effectiveFrom: VERIFIED_ON }}>
             Every statutory instrument laid before Parliament since June 2004 carries an
             Explanatory Memorandum — plain-English notes on what the SI does and why, written for
             readers who aren&apos;t legally qualified. Find it under the &ldquo;Explanatory
             Memorandum&rdquo; tab on the SI&apos;s page at{" "}
           </Cited>
-          <a
-            href={LEGISLATION_UNDERSTANDING_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            legislation.gov.uk
-          </a>
-          . It&apos;s the fastest way to read what a technical tax SI actually does without a law
+          <ExternalLink href={LEGISLATION_UNDERSTANDING_URL}>legislation.gov.uk</ExternalLink>.
+          It&apos;s the fastest way to read what a technical tax SI actually does without a law
           degree.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           <Cited cite={{ source: ORGANOGRAM_HMRC_URL, effectiveFrom: VERIFIED_ON }}>
             Departments including HMRC publish an &ldquo;Organogram of Staff Roles &amp;
             Salaries&rdquo; — an organisation chart of every staff role, with names and salary
             details for senior civil servants.
           </Cited>{" "}
-          Find any department&apos;s at{" "}
-          <a
-            href={ORGANOGRAM_SEARCH_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="font-medium text-accent underline hover:text-accent-deep"
-          >
-            data.gov.uk
-          </a>
-          .
-        </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Sources:{" "}
-          <a href={THEYWORKFORYOU_ABOUT_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            TheyWorkForYou
-          </a>
-          ,{" "}
-          <a href={SI_2021_1076_EM_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            legislation.gov.uk — Explanatory Memoranda
-          </a>
-          ,{" "}
-          <a href={ORGANOGRAM_HMRC_URL} target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline hover:text-accent-deep">
-            HMRC organogram — data.gov.uk
-          </a>
-          .
+          Find any department&apos;s{" "}
+          <ExternalLink href={ORGANOGRAM_SEARCH_URL}>organogram at data.gov.uk</ExternalLink>.
         </p>
       </section>
 
       {/* 9. Civility + realistic expectations */}
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What actually moves the needle</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited
             cite={{
               source: WRITETOTHEM_QA_URL,
@@ -772,28 +654,29 @@ export default function YourLeversPage() {
             blocks &ldquo;identikit&rdquo; letters because MPs &ldquo;rather naturally take a
             sudden influx of identical or similar messages with a large pinch of salt&rdquo;.
           </Cited>{" "}
-          One clear, evidenced, personally-written submission — to your MP, a select committee, a
-          consultation, or Treasury — is worth more than a hundred copies of the same paragraph.
-          Quality, aggregated with real numbers, beats quantity, duplicated.
+          One clear, evidenced, personally-written submission is worth more than a hundred copies
+          of the same paragraph.
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Be civil in every one of these channels — the people reading select-committee inboxes
-          and consultation responses are often the same officials who will act on good evidence,
-          and a hostile tone gets a submission set aside as fast as a form letter does. Bring facts
-          and your own numbers, not adjectives, and expect timescales in months and years, not
-          days — every lever on this page is real, but none of them is instant.
+        <p className="mt-3 text-base text-ink-soft">
+          Be civil in every one of these channels. The people reading committee inboxes and
+          consultation responses are often the officials who will act on good evidence — a
+          hostile tone gets a submission set aside as fast as a form letter does.
+        </p>
+        <p className="mt-3 text-base text-ink-soft">
+          Bring facts and your own numbers, not adjectives. And expect timescales in months and
+          years, not days — every lever on this page is real, but none of them is instant.
         </p>
       </section>
 
       {/* Wrong-door box */}
       <section className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Is this actually about your own tax bill?</h2>
-        <p className="mt-2 text-sm text-ink">
+        <p className="mt-2 text-base text-ink">
           Everything on this page is about changing a rule for everyone. If your problem is an{" "}
           <strong>individual dispute</strong> — your own bill, PAYE code, penalty or return —
           none of the routes above will fix it; they influence policy, not your case.
         </p>
-        <p className="mt-3 text-sm text-ink">
+        <p className="mt-3 text-base text-ink">
           <Link
             href="/learn/gov/who-runs-your-taxes"
             className="font-medium text-accent underline hover:text-accent-deep"
@@ -803,6 +686,37 @@ export default function YourLeversPage() {
           covers who to actually contact and the complaints ladder built for exactly that.
         </p>
       </section>
+
+      <PageSources
+        links={[
+          { href: MP_FINDER_URL, label: "Find your MP — UK Parliament" },
+          { href: MP_CONTACT_GUIDANCE_URL, label: "Contact your MP — UK Parliament" },
+          { href: MP_RAISING_LEVERS_URL, label: "Raising an issue as an MP or Lord" },
+          { href: EDM_REALITY_URL, label: "Early Day Motions" },
+          { href: WESTMINSTER_HALL_URL, label: "Westminster Hall debates" },
+          { href: WRITETOTHEM_URL, label: "WriteToThem" },
+          { href: WRITETOTHEM_QA_URL, label: "WriteToThem — about & Q&A" },
+          { href: TREASURY_COMMITTEE_URL, label: "Treasury Committee" },
+          { href: GIVE_EVIDENCE_GUIDANCE_URL, label: "Give evidence to a select committee" },
+          { href: INQUIRIES_PORTAL_URL, label: "Open inquiries accepting evidence" },
+          { href: PBC_EVIDENCE_GUIDANCE_URL, label: "Input into legislation — UK Parliament" },
+          { href: PBC_WRITTEN_EVIDENCE_URL, label: "Scrutiny Unit — written submissions" },
+          { href: BUDGET_REPS_GUIDANCE_URL, label: "Guidance for submitting your Budget representation" },
+          { href: PETITIONS_HELP_URL, label: "Petitions — how it works (petition.parliament.uk)" },
+          { href: HANSARD_PERSONAL_ALLOWANCE_DEBATE_URL, label: "Hansard: personal allowance petition debate, 12 May 2025" },
+          { href: MYSOCIETY_TRANSPARENCY_URL, label: "mySociety — WhatDoTheyKnow" },
+          { href: CRCA_S18_URL, label: "Commissioners for Revenue and Customs Act 2005, section 18" },
+          { href: CRCA_S23_URL, label: "Commissioners for Revenue and Customs Act 2005, section 23" },
+          { href: HMRC_MANUAL_IDG40150_URL, label: "HMRC Information Disclosure Guide, IDG40150" },
+          { href: CONSULTATION_PRINCIPLES_URL, label: "Consultation Principles" },
+          { href: TAX_POLICY_PRINCIPLES_URL, label: "Tax Policy Making Principles" },
+          { href: TIMELY_PAYMENTS_CONSULTATION_URL, label: "Timely Payments in income tax Self Assessment" },
+          { href: THEYWORKFORYOU_ABOUT_URL, label: "TheyWorkForYou" },
+          { href: LEGISLATION_UNDERSTANDING_URL, label: "legislation.gov.uk — understanding legislation" },
+          { href: SI_2021_1076_EM_URL, label: "legislation.gov.uk — Explanatory Memoranda example (SI 2021/1076)" },
+          { href: ORGANOGRAM_HMRC_URL, label: "HMRC organogram — data.gov.uk" },
+        ]}
+      />
     </div>
   );
 }

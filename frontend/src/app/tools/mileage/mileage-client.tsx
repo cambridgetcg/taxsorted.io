@@ -3,13 +3,14 @@
 // i18n: deferred to M2 — plain English for launch
 
 import { useId, useState } from "react";
-import Link from "next/link";
 import { mileageDeduction, type TaxYear } from "@taxsorted/engine/uk/itsa";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Cited } from "@/components/prep/cited";
 import { EducationNotice } from "@/components/prep/education-notice";
+import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { gbpCompact } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -21,11 +22,6 @@ const VEHICLES: { value: "car-or-van" | "motorcycle"; label: string }[] = [
   { value: "car-or-van", label: "Car or van" },
   { value: "motorcycle", label: "Motorcycle" },
 ];
-
-const TOGGLE_BASE =
-  "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2";
-const TOGGLE_ON = "border-accent bg-accent text-white";
-const TOGGLE_OFF = "border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
 
 const INVALID_MILES_MESSAGE = "Enter a whole number of miles, like 12000 or 12,000";
 
@@ -75,14 +71,12 @@ export default function MileageClient() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to TaxSorted
-      </Link>
+      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Mileage" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Mileage</h1>
-      <p className="mt-3 text-ink-soft">
-        Simplified mileage expenses for a self-employed car, van or motorcycle — enter your
-        business miles for the year and see the deduction, cited to gov.uk, update as you type.
+      <p className="mt-3 text-base text-ink-soft">
+        Self-employed with a car, van or motorcycle? Enter your business miles for the year.
+        The deduction updates as you type, cited to gov.uk.
       </p>
 
       {/* The rate-rise story is a car/van fact only — the 24p motorcycle rate
@@ -94,22 +88,26 @@ export default function MileageClient() {
           <AlertTitle>HMRC raised this from 45p — you may be owed the difference</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
-              The car and van rate for the first 10,000 miles was 45p a mile for years. HMRC
-              raised it on 17 June 2026, backdated to 6 April 2026 — if your app, spreadsheet or
-              old invoices still say 45p, you&apos;re owed the difference on every business mile
-              driven since 6 April.
+              The car and van rate for the first 10,000 miles was 45p a mile for years. HM
+              Revenue &amp; Customs (HMRC) raised it on 17 June 2026, backdated to 6 April
+              2026. If your app or spreadsheet still says 45p, you&apos;re owed the difference
+              on every business mile since 6 April.
             </p>
             <p>
-              Already logged Q1 at 45p? No manual redo needed — cumulative quarterly updates
-              self-correct: each quarter&apos;s cumulative figure is recalculated from the
-              year&apos;s total miles at the current rate, so the shortfall catches up
-              automatically next quarter.
+              One warning: once you use the flat mileage rate for a vehicle, that vehicle stays
+              on it while it&apos;s in the business. You can&apos;t switch it to claiming its
+              actual running costs later.
             </p>
-            <p>
-              The trap: once you use the flat mileage rate for a vehicle, you&apos;re locked into
-              flat-rate mileage for that same vehicle for as long as you keep it in the business —
-              you can&apos;t switch that one vehicle to claiming its actual running costs later.
-            </p>
+            <details>
+              <summary className="cursor-pointer font-medium text-accent">
+                What this means for you
+              </summary>
+              <p className="mt-2">
+                Already sent Q1 at 45p? No redo needed. Each quarter&apos;s running figure is
+                worked out fresh from the year&apos;s total miles at the current rate. The
+                shortfall catches up by itself next quarter.
+              </p>
+            </details>
           </AlertDescription>
         </Alert>
       ) : null}
@@ -119,20 +117,13 @@ export default function MileageClient() {
           <CardTitle>Your deduction</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="flex gap-2" role="radiogroup" aria-label="Vehicle">
-            {VEHICLES.map((v) => (
-              <button
-                key={v.value}
-                type="button"
-                role="radio"
-                aria-checked={vehicle === v.value}
-                onClick={() => setVehicle(v.value)}
-                className={cn(TOGGLE_BASE, vehicle === v.value ? TOGGLE_ON : TOGGLE_OFF)}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
+          <PillRadioGroup
+            label="Vehicle"
+            hideLabel
+            options={VEHICLES}
+            value={vehicle}
+            onChange={setVehicle}
+          />
 
           <div className="space-y-1.5">
             <Label htmlFor={milesId}>Business miles this tax year</Label>
@@ -147,14 +138,14 @@ export default function MileageClient() {
               aria-describedby={error ? `${milesId}-error` : undefined}
               onChange={(e) => setMilesInput(e.target.value)}
               className={cn(
-                "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-                "placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2",
+                "flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base",
+                "placeholder:text-ink-soft focus-visible:outline-none focus-visible:ring-2",
                 "focus-visible:ring-accent focus-visible:ring-offset-2",
                 error ? "border-red-600 focus-visible:ring-red-600" : undefined
               )}
             />
             {error ? (
-              <p id={`${milesId}-error`} className="text-sm text-red-600">
+              <p id={`${milesId}-error`} className="text-base text-red-600">
                 {error}
               </p>
             ) : null}
@@ -169,8 +160,8 @@ export default function MileageClient() {
                     The labels name the tier, never the rate string — "55p"
                     must stay a single text node on the page (the breakdown),
                     or exact-text queries and readers alike get two answers. */}
-                <p className="mt-1 text-sm text-ink-soft">{result.breakdown}</p>
-                <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
+                <p className="mt-1 text-base text-ink-soft">{result.breakdown}</p>
+                <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-soft">
                   <Cited cite={{ source: result.sources[0], effectiveFrom: EFFECTIVE_FROM }}>
                     first 10,000 miles rate
                   </Cited>
@@ -180,7 +171,7 @@ export default function MileageClient() {
                 </p>
               </>
             ) : (
-              <p className="mt-1 text-sm text-ink-soft">
+              <p className="mt-1 text-base text-ink-soft">
                 <Cited cite={{ source: result.sources[0], effectiveFrom: EFFECTIVE_FROM }}>
                   {result.breakdown}
                 </Cited>

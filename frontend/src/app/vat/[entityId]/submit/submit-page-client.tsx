@@ -99,10 +99,10 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
         <BackToExample entityId={entityId} />
         <section className="mt-6 rounded-lg border border-line bg-white p-5" aria-labelledby="period-error-heading">
           <h1 id="period-error-heading" className="text-xl font-semibold text-ink">
-            That fictional period is not available
+            That example period is not available
           </h1>
-          <p className="mt-2 text-sm leading-6 text-ink-soft">
-            Choose one of these fixed examples. They are not HMRC obligations.
+          <p className="mt-2 text-base leading-6 text-ink-soft">
+            Choose one of these examples. They are not real HMRC periods.
           </p>
           <ul className="mt-4 space-y-2">
             {EXAMPLE_PERIODS.map((item) => (
@@ -111,7 +111,7 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
                   href={`/vat/${entityId}/submit?period=${item.periodKey}`}
                   className="font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
                 >
-                  {formatPeriod(item.start, item.end)} · fictional due date {formatDate(item.due)}
+                  {formatPeriod(item.start, item.end)} · example due date {formatDate(item.due)}
                 </Link>
               </li>
             ))}
@@ -137,9 +137,9 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
           <BackToExample entityId={entityId} />
 
           <div className="mt-6 space-y-6">
-            <DemoNotice title="Fictional browser-only calculator">
-              This legacy page uses a fixed example period. It does not connect to an
-              account or HMRC, save a draft, or file a return.
+            <DemoNotice title="A worked example">
+              This page uses made-up numbers. It does not connect to an account or HM Revenue
+              &amp; Customs (HMRC), save a draft, or file a return.
             </DemoNotice>
 
             <header>
@@ -148,9 +148,9 @@ export default function VATSubmitPageClient({ entityId }: VATSubmitPageClientPro
                 Understand the figures before anything happens.
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-ink-soft">
-                Try a narrow {standardRatePercent}% estimate or enter a detailed nine-box
-                example. Every result stays in this browser tab and must be checked before
-                it is used elsewhere.
+                Try the quick {standardRatePercent}% estimate, or fill in all nine boxes of a
+                VAT return. Everything stays in this browser tab. Check every figure before
+                using it anywhere real.
               </p>
             </header>
 
@@ -256,15 +256,15 @@ function CompletionReview({
             tabIndex={-1}
             className="mt-2 text-3xl font-semibold tracking-tight text-ink"
           >
-            Review the fictional VAT draft
+            Review the example VAT draft
           </h1>
           <p className="mx-auto mt-3 max-w-xl leading-7 text-ink">
             {presentation.headline} for {formatPeriod(obligation.start, obligation.end)}.
           </p>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink-soft">
-            {presentation.detail} Fictional due date: {formatDate(obligation.due)}.
+          <p className="mx-auto mt-2 max-w-xl text-base leading-6 text-ink-soft">
+            {presentation.detail} Example due date: {formatDate(obligation.due)}.
           </p>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink-soft">
+          <p className="mx-auto mt-2 max-w-xl text-base leading-6 text-ink-soft">
             Nothing was saved, connected to an account, or sent to HMRC. Check every figure
             against records and the current{" "}
             <a
@@ -317,7 +317,7 @@ function BackToExample({ entityId }: { entityId: string }) {
       className={buttonVariants({ variant: "ghost", size: "sm" })}
     >
       <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
-      Back to the fictional VAT workspace
+      Back to the VAT example
     </Link>
   );
 }

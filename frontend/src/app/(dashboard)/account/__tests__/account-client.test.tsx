@@ -94,9 +94,9 @@ describe("AccountClient", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign in with a passkey/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /use a recovery code/i })).toBeInTheDocument();
-    // The always-shown adoption warning on the create screen.
+    // The always-shown adoption note on the create screen.
     expect(
-      screen.getByText(/claims this browser's tax entities into it/i)
+      screen.getByText(/will be saved into your new account/i)
     ).toBeInTheDocument();
   });
 
@@ -198,7 +198,7 @@ describe("AccountClient", () => {
     expect(screen.getByRole("button", { name: /^sign out$/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /sign out everywhere/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /^remove$/i })).toHaveLength(2);
-    expect(screen.queryByRole("button", { name: /keep this browser's entities/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /keep this browser's businesses/i })).toBeNull();
   });
 
   it("recovery session: shows the banner + add-passkey door, hides every [passkey] door", async () => {
@@ -221,7 +221,7 @@ describe("AccountClient", () => {
     // [passkey] doors are hidden even though there are claimable entities.
     expect(screen.queryByRole("button", { name: /^remove$/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /regenerate/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /keep this browser's entities/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /keep this browser's businesses/i })).toBeNull();
   });
 
   it("claim door: shown when claimableEntities>0 and calls adopt", async () => {
@@ -230,7 +230,7 @@ describe("AccountClient", () => {
 
     render(<AccountClient />);
     fireEvent.click(
-      await screen.findByRole("button", { name: /keep this browser's entities/i })
+      await screen.findByRole("button", { name: /keep this browser's businesses/i })
     );
 
     await waitFor(() => expect(mockApi.adopt).toHaveBeenCalled());

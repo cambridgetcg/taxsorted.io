@@ -12,7 +12,7 @@ function choose(label: RegExp, value: string) {
 }
 
 function submit() {
-  fireEvent.click(screen.getByRole("button", { name: /map my thresholds/i }));
+  fireEvent.click(screen.getByRole("button", { name: /check my thresholds/i }));
 }
 
 describe("personal ANI threshold check", () => {
@@ -28,7 +28,7 @@ describe("personal ANI threshold check", () => {
   it("shows the shared £100k consequences from one calculation", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "112000");
-    choose(/tax-free childcare household-partner situation/i, "none");
+    choose(/partner situation for tax-free childcare/i, "none");
     choose(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
@@ -42,8 +42,8 @@ describe("personal ANI threshold check", () => {
   it("grosses up a net pension payment and restores the exact boundary", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "112000");
-    enter(/pension paid net/i, "9600");
-    choose(/tax-free childcare household-partner situation/i, "none");
+    enter(/money you paid into your pension/i, "9600");
+    choose(/partner situation for tax-free childcare/i, "none");
     choose(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
@@ -55,7 +55,7 @@ describe("personal ANI threshold check", () => {
   it("does not turn an unknown partner into zero", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "90000");
-    choose(/tax-free childcare household-partner situation/i, "unknown");
+    choose(/partner situation for tax-free childcare/i, "unknown");
     choose(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
@@ -66,7 +66,7 @@ describe("personal ANI threshold check", () => {
   it("keeps non-disabled and disabled childcare counts mutually exclusive", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "90000");
-    choose(/tax-free childcare household-partner situation/i, "none");
+    choose(/partner situation for tax-free childcare/i, "none");
     choose(/^disabled children \(do not include them above\)$/i, "1");
     submit();
 
@@ -83,8 +83,8 @@ describe("personal ANI threshold check", () => {
 
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "70000");
-    choose(/hicbc partner situation/i, "known");
-    enter(/hicbc partner's expected ani/i, "70000");
+    choose(/partner situation for this charge/i, "known");
+    enter(/partner's expected ani for this charge/i, "70000");
     choose(/children covered by payments received/i, "1");
     submit();
     expect(screen.getByText(/supplied ANIs are equal and above £60,000/i)).toBeInTheDocument();
@@ -93,7 +93,7 @@ describe("personal ANI threshold check", () => {
   it("accepts child counts above the old six-child selector cap", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "80000");
-    choose(/hicbc partner situation/i, "none");
+    choose(/partner situation for this charge/i, "none");
     choose(/children covered by payments received/i, "7");
     submit();
 
@@ -116,7 +116,7 @@ describe("personal ANI threshold check", () => {
     enter(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
-    expect(screen.getAllByText(/choose the childcare household-partner situation/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/choose your partner situation for tax-free childcare/i).length).toBeGreaterThan(0);
     expect(screen.queryByText("Income test passes")).toBeNull();
   });
 
@@ -124,30 +124,30 @@ describe("personal ANI threshold check", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "70000");
     enter(/children covered by payments received/i, "1");
-    choose(/hicbc partner situation/i, "none");
+    choose(/partner situation for this charge/i, "none");
     choose(/who received the child benefit payments/i, "someone-else");
     submit();
 
-    expect(screen.getAllByText(/cannot model a claimant outside/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/only covers you and the partner above/i).length).toBeGreaterThan(0);
     expect(screen.queryByText("£70,000.00")).toBeNull();
   });
 
   it("keeps unrelated validation errors until each field is corrected", () => {
     render(<PersonalThresholdCheck />);
-    enter(/pension paid net/i, "-1");
+    enter(/money you paid into your pension/i, "-1");
     enter(/children covered by payments received/i, "51");
     submit();
 
     enter(/total taxable income/i, "90000");
-    expect(screen.getByLabelText(/pension paid net/i)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(/money you paid into your pension/i)).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByLabelText(/children covered by payments received/i)).toHaveAttribute("aria-invalid", "true");
   });
 
   it("shows exact sub-penny ANI when it changes the childcare boundary", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "100000.03");
-    enter(/gift aid paid net/i, "0.02");
-    choose(/tax-free childcare household-partner situation/i, "none");
+    enter(/gift aid donations you paid/i, "0.02");
+    choose(/partner situation for tax-free childcare/i, "none");
     enter(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
@@ -160,7 +160,7 @@ describe("personal ANI threshold check", () => {
     render(<PersonalThresholdCheck />);
     enter(/total taxable income/i, "90000");
     enter(/^non-disabled children to check for tax-free childcare$/i, "1");
-    choose(/tax-free childcare household-partner situation/i, "known");
+    choose(/partner situation for tax-free childcare/i, "known");
     enter(/childcare partner's expected ani/i, "100000.0025");
     submit();
 
@@ -174,7 +174,7 @@ describe("personal ANI threshold check", () => {
     enter(/^non-disabled children to check for tax-free childcare$/i, "1");
     submit();
 
-    const partnerMode = screen.getByLabelText(/tax-free childcare household-partner situation/i);
+    const partnerMode = screen.getByLabelText(/partner situation for tax-free childcare/i);
     expect(partnerMode).toHaveAttribute("aria-invalid", "true");
     enter(/^non-disabled children to check for tax-free childcare$/i, "2");
     expect(partnerMode).toHaveAttribute("aria-invalid", "true");

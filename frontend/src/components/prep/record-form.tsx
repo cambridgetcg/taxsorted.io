@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { todayIsoLocal } from "@/lib/local-date";
 import { parsePounds, INVALID_AMOUNT_MESSAGE } from "@/lib/parse";
 import { SOURCES } from "@/lib/sources";
@@ -21,15 +21,10 @@ export interface RecordFormProps {
   onAdd: (record: Omit<LedgerRecord, "id">) => Promise<unknown>;
 }
 
-const KINDS: { value: LedgerRecord["kind"]; label: string }[] = [
-  { value: "income", label: "Income" },
-  { value: "expense", label: "Expense" },
+const KINDS: { value: LedgerRecord["kind"]; label: string; title: string }[] = [
+  { value: "income", label: "Income", title: "Money coming in" },
+  { value: "expense", label: "Expense", title: "Money going out" },
 ];
-
-const TOGGLE_BASE =
-  "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2";
-const TOGGLE_ON = "border-accent bg-accent text-white";
-const TOGGLE_OFF = "border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
 
 /** The first category of the given kind for a source, falling back to the list's first entry. */
 function defaultCategoryFor(source: SourceType, kind: LedgerRecord["kind"]): string {
@@ -136,50 +131,26 @@ export function RecordForm({ onAdd }: RecordFormProps) {
             }}
           />
           {amountError ? (
-            <p id={`${amountId}-error`} className="text-sm text-red-600">
+            <p id={`${amountId}-error`} className="text-base text-red-600">
               {amountError}
             </p>
           ) : null}
         </div>
       </div>
 
-      <fieldset className="space-y-1.5">
-        <legend className="text-sm font-medium text-ink">Income or expense</legend>
-        <div className="flex gap-2" role="radiogroup" aria-label="Income or expense">
-          {KINDS.map((k) => (
-            <button
-              key={k.value}
-              type="button"
-              role="radio"
-              aria-checked={kind === k.value}
-              title={k.value === "income" ? "Money coming in" : "Money going out"}
-              onClick={() => changeKind(k.value)}
-              className={cn(TOGGLE_BASE, kind === k.value ? TOGGLE_ON : TOGGLE_OFF)}
-            >
-              {k.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <PillRadioGroup
+        label="Income or expense"
+        options={KINDS}
+        value={kind}
+        onChange={changeKind}
+      />
 
-      <fieldset className="space-y-1.5">
-        <legend className="text-sm font-medium text-ink">Source</legend>
-        <div className="flex gap-2" role="radiogroup" aria-label="Source">
-          {SOURCES.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              role="radio"
-              aria-checked={source === s.value}
-              title={s.plain}
-              onClick={() => changeSource(s.value)}
-              className={cn(TOGGLE_BASE, source === s.value ? TOGGLE_ON : TOGGLE_OFF)}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <PillRadioGroup
+        label="Source"
+        options={SOURCES.map((s) => ({ value: s.value, label: s.label, title: s.plain }))}
+        value={source}
+        onChange={changeSource}
+      />
 
       <div className="space-y-1.5">
         <Label htmlFor={categoryId}>Category</Label>
@@ -193,7 +164,7 @@ export function RecordForm({ onAdd }: RecordFormProps) {
           id={categoryId}
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <optgroup label="Income">
             {categories
@@ -227,7 +198,7 @@ export function RecordForm({ onAdd }: RecordFormProps) {
         />
       </div>
 
-      {formError ? <p className="text-sm text-red-600">{formError}</p> : null}
+      {formError ? <p className="text-base text-red-600">{formError}</p> : null}
 
       <Button type="submit" disabled={submitting}>
         Add record

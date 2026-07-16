@@ -33,7 +33,7 @@ type Field =
   | "disabledChildcareChildren";
 
 const MAX_CHILD_COUNT = 50;
-const INVALID_ANI_MESSAGE = "Enter pounds to the nearest quarter-penny, like 75000 or 100000.0025.";
+const INVALID_ANI_MESSAGE = "Enter a number in pounds, like 75000. A rough figure is fine.";
 const exactGbp = new Intl.NumberFormat("en-GB", {
   style: "currency",
   currency: "GBP",
@@ -42,7 +42,7 @@ const exactGbp = new Intl.NumberFormat("en-GB", {
 });
 
 const inputClass = [
-  "mt-1 flex h-11 w-full rounded-lg border border-ink-soft bg-white px-3 py-2 text-sm text-ink",
+  "mt-1 flex h-11 w-full rounded-lg border border-ink-soft bg-white px-3 py-2 text-base text-ink",
   "placeholder:text-ink-soft focus-visible:outline-none focus-visible:ring-2",
   "focus-visible:ring-accent focus-visible:ring-offset-2",
 ].join(" ");
@@ -150,19 +150,19 @@ export function PersonalThresholdCheck() {
       && ordinaryChildren + disabledChildren > 0;
     let hicbcPartnerQuarterPence: number | "invalid" = 0;
     if (hicbcRequested && hicbcPartnerMode === "unanswered") {
-      nextErrors.hicbcPartnerMode = "Choose the HICBC partner situation for this check.";
+      nextErrors.hicbcPartnerMode = "Choose your partner situation for the Child Benefit charge.";
     }
     if (hicbcRequested && hicbcPartnerMode === "known") {
       const parsed = parsePoundsToQuarterPence(hicbcPartnerAni);
       if (parsed === "blank") {
-        nextErrors.hicbcPartnerAni = "Enter your HICBC partner's expected adjusted net income.";
+        nextErrors.hicbcPartnerAni = "Enter your partner's expected adjusted net income (ANI).";
       }
       if (parsed === "invalid") nextErrors.hicbcPartnerAni = INVALID_ANI_MESSAGE;
       hicbcPartnerQuarterPence = parsed === "blank" ? "invalid" : parsed;
     }
     let childcarePartnerQuarterPence: number | "invalid" = 0;
     if (childcareRequested && taxFreeChildcarePartnerMode === "unanswered") {
-      nextErrors.taxFreeChildcarePartnerMode = "Choose the childcare household-partner situation.";
+      nextErrors.taxFreeChildcarePartnerMode = "Choose your partner situation for Tax-Free Childcare.";
     }
     if (childcareRequested && taxFreeChildcarePartnerMode === "known") {
       const parsed = parsePoundsToQuarterPence(taxFreeChildcarePartnerAni);
@@ -173,7 +173,7 @@ export function PersonalThresholdCheck() {
       childcarePartnerQuarterPence = parsed === "blank" ? "invalid" : parsed;
     }
     if (hicbcRequested && claimant === "someone-else") {
-      nextErrors.claimant = "This check cannot model a claimant outside you and your HICBC partner. Use HMRC's period-aware calculator.";
+      nextErrors.claimant = "This check only covers you and the partner above. For anyone else, use HMRC's period-aware calculator.";
     }
     if (
       Object.keys(nextErrors).length > 0
@@ -255,10 +255,10 @@ export function PersonalThresholdCheck() {
     ? "Add the children covered by full-year Child Benefit payments, or enter 0 for no payments."
     : hicbc?.status === "needs-facts"
       ? hicbc.missingFacts.includes("hicbcPartner.adjustedNetIncome")
-        ? "Your HICBC partner's ANI is needed before the liable person and charge can be estimated."
-        : "The supplied ANIs are equal and above £60,000, so the Child Benefit claimant is needed to identify the liable person."
+        ? "Your partner's ANI is needed before we can say who would pay, and how much."
+        : "The supplied ANIs are equal and above £60,000, so the Child Benefit claimant is needed to identify who pays."
       : hicbc?.status === "charge"
-        ? `${hicbc.liablePerson === "partner" ? "Your HICBC partner" : "You"} has the higher relevant ANI on the supplied facts.`
+        ? `${hicbc.liablePerson === "partner" ? "Your partner has" : "You have"} the higher ANI on the supplied facts.`
         : "No HICBC is due on the supplied full-year payment and income facts.";
   const tfcBody = tfc?.status === "not-checked"
     ? "Add at least one child above to check the income condition."
@@ -271,13 +271,15 @@ export function PersonalThresholdCheck() {
   return (
     <section id="threshold-check" className="mt-12" aria-labelledby={`${id}-title`} lang="en" dir="ltr">
       <div className="rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">Your numbers, kept here</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">Private — runs in your browser</p>
         <h2 id={`${id}-title`} className="mt-2 text-3xl font-bold tracking-tight text-ink">
-          Map the £60,000 and £100,000 lines
+          Check your £60,000 and £100,000 position
         </h2>
-        <p className="mt-3 max-w-3xl text-ink-soft">
-          One adjusted-net-income calculation drives three different consequences. This runs in
-          your browser: nothing is sent, saved or submitted.
+        <p className="mt-3 max-w-3xl text-base text-ink-soft">
+          Your adjusted net income (ANI) is your income after certain deductions, like pension
+          payments and Gift Aid. It decides three things: your tax-free Personal Allowance,
+          whether you repay Child Benefit, and Tax-Free Childcare. Nothing you type is sent,
+          saved or submitted.
         </p>
         <p className="mt-3 inline-flex rounded-full bg-accent-soft px-3 py-1 text-sm font-medium text-ink">
           2026/27 tax year · 6 April 2026 to 5 April 2027
@@ -295,13 +297,13 @@ export function PersonalThresholdCheck() {
             {errorSummary.length > 0 ? `Check the form: ${errorSummary.join(" ")}` : ""}
           </div>
           <fieldset>
-            <legend className="text-lg font-semibold text-ink">1. Work out your adjusted net income</legend>
-            <p className="mt-1 text-sm text-ink-soft">
-              Start with taxable income before Personal Allowance: pay and benefits, business
+            <legend className="text-lg font-semibold text-ink">1. Work out your adjusted net income (ANI)</legend>
+            <p className="mt-1 text-base text-ink-soft">
+              Start with your taxable income before the Personal Allowance comes off: pay and benefits, business
               profit, rent, pensions, interest, dividends, taxable benefits, foreign and trust income.
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-income`}>
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-income`}>
                 Total taxable income (£, required)
                 <input
                   id={`${id}-income`}
@@ -317,8 +319,8 @@ export function PersonalThresholdCheck() {
                 />
                 {errors.totalIncome ? <span id={`${id}-income-error`} className="mt-1 block text-sm text-red-700">{errors.totalIncome}</span> : null}
               </label>
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-pension`}>
-                Pension paid net (£, optional · relief at source)
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-pension`}>
+                Money you paid into your pension from your bank account (£, optional)
                 <input
                   id={`${id}-pension`}
                   value={pensionNet}
@@ -331,8 +333,8 @@ export function PersonalThresholdCheck() {
                 />
                 {errors.pensionNet ? <span id={`${id}-pension-error`} className="mt-1 block text-sm text-red-700">{errors.pensionNet}</span> : null}
               </label>
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-gift-aid`}>
-                Gift Aid paid net (£, optional)
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-gift-aid`}>
+                Gift Aid donations you paid from your bank account (£, optional)
                 <input
                   id={`${id}-gift-aid`}
                   value={giftAidNet}
@@ -346,28 +348,38 @@ export function PersonalThresholdCheck() {
                 {errors.giftAidNet ? <span id={`${id}-gift-error`} className="mt-1 block text-sm text-red-700">{errors.giftAidNet}</span> : null}
               </label>
             </div>
-            <p className="mt-3 text-xs text-ink-soft">
-              Net pension and Gift Aid payments are grossed up by 20% (× 1.25). Other ANI
-              deductions and add-backs can matter; use HMRC&apos;s full method for a final figure.
+            <p className="mt-3 text-sm text-ink-soft">
+              We add the 20% tax relief back to pension and Gift Aid payments for you (× 1.25) —
+              HMRC calls this &ldquo;relief at source&rdquo;. Other deductions and add-backs can
+              change ANI; use HMRC&apos;s full method for a final figure.
             </p>
           </fieldset>
 
           <fieldset>
-            <legend className="text-lg font-semibold text-ink">2. Check Child Benefit payments</legend>
-            <p id={`${id}-hicbc-help`} className="mt-1 max-w-3xl text-sm text-ink-soft">
-              HICBC partner means a spouse or civil partner you are not separated from under a
-              court order or in circumstances likely to be permanent, or someone you live with
-              as if married or civil partners. This simple case assumes the same relationship and
-              payments all year. For changed periods or a claimant outside this pair, use the{" "}
-              <a
-                href="https://www.gov.uk/child-benefit-tax-calculator"
-                className="font-medium text-accent underline hover:text-accent-deep"
-              >
-                HMRC Child Benefit tax calculator
-              </a>.
+            <legend className="text-lg font-semibold text-ink">2. Child Benefit — will some be clawed back?</legend>
+            <p id={`${id}-hicbc-help`} className="mt-1 max-w-3xl text-base text-ink-soft">
+              If you or your partner has ANI over £60,000, some Child Benefit may have to be paid
+              back. This is the High Income Child Benefit Charge (HICBC).
             </p>
+            <details className="mt-2 max-w-3xl text-sm text-ink-soft">
+              <summary className="cursor-pointer font-medium text-ink">Who counts as a partner for this charge?</summary>
+              <p className="mt-2">
+                A spouse or civil partner you are not separated from — under a court order, or in a
+                way likely to be permanent. Or someone you live with as if married or civil partners.
+              </p>
+              <p className="mt-2">
+                This simple check assumes the same relationship and payments all year. For changed
+                periods, or a claimant outside this pair, use the{" "}
+                <a
+                  href="https://www.gov.uk/child-benefit-tax-calculator"
+                  className="font-medium text-accent underline hover:text-accent-deep"
+                >
+                  HMRC Child Benefit tax calculator
+                </a>.
+              </p>
+            </details>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-benefit-children`}>
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-benefit-children`}>
                 Children covered by payments received for the full 2026/27 year
                 <input
                   id={`${id}-benefit-children`}
@@ -396,8 +408,8 @@ export function PersonalThresholdCheck() {
                 </span>
                 {errors.childBenefitChildren ? <span id={`${id}-benefit-children-error`} className="mt-1 block text-sm text-red-700">{errors.childBenefitChildren}</span> : null}
               </label>
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-hicbc-partner-mode`}>
-                HICBC partner situation
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-hicbc-partner-mode`}>
+                Partner situation for this charge (HICBC)
                 <select
                   id={`${id}-hicbc-partner-mode`}
                   value={hicbcPartnerMode}
@@ -415,15 +427,15 @@ export function PersonalThresholdCheck() {
                   aria-describedby={`${id}-hicbc-help${errors.hicbcPartnerMode ? ` ${id}-hicbc-partner-mode-error` : ""}`}
                 >
                   <option value="unanswered">Choose when checking payments</option>
-                  <option value="none">No HICBC partner under this definition</option>
+                  <option value="none">No partner under this definition</option>
                   <option value="known">Partner — I know their ANI</option>
                   <option value="unknown">Partner — their ANI is unknown</option>
                 </select>
                 {errors.hicbcPartnerMode ? <span id={`${id}-hicbc-partner-mode-error`} className="mt-1 block text-sm text-red-700">{errors.hicbcPartnerMode}</span> : null}
               </label>
               {hicbcPartnerMode === "known" ? (
-                <label className="text-sm font-medium text-ink" htmlFor={`${id}-hicbc-partner-income`}>
-                  HICBC partner&apos;s expected ANI (£, required for this check)
+                <label className="text-base font-medium text-ink" htmlFor={`${id}-hicbc-partner-income`}>
+                  Partner&apos;s expected ANI for this charge (£, required)
                   <input
                     id={`${id}-hicbc-partner-income`}
                     value={hicbcPartnerAni}
@@ -437,13 +449,13 @@ export function PersonalThresholdCheck() {
                     aria-describedby={`${id}-hicbc-partner-precision${errors.hicbcPartnerAni ? ` ${id}-hicbc-partner-error` : ""}`}
                   />
                   <span id={`${id}-hicbc-partner-precision`} className="mt-1 block text-xs font-normal text-ink-soft">
-                    Exact quarter-penny ANI is accepted, for example 100000.0025.
+                    A rough figure is fine — whole pounds work, like 75,000.
                   </span>
                   {errors.hicbcPartnerAni ? <span id={`${id}-hicbc-partner-error`} className="mt-1 block text-sm text-red-700">{errors.hicbcPartnerAni}</span> : null}
                 </label>
               ) : <div />}
               {Number(childBenefitChildren) > 0 ? (
-                <label className="text-sm font-medium text-ink" htmlFor={`${id}-claimant`}>
+                <label className="text-base font-medium text-ink" htmlFor={`${id}-claimant`}>
                   Who received the Child Benefit payments?
                   <select
                     id={`${id}-claimant`}
@@ -459,7 +471,7 @@ export function PersonalThresholdCheck() {
                   >
                     <option value="unknown">Not sure</option>
                     <option value="individual">I did</option>
-                    {hicbcPartnerMode !== "none" ? <option value="partner">My HICBC partner did</option> : null}
+                    {hicbcPartnerMode !== "none" ? <option value="partner">My partner did</option> : null}
                     <option value="someone-else">Someone outside this pair</option>
                   </select>
                   {errors.claimant ? <span id={`${id}-claimant-error`} className="mt-1 block text-sm text-red-700">{errors.claimant}</span> : null}
@@ -469,14 +481,14 @@ export function PersonalThresholdCheck() {
           </fieldset>
 
           <fieldset>
-            <legend className="text-lg font-semibold text-ink">3. Check the Tax-Free Childcare income condition</legend>
-            <p id={`${id}-childcare-partner-help`} className="mt-1 max-w-3xl text-sm text-ink-soft">
-              For childcare, married or civil partners must be members of the same household;
-              unmarried partners count when living together as a married couple or civil partners.
-              This can differ from the HICBC answer above.
+            <legend className="text-lg font-semibold text-ink">3. Tax-Free Childcare — does your income pass its test?</legend>
+            <p id={`${id}-childcare-partner-help`} className="mt-1 max-w-3xl text-base text-ink-soft">
+              Tax-Free Childcare has its own income test — and its own partner rule.
+              For childcare, a partner is a spouse or civil partner in the same household,
+              or someone you live with as a couple. This can differ from the Child Benefit answer above.
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-childcare-ordinary`}>
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-childcare-ordinary`}>
                 Non-disabled children to check for Tax-Free Childcare
                 <input
                   id={`${id}-childcare-ordinary`}
@@ -508,7 +520,7 @@ export function PersonalThresholdCheck() {
                 />
                 {errors.ordinaryChildcareChildren ? <span id={`${id}-childcare-ordinary-error`} className="mt-1 block text-sm text-red-700">{errors.ordinaryChildcareChildren}</span> : null}
               </label>
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-childcare-disabled`}>
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-childcare-disabled`}>
                 Disabled children (do not include them above)
                 <input
                   id={`${id}-childcare-disabled`}
@@ -540,8 +552,8 @@ export function PersonalThresholdCheck() {
                 />
                 {errors.disabledChildcareChildren ? <span id={`${id}-childcare-disabled-error`} className="mt-1 block text-sm text-red-700">{errors.disabledChildcareChildren}</span> : null}
               </label>
-              <label className="text-sm font-medium text-ink" htmlFor={`${id}-childcare-partner-mode`}>
-                Tax-Free Childcare household-partner situation
+              <label className="text-base font-medium text-ink" htmlFor={`${id}-childcare-partner-mode`}>
+                Partner situation for Tax-Free Childcare
                 <select
                   id={`${id}-childcare-partner-mode`}
                   value={taxFreeChildcarePartnerMode}
@@ -557,15 +569,15 @@ export function PersonalThresholdCheck() {
                   aria-describedby={`${id}-childcare-partner-help${errors.taxFreeChildcarePartnerMode ? ` ${id}-childcare-partner-mode-error` : ""}`}
                 >
                   <option value="unanswered">Choose when checking childcare</option>
-                  <option value="none">No household partner under this definition</option>
-                  <option value="known">Household partner — I know their ANI</option>
-                  <option value="unknown">Household partner — their ANI is unknown</option>
+                  <option value="none">No partner under this definition</option>
+                  <option value="known">Partner — I know their ANI</option>
+                  <option value="unknown">Partner — their ANI is unknown</option>
                 </select>
                 {errors.taxFreeChildcarePartnerMode ? <span id={`${id}-childcare-partner-mode-error`} className="mt-1 block text-sm text-red-700">{errors.taxFreeChildcarePartnerMode}</span> : null}
               </label>
               {taxFreeChildcarePartnerMode === "known" ? (
-                <label className="text-sm font-medium text-ink" htmlFor={`${id}-childcare-partner-income`}>
-                  Childcare partner&apos;s expected ANI (£, required for this check)
+                <label className="text-base font-medium text-ink" htmlFor={`${id}-childcare-partner-income`}>
+                  Childcare partner&apos;s expected ANI (£, required)
                   <input
                     id={`${id}-childcare-partner-income`}
                     value={taxFreeChildcarePartnerAni}
@@ -579,7 +591,7 @@ export function PersonalThresholdCheck() {
                     aria-describedby={`${id}-childcare-partner-precision${errors.taxFreeChildcarePartnerAni ? ` ${id}-childcare-partner-error` : ""}`}
                   />
                   <span id={`${id}-childcare-partner-precision`} className="mt-1 block text-xs font-normal text-ink-soft">
-                    Exact quarter-penny ANI is accepted, for example 100000.0025.
+                    A rough figure is fine — whole pounds work, like 75,000.
                   </span>
                   {errors.taxFreeChildcarePartnerAni ? <span id={`${id}-childcare-partner-error`} className="mt-1 block text-sm text-red-700">{errors.taxFreeChildcarePartnerAni}</span> : null}
                 </label>
@@ -589,9 +601,9 @@ export function PersonalThresholdCheck() {
 
           <button
             type="submit"
-            className="inline-flex h-11 items-center justify-center rounded-lg bg-accent px-6 text-sm font-medium text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="inline-flex h-11 items-center justify-center rounded-lg bg-accent px-6 text-base font-medium text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
-            Map my thresholds
+            Check my thresholds
           </button>
         </form>
         <p className="sr-only" aria-live="polite" aria-atomic="true">
@@ -601,9 +613,9 @@ export function PersonalThresholdCheck() {
 
       {result && ani !== null && pa && hicbc && tfc ? (
         <div className="mt-6 rounded-3xl border border-line bg-paper p-5 sm:p-7">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">Adjusted net income</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-accent">Your adjusted net income (ANI)</p>
           <h3 className="mt-2 text-4xl font-bold tracking-tight text-ink">{aniDisplay}</h3>
-          <p className="mt-2 text-sm text-ink-soft">
+          <p className="mt-2 text-base text-ink-soft">
             The Child Benefit clawback starts above £60,000. The Personal Allowance taper starts
             above £100,000; £100,000 exactly remains inside Tax-Free Childcare&apos;s per-person limit.
           </p>
@@ -644,7 +656,7 @@ export function PersonalThresholdCheck() {
           </div>
 
           {overOneHundredThousandQuarterPence > 0 ? (
-            <div className="mt-5 rounded-2xl border border-accent/30 bg-accent-soft p-5 text-sm text-ink">
+            <div className="mt-5 rounded-2xl border border-accent/30 bg-accent-soft p-5 text-base text-ink">
               <strong>Practical distance back to £100,000: {gbp(distanceToOneHundredThousandPence)} gross ANI.</strong>{" "}
               A relief-at-source pension payment is grossed up, so the equivalent net payment
               would be about {gbp(Math.ceil(distanceToOneHundredThousandPence * 0.8))}—but annual allowance,

@@ -3,7 +3,7 @@
 // i18n: deferred to M2 — plain English for launch
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   quarterForDate,
   type LedgerRecord,
@@ -18,7 +18,7 @@ import { RecordForm } from "@/components/prep/record-form";
 import { CsvImport } from "@/components/prep/csv-import";
 import { Ledger } from "@/components/prep/ledger";
 import { Badge } from "@/components/ui/badge";
-import { gbpCompact } from "@/lib/format";
+import { formatUkDate, gbpCompact } from "@/lib/format";
 import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
 
@@ -83,15 +83,19 @@ export default function RecordsClient() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/" className="text-sm text-accent hover:text-accent-deep">
-        ← Back to TaxSorted
-      </Link>
+      <Breadcrumbs
+        items={[
+          { href: "/tools", label: "Do my tax" },
+          { href: "/itsa", label: "Income Tax" },
+        ]}
+        current="Your records"
+      />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Your records</h1>
-      <p className="mt-3 text-ink-soft">
-        Keep a running ledger of self-employment and UK property income and expenses, sorted
-        into HMRC&apos;s own categories as you go — ready for a quarterly update whenever you
-        need one.
+      <p className="mt-3 text-base text-ink-soft">
+        Keep your self-employment and UK property income and costs here. They&apos;re sorted
+        into HM Revenue &amp; Customs (HMRC)&apos;s own categories as you go — ready for each
+        Making Tax Digital (MTD) quarterly update of your Income Tax Self Assessment (ITSA).
       </p>
 
       <div className="mt-6">
@@ -101,9 +105,9 @@ export default function RecordsClient() {
       <div className="mt-8">
         {quarter ? (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-ink">
-              Quarter to date — Q{quarter.index} {TAX_YEAR} ({quarter.periodStart} to{" "}
-              {quarter.periodEnd}):
+            <span className="text-base font-medium text-ink">
+              Quarter to date — Q{quarter.index} {TAX_YEAR} ({formatUkDate(quarter.periodStart)}{" "}
+              to {formatUkDate(quarter.periodEnd)}):
             </span>
             {SOURCES.map((s) => (
               <QuarterChip
@@ -116,7 +120,7 @@ export default function RecordsClient() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             Today&apos;s date falls outside the {TAX_YEAR} quarterly periods, so there&apos;s no
             quarter-to-date summary to show right now — your records below are unaffected.
           </p>

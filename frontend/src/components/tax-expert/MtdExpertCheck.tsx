@@ -83,6 +83,20 @@ const MONEY_FIELDS = [
   "ukProperty2026",
   "foreignProperty2026",
 ] as const;
+
+/** Plain names for the error summary, so each error links to its field by name. */
+const FIELD_NAMES: Record<string, string> = {
+  selfEmployment2024: "Self-employment income (2024/25)",
+  ukProperty2024: "UK property income (2024/25)",
+  foreignProperty2024: "Foreign property income (2024/25)",
+  selfEmployment2025: "Self-employment income (2025/26 forecast)",
+  ukProperty2025: "UK property income (2025/26 forecast)",
+  foreignProperty2025: "Foreign property income (2025/26 forecast)",
+  selfEmployment2026: "Self-employment income (2026/27 forecast)",
+  ukProperty2026: "UK property income (2026/27 forecast)",
+  foreignProperty2026: "Foreign property income (2026/27 forecast)",
+  cessationDate: "Date the last activity stopped",
+};
 const MAX_MONEY_PENCE = 1_000_000_000_000;
 
 const gbp = new Intl.NumberFormat("en-GB", {
@@ -229,11 +243,11 @@ export function MtdExpertCheck() {
       }
     }
     if (form.cessation === "ceased" && form.cessationDate === "") {
-      nextErrors.cessationDate = "Enter the exact date the final entry activity ceased.";
+      nextErrors.cessationDate = "Enter the date the last activity stopped.";
     }
     const today = new Date().toISOString().slice(0, 10);
     if (form.cessation === "ceased" && form.cessationDate > today) {
-      nextErrors.cessationDate = "The final entry-activity cessation date cannot be in the future.";
+      nextErrors.cessationDate = "The date the last activity stopped cannot be in the future.";
     }
     if (Object.keys(nextErrors).length > 0) {
       focusErrorSummaryRef.current = true;
@@ -307,96 +321,109 @@ export function MtdExpertCheck() {
 
       {Object.keys(errors).length > 0 ? (
         <div ref={errorSummaryRef} tabIndex={-1} role="alert" className="rounded-2xl border-2 border-red-700 bg-red-50 p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">
-          <h2 className="font-semibold text-red-900">Check the highlighted answer</h2>
-          <p className="mt-1 text-sm text-red-800">{errors._form ?? `${Object.keys(errors).length} field${Object.keys(errors).length === 1 ? " needs" : "s need"} attention.`}</p>
+          <h2 className="font-semibold text-red-900">There is a problem</h2>
+          {errors._form ? <p className="mt-1 text-base text-red-800">{errors._form}</p> : null}
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-red-800">
+            {Object.entries(errors).filter(([key]) => key !== "_form").map(([key, message]) => (
+              <li key={key}>
+                <a href={`#${key}`} className="font-medium text-red-900 underline underline-offset-2">{FIELD_NAMES[key] ?? key}</a>
+                {": "}{message}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
       <form onSubmit={submit} noValidate className="space-y-7">
         <fieldset className="rounded-3xl border border-line bg-white p-5 sm:p-6">
-          <legend className="px-2 text-lg font-semibold text-ink">1. The legal doorway</legend>
-          <p className="mt-2 text-sm text-ink-soft">
-            The law asks whether the 2024/25 return containing the relevant activity was required. Failing to file a required return does not switch MTD off.
+          <legend className="px-2 text-lg font-semibold text-ink">1. Your 2024/25 tax return</legend>
+          <p className="mt-2 text-base text-ink-soft">
+            The law starts with your 2024/25 tax return — the one showing your self-employment or rent.
+            Not sending a required return does not switch MTD off.
           </p>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <SelectField
               id="returnPosition"
-              label="2024/25 return duty and filing position"
+              label="Your 2024/25 return — was it required, and was it sent?"
               value={form.returnPosition}
               onChange={(value) => set("returnPosition", value as MtdRelevantReturnPosition)}
               options={[
                 ["unknown", "Not sure"],
-                ["required-and-submitted", "Required and submitted"],
-                ["required-not-submitted", "Required but not submitted"],
-                ["not-required", "Not required for this activity"],
+                ["required-and-submitted", "Required and sent"],
+                ["required-not-submitted", "Required but not sent"],
+                ["not-required", "Not required for this work"],
               ]}
             />
-            <Choice id="continuedAtEntry" label="Did at least one activity shown on that return continue immediately before 6 April 2026?" value={form.continuedAtEntry} onChange={(value) => set("continuedAtEntry", value)} />
-            <Choice id="nino" label="Had a National Insurance number before 6 April 2026?" value={form.nino} onChange={(value) => set("nino", value)} />
+            <Choice id="continuedAtEntry" label="Was at least one activity on that return still running just before 6 April 2026?" value={form.continuedAtEntry} onChange={(value) => set("continuedAtEntry", value)} />
+            <Choice id="nino" label="Did you have a National Insurance number before 6 April 2026?" value={form.nino} onChange={(value) => set("nino", value)} />
           </div>
         </fieldset>
 
         <fieldset className="rounded-3xl border border-line bg-white p-5 sm:p-6">
-          <legend className="px-2 text-lg font-semibold text-ink">2. The number HMRC tests</legend>
-          <p className="mt-2 text-sm text-ink-soft">
-            Use gross amounts from the 2024/25 return before expenses. UK residents include UK and foreign property income. For a non-UK resident, enter only self-employment income included in the UK return, plus UK property income. Type 0 only when it is genuinely zero; blank means unknown.
+          <legend className="px-2 text-lg font-semibold text-ink">2. Your income — the number HMRC tests</legend>
+          <p className="mt-2 text-base text-ink-soft">
+            Use gross amounts from the 2024/25 return — the figures before expenses.
+            UK residents: include UK and foreign property income.
+            Non-UK residents: enter only self-employment income in the UK return, plus UK property income.
+            Type 0 only when it is truly zero. Blank means unknown.
           </p>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <ResidenceField id="residence2024" label="Residence in 2024/25" value={form.residence2024} onChange={(value) => set("residence2024", value)} />
+            <ResidenceField id="residence2024" label="Tax residence in 2024/25" value={form.residence2024} onChange={(value) => set("residence2024", value)} />
             <MoneyField id="selfEmployment2024" label="Gross self-employment income in the UK return" value={form.selfEmployment2024} error={errors.selfEmployment2024} onChange={(value) => set("selfEmployment2024", value)} />
             <MoneyField id="ukProperty2024" label="Gross UK property income" value={form.ukProperty2024} error={errors.ukProperty2024} onChange={(value) => set("ukProperty2024", value)} />
             <MoneyField id="foreignProperty2024" label="Gross foreign property income" value={form.foreignProperty2024} error={errors.foreignProperty2024} onChange={(value) => set("foreignProperty2024", value)} />
-            <Choice id="amended" label="Was the 2024/25 return amended?" value={form.amended} onChange={(value) => set("amended", value)} />
-            <Choice id="specialRules" label="Could annualisation or another special income rule apply?" value={form.specialRules} onChange={(value) => set("specialRules", value)} />
+            <Choice id="amended" label="Was the 2024/25 return amended (changed after sending)?" value={form.amended} onChange={(value) => set("amended", value)} />
+            <Choice id="specialRules" label="Could a special income rule apply — like annualisation (scaling part-year income up to a full year)?" value={form.specialRules} onChange={(value) => set("specialRules", value)} />
             <SelectField
               id="cessation"
-              label="Does any activity that continued at entry still continue now?"
+              label="Is any of that activity still running now?"
               value={form.cessation}
               onChange={(value) => set("cessation", value as CessationChoice)}
-              options={[["unknown", "Not sure"], ["continuing", "At least one continues"], ["ceased", "All have ceased"]]}
+              options={[["unknown", "Not sure"], ["continuing", "At least one is still running"], ["ceased", "All have stopped"]]}
             />
             {form.cessation === "ceased" ? (
-              <DateField id="cessationDate" label="Date the final entry activity ceased" value={form.cessationDate} error={errors.cessationDate} onChange={(value) => set("cessationDate", value)} />
+              <DateField id="cessationDate" label="Date the last activity stopped" value={form.cessationDate} error={errors.cessationDate} onChange={(value) => set("cessationDate", value)} />
             ) : null}
           </div>
         </fieldset>
 
         <fieldset className="rounded-3xl border border-line bg-white p-5 sm:p-6">
-          <legend className="px-2 text-lg font-semibold text-ink">3. Return evidence, HMRC decisions and periods</legend>
-          <p className="mt-2 text-sm text-ink-soft">
-            This asks what the return actually contains, not whether you think a legal exemption applies. Check the definitions in the{" "}
+          <legend className="px-2 text-lg font-semibold text-ink">3. Exemptions and update periods</legend>
+          <p className="mt-2 text-base text-ink-soft">
+            This asks what the return actually shows, not whether you think an exemption applies.
+            The definitions are in the{" "}
             <a className="font-medium text-accent underline underline-offset-2" href="https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax" target="_blank" rel="noreferrer noopener">current HMRC exemption guide</a>.
           </p>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <SelectField
               id="returnIndicator"
-              label="Relevant item shown on the 2024/25 return"
+              label="Does the 2024/25 return show any of these?"
               value={form.returnIndicator}
               onChange={(value) => set("returnIndicator", value as ReturnIndicatorChoice)}
               options={[
-                ["not-checked", "Not checked against HMRC list"],
+                ["not-checked", "Not checked against HMRC's list"],
                 ["none-listed", "Checked — none of these"],
-                ["sa103-averaging-relief", "SA103 averaging relief"],
-                ["qualifying-care-relief", "Qualifying care relief"],
-                ["sa107-trusts-or-estates", "SA107 trusts or estates"],
-                ["sa109-residence", "SA109 residence pages"],
-                ["sa103l-lloyds", "SA103L Lloyd’s pages"],
-                ["incapable-with-legal-representative", "Legal representative due to incapacity"],
-                ["sa102m-minister-of-religion", "SA102M minister of religion"],
-                ["married-couples-allowance", "Married Couple’s Allowance"],
-                ["blind-persons-allowance", "Blind Person’s Allowance"],
+                ["sa103-averaging-relief", "Averaging relief on the self-employment pages (form SA103)"],
+                ["qualifying-care-relief", "Qualifying care relief (foster or shared-lives care)"],
+                ["sa107-trusts-or-estates", "Income from trusts or estates (form SA107)"],
+                ["sa109-residence", "The pages about living abroad (form SA109)"],
+                ["sa103l-lloyds", "Lloyd's of London underwriting pages (form SA103L)"],
+                ["incapable-with-legal-representative", "A legal representative acts because of incapacity"],
+                ["sa102m-minister-of-religion", "Minister of religion pages (form SA102M)"],
+                ["married-couples-allowance", "Married Couple's Allowance"],
+                ["blind-persons-allowance", "Blind Person's Allowance"],
                 ["unknown", "Not sure what the return shows"],
               ]}
             />
             <SelectField
               id="digitalExclusion"
-              label="HMRC digital-exclusion position"
+              label="Has HMRC agreed you are digitally excluded (you cannot reasonably use computers for tax)?"
               value={form.digitalExclusion}
               onChange={(value) => set("digitalExclusion", value as MtdDigitalExclusionStatus)}
               options={[
                 ["unknown", "Not sure"],
-                ["not-approved-or-pending", "No approval or pending application"],
-                ["application-pending", "Application pending with HMRC"],
+                ["not-approved-or-pending", "No approval and no application waiting"],
+                ["application-pending", "Application waiting with HMRC"],
                 ["hmrc-approved", "HMRC has approved it"],
               ]}
             />
@@ -408,14 +435,14 @@ export function MtdExpertCheck() {
               options={[
                 ["not-checked", "Not checked"],
                 ["none", "No other application"],
-                ["application-pending", "Application pending with HMRC"],
+                ["application-pending", "Application waiting with HMRC"],
                 ["hmrc-approved-for-2026-27", "HMRC approved it for 2026/27"],
                 ["unknown", "Not sure"],
               ]}
             />
             <SelectField
               id="updatePeriod"
-              label="Quarterly update periods"
+              label="Your quarterly update period (when each 3-month report starts)"
               value={form.updatePeriod}
               onChange={(value) => set("updatePeriod", value as FormState["updatePeriod"])}
               options={[["unknown", "Not sure"], ["standard", "Standard — 6 April start"], ["calendar", "Calendar — 1 April start"]]}
@@ -425,7 +452,7 @@ export function MtdExpertCheck() {
 
         <details className="rounded-3xl border border-line bg-white p-5 sm:p-6">
           <summary className="cursor-pointer font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">Look ahead to the April 2027 and April 2028 phases</summary>
-          <p className="mt-3 text-sm text-ink-soft">These remain forecasts until the relevant return and residence position are known.</p>
+          <p className="mt-3 text-base text-ink-soft">These stay forecasts until the relevant return and residence position are known.</p>
           <div className="mt-5 grid gap-7 lg:grid-cols-2">
             <FutureYearFields
               year="2025/26"
@@ -460,9 +487,12 @@ export function MtdExpertCheck() {
 
         <div className="flex flex-wrap items-center gap-4">
           <button type="submit" className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-7 font-medium text-white hover:bg-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-deep">
-            Understand my position
+            Check my position
           </button>
-          <p className="max-w-xl text-sm text-ink-soft">Runs in this browser. No name, NINO, UTR or figures are sent to TaxSorted.</p>
+          <p className="max-w-xl text-base text-ink-soft">
+            Runs in this browser. Nothing is sent to TaxSorted — not your name, your National Insurance
+            number (NINO), your Unique Taxpayer Reference (UTR), or any figure you type.
+          </p>
         </div>
       </form>
 
@@ -509,8 +539,8 @@ function AssessmentResult({
 
       {materialUnknowns.length > 0 ? (
         <div className="mt-6 rounded-2xl border border-amber-400 bg-white p-5">
-          <h3 className="font-semibold text-ink">Smallest facts needed next</h3>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-ink-soft">
+          <h3 className="font-semibold text-ink">What we still need to know</h3>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-base text-ink-soft">
             {materialUnknowns.map((item) => <li key={item.path}><strong className="text-ink">{item.label}:</strong> {item.whyItMatters}</li>)}
           </ul>
         </div>
@@ -533,7 +563,13 @@ function AssessmentResult({
         </div>
       ) : null}
 
-      <div className="mt-7 overflow-x-auto rounded-2xl border border-line bg-white">
+      <p className="mt-7 text-sm text-ink-soft lg:hidden" aria-hidden="true">The table below scrolls sideways.</p>
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Current and later phases — scrolls sideways"
+        className="mt-2 overflow-x-auto rounded-2xl border border-line bg-white lg:mt-7"
+      >
         <table className="w-full min-w-[42rem] text-left text-sm">
           <caption className="px-5 pt-5 text-left text-xl font-semibold text-ink">Current and later phases</caption>
           <thead className="text-ink-soft">
@@ -712,8 +748,8 @@ function ResidenceField({ id, label, value, onChange }: { id: string; label: str
 function SelectField({ id, label, value, options, onChange }: { id: string; label: string; value: string; options: Array<[string, string]>; onChange: (value: string) => void }) {
   return (
     <label htmlFor={id} className="block">
-      <span className="block text-sm font-medium text-ink">{label}</span>
-      <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-gray-500 bg-white px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+      <span className="block text-base font-medium text-ink">{label}</span>
+      <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-ink-soft bg-white px-3 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {options.map(([option, text]) => <option key={option} value={option}>{text}</option>)}
       </select>
     </label>
@@ -724,8 +760,8 @@ function MoneyField({ id, label, value, error, onChange }: { id: keyof FormState
   const errorId = `${id}-error`;
   return (
     <label htmlFor={id} className="block">
-      <span className="block text-sm font-medium text-ink">{label}</span>
-      <input id={id} value={value} onChange={(event) => onChange(event.target.value)} inputMode="decimal" placeholder="£0" aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} className="mt-2 h-11 w-full rounded-xl border border-gray-500 bg-white px-3 text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
+      <span className="block text-base font-medium text-ink">{label}</span>
+      <input id={id} value={value} onChange={(event) => onChange(event.target.value)} inputMode="decimal" placeholder="£0" aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} className="mt-2 h-11 w-full rounded-xl border border-ink-soft bg-white px-3 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
       {error ? <span id={errorId} className="mt-1 block text-sm text-red-700">{error}</span> : null}
     </label>
   );
@@ -735,8 +771,8 @@ function DateField({ id, label, value, error, onChange }: { id: keyof FormState;
   const errorId = `${id}-error`;
   return (
     <label htmlFor={id} className="block">
-      <span className="block text-sm font-medium text-ink">{label}</span>
-      <input id={id} type="date" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} className="mt-2 h-11 w-full rounded-xl border border-gray-500 bg-white px-3 text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
+      <span className="block text-base font-medium text-ink">{label}</span>
+      <input id={id} type="date" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined} className="mt-2 h-11 w-full rounded-xl border border-ink-soft bg-white px-3 text-base text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
       {error ? <span id={errorId} className="mt-1 block text-sm text-red-700">{error}</span> : null}
     </label>
   );

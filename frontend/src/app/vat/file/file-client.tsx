@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle } from "lucide-react";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,10 +38,17 @@ export default function FileClient() {
       .then((data) => {
         const match = (data.obligations ?? []).find((o) => o.periodKey === periodKey);
         if (match) setObligation(match);
-        else setLoadError("That period isn't open for this entity — check the cockpit.");
+        else
+          setLoadError(
+            "That period isn't open for this business — go back to your VAT home and pick again."
+          );
       })
       .catch((e) =>
-        setLoadError(e instanceof ApiError ? e.message : "Could not reach the api.")
+        setLoadError(
+          e instanceof ApiError
+            ? e.message
+            : "We can't reach our server right now — nothing was lost. Try again in a minute."
+        )
       )
       .finally(() => setLoading(false));
   }, [entityId, periodKey]);
@@ -53,7 +61,7 @@ export default function FileClient() {
           <AlertDescription>
             Pick a period from your{" "}
             <Link className="underline" href={entityId ? `/vat/?e=${entityId}` : "/vat/"}>
-              cockpit
+              VAT home
             </Link>
             .
           </AlertDescription>
@@ -70,12 +78,14 @@ export default function FileClient() {
       setReceipt(result.submission);
     } catch (e) {
       if (e instanceof ApiError && e.code === "already_filed") {
-        setSubmitError("This period is already filed — its receipt is on the cockpit.");
+        setSubmitError(
+          "This period is already filed — its receipt is on your VAT home page. Nothing was sent twice."
+        );
       } else if (e instanceof ApiError) {
         setSubmitError(e.message);
       } else {
         setSubmitError(
-          "We can't confirm whether it went through. Go back to the cockpit and refresh before trying again."
+          "We can't confirm whether it went through. Go back to your VAT home and refresh — check for a receipt before trying again."
         );
       }
     } finally {
@@ -94,33 +104,46 @@ export default function FileClient() {
             </CardTitle>
             <CardDescription>
               HMRC accepted the return for {formatPeriod(obligation?.start ?? "", obligation?.end ?? "")}.
-              The receipt is saved with this entity — you&apos;ll find it on the cockpit.
+              The receipt is saved with this business — you&apos;ll find it on your VAT home page.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <ReceiptLine label="Period" value={receipt.period_key} />
+          <CardContent className="space-y-2 text-base">
+            <ReceiptLine
+              label="Period"
+              value={
+                obligation
+                  ? `${formatPeriod(obligation.start, obligation.end)} (HMRC code ${receipt.period_key})`
+                  : `HMRC period code ${receipt.period_key}`
+              }
+            />
             <ReceiptLine label="Processed" value={receipt.receipt.processingDate ? formatDate(receipt.receipt.processingDate) : "—"} />
-            <ReceiptLine label="Form bundle" value={receipt.receipt.formBundleNumber ?? "—"} />
+            <ReceiptLine
+              label="HMRC's reference number (keep this)"
+              value={receipt.receipt.formBundleNumber ?? "—"}
+            />
             {receipt.receipt.chargeRefNumber && (
-              <ReceiptLine label="Charge reference" value={receipt.receipt.chargeRefNumber} />
+              <ReceiptLine
+                label="HMRC's payment reference (keep this)"
+                value={receipt.receipt.chargeRefNumber}
+              />
             )}
             <div className="pt-2">
               <Badge variant="outline">{receipt.hmrc_env}</Badge>
               {receipt.hmrc_env === "sandbox" && (
                 <span className="ml-2 text-ink-soft">
-                  practice money — the production rail arrives with HMRC&apos;s approval
+                  practice money — real filing arrives with HMRC&apos;s approval
                 </span>
               )}
             </div>
             <div className="pt-4">
               <Button asChild>
-                <Link href={`/vat/?e=${entityId}`}>Back to the cockpit</Link>
+                <Link href={`/vat/?e=${entityId}`}>Back to your VAT home</Link>
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : loading ? (
-        <p className="text-sm text-ink-soft">Loading the period…</p>
+        <p className="text-base text-ink-soft">Loading the period…</p>
       ) : loadError ? (
         <Alert>
           <AlertTitle>Can&apos;t file just now</AlertTitle>
@@ -129,10 +152,10 @@ export default function FileClient() {
       ) : obligation ? (
         <>
           {rail?.env === "sandbox" && (
-            <p className="mb-6 text-sm text-ink-soft">
+            <p className="mb-6 text-base text-ink-soft">
               <Badge variant="outline">sandbox</Badge>{" "}
-              This files to HMRC&apos;s test environment — the real motions,
-              practice money.
+              This files to HMRC&apos;s test system (the sandbox) — the real steps, practice
+              money.
             </p>
           )}
           {submitError && (
@@ -158,17 +181,26 @@ export default function FileClient() {
 function Shell({ entityId, children }: { entityId: string | null; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <Breadcrumbs
+        items={[
+          { href: "/tools", label: "Do my tax" },
+          { href: "/vat", label: "VAT" },
+        ]}
+        current="File a return"
+        className="mb-4"
+      />
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-ink">File a VAT return</h1>
-          <p className="text-sm text-ink-soft">
-            Review, consent, file — a receipt or nothing.
+          <p className="text-base text-ink-soft">
+            Check the figures, tick to confirm, then send. You&apos;ll either get a receipt
+            from HM Revenue &amp; Customs (HMRC) or a clear message that nothing was sent.
           </p>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href={entityId ? `/vat/?e=${entityId}` : "/vat/"}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Cockpit
+            <ArrowLeft aria-hidden="true" className="mr-2 h-4 w-4" />
+            Your VAT home
           </Link>
         </Button>
       </div>

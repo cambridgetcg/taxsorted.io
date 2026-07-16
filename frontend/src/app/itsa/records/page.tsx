@@ -6,7 +6,7 @@ import RecordsClient from "./records-client";
 export const metadata: Metadata = {
   title: "Your records — Making Tax Digital for Income Tax | TaxSorted",
   description:
-    "A local-first ledger for self-employment and UK property income and expenses, sorted into HMRC's own MTD categories. Nothing here leaves your browser.",
+    "Keep self-employment and UK property income and expenses in your own browser, sorted into HMRC's own MTD categories. Nothing here leaves your device.",
 };
 
 export default function RecordsPage() {

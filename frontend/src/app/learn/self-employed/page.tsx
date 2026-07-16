@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { configFor, categoriesFor } from "@taxsorted/engine/uk/itsa";
 import { Cited } from "@/components/prep/cited";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { gbpCompact, formatUkDate } from "@/lib/format";
 
 // i18n: deferred to M2 — plain English for launch
@@ -19,19 +20,17 @@ export default function SelfEmployedGuide() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/learn" className="text-sm text-accent hover:text-accent-deep">
-        ← All guides
-      </Link>
+      <Breadcrumbs items={[{ href: "/learn", label: "Learn" }]} current="Self-employed" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Self-employed</h1>
-      <p className="mt-3 text-ink-soft">
-        Running your own business for the 2026-27 tax year: what&apos;s tax-free, what National
-        Insurance you actually owe, and what Making Tax Digital changes.
+      <p className="mt-3 text-base text-ink-soft">
+        This guide shows what tax you pay on your own business in 2026-27: what&apos;s tax-free,
+        what National Insurance you actually owe, and what Making Tax Digital changes.
       </p>
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-ink">What it means</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Trading profit — turnover less allowable expenses — is taxed as income through Self
           Assessment, alongside Class 4 and Class 2 National Insurance. There&apos;s no separate
           &ldquo;self-employment tax&rdquo;: it&apos;s the same Income Tax bands as everyone else, plus these
@@ -41,7 +40,7 @@ export default function SelfEmployedGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you must do</h2>
-        <ul className="mt-2 space-y-3 text-sm text-ink-soft">
+        <ul className="mt-2 space-y-3 text-base text-ink-soft">
           <li>
             <Cited cite={config.tradingAllowance}>
               The {gbpCompact(config.tradingAllowance.value)} trading allowance shelters small
@@ -88,7 +87,7 @@ export default function SelfEmployedGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you can safely skip</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           <Cited cite={config.tradingAllowance}>
             If your gross trading income is at or below the {gbpCompact(config.tradingAllowance.value)}{" "}
             trading allowance
@@ -101,11 +100,11 @@ export default function SelfEmployedGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">How to optimise: simplified expenses</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Simplified expenses swap actual costs for a flat rate, so you don&apos;t need to keep
           every receipt:
         </p>
-        <ul className="mt-2 space-y-3 text-sm text-ink-soft">
+        <ul className="mt-2 space-y-3 text-base text-ink-soft">
           <li>
             <Cited cite={config.mileageFirst10k}>
               Mileage: {config.mileageFirst10k.value}p per mile for the first 10,000 business
@@ -157,7 +156,7 @@ export default function SelfEmployedGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">The MTD timeline</h2>
-        <p className="mt-2 text-sm text-ink">
+        <p className="mt-2 text-base text-ink">
           <Cited cite={config.mtdThresholds}>
             Self-employment and UK property income together are what&apos;s measured for Making
             Tax Digital for Income Tax — mandation starts from{" "}
@@ -177,16 +176,20 @@ export default function SelfEmployedGuide() {
       </section>
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">MTD self-employment categories</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Once mandated, each quarterly update reports totals against these HMRC categories — the
+        <h2 className="text-lg font-semibold text-ink">Making Tax Digital categories</h2>
+        <p className="mt-2 text-base text-ink-soft">
+          Once the rules apply to you, each{" "}
+          <Link href="/learn/mtd-income-tax" className="text-accent underline hover:text-accent-deep">
+            quarterly update
+          </Link>{" "}
+          reports totals against the {seCategories.length} boxes HMRC wants — the
           same fields our{" "}
           <Link href="/itsa/records" className="text-accent underline hover:text-accent-deep">
             records tool
           </Link>{" "}
           sorts into:
         </p>
-        <ul className="mt-2 grid gap-x-6 gap-y-1 text-sm text-ink-soft sm:grid-cols-2">
+        <ul className="mt-2 grid gap-x-6 gap-y-1 text-base text-ink-soft sm:grid-cols-2">
           {seCategories.map((c) => (
             <li key={c.key}>{c.label}</li>
           ))}
@@ -195,7 +198,7 @@ export default function SelfEmployedGuide() {
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-ink">Related guides</h2>
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="mt-2 space-y-1 text-base">
           <li>
             <Link href="/learn/income-tax" className="text-accent underline hover:text-accent-deep">
               Income Tax — bands, allowances, Self Assessment

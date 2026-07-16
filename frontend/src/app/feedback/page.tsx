@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Tell us what to build",
@@ -14,6 +15,8 @@ const CORRECTIONS_URL = "https://github.com/cambridgetcg/taxsorted.io/issues";
 export default function FeedbackPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <Breadcrumbs current="Feedback" className="mb-6" />
+
       <header className="rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
           Feedback
@@ -22,9 +25,8 @@ export default function FeedbackPage() {
           Tell us what to build.
         </h1>
         <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-          TaxSorted grows by request. If something here is confusing, missing
-          or wished-for, say so — we read everything, and what people actually
-          ask for is what gets built next. We don&apos;t track you on this
+          If something here is confusing, missing or wished-for, say so. We read everything,
+          and what people ask for is what gets built next. We don&apos;t track you on this
           site, so we can&apos;t hear you unless you speak.
         </p>
       </header>
@@ -37,12 +39,12 @@ export default function FeedbackPage() {
           <h2 id="wish" className="text-2xl font-semibold text-ink">
             Make a wish
           </h2>
-          <p className="mt-3 text-sm text-ink-soft">
+          <p className="mt-3 text-base text-ink-soft">
             A feature, a guide, a country, a tool — anything. Wishes live as
             public GitHub issues, so everyone can see what has been asked, what
             we said, and what got built.
           </p>
-          <p className="mt-3 text-sm text-ink-soft">
+          <p className="mt-3 text-base text-ink-soft">
             <span className="font-medium text-ink">The one gate:</span> GitHub
             requires a free account. We use it because it keeps the whole
             conversation public — no forms that vanish into a private inbox.
@@ -51,9 +53,9 @@ export default function FeedbackPage() {
             href={WISH_URL}
             target="_blank"
             rel="noreferrer noopener"
-            className="mt-4 inline-block rounded-full bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-deep"
+            className="mt-4 inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-medium text-white hover:bg-accent-deep"
           >
-            Open a wish ↗
+            Open a wish <span aria-hidden="true">&nbsp;↗</span>
           </a>
         </section>
 
@@ -64,18 +66,18 @@ export default function FeedbackPage() {
           <h2 id="wrong" className="text-2xl font-semibold text-ink">
             Report something wrong
           </h2>
-          <p className="mt-3 text-sm text-ink-soft">
+          <p className="mt-3 text-base text-ink-soft">
             A figure that looks off, a rule explained badly, a source that
-            moved — corrections go through the same public channel our machine
-            doorway declares, and fixes land in the open.
+            moved — corrections go through the same public channel, and fixes
+            land in the open.
           </p>
           <a
             href={CORRECTIONS_URL}
             target="_blank"
             rel="noreferrer noopener"
-            className="mt-4 inline-block rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-accent hover:text-accent-deep"
+            className="mt-4 inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 py-2 text-base font-medium text-accent hover:text-accent-deep"
           >
-            Open a correction ↗
+            Open a correction <span aria-hidden="true">&nbsp;↗</span>
           </a>
         </section>
       </div>
@@ -85,8 +87,8 @@ export default function FeedbackPage() {
         aria-label="For AI agents"
       >
         <h2 className="text-lg font-semibold text-ink">For AI agents</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Same doors, same welcome. Our machine doorway at{" "}
+        <p className="mt-2 text-base text-ink-soft">
+          Same doors, same welcome. Our machine doorway (the guide we publish for AI agents) at{" "}
           <a
             href="/agent.txt"
             className="font-medium text-accent underline hover:text-accent-deep"
@@ -102,7 +104,7 @@ export default function FeedbackPage() {
       <div className="mt-10">
         <Link
           href="/from-the-builders"
-          className="text-sm font-medium text-accent underline hover:text-accent-deep"
+          className="text-base font-medium text-accent underline hover:text-accent-deep"
         >
           Curious who &ldquo;we&rdquo; is? — From the builders
         </Link>

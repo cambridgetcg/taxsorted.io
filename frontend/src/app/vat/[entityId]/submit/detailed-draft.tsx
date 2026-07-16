@@ -272,14 +272,14 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           Detailed local calculation
         </p>
         <h2 className="mt-2 text-xl font-semibold text-ink">Build a nine-box example</h2>
-        <p className="mt-2 text-sm leading-6 text-ink-soft">
-          {formatPeriod(obligation.start, obligation.end)} · fictional due date {formatDate(obligation.due)}.
-          Enter figures already established from records; this screen does not decide VAT treatment.
+        <p className="mt-2 text-base leading-6 text-ink-soft">
+          {formatPeriod(obligation.start, obligation.end)} · example due date {formatDate(obligation.due)}.
+          Enter figures you&apos;ve already worked out from your records — this screen
+          doesn&apos;t decide VAT treatment for you.
         </p>
-        <p className="mt-4 rounded-lg bg-accent-soft p-3 text-sm leading-6 text-ink">
-          This example follows the engine&apos;s existing non-negative input boundary. Negative
-          adjustments are not interpreted here; use suitable records or software for them.
-          Check HMRC&apos;s{" "}
+        <p className="mt-4 rounded-lg bg-accent-soft p-3 text-base leading-6 text-ink">
+          This calculator only takes positive numbers. If you need to enter a minus figure,
+          use your accounting software instead. Check HMRC&apos;s{" "}
           <a
             href="https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012"
             target="_blank"
@@ -361,10 +361,10 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           <h2 id="detailed-estimate-heading" className="mt-2 text-xl font-semibold text-ink">
             {presentation.headline}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-ink-soft">{presentation.detail}</p>
+          <p className="mt-2 text-base leading-6 text-ink-soft">{presentation.detail}</p>
         </section>
       ) : (
-        <p className="rounded-lg border border-line bg-accent-soft p-4 text-sm leading-6 text-ink">
+        <p className="rounded-lg border border-line bg-accent-soft p-4 text-base leading-6 text-ink">
           Enter an explicit figure or 0 in every editable box before this example shows an estimate.
         </p>
       )}
@@ -386,7 +386,7 @@ export function DetailedDraft({ obligation, onComplete }: DetailedDraftProps) {
           aria-describedby={errors.finalised ? "detailed-confirm-error" : undefined}
           className="mt-1 h-4 w-4 accent-accent"
         />
-        <span className="text-sm leading-6 text-ink">
+        <span className="text-base leading-6 text-ink">
           I checked these example figures against my records. This confirmation completes a
           browser-only calculation; it does not save or send a return.
           {errors.finalised ? (
@@ -431,7 +431,7 @@ function DraftField({
       <label htmlFor={id} className="font-medium text-ink">
         {definition.label} <span className="text-ink-soft">(Box {definition.box})</span>
       </label>
-      <p id={helpId} className="mt-1 text-sm leading-6 text-ink-soft">
+      <p id={helpId} className="mt-1 text-base leading-6 text-ink-soft">
         {definition.help}
       </p>
       <div className="relative mt-2">
@@ -456,7 +456,7 @@ function DraftField({
         />
       </div>
       {error ? (
-        <p id={errorId} className="mt-1 text-sm text-red-700">
+        <p id={errorId} className="mt-1 text-base text-red-700">
           {error}
         </p>
       ) : null}

@@ -5,19 +5,19 @@ import { describe, expect, it } from "vitest";
 import VATPortalPage from "../vat-page-client";
 
 describe("legacy VAT workspace", () => {
-  it("presents fixed data as fictional and points separately to the real cockpit", () => {
+  it("presents fixed data as a worked example and points separately to the real VAT home", () => {
     const { container } = render(<VATPortalPage entityId="ent_001" />);
 
     expect(
-      screen.getByRole("complementary", { name: "Fictional VAT workspace" }),
-    ).toHaveTextContent(/not an account.*no HMRC connection.*cannot save or file/i);
+      screen.getByRole("complementary", { name: "A worked example" }),
+    ).toHaveTextContent(/not an account.*no connection to HM Revenue.*cannot save or file/i);
     expect(screen.queryByRole("button", { name: /refresh|connect|disconnect/i })).toBeNull();
     expect(screen.queryByText(/^file a vat return$/i)).toBeNull();
-    expect(screen.getByRole("link", { name: /open fictional draft/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /open the example draft/i })).toHaveAttribute(
       "href",
       "/vat/ent_001/submit?period=26A2",
     );
-    expect(screen.getByRole("link", { name: /open the real vat cockpit/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /go to your real vat home/i })).toHaveAttribute(
       "href",
       "/vat",
     );

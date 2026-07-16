@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Seven doors, each with a distinct plain meaning — no two labels
+// should sound like the same thing to a first-time reader.
 const doors = [
-  { href: "/uk/politics", label: "Overview" },
-  { href: "/uk/politics/system", label: "System" },
+  { href: "/uk/politics", label: "Start" },
+  { href: "/uk/politics/system", label: "How power works" },
   { href: "/uk/politics/stand", label: "Stand for office" },
-  { href: "/uk/politics/integrity", label: "Money & power" },
-  { href: "/uk/politics/people", label: "People & offices" },
-  { href: "/uk/politics/funding", label: "Funding" },
-  { href: "/uk/politics/api", label: "Data API" },
-  { href: "/uk/politics/method", label: "Method" },
+  { href: "/uk/politics/integrity", label: "Police & public money" },
+  { href: "/uk/politics/people", label: "Your MP" },
+  { href: "/uk/politics/funding", label: "Party donations" },
+  { href: "/uk/politics/api", label: "For developers" },
+  { href: "/uk/politics/method", label: "Our rules" },
 ];
 
 export function PoliticsNav() {
@@ -27,7 +29,7 @@ export function PoliticsNav() {
             key={door.href}
             href={door.href}
             aria-current={active ? "page" : undefined}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${active ? "border-accent bg-accent text-white" : "border-line bg-white text-ink hover:border-accent hover:bg-accent-soft"}`}
+            className={`inline-flex min-h-11 items-center rounded-full border px-4 text-base font-medium transition-colors ${active ? "border-accent bg-accent text-white" : "border-line bg-white text-ink hover:border-accent hover:bg-accent-soft"}`}
           >
             {door.label}
           </Link>

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import CockpitClient from "../cockpit-client";
+import VatCockpitPage from "../page";
 
 const apiMocks = vi.hoisted(() => ({
   railStatus: vi.fn(),
@@ -27,14 +27,19 @@ describe("VAT cockpit boundary", () => {
   });
 
   it("labels the workspace and receipts as practice before recognition", async () => {
-    render(<CockpitClient />);
+    // The heading and the practice disclaimer live in the server-rendered
+    // shell (page.tsx) so they exist before JavaScript loads.
+    render(<VatCockpitPage />);
 
-    expect(screen.getByRole("heading", { name: "VAT sandbox workspace" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /VAT — your records, your return/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/production filing is not available yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/HMRC's practice\s+system/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Tax Checkup/i })).toHaveAttribute(
       "href",
       "/checkup",
     );
-    expect(await screen.findByText(/HMRC's test environment/i)).toBeInTheDocument();
+    expect(await screen.findByText(/HMRC's test system/i)).toBeInTheDocument();
   });
 });

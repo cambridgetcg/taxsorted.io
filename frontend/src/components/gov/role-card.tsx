@@ -48,20 +48,21 @@ export function RoleCard({ role, today }: RoleCardProps) {
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-sm text-ink-soft">{role.whatTheyDo}</p>
+      <p className="mt-1 text-base text-ink-soft">{role.whatTheyDo}</p>
       {role.holder ? (
-        <p className="mt-2 text-xs text-ink-soft">
+        <p className="mt-2 text-sm text-ink-soft">
           {role.holder.name} — as of {role.holder.asOf}
         </p>
       ) : null}
-      {role.contactRoute ? <p className="mt-2 text-sm text-ink">{role.contactRoute}</p> : null}
+      {role.contactRoute ? <p className="mt-2 text-base text-ink">{role.contactRoute}</p> : null}
       <a
         href={linkUrl}
         target="_blank"
         rel="noreferrer noopener"
-        className="mt-2 inline-block text-sm font-medium text-accent underline hover:text-accent-deep"
+        className="mt-1 inline-flex min-h-11 items-center text-base font-medium text-accent underline hover:text-accent-deep"
       >
         {linkLabel}
+        <span className="sr-only"> (opens in a new tab)</span>
       </a>
     </div>
   );

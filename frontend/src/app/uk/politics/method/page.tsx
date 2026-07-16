@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ShortVersion } from "@/components/ui/short-version";
 import { PoliticsNav } from "@/components/politics/politics-nav";
 
 export const metadata: Metadata = {
@@ -33,12 +35,20 @@ const excluded = [
 export default function PoliticsMethodPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <Breadcrumbs
+        items={[
+          { href: "/uk", label: "The UK system" },
+          { href: "/uk/politics", label: "UK politics" },
+        ]}
+        current="Our rules"
+        className="mb-4"
+      />
       <PoliticsNav />
 
       <header className="mt-8 rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-10">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">Publishing method</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">Our publishing rules</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-          Public means accountable. It does not mean boundaryless.
+          How we publish this data — and where we stop.
         </h1>
         <p className="mt-5 max-w-3xl text-lg text-ink-soft">
           TaxSorted maps source-linked records that public bodies publish. Dataset records carry
@@ -47,25 +57,34 @@ export default function PoliticsMethodPage() {
         </p>
       </header>
 
+      <ShortVersion className="mt-6">
+        <li>We only show what official bodies publish, with a source on every claim.</li>
+        <li>Private addresses, guessed links and personality claims never appear.</li>
+        <li>Some fields stay off until privacy and licence checks are approved.</li>
+      </ShortVersion>
+
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         <section className="rounded-3xl border border-line bg-white p-6" aria-labelledby="included">
-          <h2 id="included" className="text-2xl font-semibold text-ink">What the prepared layer contains</h2>
-          <ul className="mt-4 space-y-3 text-sm text-ink-soft">
-            {included.map((item) => <li key={item}>✓ {item}</li>)}
+          <h2 id="included" className="text-2xl font-semibold text-ink">What we publish</h2>
+          <ul className="mt-4 space-y-3 text-base text-ink-soft">
+            {included.map((item) => <li key={item}><span aria-hidden="true">✓</span> {item}</li>)}
           </ul>
         </section>
         <section className="rounded-3xl border border-line bg-white p-6" aria-labelledby="excluded">
           <h2 id="excluded" className="text-2xl font-semibold text-ink">What stays out</h2>
-          <ul className="mt-4 space-y-3 text-sm text-ink-soft">
-            {excluded.map((item) => <li key={item}>— {item}</li>)}
+          <ul className="mt-4 space-y-3 text-base text-ink-soft">
+            {excluded.map((item) => <li key={item}><span aria-hidden="true">—</span> {item}</li>)}
           </ul>
         </section>
       </div>
 
       <section className="mt-6 rounded-3xl border border-line bg-paper p-6" aria-labelledby="pending-fields">
         <h2 id="pending-fields" className="text-2xl font-semibold text-ink">Fields still waiting for a decision</h2>
-        <ul className="mt-4 grid gap-3 text-sm text-ink-soft md:grid-cols-2">
-          {pending.map((item) => <li key={item}>○ {item}</li>)}
+        <p className="mt-2 max-w-3xl text-base text-ink-soft">
+          Article 9 is the UK GDPR rule that gives extra protection to political-opinion data.
+        </p>
+        <ul className="mt-4 grid gap-3 text-base text-ink-soft md:grid-cols-2">
+          {pending.map((item) => <li key={item}><span aria-hidden="true">○</span> {item}</li>)}
         </ul>
       </section>
 
@@ -82,64 +101,67 @@ export default function PoliticsMethodPage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <a
             href="https://members.parliament.uk/members/commons"
-            className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-accent"
+            className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base font-medium text-accent"
           >
             UK Parliament members
           </a>
           <a
             href="https://search.electoralcommission.org.uk/"
-            className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-accent"
+            className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base font-medium text-accent"
           >
             Electoral Commission records
           </a>
           <Link
             href="/uk/politics/api"
-            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 text-base font-medium text-white"
           >
             Read the API contract
           </Link>
           <a
             href="https://github.com/cambridgetcg/taxsorted.io/issues"
-            className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-accent"
+            className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-base font-medium text-accent"
           >
             Public issue tracker
           </a>
         </div>
       </section>
 
-      <section className="mt-8 border-t border-line pt-6 text-sm text-ink-soft" aria-labelledby="coverage">
+      <section className="mt-8 border-t border-line pt-6 text-base text-ink-soft" aria-labelledby="coverage">
         <h2 id="coverage" className="font-semibold text-ink">Coverage, honestly</h2>
         <p className="mt-2">
           The first prepared layer covers Westminster: current Commons and Lords members and
-          Parliamentary posts. Party donations have their own licence gate. Devolved legislatures,
-          local government, party officers,
-          special advisers, lobbying records and ministerial meetings need separate official feeds.
-          Their official source lanes are mapped, but they are not silently treated as normalized
-          or complete here.
+          Parliamentary posts. Party donations have their own licence gate. Devolved legislatures
+          (Scotland, Wales and Northern Ireland), local government, party officers, special
+          advisers, lobbying records and ministerial meetings need separate official feeds. Their
+          official source lanes are mapped, but they are not silently treated as normalized or
+          complete here.
         </p>
       </section>
 
-      <section className="mt-8 rounded-3xl border border-line bg-paper p-6 text-sm text-ink-soft" aria-labelledby="formal-power-method">
+      <section className="mt-8 rounded-3xl border border-line bg-paper p-6 text-base text-ink-soft" aria-labelledby="formal-power-method">
         <h2 id="formal-power-method" className="text-xl font-semibold text-ink">The power number rates an office, not a human</h2>
         <p className="mt-3">
-          Six sourced dimensions—executive, law-making, oversight, enforcement, public money and
-          appointments—are each scored from 0 to 5 under a published rubric. Jurisdiction and legal
-          limits sit beside the result. Several offices held by one person are never added, and no
-          funding, meeting, interest or corporate relationship changes the number.
+          Six sourced dimensions — executive, law-making, oversight, enforcement, public money and
+          appointments — are each scored from 0 to 5 under a published rubric (a fixed scoring
+          guide). Jurisdiction and legal limits sit beside the result. Several offices held by one
+          person are never added, and no funding, meeting, interest or corporate relationship
+          changes the number.
         </p>
         <p className="mt-3">
-          The first calibrations are explicitly provisional. A method change creates a new version;
-          a legal change creates a new dated assessment, so history does not get silently rewritten.
+          The first calibrations are explicitly provisional — early scores that may still move. A
+          method change creates a new version; a legal change creates a new dated assessment, so
+          history does not get silently rewritten.
         </p>
       </section>
 
-      <section className="mt-8 rounded-3xl border border-line bg-white p-6 text-sm text-ink-soft" aria-labelledby="launch-gate">
+      <section className="mt-8 rounded-3xl border border-line bg-white p-6 text-base text-ink-soft" aria-labelledby="launch-gate">
         <h2 id="launch-gate" className="text-xl font-semibold text-ink">The production gate</h2>
         <p className="mt-3">
           Publicly visible personal data is still personal data. Before this directory is switched
-          on in production, TaxSorted needs a written legitimate-interests assessment, an Article 9
-          condition for political-affiliation fields, a data-protection impact assessment and a
-          clear privacy/correction notice. Building the source-safe software does not replace that
+          on in production, TaxSorted needs a written legitimate-interests assessment (a documented
+          check that our reasons outweigh the privacy risk), an Article 9 condition for
+          political-affiliation fields, a data-protection impact assessment (DPIA) and a clear
+          privacy and correction notice. Building the source-safe software does not replace that
           decision.
         </p>
         <p className="mt-3">
@@ -149,7 +171,7 @@ export default function PoliticsMethodPage() {
         </p>
         <p className="mt-3">
           The Electoral Commission publishes party-finance downloads, but its Political Finance
-          Online database does not currently state blanket bulk-reuse terms. TaxSorted links to the
+          Online database does not currently state general bulk-reuse terms. TaxSorted links to the
           official record and keeps its donation feed off until the Commission confirms the reuse
           and attribution terms in writing.
         </p>

@@ -41,9 +41,10 @@ describe("UK public-funding page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /follow the authority, not an imaginary labelled pound/i,
+        name: /where your tax money goes/i,
       }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /the short version/i })).toBeInTheDocument();
     expect(screen.getByText(/most tax joins a pool before a service gets a budget/i)).toBeInTheDocument();
     expect(screen.getByText(/no invented journey for an individual tax payment/i)).toBeInTheDocument();
     expect(
@@ -64,8 +65,12 @@ describe("UK public-funding page", () => {
     expect(stages).toHaveLength(7);
     expect(within(facts[0]).getByRole("heading", { name: "Budget" })).toBeInTheDocument();
     expect(within(facts[5]).getByRole("heading", { name: "Outturn" })).toBeInTheDocument();
-    expect(screen.getByText(/fy 2026-27 runs from april to march/i)).toBeInTheDocument();
-    expect(screen.getByText(/ay 2026\/27 follows a teaching cycle/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/financial year \(fy 2026-27\) runs from april to march/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/academic year \(ay 2026\/27\) follows a teaching cycle/i),
+    ).toBeInTheDocument();
   });
 
   it("shows representative money records without making a total or ranking", () => {
@@ -95,7 +100,9 @@ describe("UK public-funding page", () => {
         `${apiBase}/allocations/${allocation!.id}`,
       );
     }
-    expect(screen.getByRole("heading", { name: /six boundaries. no grand total/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /six real examples of published amounts/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/they are not a league table, are not like-for-like/i)).toBeInTheDocument();
     expect(screen.getByText(/nation, service scope, status and accounting basis differ/i)).toBeInTheDocument();
   });

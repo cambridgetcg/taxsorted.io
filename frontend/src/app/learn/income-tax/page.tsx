@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { configFor } from "@taxsorted/engine/uk/itsa";
 import { Cited } from "@/components/prep/cited";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { gbpCompact } from "@/lib/format";
 
 // i18n: deferred to M2 — plain English for launch
@@ -27,30 +28,28 @@ export default function IncomeTaxGuide() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Link href="/learn" className="text-sm text-accent hover:text-accent-deep">
-        ← All guides
-      </Link>
+      <Breadcrumbs items={[{ href: "/learn", label: "Learn" }]} current="Income Tax" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Income Tax</h1>
-      <p className="mt-3 text-ink-soft">
-        Bands, allowances, how PAYE works, and Self Assessment — for the 2026-27 tax year, every
-        figure cited to its source.
+      <p className="mt-3 text-base text-ink-soft">
+        This guide shows how much Income Tax you pay in 2026-27, and what you must do about it.
+        Every figure links to its official source.
       </p>
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-ink">What it means</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Income Tax is charged on your earnings above your Personal Allowance. If you&apos;re
-          employed, it&apos;s deducted from your pay through PAYE before you receive it. If
-          you&apos;re self-employed or have other untaxed income, you report it and pay it through
-          Self Assessment.
+          employed, it&apos;s taken from your pay through Pay As You Earn (PAYE) before you
+          receive it. If you&apos;re self-employed or have other untaxed income, you report and
+          pay it through Self Assessment.
         </p>
       </section>
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Bands and rates, 2026-27</h2>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-full text-left text-sm">
+          <table className="w-full min-w-full text-left text-base">
             <thead>
               <tr className="border-b border-line text-ink-soft">
                 <th className="py-2 pr-4 font-medium">Band</th>
@@ -96,7 +95,7 @@ export default function IncomeTaxGuide() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-base text-ink-soft">
           Scotland has different bands and rates — see{" "}
           <a
             href={SCOTTISH_URL}
@@ -104,7 +103,8 @@ export default function IncomeTaxGuide() {
             rel="noreferrer noopener"
             className="text-accent underline hover:text-accent-deep"
           >
-            gov.uk/scottish-income-tax
+            Scottish Income Tax on GOV.UK
+            <span className="sr-only"> (opens in a new tab)</span>
           </a>
           .
         </p>
@@ -112,44 +112,49 @@ export default function IncomeTaxGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">The taper trap</h2>
-        <p className="mt-2 text-sm text-ink">
+        <p className="mt-2 text-base text-ink">
           <Cited cite={config.paTaperThreshold}>
-            Your Personal Allowance shrinks once your adjusted net income passes{" "}
-            {gbpCompact(config.paTaperThreshold.value)}: {config.paTaperThreshold.note}
+            Your Personal Allowance shrinks once your adjusted net income — your income after
+            certain deductions — passes {gbpCompact(config.paTaperThreshold.value)}:{" "}
+            {config.paTaperThreshold.note}
           </Cited>
-          , reaching £0 at {gbpCompact(taperZeroPoint)}. Inside that band, an extra £1 of income
-          costs you{" "}
-          <Cited cite={config.higherRate}>{(trapRate * 100).toFixed(0)}%</Cited> in combined
-          tax — higher rate tax on the £1 itself, plus higher rate tax on the sliver of
-          allowance it costs you.
+          . It reaches £0 at {gbpCompact(taperZeroPoint)}.
+        </p>
+        <p className="mt-3 text-base text-ink">
+          Inside that band, each extra £1 is taxed at the higher rate — and it also shrinks your
+          tax-free allowance. Together that takes{" "}
+          <Cited cite={config.higherRate}>{(trapRate * 100).toFixed(0)}%</Cited>. Plainly: earn
+          £1 over {gbpCompact(config.paTaperThreshold.value)}, keep{" "}
+          {(100 - trapRate * 100).toFixed(0)}p of it.
         </p>
       </section>
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you must do</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           If you&apos;re employed with one job: nothing extra — PAYE handles it. Your tax code
           tells your employer how much pay is tax-free; the standard code for 2026-27 is{" "}
           <Cited cite={config.personalAllowance}>{taxCodeNumber}L</Cited> (the Personal Allowance,
-          divided by ten, plus a letter). If you&apos;re self-employed, or your trading or
-          property income is above the relevant allowance below, you must register and file a
-          Self Assessment return.
+          divided by ten, plus a letter).
         </p>
-        <p className="mt-3 text-sm text-ink-soft">
-          Register with HMRC by 5 October after the end of the tax year you need to report; file
-          and pay by the following 31 January. See{" "}
+        <p className="mt-3 text-base text-ink-soft">
+          If you&apos;re self-employed, or your trading or property income is above the relevant
+          allowance below, you must register and file a Self Assessment return. Register with
+          HMRC by 5 October after the end of the tax year you need to report; file and pay by
+          the following 31 January. See{" "}
           <a
             href={REGISTER_URL}
             target="_blank"
             rel="noreferrer noopener"
             className="text-accent underline hover:text-accent-deep"
           >
-            gov.uk/register-for-self-assessment
+            how to register for Self Assessment on GOV.UK
+            <span className="sr-only"> (opens in a new tab)</span>
           </a>
-          . If you&apos;re mandated onto Making Tax Digital for Income Tax, the deadlines and
-          penalty position are different in detail —{" "}
+          . If the Making Tax Digital rules apply to you, the deadlines and penalties differ in
+          detail —{" "}
           <Link href="/learn/mtd-income-tax" className="text-accent underline hover:text-accent-deep">
-            see the MTD guide
+            see the Making Tax Digital guide
           </Link>
           .
         </p>
@@ -157,7 +162,7 @@ export default function IncomeTaxGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you can safely skip</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           If you&apos;re employed with one job, no benefits, and no other income above the trading
           or property allowances below: you don&apos;t need to file a Self Assessment return.
           Check your tax code once a year — that&apos;s enough for most people on PAYE alone.
@@ -166,7 +171,7 @@ export default function IncomeTaxGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">National Insurance for the self-employed</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           Class 4:{" "}
           <Cited cite={config.class4MainRate}>
             {config.class4MainRate.value * 100}% on profits between{" "}
@@ -192,7 +197,7 @@ export default function IncomeTaxGuide() {
 
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">How to optimise</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mt-2 text-base text-ink-soft">
           The{" "}
           <Cited cite={config.tradingAllowance}>
             {gbpCompact(config.tradingAllowance.value)} trading allowance
@@ -210,20 +215,20 @@ export default function IncomeTaxGuide() {
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-ink">Related guides</h2>
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="mt-2 space-y-1 text-base">
           <li>
             <Link href="/learn/self-employed" className="text-accent underline hover:text-accent-deep">
-              Self-employed — trading allowance, NIC, cash basis, simplified expenses
+              Self-employed — what&apos;s tax-free, National Insurance, flat-rate expenses
             </Link>
           </li>
           <li>
             <Link href="/learn/for-landlords" className="text-accent underline hover:text-accent-deep">
-              For landlords — property allowance, Rent-a-Room, Section 24
+              For landlords — what&apos;s tax-free on rental income
             </Link>
           </li>
           <li>
             <Link href="/learn/mtd-income-tax" className="text-accent underline hover:text-accent-deep">
-              MTD Income Tax — don&apos;t panic
+              Making Tax Digital — don&apos;t panic
             </Link>
           </li>
         </ul>
