@@ -1168,7 +1168,9 @@ jobs:
                 "/v1/uk/professional-tools",
                 "/v1/uk/sdlt/calculations",
                 "/v1/uk/tax-expert",
-                "/v1/uk/tax-expert/mtd-income-tax/assessments"
+                "/v1/uk/tax-expert/mtd-income-tax/assessments",
+                "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+                "/v1/uk/tax-expert/tax-position-passport/schema"
               ] and
               .paths["/v1/api-workspace"].get.operationId == "inspectAuthenticatedApiWorkspace" and
               .paths["/v1/api-workspace"].get.security == [{"WorkspaceKey": []}] and
@@ -1197,9 +1199,17 @@ jobs:
               .openapi == "3.1.0" and
               (.paths | keys | sort) == [
                 "/v1/uk/tax-expert",
-                "/v1/uk/tax-expert/mtd-income-tax/assessments"
+                "/v1/uk/tax-expert/mtd-income-tax/assessments",
+                "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+                "/v1/uk/tax-expert/tax-position-passport/schema"
               ] and
               .paths["/v1/uk/tax-expert"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.operationId == "getTaxPositionPassportSchema" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.responses["200"].content["application/schema+json"].schema["$ref"] == "#/components/schemas/TaxPositionPassportJsonSchema" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.operationId == "getTaxPositionPassportMtdExample" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/TaxPositionPassport" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.operationId == "assessMtdIncomeTaxReadiness" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security == [{"WorkspaceKey": []}] and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-required-workspace-scopes"] == ["tax-expert:assess"] and
@@ -1214,6 +1224,39 @@ jobs:
               ((.components.schemas.MtdIncomeTaxAssessmentResponse.properties.reasoning.required | index("whyGraph")) | not) and
               .components.securitySchemes.WorkspaceKey.type == "http" and
               .components.securitySchemes.WorkspaceKey.scheme == "bearer"
+            ' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema | \
+            jq --exit-status '
+              .["$id"] == "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema" and
+              .additionalProperties == false and
+              .["x-taxsorted-structural-dependencies"] == [
+                "https://api.taxsorted.io/openapi/tax-expert-uk.json"
+              ] and
+              .properties.positions.items.properties.request["$ref"] == "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentRequest" and
+              .properties.positions.items.properties.answer.allOf[0]["$ref"] == "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentResponse" and
+              .properties.positions.items.properties.answer.allOf[1].additionalProperties == false
+            ' >/dev/null
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax | \
+            jq --exit-status '
+              .schema == "taxsorted.uk.tax-position-passport/1" and
+              .assurance == {
+                "filed": false,
+                "identityVerified": false,
+                "professionallyReviewed": false,
+                "signed": false
+              } and
+              .dataHandling.generationMode == "browser-local" and
+              .dataHandling.sentToTaxSorted == false and
+              .dataHandling.rawDocumentsIncluded == false and
+              (.profile.incomeSources | length) == 5 and
+              (.profile.evidence | length) == 8 and
+              (.positions | length) == 1
             ' >/dev/null
 
           workspace_unauthenticated_headers="${RUNNER_TEMP}/api-workspace-unauthenticated.headers"
@@ -1596,7 +1639,7 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /agent.txt /.well-known/agent.txt
+          for path in /passport /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /agent.txt /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -1670,6 +1713,7 @@ jobs:
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
+            '/passport|Understanding that travels.' \
             '/uk/charities|Check a charity, understand its tax, ask it for help.' \
             '/uk/accountability|Who checks the checkers' \
             '/uk/tax-expert|Check which tax rules apply to you' \
