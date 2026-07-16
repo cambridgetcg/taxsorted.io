@@ -75,7 +75,7 @@ export default function CheckupPage() {
       </section>
 
       <aside className="mt-10 rounded-2xl border border-line bg-paper p-5 text-sm text-ink-soft">
-        <strong className="text-ink">Safety boundary:</strong> TaxSorted is educational and
+        <strong className="text-ink">Safety boundary:</strong>{" "}TaxSorted is educational and
         preparation software, not a substitute for advice on facts outside a tool&apos;s stated scope.
         No tax figures or quarterly updates are sent to HMRC unless you deliberately connect the
         sandbox and separately review and consent to that submission.

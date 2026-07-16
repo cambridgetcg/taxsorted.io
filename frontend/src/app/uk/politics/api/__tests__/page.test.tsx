@@ -102,7 +102,7 @@ describe("UK politics API guide", () => {
       "href",
       `${base}/public-office-pathways`,
     );
-    expect(screen.getByRole("link", { name: /explore standing for office/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /see standing for office/i })).toHaveAttribute(
       "href",
       "/uk/politics/stand",
     );
