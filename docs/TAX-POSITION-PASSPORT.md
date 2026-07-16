@@ -106,6 +106,12 @@ with `assertTaxPositionPassportInvariants` from
 `@taxsorted/engine/uk/passport`. The schema advertises this boundary in
 `x-taxsorted-runtime-invariants`.
 
+The compact schema resolves the complete MTD request and TaxAnswer shapes
+through `$ref` links into `/openapi/tax-expert-uk.json`; those dependencies are
+listed in `x-taxsorted-structural-dependencies`. Keeping those already-published
+components canonical avoids rebuilding a duplicate schema graph inside every
+API process.
+
 There is deliberately no Passport `POST`, upload, cloud store, share link or
 CRUD API. Adding one would create authentication, retention, deletion,
 confidential-intake and security duties that a local export does not need.
