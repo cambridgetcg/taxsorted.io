@@ -1699,7 +1699,17 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /passport /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /uk/politics/decisions /agent.txt /.well-known/agent.txt
+          for path in \
+            /passport \
+            /uk/public-funding \
+            /uk/accountability \
+            /uk/tax-expert \
+            /uk/politics/stand \
+            /uk/politics/decisions \
+            /learn/history/window-tax \
+            /media/window-tax/manifest.json \
+            /agent.txt \
+            /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -1770,6 +1780,64 @@ jobs:
               ;;
           esac
 
+          deployed_window_tax_manifest="${RUNNER_TEMP}/window-tax-manifest.json"
+          expected_window_tax_manifest="frontend/public/media/window-tax/manifest.json"
+          window_tax_manifest_ready=false
+          for _ in $(seq 1 12)
+          do
+            if curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --output "${deployed_window_tax_manifest}" \
+              https://taxsorted.io/media/window-tax/manifest.json && \
+              cmp --silent \
+                "${expected_window_tax_manifest}" \
+                "${deployed_window_tax_manifest}"
+            then
+              window_tax_manifest_ready=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "${window_tax_manifest_ready}" != true ]; then
+            echo 'The deployed Window Tax media manifest did not match the released bytes.' >&2
+            sha256sum \
+              "${expected_window_tax_manifest}" \
+              "${deployed_window_tax_manifest}" >&2
+            exit 1
+          fi
+
+          while IFS=$'\t' read -r asset_path expected_sha expected_bytes
+          do
+            deployed_asset="${RUNNER_TEMP}/window-tax-$(basename "${asset_path}")"
+            asset_ready=false
+            for _ in $(seq 1 12)
+            do
+              if curl --fail --silent --show-error --location \
+                --connect-timeout 5 --max-time 30 \
+                --output "${deployed_asset}" \
+                "https://taxsorted.io${asset_path}" && \
+                test "$(sha256sum "${deployed_asset}" | awk '{ print $1 }')" = "${expected_sha}" && \
+                test "$(wc -c < "${deployed_asset}" | tr -d ' ')" = "${expected_bytes}"
+              then
+                asset_ready=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "${asset_ready}" != true ]; then
+              echo "The deployed Window Tax asset ${asset_path} did not match its manifest." >&2
+              if [ -f "${deployed_asset}" ]; then
+                sha256sum "${deployed_asset}" >&2
+                wc -c "${deployed_asset}" >&2
+              fi
+              exit 1
+            fi
+          done < <(
+            jq --raw-output \
+              '.materials[] | [.path, .sha256, (.bytes | tostring)] | @tsv' \
+              "${expected_window_tax_manifest}"
+          )
+
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
@@ -1779,6 +1847,7 @@ jobs:
             '/uk/tax-expert|Check which tax rules apply to you' \
             '/uk/politics/stand|Start with the work, not the title.' \
             '/uk/politics/decisions|Find where the decision lives.' \
+            '/learn/history/window-tax|The paper trail says more than a wall' \
             '/itsa/records|Starter Books' \
             '/itsa/quarter|Quarterly figures'
           do

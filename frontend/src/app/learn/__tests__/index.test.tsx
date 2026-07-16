@@ -29,6 +29,13 @@ describe('learn index', () => {
     expect(screen.getByText(/when pressure on tax policy actually worked.*with sources/i)).toBeInTheDocument()
   })
 
+  it('links to the evidence-bounded Window Tax story', () => {
+    render(<LearnPage />)
+    expect(screen.getByText(/taxes leave marks/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /window tax: what the evidence actually shows/i }))
+      .toHaveAttribute('href', '/learn/history/window-tax')
+  })
+
   it('updates the "more coming" note to name the M2 devolved-taxes backlog', () => {
     render(<LearnPage />)
     const note = screen.getByText(/more guides are coming/i)

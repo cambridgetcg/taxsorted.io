@@ -1,0 +1,91 @@
+{
+  "schema": "taxsorted.window-tax-media/1",
+  "title": "TaxSorted Window Tax media release",
+  "reviewedOn": "2026-07-16",
+  "canonicalResearch": "https://github.com/cambridgetcg/taxsorted.io/tree/main/research/uk/tax-history/window-tax",
+  "rightsBoundary": "This manifest records the rights and integrity of the deployed image files. It does not turn a reusable image into proof of every claim made about it.",
+  "nrsCrownCopyrightImageCount": {
+    "used": 1,
+    "limit": 20
+  },
+  "materials": [
+    {
+      "id": "heidelberg-punch-repeal-cartoon-1850",
+      "path": "/media/window-tax/repeal-vision-1850.jpg",
+      "mime": "image/jpeg",
+      "width": 1600,
+      "height": 1112,
+      "bytes": 652714,
+      "sha256": "e7081e709043b7206b4f4b08e740fe60551d655778adf3a14ffeabce2bbd366c",
+      "source": {
+        "itemUrl": "https://digi.ub.uni-heidelberg.de/diglit/punch1850/0173",
+        "assetUrl": "https://digi.ub.uni-heidelberg.de/diglitData/image/punch1850/4/165.jpg",
+        "sha256": "99912e1083c28eabdff324b5639916616ef49fc7c5824b93bd37d8eefbdb5212",
+        "width": 2574,
+        "height": 3701,
+        "bytes": 2335353
+      },
+      "credit": "Universitätsbibliothek Heidelberg / H 634-3 Folio / p. 165.",
+      "rights": {
+        "status": "confirmed",
+        "label": "Public Domain Mark 1.0",
+        "url": "https://creativecommons.org/publicdomain/mark/1.0/"
+      },
+      "modifications": "Rotated 270 degrees clockwise and resized to a 1600-pixel longest edge at JPEG quality 75; no crop or tonal adjustment.",
+      "supports": "A contemporary satirical argument that repeal would restore daylight.",
+      "doesNotProve": "The prevalence of dark housing, a quantified health effect or a real household."
+    },
+    {
+      "id": "nrs-dumfriesshire-closed-windows-1754",
+      "path": "/media/window-tax/dumfriesshire-window-tax-roll-e326-1-32-p73.jpg",
+      "mime": "image/jpeg",
+      "width": 1200,
+      "height": 1460,
+      "bytes": 255645,
+      "sha256": "66eb0c4119dd356518a83587ff3b993156828ef1ced983955d5fc23f44273984",
+      "source": {
+        "itemUrl": "https://www.scotlandspeople.gov.uk/news-and-articles/historical-tax-rolls-window-past",
+        "assetUrl": "https://www.scotlandspeople.gov.uk/sites/default/files/styles/maximum_size/public/2025-06/Extract%20from%20Window%20Tax%20-%20Windows%20closed%20up%20-%20Dumfriesshire%20-%20E326-1-32-73.jpg?itok=vtcgk8ip",
+        "sha256": "66eb0c4119dd356518a83587ff3b993156828ef1ced983955d5fc23f44273984",
+        "width": 1200,
+        "height": 1460,
+        "bytes": 255645
+      },
+      "credit": "Crown copyright, National Records of Scotland, E326/1/32, page 73.",
+      "rights": {
+        "status": "conditional",
+        "label": "National Records of Scotland copyright and reuse conditions",
+        "url": "https://www.scotlandspeople.gov.uk/content/copyright"
+      },
+      "modifications": "No changes; the page-exposed source rendition is stored byte-for-byte.",
+      "supports": "Specific assessed properties had fewer open windows than at the previous survey.",
+      "doesNotProve": "Why every opening was closed, how common closure was or the cause of every modern blocked window."
+    },
+    {
+      "id": "edgar-street-worcester-photograph",
+      "path": "/media/window-tax/3-edgar-street-worcester.jpg",
+      "mime": "image/jpeg",
+      "width": 780,
+      "height": 1024,
+      "bytes": 472799,
+      "sha256": "43a42f977090817c048c50d208ebef6cb3ad2fb4058349825478f0a4222081f4",
+      "source": {
+        "itemUrl": "https://commons.wikimedia.org/wiki/File:3_Edgar_Street,_Worcester_-_geograph.org.uk_-_6461842.jpg",
+        "assetUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/3_Edgar_Street%2C_Worcester_-_geograph.org.uk_-_6461842.jpg",
+        "sha256": "43a42f977090817c048c50d208ebef6cb3ad2fb4058349825478f0a4222081f4",
+        "width": 780,
+        "height": 1024,
+        "bytes": 472799
+      },
+      "credit": "3 Edgar Street, Worcester by Stephen Richards, CC BY-SA 2.0.",
+      "rights": {
+        "status": "confirmed",
+        "label": "Creative Commons Attribution-ShareAlike 2.0 Generic",
+        "url": "https://creativecommons.org/licenses/by-sa/2.0/"
+      },
+      "modifications": "No changes; the Wikimedia and Geograph source bytes are identical.",
+      "supports": "The present facade and Historic England's qualified interpretation of a probable tax-related alteration.",
+      "doesNotProve": "The owner's recorded intention, the date of the alteration or the cause of similar changes elsewhere."
+    }
+  ]
+}

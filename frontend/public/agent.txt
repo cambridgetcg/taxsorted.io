@@ -21,6 +21,10 @@ release-ledger: GET https://api.taxsorted.io/v1/open-data/releases
 release-json-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.json
 release-atom-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.atom
 public-funding-changes: GET https://api.taxsorted.io/v1/public-funding/uk/changes
+window-tax-story: GET https://taxsorted.io/learn/history/window-tax/
+window-tax-media-manifest: GET https://taxsorted.io/media/window-tax/manifest.json
+window-tax-scope: sourced public history; image rights and evidence strength remain separate
+window-tax-effects: read-only; no account, session, tracking or writes
 charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountability
 charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
 charity-accountability-status: schema-only-not-admitted

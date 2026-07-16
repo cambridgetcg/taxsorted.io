@@ -9,6 +9,7 @@ describe("public sitemap", () => {
       "/learn/income-tax/",
       "/learn/for-landlords/",
       "/learn/self-employed/",
+      "/learn/history/window-tax/",
       "/learn/gov/how-tax-law-is-made/",
       "/learn/gov/who-runs-your-taxes/",
       "/learn/gov/what-we-send-hmrc/",
