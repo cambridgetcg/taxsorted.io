@@ -45,6 +45,10 @@ const taxExpertManifestPath = "/v1/uk/tax-expert";
 const taxExpertAssessmentPath =
   "/v1/uk/tax-expert/mtd-income-tax/assessments";
 const taxExpertOpenApiPath = "/openapi/tax-expert-uk.json";
+const taxPositionPassportSchemaPath =
+  "/v1/uk/tax-expert/tax-position-passport/schema";
+const taxPositionPassportExamplePath =
+  "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax";
 const sdltCalculationPath = "/v1/uk/sdlt/calculations";
 
 export const xeniaAttribution = {
@@ -130,6 +134,10 @@ politics-public-office-pathways-rights: GET ${apiOrigin}${publicOfficePathwaysPa
 politics-public-office-pathways-corrections: GET ${apiOrigin}/v1/politics/uk/integrity/corrections
 tax-expert-manifest: GET ${apiOrigin}${taxExpertManifestPath}
 tax-expert-openapi: GET ${apiOrigin}${taxExpertOpenApiPath}
+tax-position-passport-schema: GET ${apiOrigin}${taxPositionPassportSchemaPath}
+tax-position-passport-example: GET ${apiOrigin}${taxPositionPassportExamplePath}
+tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint
+tax-position-passport-data: portable income-source facts, user-named evidence states and complete replayable MTD request plus TaxAnswer
 tax-expert-assessment: POST ${apiOrigin}${taxExpertAssessmentPath}
 tax-expert-assessment-authentication: Bearer TaxSorted workspace key
 tax-expert-assessment-required-scope: tax-expert:assess

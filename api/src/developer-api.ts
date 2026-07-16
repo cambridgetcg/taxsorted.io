@@ -141,6 +141,8 @@ const publicAgentPaths = new Set([
   "/v1/wake",
   "/v1/health",
   "/v1/uk/tax-expert",
+  "/v1/uk/tax-expert/tax-position-passport/schema",
+  "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
   professionalToolsPath,
 ]);
 

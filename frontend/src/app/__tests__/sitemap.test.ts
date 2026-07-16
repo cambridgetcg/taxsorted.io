@@ -30,6 +30,7 @@ describe("public sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     for (const path of [
       "/checkup/",
+      "/passport/",
       "/uk/",
       "/uk/personal-tax/",
       "/uk/tax-expert/",
@@ -47,6 +48,7 @@ describe("public sitemap", () => {
       "/about/",
       "/tools/",
       "/checkup/",
+      "/passport/",
       "/vat/",
       "/uk/politics/people/",
       "/uk/politics/funding/",

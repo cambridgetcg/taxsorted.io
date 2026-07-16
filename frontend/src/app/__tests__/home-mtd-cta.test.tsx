@@ -46,6 +46,9 @@ describe("homepage front door", () => {
       screen.getByText(new RegExp(`first phase started ${mandatedFrom}.*${qualifyingIncomeOver}`, "i")),
     ).toBeInTheDocument();
     expect(screen.getByText(/check the other entry conditions and exemptions/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Open my Tax Passport/i }),
+    ).toHaveAttribute("href", "/passport");
   });
 
   it("keeps the wider system and machine-readable understanding one step away", () => {

@@ -63,6 +63,10 @@ politics-public-office-pathways-rights: GET https://api.taxsorted.io/v1/politics
 politics-public-office-pathways-corrections: GET https://api.taxsorted.io/v1/politics/uk/integrity/corrections
 tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert
 tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json
+tax-position-passport-schema: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema
+tax-position-passport-example: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax
+tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint
+tax-position-passport-data: portable income-source facts, user-named evidence states and complete replayable MTD request plus TaxAnswer
 tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments
 tax-expert-assessment-authentication: Bearer TaxSorted workspace key
 tax-expert-assessment-required-scope: tax-expert:assess

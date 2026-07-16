@@ -108,6 +108,15 @@ describe("agent interface", () => {
       "tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json",
     );
     expect(body).toContain(
+      "tax-position-passport-schema: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
+    );
+    expect(body).toContain(
+      "tax-position-passport-example: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+    );
+    expect(body).toContain(
+      "tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint",
+    );
+    expect(body).toContain(
       "tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments",
     );
     expect(body).toContain(

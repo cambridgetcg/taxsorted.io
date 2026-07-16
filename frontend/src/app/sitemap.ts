@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["/", 1],
     ["/checkup/", 1],
+    ["/passport/", 1],
     ["/about/", 0.6],
     ["/tools/", 0.9],
     ["/learn/", 0.9],
