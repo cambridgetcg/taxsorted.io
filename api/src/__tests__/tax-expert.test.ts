@@ -4,6 +4,7 @@ const query = vi.hoisted(() => vi.fn());
 vi.mock("../db.js", () => ({ sql: query }));
 
 import { OpenAPIHono } from "@hono/zod-openapi";
+import Ajv2020 from "ajv/dist/2020.js";
 import { apiCors } from "../cors.js";
 import { registerDeveloperApi } from "../developer-api.js";
 import { apiErrorHandler } from "../error-handler.js";
@@ -215,26 +216,15 @@ describe("UK tax expert API", () => {
       schema.properties.profile.properties.evidence.prefixItems,
     ).toHaveLength(8);
     expect(schema.properties.createdAt.pattern).toContain("\\.\\d{3}");
-    expect(schema["x-taxsorted-structural-dependencies"]).toContain(
-      "https://api.taxsorted.io/openapi/tax-expert-uk.json",
+    expect(schema["x-taxsorted-generation"]).toContain(
+      "Committed build-time snapshot",
     );
     expect(
-      schema.properties.positions.items.properties.request.$ref,
-    ).toBe(
-      "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentRequest",
-    );
-    expect(
-      schema.properties.positions.items.properties.answer.allOf[0].$ref,
-    ).toBe(
-      "https://api.taxsorted.io/openapi/tax-expert-uk.json#/components/schemas/MtdIncomeTaxAssessmentResponse",
-    );
-    expect(
-      schema.properties.positions.items.properties.answer.allOf[1]
-        .additionalProperties,
+      schema.properties.positions.items.properties.answer.additionalProperties,
     ).toBe(false);
     expect(
-      schema.properties.positions.items.properties.answer.allOf[1]
-        .properties.reasoning.additionalProperties,
+      schema.properties.positions.items.properties.answer.properties.reasoning
+        .additionalProperties,
     ).toBe(false);
 
     const unchanged = await app.request(
@@ -253,7 +243,8 @@ describe("UK tax expert API", () => {
     );
     expect(exampleResponse.status).toBe(200);
     expect(exampleResponse.headers.get("set-cookie")).toBeNull();
-    expect(await exampleResponse.json()).toMatchObject({
+    const example = await exampleResponse.json();
+    expect(example).toMatchObject({
       schema: "taxsorted.uk.tax-position-passport/1",
       assurance: {
         identityVerified: false,
@@ -277,6 +268,50 @@ describe("UK tax expert API", () => {
         },
       ],
     });
+
+    // Compile the representation that consumers receive. Formats are
+    // deliberately annotations here: the generated calendar regexes must
+    // reject impossible dates without validator-specific format settings.
+    const passportValidator = new Ajv2020({
+      allErrors: true,
+      strict: true,
+      validateFormats: false,
+    });
+    passportValidator.addKeyword("x-taxsorted-generation");
+    passportValidator.addKeyword("x-taxsorted-runtime-invariants");
+    const validatePassport = passportValidator.compile(schema);
+    expect(validatePassport(example)).toBe(true);
+
+    const impossibleCreatedAt = structuredClone(example);
+    impossibleCreatedAt.createdAt = "2026-99-99T12:00:00.000Z";
+    expect(validatePassport(impossibleCreatedAt)).toBe(false);
+
+    const impossibleRequestDate = structuredClone(example);
+    impossibleRequestDate.positions[0].request.asOfDate = "2026-99-99";
+    expect(validatePassport(impossibleRequestDate)).toBe(false);
+
+    const extraNestedAnswerKey = structuredClone(example);
+    extraNestedAnswerKey.positions[0].answer.facts.unexpected = true;
+    expect(validatePassport(extraNestedAnswerKey)).toBe(false);
+
+    const extraIncomeSource = structuredClone(example);
+    extraIncomeSource.profile.incomeSources.push(
+      structuredClone(extraIncomeSource.profile.incomeSources[0]),
+    );
+    expect(validatePassport(extraIncomeSource)).toBe(false);
+
+    const missingEvidenceEntry = structuredClone(example);
+    missingEvidenceEntry.profile.evidence.pop();
+    expect(validatePassport(missingEvidenceEntry)).toBe(false);
+
+    const missingWhyGraph = structuredClone(example);
+    delete missingWhyGraph.positions[0].answer.reasoning.whyGraph;
+    expect(validatePassport(missingWhyGraph)).toBe(false);
+
+    const wrongCapability = structuredClone(example);
+    wrongCapability.positions[0].answer.capability.id = "uk.other";
+    expect(validatePassport(wrongCapability)).toBe(false);
+
     expect(browserSessionCalls()).toBe(0);
     expect(query).not.toHaveBeenCalled();
   });
