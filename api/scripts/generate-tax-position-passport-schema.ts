@@ -1,10 +1,29 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { z as zod } from "zod";
-import { TaxPositionPassportSchema } from "../src/routes/tax-expert.js";
 
 const outputUrl = new URL(
   "../src/tax-position-passport.schema.json",
   import.meta.url,
+);
+const checking = process.argv.includes("--check");
+
+try {
+  JSON.parse(await readFile(outputUrl, "utf8"));
+} catch (error) {
+  if (checking) {
+    throw new Error(
+      "Tax Position Passport schema snapshot is missing or invalid.",
+      { cause: error },
+    );
+  }
+  // The route imports this committed JSON file. A temporary valid placeholder
+  // lets the generator recover a missing or damaged snapshot before replacing
+  // it with the canonical representation below.
+  await writeFile(outputUrl, "{}\n", "utf8");
+}
+
+const { TaxPositionPassportSchema } = await import(
+  "../src/routes/tax-expert.js"
 );
 
 const generated = zod.toJSONSchema(
@@ -102,7 +121,7 @@ const document = {
 
 const representation = `${JSON.stringify(document, null, 2)}\n`;
 
-if (process.argv.includes("--check")) {
+if (checking) {
   const current = await readFile(outputUrl, "utf8");
   if (current !== representation) {
     throw new Error(
