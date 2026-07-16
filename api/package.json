@@ -18,6 +18,7 @@
     "validate:charities": "tsx ../scripts/validate-uk-charities.mjs",
     "validate:charity-accountability-candidate": "tsx scripts/validate-charity-accountability-candidate.ts",
     "validate:observer-accountability-candidate": "tsx scripts/validate-observer-accountability-candidate.ts",
+    "validate:public-decision-pathways": "tsx scripts/validate-public-decision-pathways.ts",
     "validate:public-funding": "tsx scripts/validate-public-funding.ts",
     "create:api-key": "tsx scripts/create-api-key.ts",
     "manage:api-key": "tsx scripts/manage-api-key.ts"

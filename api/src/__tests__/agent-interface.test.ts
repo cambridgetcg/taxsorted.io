@@ -102,6 +102,15 @@ describe("agent interface", () => {
       "politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation",
     );
     expect(body).toContain(
+      "politics-public-decision-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways",
+    );
+    expect(body).toContain(
+      "politics-public-decision-pathways-decisions: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions",
+    );
+    expect(body).toContain(
+      "politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation",
+    );
+    expect(body).toContain(
       "tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert",
     );
     expect(body).toContain(
@@ -319,6 +328,22 @@ describe("agent interface", () => {
       corrections: "/v1/politics/uk/integrity/corrections",
       effects:
         "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
+    });
+    expect(body.resources.publicDecisionPathways).toEqual({
+      href: "/v1/politics/uk/public-decision-pathways",
+      decisions: "/v1/politics/uk/public-decision-pathways/decisions",
+      doors: "/v1/politics/uk/public-decision-pathways/doors",
+      schema: "/v1/politics/uk/public-decision-pathways/schema",
+      openApi: "/openapi/politics-uk.json",
+      humanGuide: "https://taxsorted.io/uk/politics/decisions/",
+      availability: "conditional-public",
+      unavailableWhen: "politics-bulk-data-emergency-stop",
+      rights: "/v1/politics/uk/public-decision-pathways/rights",
+      corrections: "/v1/politics/uk/integrity/corrections",
+      effects:
+        "Read-only general institutional guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation.",
+      eventStatus:
+        "Every event window is dated; compare checkedOn and closesOn, then verify the official source before acting.",
     });
     expect(body.resources.whyGraph).toEqual({
       framework: "/v1/why-graph",

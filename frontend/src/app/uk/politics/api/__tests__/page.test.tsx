@@ -102,9 +102,25 @@ describe("UK politics API guide", () => {
       "href",
       `${base}/public-office-pathways`,
     );
+    expect(screen.getByRole("link", { name: "/public-decision-pathways" })).toHaveAttribute(
+      "href",
+      `${base}/public-decision-pathways`,
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "/public-decision-pathways/decisions",
+      }),
+    ).toHaveAttribute("href", `${base}/public-decision-pathways/decisions`);
+    expect(
+      screen.getByRole("link", { name: "/public-decision-pathways/schema" }),
+    ).toHaveAttribute("href", `${base}/public-decision-pathways/schema`);
     expect(screen.getByRole("link", { name: /see standing for office/i })).toHaveAttribute(
       "href",
       "/uk/politics/stand",
+    );
+    expect(screen.getByRole("link", { name: /see changing a decision/i })).toHaveAttribute(
+      "href",
+      "/uk/politics/decisions",
     );
     expect(screen.getByRole("link", { name: "/enforcement/institutions" })).toHaveAttribute(
       "href",

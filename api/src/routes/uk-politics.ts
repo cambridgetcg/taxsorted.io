@@ -11,6 +11,7 @@ import {
 } from "../uk-politics-datasets.js";
 import { formalPowerReferencesForPerson } from "../uk-politics-system.js";
 import { createUkPoliticsDatasetRoutes } from "./uk-politics-datasets.js";
+import { createUkPublicDecisionPathwayRoutes } from "./uk-public-decision-pathways.js";
 import { createUkPublicOfficePathwayRoutes } from "./uk-public-office-pathways.js";
 import { createUkPoliticsSystemRoutes } from "./uk-politics-system.js";
 import { createUkPublicIntegrityRoutes } from "./uk-public-integrity.js";
@@ -88,12 +89,36 @@ function isPublicOfficePathwayRead(method: string, path: string) {
   );
 }
 
+function isPublicDecisionPathwayRead(method: string, path: string) {
+  if (method !== "GET" && method !== "HEAD") return false;
+  const relative = politicsRelativePath(path);
+  return (
+    [
+      "/public-decision-pathways",
+      "/public-decision-pathways/decisions",
+      "/public-decision-pathways/doors",
+      "/public-decision-pathways/rights",
+      "/public-decision-pathways/schema",
+    ].includes(relative) ||
+    /^\/public-decision-pathways\/decisions\/[a-z0-9][a-z0-9-]*$/.test(
+      relative,
+    )
+  );
+}
+
+function isIndependentRulesGuideRead(method: string, path: string) {
+  return (
+    isPublicOfficePathwayRead(method, path) ||
+    isPublicDecisionPathwayRead(method, path)
+  );
+}
+
 function isAlwaysPublicSystemPath(path: string, method: string): boolean {
   const relative = politicsRelativePath(path);
   return (
     ALWAYS_PUBLIC_SYSTEM_PATHS.includes(relative) ||
     relative.startsWith("/datasets/") ||
-    isPublicOfficePathwayRead(method, path) ||
+    isIndependentRulesGuideRead(method, path) ||
     relative.startsWith("/power/") ||
     relative.startsWith("/enforcement/institutions/") ||
     relative.startsWith("/enforcement/power/offices/") ||
@@ -825,7 +850,7 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
       !isBulkStopExempt(c.req.path) &&
       !(
         !bulkDataEmergencyStop &&
-        isPublicOfficePathwayRead(c.req.method, c.req.path)
+        isIndependentRulesGuideRead(c.req.method, c.req.path)
       )
     ) {
       return errorJson(
@@ -883,6 +908,7 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
 
   routes.route("/", createUkPoliticsSystemRoutes());
   routes.route("/", createUkPublicOfficePathwayRoutes());
+  routes.route("/", createUkPublicDecisionPathwayRoutes());
   routes.route(
     "/",
     createUkPoliticsDatasetRoutes({
@@ -1451,6 +1477,17 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
               "TaxSorted-written summaries link to primary or first-party sources. Follow each linked source's own reuse terms.",
           },
           {
+            id: "uk-public-decision-pathways-curation",
+            publisher: "TaxSorted, citing HM Treasury, HMRC, UK Parliament, OBR, HMCTS and complaint-review sources",
+            dataset: "Non-partisan public-decision authority and participation pathways",
+            url: "https://api.taxsorted.io/v1/politics/uk/public-decision-pathways",
+            status: "live_rules_only",
+            coverage:
+              "One deeply mapped UK central-tax primary-law path, eight public doors with formal effects, dated event windows, personal appeal and complaint hand-offs, and explicit gaps for other territories and decision families.",
+            attribution:
+              "TaxSorted-written summaries link to official sources. Follow each linked source's own reuse, privacy and publication terms.",
+          },
+          {
             id: "uk-public-integrity-source-registry",
             publisher: "TaxSorted, citing official UK registers, APIs, legislation and guidance",
             dataset: "Finance, corporate-relationship and law-enforcement source registry",
@@ -1547,6 +1584,12 @@ export function createUkPoliticsRoutes(options: UkPoliticsOptions = {}) {
             path: "/public-office-pathways and /public-office-pathways/offices/:officeId",
             coverage:
               "Read-only, non-personal candidacy steps, legal boundaries, nomination, money, support, safety and after-election duties",
+            status: "live_rules_only",
+          },
+          {
+            path: "/public-decision-pathways and /public-decision-pathways/decisions/:decisionId",
+            coverage:
+              "Read-only, non-personal authority chain, public participation effects, dated event windows, practical barriers and bounded legal hand-offs",
             status: "live_rules_only",
           },
           {

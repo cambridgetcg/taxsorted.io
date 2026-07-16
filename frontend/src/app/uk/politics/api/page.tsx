@@ -32,7 +32,7 @@ const mirrorExample = `curl -fsS \\
   '${catalogue}' \\
   -o taxsorted-politics-catalogue.json`;
 
-// Endpoint reference, grouped so a reader can scan six plain headings
+// Endpoint reference, grouped so a reader can scan plain headings
 // instead of one 47-row wall. Facts (gates, exclusions, caveats) stay.
 const endpointGroups: Array<{
   heading: string;
@@ -52,6 +52,18 @@ const endpointGroups: Array<{
       { method: "GET", path: "/datasets/enforcement-governance", does: "After human approval: one whole dataset as self-describing JSON." },
       { method: "GET", path: "/datasets/enforcement-governance/schema", does: "The record-level shape of one dataset; swap in another dataset ID." },
       { method: "GET", path: "/datasets/enforcement-governance/download?format=csv", does: "After human approval: the complete JSON, CSV or NDJSON file." },
+    ],
+  },
+  {
+    heading: "Changing a public decision",
+    intro: "Find who can change a UK central tax rule and what each public door can formally cause.",
+    endpoints: [
+      { method: "GET", path: "/public-decision-pathways", does: "One deeply sourced central-tax primary-law chain: proposer, Commons authority, scrutiny, implementation, public doors, personal remedy hand-offs and explicit gaps." },
+      { method: "GET", path: "/public-decision-pathways/decisions", does: "The intent router, enumerable deep-path list, bounded personal and institutional hand-offs, and named gaps." },
+      { method: "GET", path: "/public-decision-pathways/decisions/uk-central-tax-policy-primary-law", does: "The complete decision path with ten stages, typed powers, participants, barriers, one dated live example and the linked MP office path." },
+      { method: "GET", path: "/public-decision-pathways/doors", does: "Eight lawful public doors, each with its deadline rule, identity and publication boundary, formal effect and no-guarantee field. No ranking or message sending." },
+      { method: "GET", path: "/public-decision-pathways/rights", does: "The CC BY-SA curation boundary, upstream source-specific rights, AGPL software boundary and correction door." },
+      { method: "GET", path: "/public-decision-pathways/schema", does: "Strict JSON Schema plus the runtime reference, reciprocity and date invariants that JSON Schema alone cannot express." },
     ],
   },
   {
@@ -165,6 +177,9 @@ export default function PoliticsApiPage() {
           </a>
           <a href="/uk/politics/stand" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See standing for office <span aria-hidden="true">→</span>
+          </a>
+          <a href="/uk/politics/decisions" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
+            See changing a decision <span aria-hidden="true">→</span>
           </a>
           <a href="/uk/politics/integrity" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See police & public money <span aria-hidden="true">→</span>
