@@ -20,9 +20,33 @@ export interface UkTaxExpertCapability {
 }
 
 const reviewedOn = "2026-07-12";
+const passportReviewedOn = "2026-07-16";
+const manifestReviewedOn = "2026-07-16";
 
 /** Product coverage, not a claim that every UK tax rule is implemented. */
 export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
+  {
+    id: "uk.tax-position-passport",
+    journey: "Carry a tax position between checks, records and professional review",
+    title: "Tax Position Passport",
+    status: "available",
+    stages: ["mapped", "explained", "classified", "prepared"],
+    scope:
+      "A browser-local income-source map, user-named evidence index, complete MTD Income Tax request and TaxAnswer when checked, JSON export and printable accountant handoff.",
+    exclusions: [
+      "Identity verification or digital signature",
+      "Document inspection",
+      "Full personal tax liability",
+      "Professional approval or agent authorisation",
+      "Cloud sharing or production filing",
+    ],
+    humanHref: "/passport",
+    apiHref: "/v1/uk/tax-expert/tax-position-passport/schema",
+    review: {
+      reviewedOn: passportReviewedOn,
+      owner: "TaxSorted UK tax rules",
+    },
+  },
   {
     id: "uk.mtd-income-tax.readiness",
     journey: "Become or remain a sole trader or landlord",
@@ -33,7 +57,10 @@ export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
     exclusions: ["HMRC exemption decisions", "Amended-return and automatic annualisation calculations", "Exact source-level workload without start and prior-return history", "Preparation or filing"],
     humanHref: "/uk/tax-expert",
     apiHref: "/v1/uk/tax-expert/mtd-income-tax/assessments",
-    review: { reviewedOn, owner: "TaxSorted UK tax rules" },
+    review: {
+      reviewedOn: passportReviewedOn,
+      owner: "TaxSorted UK tax rules",
+    },
   },
   {
     id: "uk.sdlt.residential.individual",
@@ -154,7 +181,7 @@ export const UK_TAX_EXPERT_CAPABILITIES: readonly UkTaxExpertCapability[] = [
 export const UK_TAX_EXPERT_MANIFEST = {
   schema: "taxsorted.uk.tax-expert/1" as const,
   name: "TaxSorted UK tax expert",
-  reviewedOn,
+  reviewedOn: manifestReviewedOn,
   stance: "Evidence before eloquence. Unknown is never zero. Calculation, preparation and filing are different powers.",
   stages: ["mapped", "explained", "classified", "calculated", "prepared", "filed"] as const,
   capabilities: UK_TAX_EXPERT_CAPABILITIES,

@@ -7,6 +7,8 @@ import {
   type MtdDigitalExclusionStatus,
   type MtdIncomeRow,
   type MtdIncomeTaxDecision,
+  type MtdIncomeTaxExpertRequest,
+  type MtdIncomeTaxPassportPosition,
   type MtdOtherExemptionApplicationStatus,
   type MtdRelevantReturnPosition,
   type MtdResidence,
@@ -46,6 +48,12 @@ interface FormState {
   foreignProperty2026: string;
 }
 
+export interface MtdIncomeSourceDefaults {
+  selfEmployment: AnswerChoice;
+  ukProperty: AnswerChoice;
+  foreignProperty: AnswerChoice;
+}
+
 const INITIAL: FormState = {
   returnPosition: "unknown",
   continuedAtEntry: "unknown",
@@ -71,6 +79,101 @@ const INITIAL: FormState = {
   ukProperty2026: "",
   foreignProperty2026: "",
 };
+
+function formStateFromIncomeSources(
+  incomeSources?: MtdIncomeSourceDefaults,
+): FormState {
+  const form = { ...INITIAL };
+  if (!incomeSources) return form;
+  for (const year of ["2024", "2025", "2026"] as const) {
+    if (incomeSources.selfEmployment === "no") {
+      form[`selfEmployment${year}`] = "0";
+    }
+    if (incomeSources.ukProperty === "no") {
+      form[`ukProperty${year}`] = "0";
+    }
+    if (incomeSources.foreignProperty === "no") {
+      form[`foreignProperty${year}`] = "0";
+    }
+  }
+  return form;
+}
+
+function answerChoice(value: KnownAnswer): AnswerChoice {
+  return value === "unknown" ? "unknown" : value ? "yes" : "no";
+}
+
+function moneyText(value: number | "unknown"): string {
+  if (value === "unknown") return "";
+  return (value / 100).toFixed(2).replace(/\.00$/, "");
+}
+
+function formStateFromRequest(
+  request: MtdIncomeTaxExpertRequest,
+): FormState {
+  const cessation = request.income.lastRelevantActivityCessationDate;
+  const returnIndicators = request.exemption.returnIndicators;
+  return {
+    returnPosition: request.person.relevantReturnPosition,
+    continuedAtEntry: answerChoice(
+      request.income.atLeastOneRelevantReturnActivityContinuedAtEntry,
+    ),
+    nino: answerChoice(
+      request.person.hadNationalInsuranceNumberAtStartOf2026To27,
+    ),
+    residence2024: request.income.taxYears["2024-25"].residence,
+    residence2025: request.income.taxYears["2025-26"].residence,
+    residence2026: request.income.taxYears["2026-27"].residence,
+    amended: answerChoice(request.income.relevantReturnWasAmended),
+    specialRules: answerChoice(
+      request.income.annualisationOrOtherSpecialRulesMayApply,
+    ),
+    cessation:
+      cessation === "at-least-one-continues"
+        ? "continuing"
+        : cessation === "unknown"
+          ? "unknown"
+          : "ceased",
+    cessationDate:
+      cessation === "at-least-one-continues" || cessation === "unknown"
+        ? ""
+        : cessation,
+    returnIndicator: Array.isArray(returnIndicators)
+      ? (returnIndicators[0] ?? "none-listed")
+      : returnIndicators,
+    digitalExclusion: request.exemption.digitalExclusion,
+    otherExemptionApplication:
+      request.exemption.otherExemptionApplication,
+    updatePeriod: request.reporting.updatePeriod,
+    selfEmployment2024: moneyText(
+      request.income.taxYears["2024-25"].selfEmploymentGrossPence,
+    ),
+    ukProperty2024: moneyText(
+      request.income.taxYears["2024-25"].ukPropertyGrossPence,
+    ),
+    foreignProperty2024: moneyText(
+      request.income.taxYears["2024-25"].foreignPropertyGrossPence,
+    ),
+    selfEmployment2025: moneyText(
+      request.income.taxYears["2025-26"].selfEmploymentGrossPence,
+    ),
+    ukProperty2025: moneyText(
+      request.income.taxYears["2025-26"].ukPropertyGrossPence,
+    ),
+    foreignProperty2025: moneyText(
+      request.income.taxYears["2025-26"].foreignPropertyGrossPence,
+    ),
+    selfEmployment2026: moneyText(
+      request.income.taxYears["2026-27"].selfEmploymentGrossPence,
+    ),
+    ukProperty2026: moneyText(
+      request.income.taxYears["2026-27"].ukPropertyGrossPence,
+    ),
+    foreignProperty2026: moneyText(
+      request.income.taxYears["2026-27"].foreignPropertyGrossPence,
+    ),
+  };
+}
 
 const MONEY_FIELDS = [
   "selfEmployment2024",
@@ -203,13 +306,35 @@ function displayFactValue(fact: TaxFact): string {
   return String(fact.value).replaceAll("-", " ");
 }
 
-export function MtdExpertCheck() {
-  const [form, setForm] = useState<FormState>(INITIAL);
+export interface MtdExpertCheckProps {
+  initialPosition?: MtdIncomeTaxPassportPosition | null;
+  incomeSourceDefaults?: MtdIncomeSourceDefaults;
+  onPositionChange?: (
+    position: MtdIncomeTaxPassportPosition | null,
+  ) => void;
+  persistenceNote?: string;
+}
+
+export function MtdExpertCheck({
+  initialPosition = null,
+  incomeSourceDefaults,
+  onPositionChange,
+  persistenceNote =
+    "Runs in this browser. Nothing is sent to TaxSorted — not your name, your National Insurance number (NINO), your Unique Taxpayer Reference (UTR), or any figure you type.",
+}: MtdExpertCheckProps = {}) {
+  const [form, setForm] = useState<FormState>(() =>
+    initialPosition
+      ? formStateFromRequest(initialPosition.request)
+      : formStateFromIncomeSources(incomeSourceDefaults)
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<TaxAnswer<MtdIncomeTaxDecision> | null>(null);
+  const [result, setResult] = useState<TaxAnswer<MtdIncomeTaxDecision> | null>(
+    () => initialPosition?.answer ?? null,
+  );
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const focusErrorSummaryRef = useRef(false);
+  const skipInitialResultFocusRef = useRef(Boolean(initialPosition));
 
   useEffect(() => {
     if (focusErrorSummaryRef.current && Object.keys(errors).length > 0) {
@@ -219,12 +344,18 @@ export function MtdExpertCheck() {
   }, [errors]);
 
   useEffect(() => {
-    if (result) resultHeadingRef.current?.focus();
+    if (!result) return;
+    if (skipInitialResultFocusRef.current) {
+      skipInitialResultFocusRef.current = false;
+      return;
+    }
+    resultHeadingRef.current?.focus();
   }, [result]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
     setResult(null);
+    onPositionChange?.(null);
     setErrors((current) => {
       if (!(key in current) && !("_form" in current)) return current;
       const next = { ...current };
@@ -253,6 +384,7 @@ export function MtdExpertCheck() {
       focusErrorSummaryRef.current = true;
       setErrors(nextErrors);
       setResult(null);
+      onPositionChange?.(null);
       return;
     }
 
@@ -281,7 +413,7 @@ export function MtdExpertCheck() {
 
     setErrors({});
     try {
-      setResult(assessMtdIncomeTax({
+      const request: MtdIncomeTaxExpertRequest = {
         schema: "taxsorted.uk.mtd-income-tax.request/1",
         asOfDate: today,
         person: {
@@ -305,9 +437,17 @@ export function MtdExpertCheck() {
           otherExemptionApplication: form.otherExemptionApplication,
         },
         reporting: { updatePeriod: form.updatePeriod },
-      }));
+      };
+      const answer = assessMtdIncomeTax(request);
+      setResult(answer);
+      onPositionChange?.({
+        kind: "mtd-income-tax-readiness",
+        request,
+        answer,
+      });
     } catch {
       setResult(null);
+      onPositionChange?.(null);
       focusErrorSummaryRef.current = true;
       setErrors({ _form: "This combination is outside the checker’s safe input boundary. Review the dates and amounts, then try again." });
     }
@@ -490,8 +630,7 @@ export function MtdExpertCheck() {
             Check my position
           </button>
           <p className="max-w-xl text-base text-ink-soft">
-            Runs in this browser. Nothing is sent to TaxSorted — not your name, your National Insurance
-            number (NINO), your Unique Taxpayer Reference (UTR), or any figure you type.
+            {persistenceNote}
           </p>
         </div>
       </form>

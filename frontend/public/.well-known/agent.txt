@@ -21,6 +21,10 @@ release-ledger: GET https://api.taxsorted.io/v1/open-data/releases
 release-json-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.json
 release-atom-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.atom
 public-funding-changes: GET https://api.taxsorted.io/v1/public-funding/uk/changes
+window-tax-story: GET https://taxsorted.io/learn/history/window-tax/
+window-tax-media-manifest: GET https://taxsorted.io/media/window-tax/manifest.json
+window-tax-scope: sourced public history; image rights and evidence strength remain separate
+window-tax-effects: read-only; no account, session, tracking or writes
 charity-accountability: GET https://api.taxsorted.io/v1/charities/uk/accountability
 charity-accountability-schema: GET https://api.taxsorted.io/v1/charities/uk/accountability/schema
 charity-accountability-status: schema-only-not-admitted
@@ -61,8 +65,23 @@ politics-public-office-pathways-availability: public outside the pending bulk-re
 politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation
 politics-public-office-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights
 politics-public-office-pathways-corrections: GET https://api.taxsorted.io/v1/politics/uk/integrity/corrections
+politics-public-decision-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways
+politics-public-decision-pathways-decisions: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions
+politics-public-decision-pathways-doors: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/doors
+politics-public-decision-pathways-schema: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/schema
+politics-public-decision-pathways-openapi: GET https://api.taxsorted.io/openapi/politics-uk.json
+politics-public-decision-pathways-scope: one deep UK central-tax primary-law path; formal power, public doors, dated event windows, personal appeal and complaint hand-offs, and named gaps for other decision families
+politics-public-decision-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active
+politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation
+politics-public-decision-pathways-event-status: every event window is dated; compare checkedOn and closesOn, then verify the official source before acting
+politics-public-decision-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/rights
+politics-public-decision-pathways-corrections: GET https://api.taxsorted.io/v1/politics/uk/integrity/corrections
 tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert
 tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json
+tax-position-passport-schema: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema
+tax-position-passport-example: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax
+tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint
+tax-position-passport-data: portable income-source facts, user-named evidence states and complete replayable MTD request plus TaxAnswer
 tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments
 tax-expert-assessment-authentication: Bearer TaxSorted workspace key
 tax-expert-assessment-required-scope: tax-expert:assess

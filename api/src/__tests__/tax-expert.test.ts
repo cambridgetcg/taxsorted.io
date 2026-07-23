@@ -4,10 +4,13 @@ const query = vi.hoisted(() => vi.fn());
 vi.mock("../db.js", () => ({ sql: query }));
 
 import { OpenAPIHono } from "@hono/zod-openapi";
+import Ajv2020 from "ajv/dist/2020.js";
 import { apiCors } from "../cors.js";
 import { registerDeveloperApi } from "../developer-api.js";
 import { apiErrorHandler } from "../error-handler.js";
 import { requestId } from "../request-id.js";
+import { TaxPositionPassportSchema } from "../routes/tax-expert.js";
+import { TAX_POSITION_PASSPORT_EXAMPLE } from "@taxsorted/engine/uk/passport";
 
 const rawKey = `ts_test_${"e".repeat(43)}`;
 
@@ -101,6 +104,13 @@ describe("UK tax expert API", () => {
     const body = await response.json();
     expect(body.schema).toBe("taxsorted.uk.tax-expert/1");
     expect(body.capabilities).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: "uk.tax-position-passport",
+        status: "available",
+        humanHref: "/passport",
+        apiHref:
+          "/v1/uk/tax-expert/tax-position-passport/schema",
+      }),
       expect.objectContaining({ id: "uk.mtd-income-tax.readiness", status: "available" }),
       expect.objectContaining({
         id: "uk.personal-tax.thresholds",
@@ -119,8 +129,19 @@ describe("UK tax expert API", () => {
     const document = await response.json();
     expect(document.openapi).toBe("3.1.0");
     expect(document.paths).toHaveProperty("/v1/uk/tax-expert");
+    expect(document.paths).toHaveProperty(
+      "/v1/uk/tax-expert/tax-position-passport/schema",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+    );
     expect(document.paths).toHaveProperty("/v1/uk/tax-expert/mtd-income-tax/assessments");
     expect(document.paths["/v1/uk/tax-expert"].get.security).toEqual([]);
+    expect(
+      document.paths[
+        "/v1/uk/tax-expert/tax-position-passport/schema"
+      ].get.security,
+    ).toEqual([]);
     expect(document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security).toEqual([{ WorkspaceKey: [] }]);
     expect(
       document.paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post[
@@ -153,6 +174,190 @@ describe("UK tax expert API", () => {
         .properties.answer.properties.obligations.items.properties.condition.type,
     ).toEqual(["string", "null"]);
     expect(query).not.toHaveBeenCalled();
+  });
+
+  it("publishes a cacheable Passport schema and synthetic example without a session", async () => {
+    const { app, browserSessionCalls } = mount();
+    const schemaResponse = await app.request(
+      "/v1/uk/tax-expert/tax-position-passport/schema",
+      { headers: { Origin: "https://passport-builder.example" } },
+    );
+
+    expect(schemaResponse.status).toBe(200);
+    expect(schemaResponse.headers.get("content-type")).toMatch(
+      /^application\/schema\+json/,
+    );
+    expect(schemaResponse.headers.get("access-control-allow-origin")).toBe("*");
+    expect(schemaResponse.headers.get("set-cookie")).toBeNull();
+    expect(schemaResponse.headers.get("etag")).toMatch(/^"sha256-[a-f0-9]{64}"$/);
+    expect(schemaResponse.headers.get("link")).toContain('rel="example"');
+    const schema = await schemaResponse.json();
+    expect(schema).toMatchObject({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $id:
+        "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
+      title: "TaxSorted UK Tax Position Passport",
+      type: "object",
+    });
+    expect(schema.properties).toHaveProperty("positions");
+    expect(
+      schema.properties.profile.properties.incomeSources.prefixItems.map(
+        (item: { properties: { id: { const: string } } }) =>
+          item.properties.id.const,
+      ),
+    ).toEqual([
+      "employment",
+      "self-employment",
+      "uk-property",
+      "foreign-property",
+      "other-or-complex",
+    ]);
+    expect(
+      schema.properties.profile.properties.evidence.prefixItems,
+    ).toHaveLength(8);
+    expect(schema.properties.createdAt.pattern).toContain("\\.\\d{3}");
+    expect(schema["x-taxsorted-generation"]).toContain(
+      "Committed build-time snapshot",
+    );
+    expect(
+      schema.properties.positions.items.properties.answer.additionalProperties,
+    ).toBe(false);
+    expect(
+      schema.properties.positions.items.properties.answer.properties.reasoning
+        .additionalProperties,
+    ).toBe(false);
+
+    const unchanged = await app.request(
+      "/v1/uk/tax-expert/tax-position-passport/schema",
+      {
+        headers: {
+          "If-None-Match": schemaResponse.headers.get("etag")!,
+        },
+      },
+    );
+    expect(unchanged.status).toBe(304);
+    expect(await unchanged.text()).toBe("");
+
+    const exampleResponse = await app.request(
+      "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+    );
+    expect(exampleResponse.status).toBe(200);
+    expect(exampleResponse.headers.get("set-cookie")).toBeNull();
+    const example = await exampleResponse.json();
+    expect(example).toMatchObject({
+      schema: "taxsorted.uk.tax-position-passport/1",
+      assurance: {
+        identityVerified: false,
+        signed: false,
+        professionallyReviewed: false,
+        filed: false,
+      },
+      dataHandling: {
+        generationMode: "browser-local",
+        sentToTaxSorted: false,
+        rawDocumentsIncluded: false,
+      },
+      positions: [
+        {
+          kind: "mtd-income-tax-readiness",
+          request: { schema: "taxsorted.uk.mtd-income-tax.request/1" },
+          answer: {
+            schema: "taxsorted.tax-answer/1",
+            capability: { id: "uk.mtd-income-tax.readiness" },
+          },
+        },
+      ],
+    });
+
+    // Compile the representation that consumers receive. Formats are
+    // deliberately annotations here: the generated calendar regexes must
+    // reject impossible dates without validator-specific format settings.
+    const passportValidator = new Ajv2020({
+      allErrors: true,
+      strict: true,
+      validateFormats: false,
+    });
+    passportValidator.addKeyword("x-taxsorted-generation");
+    passportValidator.addKeyword("x-taxsorted-runtime-invariants");
+    const validatePassport = passportValidator.compile(schema);
+    expect(validatePassport(example)).toBe(true);
+
+    const impossibleCreatedAt = structuredClone(example);
+    impossibleCreatedAt.createdAt = "2026-99-99T12:00:00.000Z";
+    expect(validatePassport(impossibleCreatedAt)).toBe(false);
+
+    const impossibleRequestDate = structuredClone(example);
+    impossibleRequestDate.positions[0].request.asOfDate = "2026-99-99";
+    expect(validatePassport(impossibleRequestDate)).toBe(false);
+
+    const extraNestedAnswerKey = structuredClone(example);
+    extraNestedAnswerKey.positions[0].answer.facts.unexpected = true;
+    expect(validatePassport(extraNestedAnswerKey)).toBe(false);
+
+    const extraIncomeSource = structuredClone(example);
+    extraIncomeSource.profile.incomeSources.push(
+      structuredClone(extraIncomeSource.profile.incomeSources[0]),
+    );
+    expect(validatePassport(extraIncomeSource)).toBe(false);
+
+    const missingEvidenceEntry = structuredClone(example);
+    missingEvidenceEntry.profile.evidence.pop();
+    expect(validatePassport(missingEvidenceEntry)).toBe(false);
+
+    const duplicateReturnIndicator = structuredClone(example);
+    duplicateReturnIndicator.positions[0].request.exemption.returnIndicators = [
+      "sa109-residence",
+      "sa109-residence",
+    ];
+    expect(validatePassport(duplicateReturnIndicator)).toBe(false);
+
+    const missingWhyGraph = structuredClone(example);
+    delete missingWhyGraph.positions[0].answer.reasoning.whyGraph;
+    expect(validatePassport(missingWhyGraph)).toBe(false);
+
+    const wrongCapability = structuredClone(example);
+    wrongCapability.positions[0].answer.capability.id = "uk.other";
+    expect(validatePassport(wrongCapability)).toBe(false);
+
+    expect(browserSessionCalls()).toBe(0);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it("keeps the public Passport validator aligned with canonical provenance and complete MTD answers", () => {
+    expect(
+      TaxPositionPassportSchema.safeParse(TAX_POSITION_PASSPORT_EXAMPLE)
+        .success,
+    ).toBe(true);
+
+    const duplicateSource = structuredClone(TAX_POSITION_PASSPORT_EXAMPLE);
+    duplicateSource.profile.incomeSources[0] = structuredClone(
+      duplicateSource.profile.incomeSources[1],
+    );
+    expect(TaxPositionPassportSchema.safeParse(duplicateSource).success).toBe(
+      false,
+    );
+
+    const wrongCapability = structuredClone(TAX_POSITION_PASSPORT_EXAMPLE);
+    wrongCapability.positions[0].answer.capability.id = "uk.other";
+    expect(TaxPositionPassportSchema.safeParse(wrongCapability).success).toBe(
+      false,
+    );
+
+    const missingWhyGraph = structuredClone(
+      TAX_POSITION_PASSPORT_EXAMPLE,
+    ) as unknown as {
+      positions: Array<{ answer: { reasoning: { whyGraph?: unknown } } }>;
+    };
+    delete missingWhyGraph.positions[0].answer.reasoning.whyGraph;
+    expect(TaxPositionPassportSchema.safeParse(missingWhyGraph).success).toBe(
+      false,
+    );
+
+    const looseTimestamp = structuredClone(TAX_POSITION_PASSPORT_EXAMPLE);
+    looseTimestamp.createdAt = "2026-07-16T12:00:00Z";
+    expect(TaxPositionPassportSchema.safeParse(looseTimestamp).success).toBe(
+      false,
+    );
   });
 
   it("does not advertise the secured assessment through public wildcard browser CORS", async () => {

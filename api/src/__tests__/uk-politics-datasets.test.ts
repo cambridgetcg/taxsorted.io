@@ -125,7 +125,17 @@ describe("UK politics open dataset catalogue", () => {
     expect(rootBody.links.publicOfficePathways).toBe(
       "/v1/politics/uk/public-office-pathways",
     );
+    expect(rootBody.links.publicDecisionPathways).toBe(
+      "/v1/politics/uk/public-decision-pathways",
+    );
     expect(rootBody.publicOfficePathways).toEqual({
+      status: "open",
+      normalPublicationGates: "independent",
+      emergencyStop: "politics-bulk-data-emergency-stop",
+      methods: ["GET", "HEAD"],
+      writes: false,
+    });
+    expect(rootBody.publicDecisionPathways).toEqual({
       status: "open",
       normalPublicationGates: "independent",
       emergencyStop: "politics-bulk-data-emergency-stop",

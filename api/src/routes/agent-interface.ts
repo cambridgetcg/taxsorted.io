@@ -41,10 +41,18 @@ const observerAccountabilitySchemaPath = "/v1/accountability/uk/schema";
 const publicOfficePathwaysPath = "/v1/politics/uk/public-office-pathways";
 const publicOfficePathwaysSchemaPath =
   "/v1/politics/uk/public-office-pathways/schema";
+const publicDecisionPathwaysPath =
+  "/v1/politics/uk/public-decision-pathways";
+const publicDecisionPathwaysSchemaPath =
+  "/v1/politics/uk/public-decision-pathways/schema";
 const taxExpertManifestPath = "/v1/uk/tax-expert";
 const taxExpertAssessmentPath =
   "/v1/uk/tax-expert/mtd-income-tax/assessments";
 const taxExpertOpenApiPath = "/openapi/tax-expert-uk.json";
+const taxPositionPassportSchemaPath =
+  "/v1/uk/tax-expert/tax-position-passport/schema";
+const taxPositionPassportExamplePath =
+  "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax";
 const sdltCalculationPath = "/v1/uk/sdlt/calculations";
 
 export const xeniaAttribution = {
@@ -88,6 +96,10 @@ release-ledger: GET ${apiOrigin}${releaseDiscoveryHandles.ledger}
 release-json-feed: GET ${apiOrigin}${releaseDiscoveryHandles.jsonFeed}
 release-atom-feed: GET ${apiOrigin}${releaseDiscoveryHandles.atom}
 public-funding-changes: GET ${apiOrigin}/v1/public-funding/uk/changes
+window-tax-story: GET ${humanOrigin}/learn/history/window-tax/
+window-tax-media-manifest: GET ${humanOrigin}/media/window-tax/manifest.json
+window-tax-scope: sourced public history; image rights and evidence strength remain separate
+window-tax-effects: read-only; no account, session, tracking or writes
 charity-accountability: GET ${apiOrigin}${charityAccountabilityPath}
 charity-accountability-schema: GET ${apiOrigin}${charityAccountabilitySchemaPath}
 charity-accountability-status: schema-only-not-admitted
@@ -128,8 +140,23 @@ politics-public-office-pathways-availability: public outside the pending bulk-re
 politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation
 politics-public-office-pathways-rights: GET ${apiOrigin}${publicOfficePathwaysPath}/rights
 politics-public-office-pathways-corrections: GET ${apiOrigin}/v1/politics/uk/integrity/corrections
+politics-public-decision-pathways: GET ${apiOrigin}${publicDecisionPathwaysPath}
+politics-public-decision-pathways-decisions: GET ${apiOrigin}${publicDecisionPathwaysPath}/decisions
+politics-public-decision-pathways-doors: GET ${apiOrigin}${publicDecisionPathwaysPath}/doors
+politics-public-decision-pathways-schema: GET ${apiOrigin}${publicDecisionPathwaysSchemaPath}
+politics-public-decision-pathways-openapi: GET ${apiOrigin}/openapi/politics-uk.json
+politics-public-decision-pathways-scope: one deep UK central-tax primary-law path; formal power, public doors, dated event windows, personal appeal and complaint hand-offs, and named gaps for other decision families
+politics-public-decision-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active
+politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation
+politics-public-decision-pathways-event-status: every event window is dated; compare checkedOn and closesOn, then verify the official source before acting
+politics-public-decision-pathways-rights: GET ${apiOrigin}${publicDecisionPathwaysPath}/rights
+politics-public-decision-pathways-corrections: GET ${apiOrigin}/v1/politics/uk/integrity/corrections
 tax-expert-manifest: GET ${apiOrigin}${taxExpertManifestPath}
 tax-expert-openapi: GET ${apiOrigin}${taxExpertOpenApiPath}
+tax-position-passport-schema: GET ${apiOrigin}${taxPositionPassportSchemaPath}
+tax-position-passport-example: GET ${apiOrigin}${taxPositionPassportExamplePath}
+tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint
+tax-position-passport-data: portable income-source facts, user-named evidence states and complete replayable MTD request plus TaxAnswer
 tax-expert-assessment: POST ${apiOrigin}${taxExpertAssessmentPath}
 tax-expert-assessment-authentication: Bearer TaxSorted workspace key
 tax-expert-assessment-required-scope: tax-expert:assess
@@ -484,6 +511,22 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         corrections: "/v1/politics/uk/integrity/corrections",
         effects:
           "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
+      },
+      publicDecisionPathways: {
+        href: publicDecisionPathwaysPath,
+        decisions: `${publicDecisionPathwaysPath}/decisions`,
+        doors: `${publicDecisionPathwaysPath}/doors`,
+        schema: publicDecisionPathwaysSchemaPath,
+        openApi: "/openapi/politics-uk.json",
+        humanGuide: `${humanOrigin}/uk/politics/decisions/`,
+        availability: "conditional-public",
+        unavailableWhen: "politics-bulk-data-emergency-stop",
+        rights: `${publicDecisionPathwaysPath}/rights`,
+        corrections: "/v1/politics/uk/integrity/corrections",
+        effects:
+          "Read-only general institutional guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation.",
+        eventStatus:
+          "Every event window is dated; compare checkedOn and closesOn, then verify the official source before acting.",
       },
       whyGraph: {
         framework: whyGraphBasePath,

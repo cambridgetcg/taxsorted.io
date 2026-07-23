@@ -131,6 +131,22 @@ describe("developer API boundary", () => {
       document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("whyGraph");
     expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .publicDecisionPathways.properties,
+    ).toMatchObject({
+      href: expect.any(Object),
+      decisions: expect.any(Object),
+      doors: expect.any(Object),
+      schema: expect.any(Object),
+      openApi: expect.any(Object),
+      humanGuide: expect.any(Object),
+      effects: expect.any(Object),
+      eventStatus: expect.any(Object),
+    });
+    expect(
+      document.components.schemas.AgentWake.properties.resources.required,
+    ).toContain("publicDecisionPathways");
+    expect(
       document.components.schemas.AgentWake.properties.resources.required,
     ).not.toContain("taxExpert");
     expect(
@@ -765,6 +781,15 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty(
       "/v1/politics/uk/public-office-pathways/rights",
     );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-decision-pathways",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}",
+    );
+    expect(document.paths).toHaveProperty(
+      "/v1/politics/uk/public-decision-pathways/rights",
+    );
     expect(
       document.paths["/v1/politics/uk/public-office-pathways"].get.security,
     ).toEqual([]);
@@ -812,6 +837,44 @@ describe("developer API boundary", () => {
       document.paths["/v1/politics/uk/public-office-pathways"].get.responses[503]
         .description,
     ).toMatch(/emergency stop/i);
+    expect(
+      document.paths["/v1/politics/uk/public-decision-pathways"].get.security,
+    ).toEqual([]);
+    expect(
+      document.paths["/v1/politics/uk/public-decision-pathways"].get
+        .responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicDecisionPathways");
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}"
+      ].get.responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkPublicDecisionPathwayDetail");
+    expect(
+      document.paths["/v1/politics/uk/public-decision-pathways/schema"].get
+        .responses[200].content,
+    ).toHaveProperty("application/schema+json");
+    expect(
+      document.paths["/v1/politics/uk/public-decision-pathways"].get.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.paths["/v1/politics/uk/public-decision-pathways"].head.security,
+    ).toEqual([]);
+    expect(
+      document.paths[
+        "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}"
+      ].head.responses,
+    ).toHaveProperty("304");
+    expect(
+      document.components.schemas.UkPublicDecisionPathways.properties,
+    ).toMatchObject({
+      decisionIntents: expect.any(Object),
+      actors: expect.any(Object),
+      pathways: expect.any(Object),
+      publicDoors: expect.any(Object),
+      personalRoutes: expect.any(Object),
+      eventWindows: expect.any(Object),
+      links: expect.any(Object),
+    });
     expect(
       document.components.schemas.UkPublicOfficePathways.properties,
     ).toMatchObject({

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Seven doors, each with a distinct plain meaning — no two labels
+// Each door has a distinct plain meaning — no two labels
 // should sound like the same thing to a first-time reader.
 const doors = [
   { href: "/uk/politics", label: "Start" },
   { href: "/uk/politics/system", label: "How power works" },
+  { href: "/uk/politics/decisions", label: "Change a decision" },
   { href: "/uk/politics/stand", label: "Stand for office" },
   { href: "/uk/politics/integrity", label: "Police & public money" },
   { href: "/uk/politics/people", label: "Your MP" },

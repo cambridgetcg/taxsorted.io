@@ -46,6 +46,16 @@ describe("open-data catalog", () => {
     expect(isPublicCivicPath("/v1/public-funding/uk")).toBe(true);
     expect(isPublicCivicPath("/v1/public-funding/uk-evil")).toBe(false);
     expect(isPublicCivicPath("/v1/uk/tax-expert")).toBe(true);
+    expect(
+      isPublicCivicPath(
+        "/v1/uk/tax-expert/tax-position-passport/schema",
+      ),
+    ).toBe(true);
+    expect(
+      isPublicCivicPath(
+        "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+      ),
+    ).toBe(true);
     expect(isPublicCivicPath("/v1/uk/tax-expert/mtd-income-tax/assessments")).toBe(false);
 
     const { app, sessionCalls } = mount();

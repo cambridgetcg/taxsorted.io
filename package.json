@@ -19,7 +19,7 @@
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace frontend",
     "validate:uk-personal-tax": "node scripts/validate-uk-personal-tax.mjs",
-    "validate:uk-politics": "node scripts/validate-uk-politics.mjs",
+    "validate:uk-politics": "node scripts/validate-uk-politics.mjs && npm run validate:public-decision-pathways --workspace api",
     "validate:uk-tax-system": "npm run validate:tax-system --workspace api",
     "validate:uk-tax-industry": "npm run validate:tax-industry --workspace api",
     "validate:uk-charities": "npm run validate:charities --workspace api",

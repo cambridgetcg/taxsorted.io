@@ -102,10 +102,28 @@ describe("agent interface", () => {
       "politics-public-office-pathways-effects: read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation",
     );
     expect(body).toContain(
+      "politics-public-decision-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways",
+    );
+    expect(body).toContain(
+      "politics-public-decision-pathways-decisions: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions",
+    );
+    expect(body).toContain(
+      "politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation",
+    );
+    expect(body).toContain(
       "tax-expert-manifest: GET https://api.taxsorted.io/v1/uk/tax-expert",
     );
     expect(body).toContain(
       "tax-expert-openapi: GET https://api.taxsorted.io/openapi/tax-expert-uk.json",
+    );
+    expect(body).toContain(
+      "tax-position-passport-schema: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema",
+    );
+    expect(body).toContain(
+      "tax-position-passport-example: GET https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+    );
+    expect(body).toContain(
+      "tax-position-passport-generation: browser-local only; no upload, cloud Passport, share link or server CRUD endpoint",
     );
     expect(body).toContain(
       "tax-expert-assessment: POST https://api.taxsorted.io/v1/uk/tax-expert/mtd-income-tax/assessments",
@@ -174,6 +192,15 @@ describe("agent interface", () => {
     );
     expect(body).toContain(
       "release-ledger: GET https://api.taxsorted.io/v1/open-data/releases",
+    );
+    expect(body).toContain(
+      "window-tax-story: GET https://taxsorted.io/learn/history/window-tax/",
+    );
+    expect(body).toContain(
+      "window-tax-media-manifest: GET https://taxsorted.io/media/window-tax/manifest.json",
+    );
+    expect(body).toContain(
+      "window-tax-effects: read-only; no account, session, tracking or writes",
     );
     expect(body).toContain(
       "format-selection: follow each export index's explicit representation URLs",
@@ -310,6 +337,22 @@ describe("agent interface", () => {
       corrections: "/v1/politics/uk/integrity/corrections",
       effects:
         "Read-only guidance; no eligibility decision, application, nomination, account, tracking or political recommendation.",
+    });
+    expect(body.resources.publicDecisionPathways).toEqual({
+      href: "/v1/politics/uk/public-decision-pathways",
+      decisions: "/v1/politics/uk/public-decision-pathways/decisions",
+      doors: "/v1/politics/uk/public-decision-pathways/doors",
+      schema: "/v1/politics/uk/public-decision-pathways/schema",
+      openApi: "/openapi/politics-uk.json",
+      humanGuide: "https://taxsorted.io/uk/politics/decisions/",
+      availability: "conditional-public",
+      unavailableWhen: "politics-bulk-data-emergency-stop",
+      rights: "/v1/politics/uk/public-decision-pathways/rights",
+      corrections: "/v1/politics/uk/integrity/corrections",
+      effects:
+        "Read-only general institutional guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation.",
+      eventStatus:
+        "Every event window is dated; compare checkedOn and closesOn, then verify the official source before acting.",
     });
     expect(body.resources.whyGraph).toEqual({
       framework: "/v1/why-graph",

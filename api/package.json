@@ -7,14 +7,18 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "pretest": "npm run check:passport-schema",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "generate:passport-schema": "tsx scripts/generate-tax-position-passport-schema.ts",
+    "check:passport-schema": "tsx scripts/generate-tax-position-passport-schema.ts --check",
     "validate:fraud-headers": "tsx scripts/validate-fraud-headers.ts",
     "validate:tax-system": "tsx scripts/validate-tax-system.ts",
     "validate:tax-industry": "tsx scripts/validate-tax-industry.ts",
     "validate:charities": "tsx ../scripts/validate-uk-charities.mjs",
     "validate:charity-accountability-candidate": "tsx scripts/validate-charity-accountability-candidate.ts",
     "validate:observer-accountability-candidate": "tsx scripts/validate-observer-accountability-candidate.ts",
+    "validate:public-decision-pathways": "tsx scripts/validate-public-decision-pathways.ts",
     "validate:public-funding": "tsx scripts/validate-public-funding.ts",
     "create:api-key": "tsx scripts/create-api-key.ts",
     "manage:api-key": "tsx scripts/manage-api-key.ts"
@@ -30,6 +34,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

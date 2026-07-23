@@ -1,6 +1,7 @@
 // i18n: deferred to M2 — plain English for launch
 
-import { categoryByKey, type LedgerRecord, type SourceType } from "@taxsorted/engine/uk/itsa";
+import { categoryByKey, type NewLedgerRecord, type SourceType } from "@taxsorted/engine/uk/itsa";
+import type { ImportCandidate } from "@/lib/local-books";
 
 /** Header names in the user's file that map onto a LedgerRecord's fields. */
 export interface CsvMapping {
@@ -12,6 +13,19 @@ export interface CsvMapping {
 export interface ParsedCsv {
   headers: string[];
   rows: string[][];
+}
+
+/**
+ * A content fingerprint gives every row in one file a stable source ID. The
+ * same file, even with a different file name, can then be recognised before
+ * it creates duplicate records. This is identity, not a security signature.
+ */
+export async function csvImportId(text: string): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text)
+  );
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -82,8 +96,20 @@ export function parseCsv(text: string): ParsedCsv {
 }
 
 const DATE_HEADER_HINTS = ["date"];
-const AMOUNT_HEADER_HINTS = ["amount", "value", "debit", "credit", "total"];
+// Debit and Credit are deliberately absent. They are separate sides of a
+// bank export, not one signed amount column, and guessing either one would
+// silently reverse or omit money.
+const AMOUNT_HEADER_HINTS = ["amount", "value", "total"];
 const DESCRIPTION_HEADER_HINTS = ["description", "narrative", "details", "memo", "payee", "reference"];
+
+export const SEPARATE_DEBIT_CREDIT_ERROR =
+  "Separate Debit and Credit columns are not supported yet. Choose one signed amount column: positive means money in and negative means money out.";
+
+/** True when a chosen header names one side of a Debit/Credit pair. */
+export function isDebitOrCreditColumn(header: string): boolean {
+  const words = header.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  return words.includes("debit") || words.includes("credit");
+}
 
 function findHeader(headers: string[], hints: string[]): string | undefined {
   return headers.find((h) => hints.some((hint) => h.toLowerCase().includes(hint)));
@@ -141,13 +167,34 @@ export const MORTGAGE_INTEREST_WARNING =
  * row up to the income default (turnover/periodAmount) itself.
  */
 export function suggestCategory(description: string, source: SourceType): string {
+  return categorySuggestion(description, source).category;
+}
+
+export interface CategorySuggestion {
+  category: string;
+  basis: string;
+  limitation: string;
+}
+
+export function categorySuggestion(description: string, source: SourceType): CategorySuggestion {
   const d = description.toLowerCase();
   for (const rule of CATEGORY_RULES) {
     const target = source === "self-employment" ? rule.se : rule.property;
     if (!target) continue;
-    if (rule.keywords.some((k) => d.includes(k))) return target;
+    const keyword = rule.keywords.find((candidate) => d.includes(candidate));
+    if (keyword) {
+      return {
+        category: target,
+        basis: `The bank description contains “${keyword}”, which often points to this category.`,
+        limitation: "A bank description cannot prove the business purpose or tax treatment.",
+      };
+    }
   }
-  return DEFAULT_EXPENSE[source];
+  return {
+    category: DEFAULT_EXPENSE[source],
+    basis: "No clear category word was found, so TaxSorted used the broad expense category.",
+    limitation: "This is a starting point only. Check what the payment was actually for.",
+  };
 }
 
 interface DateResult {
@@ -222,9 +269,15 @@ function parseAmount(raw: string): AmountResult {
 }
 
 export interface CsvImportRow {
-  record: Omit<LedgerRecord, "id">;
+  record: NewLedgerRecord;
+  importDetails?: Omit<ImportCandidate, "record">;
   guessed: boolean;
   warning?: string;
+}
+
+export interface CsvImportContext {
+  importId: string;
+  fileName: string;
 }
 
 /**
@@ -238,19 +291,32 @@ export interface CsvImportRow {
  * map), so `guessed` is always true — it exists so the UI can flag every
  * pre-filled category select for the user to check.
  */
-export function toRecords(parsed: ParsedCsv, mapping: CsvMapping, source: SourceType): CsvImportRow[] {
+export function toRecords(
+  parsed: ParsedCsv,
+  mapping: CsvMapping,
+  source: SourceType,
+  context?: CsvImportContext
+): CsvImportRow[] {
   const { headers, rows } = parsed;
   const dateIdx = headers.indexOf(mapping.date);
   const amountIdx = headers.indexOf(mapping.amount);
   const descIdx = mapping.description ? headers.indexOf(mapping.description) : -1;
+  const unsupportedAmountColumn = isDebitOrCreditColumn(mapping.amount);
 
-  return rows.map((row) => {
+  return rows.map((row, index) => {
     const rawDate = row[dateIdx] ?? "";
     const rawAmount = row[amountIdx] ?? "";
     const description = descIdx >= 0 ? row[descIdx] ?? "" : "";
 
     const dateResult = parseDate(rawDate);
-    const amountResult = parseAmount(rawAmount);
+    const amountResult: AmountResult = unsupportedAmountColumn
+      ? {
+          pence: 0,
+          kind: "expense",
+          zero: false,
+          error: SEPARATE_DEBIT_CREDIT_ERROR,
+        }
+      : parseAmount(rawAmount);
 
     const warnings: string[] = [];
     if (dateResult.error) warnings.push(dateResult.error);
@@ -259,7 +325,9 @@ export function toRecords(parsed: ParsedCsv, mapping: CsvMapping, source: Source
     else if (amountResult.zero) warnings.push("zero amount — nothing to import");
 
     const kind = amountResult.kind;
-    const suggested = suggestCategory(description, source);
+    const suggestion = categorySuggestion(description, source);
+    const suggested = suggestion.category;
+    let suggestionBasis = suggestion.basis;
     let category = suggested;
     // Guard against a description keyword suggesting a category of the
     // wrong direction (e.g. an income row whose text happens to contain
@@ -272,11 +340,16 @@ export function toRecords(parsed: ParsedCsv, mapping: CsvMapping, source: Source
       // real signals.
       if (suggested !== DEFAULT_EXPENSE[source]) {
         warnings.push("category auto-adjusted to match the amount's direction — check it");
+        suggestionBasis =
+          "The description pointed to an expense, but the positive amount shows money coming in, so TaxSorted used the normal income category.";
+      } else if (kind === "income") {
+        suggestionBasis =
+          "The amount is money coming in and no clearer category word was found, so TaxSorted used the normal business income category.";
       }
     }
     if (category === "residentialFinancialCost") warnings.push(MORTGAGE_INTEREST_WARNING);
 
-    const record: Omit<LedgerRecord, "id"> = {
+    const record: NewLedgerRecord = {
       date: dateResult.iso,
       amount: amountResult.pence,
       kind,
@@ -285,8 +358,48 @@ export function toRecords(parsed: ParsedCsv, mapping: CsvMapping, source: Source
       ...(description ? { description } : {}),
     };
 
+    const rowNumber = index + 2;
+    const externalId = context ? `${context.importId}:row-${rowNumber}` : undefined;
+    // The source identity stays tied to file + row. The content comparison
+    // also includes the normalized facts produced by the chosen mapping, so
+    // remapping the same bytes cannot look like an exact duplicate.
+    const contentDigest = context
+      ? JSON.stringify({
+          schema: "taxsorted.csv-row-content/1",
+          file: context.importId,
+          row: rowNumber,
+          date: record.date,
+          amount: record.amount,
+          kind: record.kind,
+          category: record.category,
+          source: record.source,
+          description: record.description ?? "",
+        })
+      : undefined;
+
     return {
       record,
+      ...(context && externalId && contentDigest
+        ? {
+            importDetails: {
+              origin: {
+                kind: "bank-csv" as const,
+                // The file fingerprint is the source namespace. It stays
+                // fixed if the person corrects which business activity owns
+                // the row, so that correction becomes a visible conflict
+                // rather than a second event.
+                accountScope: `csv:${context.importId}`,
+                externalId,
+                label: context.fileName,
+                row: rowNumber,
+                sourceRevision: 1,
+              },
+              contentDigest,
+              suggestion: { basis: suggestionBasis, limitation: suggestion.limitation },
+              ...(warnings.length ? { reviewNote: warnings.join("; ") } : {}),
+            },
+          }
+        : {}),
       guessed: true,
       ...(warnings.length ? { warning: warnings.join("; ") } : {}),
     };

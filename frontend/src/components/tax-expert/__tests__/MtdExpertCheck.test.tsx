@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { TAX_POSITION_PASSPORT_EXAMPLE } from "@taxsorted/engine/uk/passport";
 import { MtdExpertCheck } from "../MtdExpertCheck";
 
 function choose(label: RegExp, option: string) {
@@ -55,6 +56,94 @@ describe("MTD expert browser check", () => {
       "https://api.taxsorted.io/v1/why-graph",
     );
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("returns the complete replayable request and answer to an explicit parent", () => {
+    const onPositionChange = vi.fn();
+    render(<MtdExpertCheck onPositionChange={onPositionChange} />);
+    fillMaterialFacts();
+    fireEvent.click(screen.getByRole("button", { name: /check my position/i }));
+
+    const position = onPositionChange.mock.calls.at(-1)?.[0];
+    expect(position?.kind).toBe("mtd-income-tax-readiness");
+    expect(position?.request).toMatchObject({
+      schema: "taxsorted.uk.mtd-income-tax.request/1",
+      income: {
+        taxYears: {
+          "2024-25": {
+            selfEmploymentGrossPence: 5_000_001,
+          },
+        },
+      },
+    });
+    expect(position?.answer).toMatchObject({
+      schema: "taxsorted.tax-answer/1",
+      capability: {
+        id: "uk.mtd-income-tax.readiness",
+        jurisdiction: "United Kingdom",
+        taxType: "Making Tax Digital for Income Tax",
+        task: "classify",
+      },
+    });
+  });
+
+  it("prefills explicit no-source income as zero while keeping an active source unknown", () => {
+    const onPositionChange = vi.fn();
+    render(
+      <MtdExpertCheck
+        incomeSourceDefaults={{
+          selfEmployment: "no",
+          ukProperty: "yes",
+          foreignProperty: "no",
+        }}
+        onPositionChange={onPositionChange}
+      />,
+    );
+
+    for (const year of ["2024", "2025", "2026"]) {
+      expect(document.querySelector(`#selfEmployment${year}`)).toHaveValue("0");
+      expect(document.querySelector(`#ukProperty${year}`)).toHaveValue("");
+      expect(document.querySelector(`#foreignProperty${year}`)).toHaveValue("0");
+    }
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /check my position/i }),
+    );
+    const position = onPositionChange.mock.calls.at(-1)?.[0];
+    for (const row of Object.values(position.request.income.taxYears)) {
+      expect(row).toMatchObject({
+        selfEmploymentGrossPence: 0,
+        ukPropertyGrossPence: "unknown",
+        foreignPropertyGrossPence: 0,
+      });
+    }
+  });
+
+  it("resumes a saved position and marks it stale when a fact changes", () => {
+    const onPositionChange = vi.fn();
+    const [position] = TAX_POSITION_PASSPORT_EXAMPLE.positions;
+    render(
+      <MtdExpertCheck
+        initialPosition={position}
+        onPositionChange={onPositionChange}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: /MTD Income Tax applies from 6 April 2026/i,
+      }),
+    ).toBeInTheDocument();
+    const income = screen.getByLabelText(
+      /gross self-employment income in the UK return/i,
+    );
+    expect(income).toHaveValue("50000.01");
+
+    fireEvent.change(income, { target: { value: "49000" } });
+    expect(onPositionChange).toHaveBeenLastCalledWith(null);
+    expect(
+      screen.queryByRole("heading", { name: /MTD Income Tax applies/i }),
+    ).toBeNull();
   });
 
   it("keeps the exact £50,000 boundary out of the first phase", () => {

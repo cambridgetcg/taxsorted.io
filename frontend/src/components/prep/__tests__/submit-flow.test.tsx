@@ -231,7 +231,7 @@ describe("SubmitFlow", () => {
     expect(mockApi.getCalc).toHaveBeenCalledTimes(5);
   });
 
-  it("more than one matching business: offers a picker instead of guessing", async () => {
+  it("more than one matching business: locks sending instead of combining records", async () => {
     mockApi.businesses.mockResolvedValue({
       businesses: [
         { businessId: "biz-1", typeOfBusiness: "self-employment", tradingName: "Shop A" },
@@ -241,12 +241,83 @@ describe("SubmitFlow", () => {
 
     render(<SubmitFlow {...BASE_PROPS} />);
 
-    expect(await screen.findByRole("radio", { name: "Shop A" })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Shop B" })).toBeInTheDocument();
+    expect(await screen.findByText(/does not yet link each local ledger/i)).toBeInTheDocument();
+    expect(screen.getByText("Shop A")).toBeInTheDocument();
+    expect(screen.getByText("Shop B")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /send to hmrc/i })).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole("radio", { name: "Shop B" }));
-    expect(await screen.findByRole("button", { name: /send to hmrc \(sandbox demo\)/i })).toBeInTheDocument();
+  it("unconfirmed local business scope locks sending before any HMRC lookup", () => {
+    render(<SubmitFlow {...BASE_PROPS} ledgerScopeConfirmed={false} />);
+    expect(screen.getByText(/not yet been confirmed as one separate/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /starter books/i })).toHaveAttribute("href", "/itsa/records");
+    expect(mockApi.businesses).not.toHaveBeenCalled();
+  });
+
+  it("requires a deliberate HMRC business link when production passes a null binding", () => {
+    render(<SubmitFlow {...BASE_PROPS} hmrcBusinessId={null} />);
+
+    expect(screen.getByText(/deliberately link this local book to one HMRC business/i)).toBeInTheDocument();
+    expect(mockApi.businesses).not.toHaveBeenCalled();
+    expect(mockApi.receipts).not.toHaveBeenCalled();
+  });
+
+  it("uses only the deliberately linked HMRC business", async () => {
+    mockApi.businesses.mockResolvedValue({
+      businesses: [
+        ONE_BUSINESS,
+        { businessId: "other", typeOfBusiness: "self-employment", tradingName: "Other shop" },
+      ],
+    });
+    render(<SubmitFlow {...BASE_PROPS} hmrcBusinessId="XAIS12345678910" />);
+
+    expect(await screen.findByText(/submitting for/i)).toBeInTheDocument();
+    expect(screen.getByText("Acme Ltd")).toBeInTheDocument();
+    expect(screen.queryByText("Other shop")).not.toBeInTheDocument();
+  });
+
+  it("locks a negative cumulative category total instead of guessing HMRC sign treatment", () => {
+    render(
+      <SubmitFlow
+        {...BASE_PROPS}
+        records={[
+          {
+            id: "refund",
+            date: "2026-05-01",
+            amount: 40000,
+            kind: "expense",
+            category: "carVanTravelExpenses",
+            source: "self-employment",
+            effect: "decrease",
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText(/category total is below zero/i)).toBeInTheDocument();
+    expect(mockApi.businesses).not.toHaveBeenCalled();
+    expect(mockApi.receipts).not.toHaveBeenCalled();
+  });
+
+  it("rechecks the local-books revision immediately before sending", async () => {
+    const prepareSubmission = vi.fn().mockResolvedValue({
+      records: RECORDS,
+      ledgerScopeConfirmed: true,
+      storeRevision: 12,
+    });
+    render(
+      <SubmitFlow
+        {...BASE_PROPS}
+        storeRevision={11}
+        prepareSubmission={prepareSubmission}
+      />
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: /send to hmrc \(sandbox demo\)/i }));
+
+    expect(await screen.findByText(/local books changed after this page loaded/i)).toBeInTheDocument();
+    expect(prepareSubmission).toHaveBeenCalledOnce();
+    expect(mockApi.submitQuarterlyUpdate).not.toHaveBeenCalled();
   });
 
   it("resubmission: after a receipt, the reader can return to review and send again (the cumulative correction model)", async () => {

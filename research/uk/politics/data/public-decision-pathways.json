@@ -1,0 +1,2676 @@
+{
+  "schema": "taxsorted.uk.public-decision-pathways/1",
+  "meta": {
+    "title": "TaxSorted UK public-decision pathways",
+    "version": "1.0.0",
+    "retrievedAt": "2026-07-16",
+    "lawAsAt": "2026-07-16",
+    "jurisdiction": "United Kingdom",
+    "coverage": [
+      "Changing UK central-government tax policy through primary legislation",
+      "Public participation doors around tax policy, Finance Bills and official records",
+      "A strict hand-off between public-policy change, HMRC administration, tax appeals and service complaints",
+      "One dated Finance Bill 2026-27 draft-legislation consultation window"
+    ],
+    "exclusions": [
+      "Personalised legal advice, appeal drafting, litigation, representation or deadline calculation",
+      "Political-party recommendations, persuasion, ideology matching or predictions of influence",
+      "Sending consultation responses, petitions, correspondence, evidence or information requests",
+      "Scottish, Welsh, Northern Irish and local-tax decision chains",
+      "A deep map of secondary legislation, tax treaties or international tax negotiations",
+      "A live tracker for every Bill, consultation, committee inquiry or ministerial decision",
+      "Housing, planning, education, benefits and other non-tax public decisions"
+    ],
+    "editorialRules": [
+      "Separate government proposal, Commons authorisation, scrutiny, administration and adjudication.",
+      "Separate a public-policy disagreement from an individual appeal and a service complaint.",
+      "State the formal effect and limit of every public door; never estimate its chance of success.",
+      "Mark an event-specific opening with its checked date and deadline; never treat it as permanently open.",
+      "Distinguish official process descriptions from TaxSorted inferences about practical barriers.",
+      "Do not name a current office-holder where the durable institutional role is sufficient.",
+      "Use official institutional contacts only and collect no political opinion, postcode, tax letter or case fact."
+    ],
+    "personalisedDecisionPolicy": "TaxSorted asks for no personal tax facts and makes no decision about which legal remedy applies. It provides official hand-offs and preserves uncertainty where the decision letter, tax type or deadline controls.",
+    "warning": "Tax policy can move quickly and an enacted provision may not yet be in force. Check the live official measure, Bill, Act, commencement rule, consultation page or decision letter before acting."
+  },
+  "sources": [
+    {
+      "id": "hmt-tax-policy-principles-2025",
+      "title": "Tax Policy Making Principles",
+      "publisher": "HM Treasury",
+      "url": "https://www.gov.uk/government/publications/tax-policy-making-principles/tax-policy-making-principles",
+      "authorityLevel": "government-policy",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "The current government approach to central tax-policy development and consultation"
+      ],
+      "supports": [
+        "Single major fiscal-event and annual Finance Bill approach",
+        "Flexible and non-guaranteed formal consultation",
+        "Priority given to frequent engagement with tax professionals",
+        "Tax Information and Impact Notes, OBR-certified costings and the admitted tracking gap"
+      ],
+      "limitations": [
+        "These are government principles rather than a legally enforceable timetable or a promise to consult on every measure"
+      ]
+    },
+    {
+      "id": "hmt-about",
+      "title": "About us",
+      "publisher": "HM Treasury",
+      "url": "https://www.gov.uk/government/organisations/hm-treasury/about",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "HM Treasury's institutional responsibilities"
+      ],
+      "supports": [
+        "Strategic oversight of the UK tax system and economic policy"
+      ],
+      "limitations": [
+        "The page does not expose the complete internal ministerial or Cabinet decision chain for a particular measure"
+      ]
+    },
+    {
+      "id": "hmt-contact",
+      "title": "HM Treasury contacts",
+      "publisher": "HM Treasury",
+      "url": "https://www.gov.uk/government/organisations/hm-treasury#org-contacts",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "General correspondence with HM Treasury"
+      ],
+      "supports": [
+        "The current official institutional correspondence door"
+      ],
+      "limitations": [
+        "General correspondence is not a formal consultation, does not bind the Treasury and does not promise a substantive reply"
+      ]
+    },
+    {
+      "id": "hmrc-about",
+      "title": "About us",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/organisations/hm-revenue-customs/about",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "HMRC's legal status, tax administration and policy partnership with HM Treasury"
+      ],
+      "supports": [
+        "HM Treasury leads strategic tax policy and development",
+        "HMRC leads policy maintenance and implementation",
+        "HMRC is a non-ministerial department administering the tax system"
+      ],
+      "limitations": [
+        "It does not make HMRC guidance equivalent to legislation or allow ministers to decide individual taxpayer cases"
+      ]
+    },
+    {
+      "id": "obr-policy-costings",
+      "title": "Policy costings",
+      "publisher": "Office for Budget Responsibility",
+      "url": "https://obr.uk/forecasts-in-depth/policy/",
+      "authorityLevel": "official-independent-body",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Independent scrutiny of government tax and spending costings around fiscal events"
+      ],
+      "supports": [
+        "OBR challenge and certification of policy costings",
+        "Publication of policy-measures, uncertainty and risk data"
+      ],
+      "limitations": [
+        "The OBR does not select the government's policy or authorise taxation"
+      ]
+    },
+    {
+      "id": "parliament-taxation-spending",
+      "title": "Taxation and spending",
+      "publisher": "UK Parliament",
+      "url": "https://guidetoprocedure.parliament.uk/collections/C6pm6WK1/taxation-and-spending",
+      "authorityLevel": "legislature-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "House of Commons financial procedure"
+      ],
+      "supports": [
+        "Taxation must be authorised by legislation starting in the Commons",
+        "Only the Crown, in practice the Government, can initiate proposals for taxation",
+        "Commons financial privilege and Ways and Means resolutions"
+      ],
+      "limitations": [
+        "It is a procedural map, not a record that a particular proposal has passed every stage"
+      ]
+    },
+    {
+      "id": "parliament-ways-means",
+      "title": "Ways and Means resolution",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/site-information/glossary/ways-and-means-resolution/",
+      "authorityLevel": "legislature-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Commons consent to taxes and charges"
+      ],
+      "supports": [
+        "Ways and Means resolutions authorise the tax foundation needed before a Finance Bill is introduced"
+      ],
+      "limitations": [
+        "A resolution is not permanent primary legislation and measure-specific provisional-effect rules can differ"
+      ]
+    },
+    {
+      "id": "parliament-finance-bill",
+      "title": "Finance Bill",
+      "publisher": "UK Parliament",
+      "url": "https://guidetoprocedure.parliament.uk/articles/9Sc0nmH5",
+      "authorityLevel": "legislature-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Commons and Lords procedure for the annual Finance Bill"
+      ],
+      "supports": [
+        "Finance Bill stages and split committee stage",
+        "Written but not oral evidence to the Finance Bill Public Bill Committee",
+        "Limits on amendments that would add or increase tax",
+        "Lords debate without amendment"
+      ],
+      "limitations": [
+        "The live Bill page and programme order control the actual timetable for a particular Finance Bill"
+      ]
+    },
+    {
+      "id": "parliament-making-laws",
+      "title": "Making laws",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/business/lords/work-of-the-house-of-lords/making-laws/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "General Bill stages and Royal Assent"
+      ],
+      "supports": [
+        "Royal Assent turns an agreed Bill into an Act"
+      ],
+      "limitations": [
+        "Finance Bills have additional Commons financial-privilege limits and enactment does not prove every provision has commenced"
+      ]
+    },
+    {
+      "id": "parliament-secondary-legislation",
+      "title": "What is Secondary Legislation?",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/about/how/laws/secondary-legislation/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Statutory instruments and other law made under powers in a parent Act"
+      ],
+      "supports": [
+        "The parent Act controls the Parliamentary procedure",
+        "Parliament normally approves or rejects but cannot amend a statutory instrument",
+        "Members of the public must ask a member of either House to object or act"
+      ],
+      "limitations": [
+        "The exact parent power, instrument and procedure must be checked for each tax measure"
+      ]
+    },
+    {
+      "id": "cabinet-consultation-principles",
+      "title": "Consultation principles 2018",
+      "publisher": "Cabinet Office",
+      "url": "https://www.gov.uk/government/publications/consultation-principles-guidance/consultation-principles-2018",
+      "authorityLevel": "government-policy",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Government departments conducting formal consultations"
+      ],
+      "supports": [
+        "Consultations should have a purpose, be informative and occur while policy is formative where appropriate",
+        "Responses should be taken into account"
+      ],
+      "limitations": [
+        "The principles do not create one universal consultation period or require a consultation for every tax measure"
+      ]
+    },
+    {
+      "id": "hmrc-tax-consultation-tracker",
+      "title": "Check the status of tax policy consultations",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/check-the-status-of-tax-policy-consultations",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "updatedOn": "2026-03-19",
+      "appliesTo": [
+        "Open and closed central tax-policy consultations"
+      ],
+      "supports": [
+        "Official consultation discovery by tax family and status"
+      ],
+      "limitations": [
+        "The tracker does not explain the whole authority chain or guarantee that every measure has a formal consultation"
+      ]
+    },
+    {
+      "id": "gov-get-involved",
+      "title": "Get involved",
+      "publisher": "UK Government",
+      "url": "https://www.gov.uk/government/get-involved",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Finding current government consultations and petitions"
+      ],
+      "supports": [
+        "Official cross-government consultation discovery"
+      ],
+      "limitations": [
+        "It is a discovery page, not proof that a response will change the policy"
+      ]
+    },
+    {
+      "id": "parliament-contact-mp",
+      "title": "Contact your MP",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/get-involved/contact-an-mp-or-lord/contact-your-mp/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Constituents asking an MP to raise a public issue or case"
+      ],
+      "supports": [
+        "MPs may make enquiries, ask questions, take part in debates, motions or amendments",
+        "Constituents should identify themselves and normally contact their own MP"
+      ],
+      "limitations": [
+        "An MP is not required to take the requested action and cannot personally rewrite tax law or decide a taxpayer's liability"
+      ]
+    },
+    {
+      "id": "parliament-treasury-committee",
+      "title": "Treasury Committee",
+      "publisher": "UK Parliament",
+      "url": "https://committees.parliament.uk/committee/158/treasury-committee/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Parliamentary scrutiny of HM Treasury, HMRC and related policy or administration"
+      ],
+      "supports": [
+        "Official inquiry, evidence, report and contact discovery for the Treasury Committee"
+      ],
+      "limitations": [
+        "The Committee recommends and scrutinises; it does not itself set tax rates or decide individual appeals"
+      ]
+    },
+    {
+      "id": "parliament-select-committee-evidence",
+      "title": "Guidance on giving evidence to select committees",
+      "publisher": "UK Parliament",
+      "url": "https://publications.parliament.uk/pa/cm/written-evidence-guidance.htm",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Written evidence to an open Commons or Lords committee inquiry"
+      ],
+      "supports": [
+        "Who may contribute, format expectations, deadlines and publication warnings"
+      ],
+      "limitations": [
+        "Each live inquiry page controls scope, deadline and submission method; acceptance and confidentiality remain for the Committee"
+      ]
+    },
+    {
+      "id": "parliament-finance-bill-evidence",
+      "title": "Written submissions to a Public Bill Committee",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/mps-lords-and-offices/offices/commons/scrutinyunit/written-submissions/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Written evidence while a Public Bill Committee is considering a Bill"
+      ],
+      "supports": [
+        "The official written-evidence route and need to submit before the Committee finishes"
+      ],
+      "limitations": [
+        "The live Bill and committee page controls whether evidence is being accepted and when the window closes"
+      ]
+    },
+    {
+      "id": "parliament-petitions-help",
+      "title": "How petitions work",
+      "publisher": "UK Government and Parliament",
+      "url": "https://petition.parliament.uk/help",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "UK Government and Parliament e-petitions"
+      ],
+      "supports": [
+        "Eligibility, five initial supporters, six-month signature period, 10,000 response threshold and 100,000 debate-consideration threshold"
+      ],
+      "limitations": [
+        "A petition does not itself change policy or law and a debate is not guaranteed"
+      ]
+    },
+    {
+      "id": "parliament-petitions-privacy",
+      "title": "Petitions privacy notice",
+      "publisher": "House of Commons",
+      "url": "https://petition.parliament.uk/privacy",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Personal data used to create or sign a UK Government and Parliament e-petition"
+      ],
+      "supports": [
+        "An accepted petition creator's name is published while the petition is open",
+        "Signer personal information is not published",
+        "The service collects identity, contact, eligibility, postcode and IP information"
+      ],
+      "limitations": [
+        "The current privacy notice controls retention, sharing, rights and any later change"
+      ]
+    },
+    {
+      "id": "gov-foi-guide",
+      "title": "How to make a Freedom of Information request",
+      "publisher": "UK Government",
+      "url": "https://www.gov.uk/make-a-freedom-of-information-request/how-to-make-an-foi-request",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Requests for recorded information held by public authorities"
+      ],
+      "supports": [
+        "Written request requirements and the normal 20-working-day response period"
+      ],
+      "limitations": [
+        "Exemptions, cost limits and extensions can apply; FOI does not require a public body to create an explanation or change a decision"
+      ]
+    },
+    {
+      "id": "hmt-publication-scheme",
+      "title": "Publication scheme",
+      "publisher": "HM Treasury",
+      "url": "https://www.gov.uk/government/organisations/hm-treasury/about/publication-scheme",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "HM Treasury published information and FOI hand-off"
+      ],
+      "supports": [
+        "Check published information before making an FOI request"
+      ],
+      "limitations": [
+        "Not all policy-development material must be disclosed and the publication scheme does not waive statutory exemptions"
+      ]
+    },
+    {
+      "id": "hmrc-publication-scheme",
+      "title": "Publication scheme",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/organisations/hm-revenue-customs/about/publication-scheme",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "HMRC published information and FOI requests"
+      ],
+      "supports": [
+        "Official HMRC FOI contact",
+        "Statutory confidentiality for identifiable taxpayer information"
+      ],
+      "limitations": [
+        "FOI cannot be used to obtain another taxpayer's confidential information"
+      ]
+    },
+    {
+      "id": "hmrc-tax-review",
+      "title": "Disagree with a tax decision or penalty: get a review",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/tax-appeals/review-of-a-tax-or-penalty-decision",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Statutory review of eligible HMRC tax decisions and penalties"
+      ],
+      "supports": [
+        "Direct-tax appeal before review",
+        "Review by a different HMRC team, usually within 45 days",
+        "Usual 30-day tribunal deadline after a review result"
+      ],
+      "limitations": [
+        "The decision letter and tax-specific law control the actual route and deadline"
+      ]
+    },
+    {
+      "id": "tax-tribunal",
+      "title": "Appeal to the tax tribunal",
+      "publisher": "HM Courts & Tribunals Service",
+      "url": "https://www.gov.uk/tax-tribunal",
+      "authorityLevel": "tribunal-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "First-tier Tribunal challenges to eligible tax decisions"
+      ],
+      "supports": [
+        "Tribunal independence, direct and indirect-tax route differences, possible decision replacement or remittal"
+      ],
+      "limitations": [
+        "Not every HMRC action is appealable and payment, interest, evidence, costs and onward-appeal rules require case-specific checking"
+      ]
+    },
+    {
+      "id": "hmrc-complaints",
+      "title": "Complain about HMRC",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/complain-about-hmrc",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Complaints about HMRC delay, communication, behaviour or case handling"
+      ],
+      "supports": [
+        "Difference between a service complaint and a tax appeal",
+        "HMRC first-tier and second-tier complaint reviews"
+      ],
+      "limitations": [
+        "A complaint is not the correct route to dispute a tax decision or express general disagreement with government policy"
+      ]
+    },
+    {
+      "id": "adjudicator-role",
+      "title": "The role of the Adjudicator",
+      "publisher": "The Adjudicator's Office",
+      "url": "https://www.gov.uk/guidance/the-role-of-the-adjudicator",
+      "authorityLevel": "complaint-review-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Independent review after HMRC's internal complaint stages"
+      ],
+      "supports": [
+        "Independent complaint review and recommendations after first and second HMRC reviews"
+      ],
+      "limitations": [
+        "The Adjudicator does not decide government tax policy or replace statutory appeal and tribunal routes"
+      ]
+    },
+    {
+      "id": "hmrc-judicial-review",
+      "title": "Judicial review: what is judicial review",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/appeals-reviews-and-tribunals-guidance/artg12010",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "updatedOn": "2026-05-08",
+      "appliesTo": [
+        "Exceptional public-law challenges where no adequate statutory appeal may exist"
+      ],
+      "supports": [
+        "Judicial review concerns lawfulness and exercise of public powers rather than a general merits appeal"
+      ],
+      "limitations": [
+        "It is specialist litigation with strict time and cost risk; TaxSorted does not assess or prepare a claim"
+      ]
+    },
+    {
+      "id": "civil-procedure-rule-54-5",
+      "title": "Civil Procedure Rule 54.5: time limit for judicial review",
+      "publisher": "Civil Procedure Rule Committee and Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54",
+      "authorityLevel": "court-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Filing a judicial-review claim form in England and Wales"
+      ],
+      "supports": [
+        "A claim must be filed promptly and in any event normally within three months after the grounds first arose",
+        "Another enactment can impose a shorter time limit"
+      ],
+      "limitations": [
+        "This does not decide whether judicial review is available, appropriate or within jurisdiction in a particular tax dispute"
+      ]
+    },
+    {
+      "id": "parliament-become-mp",
+      "title": "Become a Member of Parliament",
+      "publisher": "UK Parliament",
+      "url": "https://www.parliament.uk/get-involved/become-a-member-of-parliament/",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "The official public route towards standing for election as an MP"
+      ],
+      "supports": [
+        "Standing for Parliament as a long-term electoral route into Commons decision-making"
+      ],
+      "limitations": [
+        "Candidacy and election are not required for the other participation doors and do not guarantee control of government tax policy"
+      ]
+    },
+    {
+      "id": "hmt-complaints-procedure",
+      "title": "Complaints procedure",
+      "publisher": "HM Treasury",
+      "url": "https://www.gov.uk/government/organisations/hm-treasury/about/complaints-procedure",
+      "authorityLevel": "government-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "appliesTo": [
+        "Complaints about HM Treasury service"
+      ],
+      "supports": [
+        "Policy disagreement and general correspondence are not the same as a service complaint"
+      ],
+      "limitations": [
+        "The procedure does not create a route to overturn tax policy"
+      ]
+    },
+    {
+      "id": "finance-bill-2026-27-draft",
+      "title": "Finance Bill 2026-27 — draft legislation and technical tax documents",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/collections/finance-bill-2026-27-draft-legislation-and-technical-tax-documents",
+      "authorityLevel": "government-policy",
+      "status": "event-specific",
+      "retrievedAt": "2026-07-16",
+      "updatedOn": "2026-07-13",
+      "appliesTo": [
+        "Draft clauses proposed for Finance Bill 2026-27"
+      ],
+      "supports": [
+        "Technical-consultation scope, publication date, 7 September 2026 deadline and Chancellor control of final Bill contents"
+      ],
+      "limitations": [
+        "Each measure has its own contact and documents; inclusion in draft material does not make it current law or guarantee inclusion in the introduced Bill"
+      ]
+    },
+    {
+      "id": "lords-tax-policy-report-2026",
+      "title": "Inheritance tax measures: unused pension funds and agricultural and business property reliefs",
+      "publisher": "House of Lords Economic Affairs Committee",
+      "url": "https://publications.parliament.uk/pa/ld5901/ldselect/ldeconaf/250/250.pdf",
+      "authorityLevel": "legislature-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-16",
+      "updatedOn": "2026-01-28",
+      "appliesTo": [
+        "Parliamentary scrutiny of selected draft Finance Bill 2025-26 measures and the 2025 Tax Policy Making Principles"
+      ],
+      "supports": [
+        "Committee concerns about consultation, transparency, evidence and unequal practical access"
+      ],
+      "limitations": [
+        "The findings arise from selected inheritance-tax measures and are recommendations, not binding law or proof about every tax policy"
+      ]
+    }
+  ],
+  "decisionIntents": [
+    {
+      "id": "change-tax-rule-for-everyone",
+      "title": "Change a central tax rule through primary legislation",
+      "question": "Has the official material or current legal analysis identified a Finance Bill or other primary legislation as the required vehicle?",
+      "chooseWhen": [
+        "The requested outcome would apply beyond one person's case",
+        "The exact change needs a government proposal and Commons-authorised primary legislation"
+      ],
+      "doNotUseWhen": [
+        "The instrument is unknown or the proposal uses regulations, an order or another delegated power",
+        "The issue is an HMRC decision about one taxpayer",
+        "The issue is poor service, delay or communication",
+        "The tax belongs to a devolved or local decision chain"
+      ],
+      "routeType": "deep-pathway",
+      "destinationId": "uk-central-tax-policy-primary-law",
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "parliament-taxation-spending"
+      ]
+    },
+    {
+      "id": "respond-to-proposed-tax-change",
+      "title": "Respond to a proposed Finance Bill change",
+      "question": "Is an official Finance Bill consultation, draft primary clause, Bill stage or related committee inquiry open?",
+      "chooseWhen": [
+        "The official source identifies a Finance Bill or another primary-legislation route",
+        "An official window is open and its exact scope is understood",
+        "The response can address the questions or technical drafting still open"
+      ],
+      "doNotUseWhen": [
+        "The proposal is a statutory instrument, regulation or order, or the legal vehicle is unknown",
+        "There is no verified current window",
+        "The goal is to appeal a personal tax decision"
+      ],
+      "routeType": "deep-pathway",
+      "destinationId": "uk-central-tax-policy-primary-law",
+      "sourceIds": [
+        "hmrc-tax-consultation-tracker",
+        "finance-bill-2026-27-draft",
+        "parliament-select-committee-evidence"
+      ]
+    },
+    {
+      "id": "change-secondary-or-unknown-tax-rule",
+      "title": "Change a delegated tax rule—or identify the legal instrument",
+      "question": "Does the proposal use regulations, an order or another power under an existing Act, or is the required legal instrument still unclear?",
+      "chooseWhen": [
+        "Official material names a statutory instrument, regulation, order or delegated power",
+        "No reliable source has yet confirmed that primary legislation is required"
+      ],
+      "doNotUseWhen": [
+        "A Finance Bill or other primary-legislation route has been confirmed",
+        "The issue is only HMRC administration or one taxpayer's decision"
+      ],
+      "routeType": "coverage-gap",
+      "destinationId": "secondary-tax-legislation",
+      "sourceIds": [
+        "parliament-secondary-legislation"
+      ]
+    },
+    {
+      "id": "change-hmrc-administration",
+      "title": "Change how HMRC administers the rule",
+      "question": "Does the legal rule stay the same while the concern is guidance, forms, systems or administration?",
+      "chooseWhen": [
+        "The desired change concerns implementation or policy maintenance within existing law"
+      ],
+      "doNotUseWhen": [
+        "A new tax, rate, threshold or primary-law change is required",
+        "A specific decision needs a statutory appeal"
+      ],
+      "routeType": "official-handoff",
+      "destinationId": "hmrc-policy-maintenance-handoff",
+      "sourceIds": [
+        "hmrc-about",
+        "hmrc-tax-consultation-tracker"
+      ]
+    },
+    {
+      "id": "challenge-my-tax-decision",
+      "title": "Challenge a decision about me",
+      "question": "Has HMRC issued a decision, assessment, relief refusal or penalty in a particular case?",
+      "chooseWhen": [
+        "The person has a decision letter or formal notification",
+        "The requested outcome is to vary, cancel or replace that case decision"
+      ],
+      "doNotUseWhen": [
+        "The goal is to change the rule for everyone",
+        "The complaint is only about delay, communication or service"
+      ],
+      "routeType": "personal-route",
+      "destinationId": "hmrc-tax-decision-appeal-review",
+      "sourceIds": [
+        "hmrc-tax-review",
+        "tax-tribunal"
+      ]
+    },
+    {
+      "id": "complain-about-hmrc-service",
+      "title": "Complain about HMRC service",
+      "question": "Is the issue delay, communication, behaviour or handling rather than the technical tax decision?",
+      "chooseWhen": [
+        "The concern is what HMRC did or failed to do as a service"
+      ],
+      "doNotUseWhen": [
+        "A statutory decision or penalty needs an appeal",
+        "The person only disagrees with government tax policy"
+      ],
+      "routeType": "personal-route",
+      "destinationId": "hmrc-service-complaint",
+      "sourceIds": [
+        "hmrc-complaints",
+        "adjudicator-role",
+        "hmt-complaints-procedure"
+      ]
+    },
+    {
+      "id": "understand-or-obtain-evidence",
+      "title": "Understand or obtain evidence",
+      "question": "Is the immediate need to find the public record, evidence or decision trail?",
+      "chooseWhen": [
+        "Published material should be checked before asking for more",
+        "A specific recorded-information request can be described"
+      ],
+      "doNotUseWhen": [
+        "The desired outcome is an explanation that the authority has not recorded",
+        "The request seeks another taxpayer's confidential information"
+      ],
+      "routeType": "official-handoff",
+      "destinationId": "tax-policy-records-handoff",
+      "sourceIds": [
+        "gov-foi-guide",
+        "hmt-publication-scheme",
+        "hmrc-publication-scheme"
+      ]
+    },
+    {
+      "id": "change-devolved-or-local-tax",
+      "title": "Change a devolved or local tax",
+      "question": "Does the tax or rate belong to Scotland, Wales, Northern Ireland or a local authority?",
+      "chooseWhen": [
+        "The relevant legislature, revenue authority or council holds a separate power"
+      ],
+      "doNotUseWhen": [
+        "The change is to a UK central tax administered through the HMT and HMRC policy partnership"
+      ],
+      "routeType": "coverage-gap",
+      "destinationId": "devolved-and-local-tax-powers",
+      "sourceIds": [
+        "hmrc-about",
+        "parliament-taxation-spending"
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "id": "chancellor",
+      "name": "Chancellor of the Exchequer",
+      "kind": "minister",
+      "selectedOrAppointedBy": "A government minister appointed through the constitutional ministerial process",
+      "formalRole": "Leads HM Treasury and announces the Government's principal tax and fiscal proposals.",
+      "can": [
+        "Choose and announce the Government's proposed tax direction",
+        "Present the Budget and seek Commons support",
+        "Decide the final Government contents proposed for a Finance Bill"
+      ],
+      "cannot": [
+        "Create permanent tax law without Commons-authorised legislation",
+        "Decide an individual taxpayer's appeal",
+        "Guarantee that a consultation response changes policy"
+      ],
+      "accountableThrough": [
+        "Parliamentary questions, debates, committees and votes",
+        "Collective government and ministerial accountability",
+        "Elections and public records"
+      ],
+      "officialUrl": "https://www.gov.uk/government/organisations/hm-treasury",
+      "sourceIds": [
+        "hmt-about",
+        "hmt-tax-policy-principles-2025",
+        "finance-bill-2026-27-draft"
+      ]
+    },
+    {
+      "id": "hm-treasury",
+      "name": "HM Treasury",
+      "kind": "ministerial-department",
+      "selectedOrAppointedBy": "Civil servants work under Treasury ministers within the UK Government",
+      "formalRole": "Leads strategic tax policy and policy development.",
+      "can": [
+        "Develop policy objectives and options",
+        "Coordinate fiscal-event documents and policy costing",
+        "Run or co-run consultations and publish impact material"
+      ],
+      "cannot": [
+        "Independently authorise a new tax",
+        "Treat general correspondence as a binding vote",
+        "Direct HMRC to decide a named taxpayer case politically"
+      ],
+      "accountableThrough": [
+        "Treasury ministers",
+        "House of Commons authorisation and scrutiny",
+        "Treasury Committee and public-law duties"
+      ],
+      "officialUrl": "https://www.gov.uk/government/organisations/hm-treasury",
+      "sourceIds": [
+        "hmt-about",
+        "hmrc-about",
+        "parliament-treasury-committee"
+      ]
+    },
+    {
+      "id": "hmrc",
+      "name": "HM Revenue & Customs",
+      "kind": "non-ministerial-department",
+      "selectedOrAppointedBy": "HMRC Commissioners and officers exercise statutory functions within a non-ministerial department",
+      "formalRole": "Leads policy maintenance and implementation and administers the tax system impartially.",
+      "can": [
+        "Advise on design and deliverability",
+        "Draft and maintain operational policy and guidance within the law",
+        "Collect, comply, enforce and make appealable decisions under statutory powers"
+      ],
+      "cannot": [
+        "Choose a new tax rate as independent law",
+        "Make guidance override an Act",
+        "Share identifiable taxpayer information without lawful authority"
+      ],
+      "accountableThrough": [
+        "Commissioners and departmental governance",
+        "Treasury ministers for spending accountability",
+        "Parliamentary committees, tribunals, courts, complaints and the Adjudicator"
+      ],
+      "officialUrl": "https://www.gov.uk/government/organisations/hm-revenue-customs",
+      "sourceIds": [
+        "hmrc-about",
+        "hmrc-publication-scheme",
+        "hmrc-tax-review"
+      ]
+    },
+    {
+      "id": "uk-government",
+      "name": "UK Government",
+      "kind": "government",
+      "selectedOrAppointedBy": "Formed through the constitutional and Parliamentary system",
+      "formalRole": "Holds the financial initiative to propose taxation to the House of Commons.",
+      "can": [
+        "Bring forward tax proposals and Finance Bills",
+        "Ask the Commons to agree Ways and Means resolutions"
+      ],
+      "cannot": [
+        "Bypass the requirement for Commons authorisation and legislation",
+        "Require a backbench or opposition amendment to create a new or larger tax outside the financial resolutions"
+      ],
+      "accountableThrough": [
+        "Confidence of the House of Commons",
+        "Parliamentary scrutiny, votes and elections"
+      ],
+      "officialUrl": "https://www.gov.uk/government/how-government-works",
+      "sourceIds": [
+        "parliament-taxation-spending",
+        "parliament-ways-means"
+      ]
+    },
+    {
+      "id": "office-budget-responsibility",
+      "name": "Office for Budget Responsibility",
+      "kind": "independent-forecaster",
+      "selectedOrAppointedBy": "An independent statutory fiscal institution with published governance",
+      "formalRole": "Forecasts the public finances and scrutinises the Government's published policy costings.",
+      "can": [
+        "Challenge and certify whether published costings are reasonable central estimates",
+        "Publish forecasts, uncertainty assessments and policy databases"
+      ],
+      "cannot": [
+        "Choose, recommend or authorise the Government's tax policy",
+        "Vote on a Finance Bill"
+      ],
+      "accountableThrough": [
+        "Statutory independence, published methods and Parliamentary scrutiny"
+      ],
+      "officialUrl": "https://obr.uk/",
+      "sourceIds": [
+        "obr-policy-costings",
+        "hmt-tax-policy-principles-2025"
+      ]
+    },
+    {
+      "id": "house-commons",
+      "name": "House of Commons",
+      "kind": "legislature-house",
+      "selectedOrAppointedBy": "Members are elected in UK Parliamentary constituencies",
+      "formalRole": "Authorises taxation through financial resolutions and primary legislation.",
+      "can": [
+        "Agree or reject Ways and Means resolutions",
+        "Debate, scrutinise, amend within procedure and vote on the Finance Bill",
+        "Hold ministers and HMRC to account"
+      ],
+      "cannot": [
+        "Use a non-government amendment to create a new tax or increase or extend the proposed charge beyond the financial resolutions",
+        "Turn a petition threshold into automatic law"
+      ],
+      "accountableThrough": [
+        "Published proceedings, divisions, committees, standards and elections"
+      ],
+      "officialUrl": "https://www.parliament.uk/business/commons/",
+      "sourceIds": [
+        "parliament-taxation-spending",
+        "parliament-finance-bill",
+        "parliament-petitions-help"
+      ]
+    },
+    {
+      "id": "treasury-committee",
+      "name": "House of Commons Treasury Committee",
+      "kind": "parliamentary-committee",
+      "selectedOrAppointedBy": "A cross-party select committee appointed by the House of Commons",
+      "formalRole": "Scrutinises HM Treasury, HMRC and associated public bodies, policy, administration and expenditure.",
+      "can": [
+        "Open inquiries, receive evidence, question witnesses and publish reports",
+        "Recommend policy or administrative change"
+      ],
+      "cannot": [
+        "Set a tax rate, amend an Act by report or decide an individual tax appeal",
+        "Guarantee that the Government accepts a recommendation"
+      ],
+      "accountableThrough": [
+        "House of Commons procedure, published evidence, hearings and reports"
+      ],
+      "officialUrl": "https://committees.parliament.uk/committee/158/treasury-committee/",
+      "sourceIds": [
+        "parliament-treasury-committee",
+        "parliament-select-committee-evidence"
+      ]
+    },
+    {
+      "id": "house-lords",
+      "name": "House of Lords",
+      "kind": "legislature-house",
+      "selectedOrAppointedBy": "Members enter through the constitutional routes for the House of Lords",
+      "formalRole": "Scrutinises and debates legislation, with restricted powers over Finance Bills.",
+      "can": [
+        "Debate a Finance Bill and publish committee scrutiny",
+        "Expose administration, evidence and implementation problems"
+      ],
+      "cannot": [
+        "Amend the Finance Bill",
+        "Override Commons financial privilege"
+      ],
+      "accountableThrough": [
+        "Published proceedings, standards and Parliamentary procedure"
+      ],
+      "officialUrl": "https://www.parliament.uk/business/lords/",
+      "sourceIds": [
+        "parliament-finance-bill",
+        "lords-tax-policy-report-2026"
+      ]
+    },
+    {
+      "id": "royal-assent",
+      "name": "Royal Assent",
+      "kind": "constitutional-step",
+      "selectedOrAppointedBy": "A constitutional stage after Parliamentary passage",
+      "formalRole": "Turns the Bill agreed through the Parliamentary process into an Act.",
+      "can": [
+        "Complete enactment of the Bill"
+      ],
+      "cannot": [
+        "Prove that every provision commenced immediately",
+        "Replace measure-specific effective-date and commencement checks"
+      ],
+      "accountableThrough": [
+        "The constitutional and Parliamentary record"
+      ],
+      "officialUrl": "https://www.parliament.uk/about/how/laws/passage-bill/lords/lrds-royal-assent/",
+      "sourceIds": [
+        "parliament-making-laws"
+      ]
+    },
+    {
+      "id": "first-tier-tax-tribunal",
+      "name": "First-tier Tribunal (Tax)",
+      "kind": "tribunal",
+      "selectedOrAppointedBy": "An independent tribunal within the courts and tribunals system",
+      "formalRole": "Determines eligible appeals from HMRC and other named public bodies.",
+      "can": [
+        "Hear both sides and replace or remit eligible decisions"
+      ],
+      "cannot": [
+        "Create general tax policy",
+        "Hear every complaint about HMRC service or every non-appealable action"
+      ],
+      "accountableThrough": [
+        "Tribunal procedure, reasoned decisions and onward legal appeal routes"
+      ],
+      "officialUrl": "https://www.gov.uk/tax-tribunal",
+      "sourceIds": [
+        "tax-tribunal"
+      ]
+    },
+    {
+      "id": "adjudicators-office",
+      "name": "The Adjudicator's Office",
+      "kind": "complaint-reviewer",
+      "selectedOrAppointedBy": "An independent complaint-review office",
+      "formalRole": "Reviews unresolved HMRC and Valuation Office service complaints after the required internal stages.",
+      "can": [
+        "Investigate complaint handling and recommend redress or learning"
+      ],
+      "cannot": [
+        "Determine tax policy or replace a statutory appeal or tribunal"
+      ],
+      "accountableThrough": [
+        "Published role, final written responses and institutional reporting"
+      ],
+      "officialUrl": "https://www.gov.uk/guidance/the-role-of-the-adjudicator",
+      "sourceIds": [
+        "adjudicator-role",
+        "hmrc-complaints"
+      ]
+    }
+  ],
+  "participants": [
+    {
+      "id": "affected-public",
+      "name": "Affected individuals and taxpayers",
+      "hasFormalDecisionPower": false,
+      "accessPattern": "May use open consultations, constituency representation, petitions, information rights and relevant committee calls.",
+      "canContribute": [
+        "First-hand impact evidence",
+        "Examples of administrative burden, unfairness or unintended effects",
+        "A clear requested outcome and supporting reasons"
+      ],
+      "cannotDo": [
+        "Cast a direct public vote on a consultation response",
+        "Force an MP, committee or minister to adopt the request"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "contact-constituency-mp",
+        "submit-select-committee-evidence",
+        "start-or-sign-petition",
+        "request-recorded-information",
+        "stand-for-mp"
+      ],
+      "sourceIds": [
+        "cabinet-consultation-principles",
+        "parliament-contact-mp",
+        "parliament-petitions-help",
+        "parliament-select-committee-evidence"
+      ]
+    },
+    {
+      "id": "tax-professionals",
+      "name": "Tax professionals and professional bodies",
+      "hasFormalDecisionPower": false,
+      "accessPattern": "The current Treasury principles expressly prioritise dynamic and frequent engagement with tax professionals, alongside formal and informal channels.",
+      "canContribute": [
+        "Technical drafting, compliance-cost and implementation evidence",
+        "Aggregated experience across clients and sectors"
+      ],
+      "cannotDo": [
+        "Authorise taxation or speak for every affected taxpayer",
+        "Convert private engagement into binding law"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "write-to-hm-treasury",
+        "submit-select-committee-evidence",
+        "submit-finance-bill-evidence"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "lords-tax-policy-report-2026"
+      ]
+    },
+    {
+      "id": "business-and-civil-society",
+      "name": "Businesses, charities, trade bodies and civil-society organisations",
+      "hasFormalDecisionPower": false,
+      "accessPattern": "May engage through consultations, correspondence, committee evidence and public campaigns where the exact door is open.",
+      "canContribute": [
+        "Sector evidence, operational data and distributional impacts",
+        "Collective proposals and evidence from affected communities"
+      ],
+      "cannotDo": [
+        "Acquire formal decision power through size, money or access alone",
+        "Prove causal influence merely because a meeting or submission occurred"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "write-to-hm-treasury",
+        "submit-select-committee-evidence",
+        "submit-finance-bill-evidence",
+        "start-or-sign-petition"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "cabinet-consultation-principles",
+        "parliament-select-committee-evidence"
+      ]
+    },
+    {
+      "id": "researchers-and-academics",
+      "name": "Researchers and academics",
+      "hasFormalDecisionPower": false,
+      "accessPattern": "The current Treasury principles describe collaboration with researchers and academics; committees also invite relevant expertise.",
+      "canContribute": [
+        "Independent evidence, evaluation methods and uncertainty",
+        "Comparison with historical or international evidence"
+      ],
+      "cannotDo": [
+        "Turn a model or forecast into a government decision",
+        "Replace Parliamentary authorisation"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "write-to-hm-treasury",
+        "submit-select-committee-evidence",
+        "submit-finance-bill-evidence"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "parliament-select-committee-evidence"
+      ]
+    }
+  ],
+  "pathways": [
+    {
+      "id": "uk-central-tax-policy-primary-law",
+      "coverageStatus": "deep",
+      "currentLawAsAt": "2026-07-16",
+      "title": "Change a UK central tax rule through primary legislation",
+      "decisionKind": "central-government-tax-policy-and-primary-law",
+      "jurisdiction": "UK central government and the UK Parliament, subject to tax-specific territorial application",
+      "summary": "A tax idea becomes durable primary law only through a chain in which government develops and proposes policy, the Commons authorises taxation, Parliament scrutinises the Bill, Royal Assent enacts it and HMRC implements it.",
+      "startingPoint": "Describe the public outcome, identify the tax and territory, and check whether the policy is formative, announced, in draft legislation, before Parliament, enacted or already in force.",
+      "endState": "The relevant legal provision is enacted and commenced or effective, with HMRC administration and a public record that can be monitored and scrutinised.",
+      "stages": [
+        {
+          "id": "define-tax-problem",
+          "order": 1,
+          "phase": "problem-definition",
+          "title": "Define the problem and the exact tax power",
+          "actorIds": [
+            "hm-treasury",
+            "hmrc",
+            "uk-government"
+          ],
+          "whatHappens": [
+            "Treasury ministers and officials identify objectives, constraints and possible tax responses.",
+            "HMRC contributes administration, maintenance, compliance and delivery evidence.",
+            "The territory and legal instrument must be identified before assuming Westminster holds the power."
+          ],
+          "publicDoorIds": [
+            "write-to-hm-treasury",
+            "contact-constituency-mp",
+            "request-recorded-information"
+          ],
+          "publicRecords": [
+            "Government policy papers and roadmaps where published",
+            "Published research, statistics and prior consultation material",
+            "Parliamentary questions, committee work and FOI disclosures where available"
+          ],
+          "changeStillPossible": "The objective and possible tools may still be broad, but the internal government process is not a public co-design vote.",
+          "notGuaranteed": "A public proposal does not have to be adopted, costed or placed into the fiscal-event programme.",
+          "sourceIds": [
+            "hmt-about",
+            "hmrc-about",
+            "hmt-tax-policy-principles-2025"
+          ]
+        },
+        {
+          "id": "develop-tax-policy",
+          "order": 2,
+          "phase": "policy-development",
+          "title": "Develop policy and test delivery",
+          "actorIds": [
+            "chancellor",
+            "hm-treasury",
+            "hmrc",
+            "office-budget-responsibility"
+          ],
+          "whatHappens": [
+            "HM Treasury leads strategic design and HMRC leads maintenance and implementation advice through the policy partnership.",
+            "Government remains responsible for the chosen policy and costing.",
+            "The OBR scrutinises draft costings around the fiscal event without choosing the policy."
+          ],
+          "publicDoorIds": [
+            "respond-open-tax-consultation",
+            "write-to-hm-treasury",
+            "submit-select-committee-evidence",
+            "contact-constituency-mp"
+          ],
+          "publicRecords": [
+            "Consultation or call-for-evidence documents when used",
+            "Research and impact material",
+            "Later OBR-certified policy costings"
+          ],
+          "changeStillPossible": "Options, design, implementation and evidence can change while the policy is still formative, but no universal public window exists.",
+          "notGuaranteed": "The OBR does not publish confidential pre-announcement policy choices and does not approve policy.",
+          "sourceIds": [
+            "hmt-tax-policy-principles-2025",
+            "hmrc-about",
+            "obr-policy-costings"
+          ]
+        },
+        {
+          "id": "consult-where-used",
+          "order": 3,
+          "phase": "consultation",
+          "title": "Consult where government opens a door",
+          "actorIds": [
+            "hm-treasury",
+            "hmrc",
+            "uk-government"
+          ],
+          "whatHappens": [
+            "A formal consultation may seek evidence on objectives, design, implementation or draft text.",
+            "The current approach is targeted, proportionate and flexible rather than a guaranteed fixed-duration stage.",
+            "Some simple rate or threshold changes, or changes with significant forestalling risk, may receive no formal consultation."
+          ],
+          "publicDoorIds": [
+            "respond-open-tax-consultation",
+            "write-to-hm-treasury",
+            "contact-constituency-mp",
+            "submit-select-committee-evidence"
+          ],
+          "publicRecords": [
+            "Consultation questions and privacy notice",
+            "Submitted or summarised responses where published",
+            "Government response or next policy document where issued"
+          ],
+          "changeStillPossible": "Only the live consultation's scope shows whether the objective, detailed design or technical drafting remains open.",
+          "notGuaranteed": "Being received or considered is not a right to a particular answer, policy change or published individual response.",
+          "sourceIds": [
+            "hmt-tax-policy-principles-2025",
+            "cabinet-consultation-principles",
+            "hmrc-tax-consultation-tracker",
+            "gov-get-involved"
+          ]
+        },
+        {
+          "id": "announce-fiscal-proposal",
+          "order": 4,
+          "phase": "fiscal-event",
+          "title": "Government announces the fiscal proposal",
+          "actorIds": [
+            "chancellor",
+            "hm-treasury",
+            "office-budget-responsibility",
+            "house-commons"
+          ],
+          "whatHappens": [
+            "The Chancellor presents government tax proposals to the Commons.",
+            "The Government publishes policy documents, impact material and costings.",
+            "The OBR publishes its forecast and assessment of certified costings."
+          ],
+          "publicDoorIds": [
+            "contact-constituency-mp",
+            "submit-select-committee-evidence",
+            "start-or-sign-petition",
+            "request-recorded-information"
+          ],
+          "publicRecords": [
+            "Budget or fiscal-event speech and documents",
+            "Tax Information and Impact Notes where published",
+            "OBR Economic and Fiscal Outlook, scorecard and policy databases"
+          ],
+          "changeStillPossible": "The Government can revise or withdraw a proposal and Parliament has not yet enacted it, but the policy objective is usually more settled.",
+          "notGuaranteed": "An announcement is not permanent law and an effective date may depend on resolutions, enactment or commencement.",
+          "sourceIds": [
+            "hmt-tax-policy-principles-2025",
+            "obr-policy-costings",
+            "parliament-ways-means"
+          ]
+        },
+        {
+          "id": "commons-authorise-tax",
+          "order": 5,
+          "phase": "commons-authorisation",
+          "title": "Commons considers the tax foundation",
+          "actorIds": [
+            "uk-government",
+            "house-commons",
+            "chancellor"
+          ],
+          "whatHappens": [
+            "Government moves Budget or Ways and Means resolutions.",
+            "The Commons agrees or rejects the resolutions needed to authorise taxation and found the Finance Bill.",
+            "Some measures may receive provisional effect under separate legal rules."
+          ],
+          "publicDoorIds": [
+            "contact-constituency-mp",
+            "start-or-sign-petition"
+          ],
+          "publicRecords": [
+            "Ways and Means motions and resolutions",
+            "Budget debates and division records",
+            "The introduced Finance Bill and explanatory material"
+          ],
+          "changeStillPossible": "MPs can debate and vote, but the financial initiative and resolution scope tightly constrain additions or increases.",
+          "notGuaranteed": "A provisional tax effect is not the same as permanent enactment.",
+          "sourceIds": [
+            "parliament-taxation-spending",
+            "parliament-ways-means",
+            "parliament-finance-bill"
+          ]
+        },
+        {
+          "id": "commons-scrutinise-finance-bill",
+          "order": 6,
+          "phase": "commons-legislation",
+          "title": "Commons scrutinises the Finance Bill",
+          "actorIds": [
+            "house-commons",
+            "uk-government",
+            "treasury-committee"
+          ],
+          "whatHappens": [
+            "The Bill receives Commons readings, detailed committee consideration, report and third reading.",
+            "Important clauses may be considered by a Committee of the whole House and the remainder by a Public Bill Committee.",
+            "The Finance Bill Public Bill Committee can receive written but not oral evidence."
+          ],
+          "publicDoorIds": [
+            "contact-constituency-mp",
+            "submit-finance-bill-evidence",
+            "submit-select-committee-evidence",
+            "start-or-sign-petition"
+          ],
+          "publicRecords": [
+            "Bill text, explanatory notes and amendment papers",
+            "Hansard debates and division records",
+            "Accepted written evidence and committee proceedings"
+          ],
+          "changeStillPossible": "Government and MPs can propose amendments within the Bill and financial-resolution scope.",
+          "notGuaranteed": "Evidence does not guarantee an amendment, and amendments cannot create a new tax or increase or extend the proposed charge beyond the resolutions.",
+          "sourceIds": [
+            "parliament-finance-bill",
+            "parliament-finance-bill-evidence",
+            "parliament-contact-mp"
+          ]
+        },
+        {
+          "id": "lords-scrutinise-finance-bill",
+          "order": 7,
+          "phase": "lords-scrutiny",
+          "title": "Lords debates and scrutinises within financial privilege",
+          "actorIds": [
+            "house-lords"
+          ],
+          "whatHappens": [
+            "The Lords debates the Finance Bill but does not amend it.",
+            "Lords committees can investigate tax administration, simplification and implementation and publish recommendations."
+          ],
+          "publicDoorIds": [
+            "submit-select-committee-evidence",
+            "request-recorded-information"
+          ],
+          "publicRecords": [
+            "Lords debate and Bill stage records",
+            "Committee calls for evidence, evidence, reports and government responses"
+          ],
+          "changeStillPossible": "Scrutiny can expose defects and press government to revise policy or administration, but the Lords cannot amend the Finance Bill.",
+          "notGuaranteed": "A committee recommendation is not binding and a debate does not itself change the Bill.",
+          "sourceIds": [
+            "parliament-finance-bill",
+            "lords-tax-policy-report-2026",
+            "parliament-select-committee-evidence"
+          ]
+        },
+        {
+          "id": "enact-and-check-commencement",
+          "order": 8,
+          "phase": "enactment",
+          "title": "Royal Assent enacts the Finance Act",
+          "actorIds": [
+            "house-commons",
+            "house-lords",
+            "royal-assent"
+          ],
+          "whatHappens": [
+            "After Parliamentary passage, Royal Assent turns the Bill into an Act.",
+            "Each provision must still be checked for its territorial application, effective date and any commencement condition."
+          ],
+          "publicDoorIds": [
+            "request-recorded-information",
+            "contact-constituency-mp"
+          ],
+          "publicRecords": [
+            "Act text and Royal Assent record",
+            "Commencement, transitional and effective-date provisions",
+            "Later amending legislation or correction slips"
+          ],
+          "changeStillPossible": "The enacted rule can be amended by later legislation; implementation questions can still be exposed and corrected.",
+          "notGuaranteed": "Royal Assent does not mean every section is immediately operative.",
+          "sourceIds": [
+            "parliament-making-laws",
+            "parliament-finance-bill"
+          ]
+        },
+        {
+          "id": "hmrc-implement-law",
+          "order": 9,
+          "phase": "implementation",
+          "title": "HMRC implements and administers the law",
+          "actorIds": [
+            "hmrc",
+            "hm-treasury"
+          ],
+          "whatHappens": [
+            "HMRC updates systems, forms, guidance, collection, compliance and enforcement.",
+            "HM Treasury and HMRC maintain the policy and can propose later legislative or administrative corrections."
+          ],
+          "publicDoorIds": [
+            "respond-open-tax-consultation",
+            "write-to-hm-treasury",
+            "contact-constituency-mp",
+            "request-recorded-information"
+          ],
+          "publicRecords": [
+            "HMRC manuals, guidance, forms and service updates",
+            "Statistics, annual reports and published operational material",
+            "Appeal, tribunal and complaint outcomes where lawfully public"
+          ],
+          "changeStillPossible": "Administration and guidance can change within the law; a legal rule requiring amendment must return to the appropriate legislative route.",
+          "notGuaranteed": "HMRC guidance explains HMRC's view and process but is not itself primary legislation.",
+          "sourceIds": [
+            "hmrc-about",
+            "hmrc-publication-scheme",
+            "hmrc-tax-review"
+          ]
+        },
+        {
+          "id": "evaluate-and-reopen",
+          "order": 10,
+          "phase": "evaluation",
+          "title": "Scrutinise outcomes and reopen the question",
+          "actorIds": [
+            "hm-treasury",
+            "hmrc",
+            "office-budget-responsibility",
+            "treasury-committee",
+            "house-lords"
+          ],
+          "whatHappens": [
+            "Government, HMRC, the OBR and Parliamentary committees publish different forms of performance, fiscal and implementation evidence.",
+            "New evidence can support administrative change, a new consultation or later legislation."
+          ],
+        "publicDoorIds": [
+          "submit-select-committee-evidence",
+          "contact-constituency-mp",
+          "start-or-sign-petition",
+          "request-recorded-information",
+          "respond-open-tax-consultation",
+          "write-to-hm-treasury",
+          "stand-for-mp"
+        ],
+          "publicRecords": [
+            "Forecasts, costings, statistics and evaluations",
+            "Committee evidence, hearings, reports and government responses",
+            "Consultation outcomes and later legislation"
+          ],
+          "changeStillPossible": "A settled rule can be revisited, but the correct route depends on whether the problem is policy, legislation, administration or an individual decision.",
+          "notGuaranteed": "Evidence of a problem does not prove that one participant caused a later change.",
+          "sourceIds": [
+            "obr-policy-costings",
+            "parliament-treasury-committee",
+            "lords-tax-policy-report-2026",
+            "hmt-tax-policy-principles-2025"
+          ]
+        }
+      ],
+      "powerMap": [
+        {
+          "id": "hmt-develops-tax-policy",
+          "actorId": "hm-treasury",
+          "powerType": "develop-policy",
+          "stageIds": [
+            "define-tax-problem",
+            "develop-tax-policy",
+            "consult-where-used",
+            "announce-fiscal-proposal",
+            "evaluate-and-reopen"
+          ],
+          "effect": "Develops the Government's strategic tax policy and coordinates the policy process.",
+          "limits": [
+            "Cannot independently authorise taxation",
+            "Internal development is not a public co-decision process"
+          ],
+          "sourceIds": [
+            "hmt-about",
+            "hmrc-about"
+          ]
+        },
+        {
+          "id": "hmrc-maintains-and-administers",
+          "actorId": "hmrc",
+          "powerType": "administer",
+          "stageIds": [
+            "define-tax-problem",
+            "develop-tax-policy",
+            "consult-where-used",
+            "hmrc-implement-law",
+            "evaluate-and-reopen"
+          ],
+          "effect": "Advises on maintenance and implementation, then administers the enacted system.",
+          "limits": [
+            "Cannot make guidance override legislation",
+            "Must preserve impartial taxpayer administration and confidentiality"
+          ],
+          "sourceIds": [
+            "hmrc-about",
+            "hmrc-publication-scheme"
+          ]
+        },
+        {
+          "id": "government-proposes-taxation",
+          "actorId": "uk-government",
+          "powerType": "propose-taxation",
+          "stageIds": [
+            "develop-tax-policy",
+            "announce-fiscal-proposal",
+            "commons-authorise-tax",
+            "commons-scrutinise-finance-bill"
+          ],
+          "effect": "Uses the financial initiative to place tax proposals and legislation before the Commons.",
+          "limits": [
+            "Requires Commons authorisation and legislation",
+            "A proposal, announcement or resolution is not automatically permanent law"
+          ],
+          "sourceIds": [
+            "parliament-taxation-spending",
+            "parliament-ways-means"
+          ]
+        },
+        {
+          "id": "chancellor-chooses-government-proposal",
+          "actorId": "chancellor",
+          "powerType": "propose-taxation",
+          "stageIds": [
+            "develop-tax-policy",
+            "announce-fiscal-proposal",
+            "commons-authorise-tax"
+          ],
+          "effect": "Leads the Government's fiscal proposal and presents it to Parliament.",
+          "limits": [
+            "Cannot bypass government, Commons and legislative procedure",
+            "Cannot decide an individual appeal"
+          ],
+          "sourceIds": [
+            "hmt-tax-policy-principles-2025",
+            "finance-bill-2026-27-draft"
+          ]
+        },
+        {
+          "id": "obr-scrutinises-costings",
+          "actorId": "office-budget-responsibility",
+          "powerType": "cost-and-forecast",
+          "stageIds": [
+            "develop-tax-policy",
+            "announce-fiscal-proposal",
+            "evaluate-and-reopen"
+          ],
+          "effect": "Independently scrutinises costings and publishes fiscal forecasts and uncertainty.",
+          "limits": [
+            "Does not select, recommend or authorise policy"
+          ],
+          "sourceIds": [
+            "obr-policy-costings"
+          ]
+        },
+        {
+          "id": "commons-authorises-taxation",
+          "actorId": "house-commons",
+          "powerType": "authorise-taxation",
+          "stageIds": [
+            "commons-authorise-tax",
+            "commons-scrutinise-finance-bill",
+            "enact-and-check-commencement"
+          ],
+          "effect": "Agrees the financial resolutions and primary legislation required to impose or alter taxation.",
+          "limits": [
+            "Members work within financial initiative, resolution and Bill procedure",
+            "A Commons vote does not decide a taxpayer's later case"
+          ],
+          "sourceIds": [
+            "parliament-taxation-spending",
+            "parliament-finance-bill"
+          ]
+        },
+        {
+          "id": "committees-scrutinise-tax",
+          "actorId": "treasury-committee",
+          "powerType": "scrutinise",
+          "stageIds": [
+            "develop-tax-policy",
+            "announce-fiscal-proposal",
+            "commons-scrutinise-finance-bill",
+            "evaluate-and-reopen"
+          ],
+          "effect": "Receives evidence, questions institutions and recommends improvements.",
+          "limits": [
+            "Recommendations are not binding",
+            "An inquiry must be open before evidence can use its formal submission route"
+          ],
+          "sourceIds": [
+            "parliament-treasury-committee",
+            "parliament-select-committee-evidence"
+          ]
+        },
+        {
+          "id": "lords-scrutinises-without-amendment",
+          "actorId": "house-lords",
+          "powerType": "scrutinise",
+          "stageIds": [
+            "lords-scrutinise-finance-bill",
+            "enact-and-check-commencement",
+            "evaluate-and-reopen"
+          ],
+          "effect": "Debates the Finance Bill and conducts committee scrutiny of administration and implementation.",
+          "limits": [
+            "Cannot amend the Finance Bill",
+            "Committee recommendations do not themselves change law"
+          ],
+          "sourceIds": [
+            "parliament-finance-bill",
+            "lords-tax-policy-report-2026"
+          ]
+        }
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "write-to-hm-treasury",
+        "contact-constituency-mp",
+        "submit-select-committee-evidence",
+        "submit-finance-bill-evidence",
+        "start-or-sign-petition",
+        "request-recorded-information",
+        "stand-for-mp"
+      ],
+      "participantIds": [
+        "affected-public",
+        "tax-professionals",
+        "business-and-civil-society",
+        "researchers-and-academics"
+      ],
+      "barrierIds": [
+        "government-financial-initiative",
+        "consultation-not-guaranteed",
+        "professional-access-asymmetry",
+        "technical-consultation-scope",
+        "finance-bill-procedure",
+        "representative-discretion",
+        "petition-is-not-a-vote",
+        "evidence-may-be-public",
+        "foi-is-information-not-influence",
+        "personal-remedy-deadlines",
+        "fragmented-decision-trail"
+      ],
+      "linkedOfficePaths": [
+        {
+          "officePathId": "uk-mp-great-britain",
+          "relationship": "MPs can question ministers, scrutinise and vote on tax legislation, serve on committees and represent constituents.",
+          "whenUseful": "Use the office pathway when the chosen long-term route is to seek elected Commons office rather than only use a public participation door.",
+          "notRequiredFor": "Responding to a consultation, submitting committee evidence, petitioning, requesting information or contacting the current constituency MP.",
+          "href": "/v1/politics/uk/public-office-pathways/offices/uk-mp-great-britain"
+        }
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "hmt-about",
+        "hmrc-about",
+        "obr-policy-costings",
+        "parliament-taxation-spending",
+        "parliament-finance-bill",
+        "parliament-making-laws"
+      ],
+      "notLegalAdvice": "This pathway explains institutional roles and public procedure. It does not determine the validity, commencement, interpretation or application of any tax rule to a person."
+    }
+  ],
+  "publicDoors": [
+    {
+      "id": "respond-open-tax-consultation",
+      "title": "Respond to an open tax consultation",
+      "kind": "government-consultation",
+      "availability": "event-specific",
+      "officialUrl": "https://www.gov.uk/guidance/check-the-status-of-tax-policy-consultations",
+      "whoCanUse": "The live consultation controls who may respond; many accept affected individuals, businesses, advisers, organisations and researchers.",
+      "action": [
+        "Read the exact questions, scope, privacy notice and deadline.",
+        "Separate evidence from opinion and explain the requested change and practical effect.",
+        "Send the response only through the address or form named by the official consultation."
+      ],
+      "relevantStageIds": [
+        "develop-tax-policy",
+        "consult-where-used",
+        "hmrc-implement-law",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "The consultation or measure being answered",
+        "Relevant evidence and reasoning",
+        "Identity and contact details required by that consultation"
+      ],
+      "deadlineRule": "The exact consultation page controls. There is no universal minimum period and late responses may not be considered.",
+      "directEffect": "informs-decision",
+      "expectedOutput": "The response enters the consultation process and may be reflected in a summary, government response, revised design or draft.",
+      "cannotPromise": "Receipt, publication, an individual reply, a policy change or any causal attribution.",
+      "privacyAndPublication": "Read the consultation privacy notice. Responses, names or organisational identities may be published or disclosed; request confidentiality only through the official process and do not assume it will be granted.",
+      "accountOrIdentity": "Set by the consultation; TaxSorted creates no account and receives no response.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "cabinet-consultation-principles",
+        "hmrc-tax-consultation-tracker",
+        "gov-get-involved"
+      ]
+    },
+    {
+      "id": "write-to-hm-treasury",
+      "title": "Send general policy correspondence to HM Treasury",
+      "kind": "government-correspondence",
+      "availability": "standing",
+      "officialUrl": "https://www.gov.uk/government/organisations/hm-treasury#org-contacts",
+      "whoCanUse": "Members of the public and organisations using the current institutional contact route.",
+      "action": [
+        "State the tax, territory, public outcome and evidence in plain language.",
+        "Ask for the correspondence to reach the responsible policy area.",
+        "Use a formal consultation instead when one is open and relevant."
+      ],
+      "relevantStageIds": [
+        "define-tax-problem",
+        "develop-tax-policy",
+        "consult-where-used",
+        "hmrc-implement-law",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "A return contact",
+        "A concise policy question or proposal",
+        "No unnecessary taxpayer identifiers or confidential case material"
+      ],
+      "deadlineRule": "No universal policy deadline; a live consultation or fiscal-event window can make timing material.",
+      "directEffect": "correspondence-only",
+      "expectedOutput": "Institutional correspondence is received and routed under the Treasury's current process.",
+      "cannotPromise": "A bespoke response, meeting, policy adoption, formal consultation status or public record.",
+      "privacyAndPublication": "Use the Treasury privacy information and do not send unnecessary personal or confidential tax facts.",
+      "accountOrIdentity": "The official contact route controls the information required; TaxSorted stores nothing.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "hmt-contact",
+        "hmt-tax-policy-principles-2025",
+        "hmt-complaints-procedure"
+      ]
+    },
+    {
+      "id": "contact-constituency-mp",
+      "title": "Ask the constituency MP to act",
+      "kind": "constituency-representation",
+      "availability": "standing",
+      "officialUrl": "https://www.parliament.uk/get-involved/contact-an-mp-or-lord/contact-your-mp/",
+      "whoCanUse": "A constituent normally contacts the MP for the constituency where they live.",
+      "action": [
+        "Give the address needed to establish constituency.",
+        "Explain the requested Parliamentary or ministerial action and why.",
+        "Ask whether the MP will question, speak, vote, amend, petition, write or refer as appropriate."
+      ],
+      "relevantStageIds": [
+        "define-tax-problem",
+        "develop-tax-policy",
+        "consult-where-used",
+        "announce-fiscal-proposal",
+        "commons-authorise-tax",
+        "commons-scrutinise-finance-bill",
+        "enact-and-check-commencement",
+        "hmrc-implement-law",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "Name and constituency address",
+        "A clear issue and requested action",
+        "Only the case details genuinely needed if asking for constituent help"
+      ],
+      "deadlineRule": "Standing route, but a vote, committee stage, appeal or consultation can have a separate closing date.",
+      "directEffect": "representative-discretion",
+      "expectedOutput": "The MP may make enquiries, raise the issue publicly, take Parliamentary action or explain why they will not.",
+      "cannotPromise": "A reply by a fixed date, agreement, an amendment, a vote in the requested direction or a policy result.",
+      "privacyAndPublication": "Ordinary correspondence is not automatically public, but a Parliamentary action may create a public record. Ask the MP's office how case information will be handled.",
+      "accountOrIdentity": "No TaxSorted account. Parliament says MPs generally need the constituent's address.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "parliament-contact-mp"
+      ]
+    },
+    {
+      "id": "submit-select-committee-evidence",
+      "title": "Submit evidence to an open committee inquiry",
+      "kind": "select-committee-evidence",
+      "availability": "event-specific",
+      "officialUrl": "https://publications.parliament.uk/pa/cm/written-evidence-guidance.htm",
+      "whoCanUse": "A person or organisation with relevant experience, evidence or expertise when an inquiry is accepting evidence.",
+      "action": [
+        "Read the inquiry's call for evidence and answer its terms of reference.",
+        "State who the evidence is from, use plain language and provide the requested file format.",
+        "Submit early through the live inquiry page."
+      ],
+      "relevantStageIds": [
+        "develop-tax-policy",
+        "consult-where-used",
+        "announce-fiscal-proposal",
+        "commons-scrutinise-finance-bill",
+        "lords-scrutinise-finance-bill",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "Relevant original experience, evidence or analysis",
+        "Identity and contact details",
+        "A submission meeting the live inquiry's scope, format and deadline"
+      ],
+      "deadlineRule": "The live inquiry page controls and a committee can close evidence before a provisional date.",
+      "directEffect": "committee-evidence",
+      "expectedOutput": "Accepted evidence may inform questions, findings and recommendations and may be published.",
+      "cannotPromise": "Acceptance, confidentiality, oral invitation, recommendation or government action.",
+      "privacyAndPublication": "Accepted evidence is normally published online and searchable. Contact committee staff before including private or confidential information; the committee decides publication.",
+      "accountOrIdentity": "The Parliamentary submission process controls identity and contact requirements; TaxSorted receives nothing.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "parliament-treasury-committee",
+        "parliament-select-committee-evidence",
+        "lords-tax-policy-report-2026"
+      ]
+    },
+    {
+      "id": "submit-finance-bill-evidence",
+      "title": "Submit written Finance Bill evidence",
+      "kind": "bill-evidence",
+      "availability": "event-specific",
+      "officialUrl": "https://www.parliament.uk/mps-lords-and-offices/offices/commons/scrutinyunit/written-submissions/",
+      "whoCanUse": "Anyone with relevant evidence while the Finance Bill Public Bill Committee is accepting written submissions.",
+      "action": [
+        "Confirm that the Bill has reached the evidence window and identify the exact clauses.",
+        "Send concise written evidence through the current Parliamentary route.",
+        "Submit as early as possible because the Committee can finish before an expected deadline."
+      ],
+      "relevantStageIds": [
+        "commons-scrutinise-finance-bill"
+      ],
+      "requiredInputs": [
+        "The Bill title and relevant clause or schedule",
+        "Evidence about drafting, operation or impact",
+        "Identity and contact details required by Parliament"
+      ],
+      "deadlineRule": "Only while the Public Bill Committee is still considering the Bill; the live committee record controls.",
+      "directEffect": "committee-evidence",
+      "expectedOutput": "Evidence received in time may be circulated to the Committee and published.",
+      "cannotPromise": "An amendment, debate, acceptance, oral evidence or policy change.",
+      "privacyAndPublication": "Parliamentary evidence can be published permanently. Discuss confidentiality with the Scrutiny Unit before submitting sensitive material.",
+      "accountOrIdentity": "No TaxSorted account; Parliament controls the submission process.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "parliament-finance-bill",
+        "parliament-finance-bill-evidence"
+      ]
+    },
+    {
+      "id": "start-or-sign-petition",
+      "title": "Start or sign a UK Parliament petition",
+      "kind": "parliamentary-petition",
+      "availability": "standing",
+      "officialUrl": "https://petition.parliament.uk/help",
+      "whoCanUse": "British citizens and UK residents may create an e-petition; the official service controls signature eligibility.",
+      "action": [
+        "Ask for a clear action within UK Government or Parliament responsibility.",
+        "Check for an existing similar petition and obtain five initial supporters to start one.",
+        "Use the six-month official signature window."
+      ],
+      "relevantStageIds": [
+        "announce-fiscal-proposal",
+        "commons-authorise-tax",
+        "commons-scrutinise-finance-bill",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "A clear requested action and reasons",
+        "Creator identity and five initial supporters where starting a petition",
+        "Official eligibility confirmation for each signature"
+      ],
+      "deadlineRule": "A published e-petition is normally open for six months.",
+      "directEffect": "response-or-debate-threshold",
+      "expectedOutput": "At 10,000 signatures the Government responds; at 100,000 the Petitions Committee considers a debate.",
+      "cannotPromise": "A debate, vote, policy change, law change or government agreement.",
+      "privacyAndPublication": "The petition text and signature count are public. If an accepted petition is opened for signatures, the creator's name is published while it is open; signer personal information is not published. Read the official privacy notice before creating or signing.",
+      "accountOrIdentity": "The official service collects identity, contact, eligibility, postcode and IP information to create or sign a petition. TaxSorted creates no petition and stores no identity.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "parliament-petitions-help",
+        "parliament-petitions-privacy"
+      ]
+    },
+    {
+      "id": "request-recorded-information",
+      "title": "Request recorded information",
+      "kind": "information-access",
+      "availability": "standing",
+      "officialUrl": "https://www.gov.uk/make-a-freedom-of-information-request/how-to-make-an-foi-request",
+      "whoCanUse": "Anyone making a valid written request to the public authority that holds the information.",
+      "action": [
+        "Search the publication scheme and existing disclosures first.",
+        "Name the authority and describe the recorded information precisely.",
+        "Give a name and reply address and ask for the preferred accessible format if needed."
+      ],
+      "relevantStageIds": [
+        "define-tax-problem",
+        "announce-fiscal-proposal",
+        "lords-scrutinise-finance-bill",
+        "enact-and-check-commencement",
+        "hmrc-implement-law",
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "Name and contact address",
+        "A precise description of recorded information",
+        "The correct public authority"
+      ],
+      "deadlineRule": "The normal response period is 20 working days, but extensions, clarification, cost limits and exemptions can apply.",
+      "directEffect": "information-right",
+      "expectedOutput": "Recorded information, a lawful refusal, a request for clarification or a notice that another authority holds it.",
+      "cannotPromise": "Creation of a new explanation, disclosure of exempt material, disclosure of identifiable taxpayer information or a policy change.",
+      "privacyAndPublication": "A direct official request is not automatically published by TaxSorted. Third-party FOI platforms may publish requests and replies; check their terms separately.",
+      "accountOrIdentity": "No TaxSorted account. A valid FOI request normally requires a real name and contact address.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "gov-foi-guide",
+        "hmt-publication-scheme",
+        "hmrc-publication-scheme"
+      ]
+    },
+    {
+      "id": "stand-for-mp",
+      "title": "Seek elected Commons office",
+      "kind": "elected-office",
+      "availability": "standing",
+      "officialUrl": "https://www.parliament.uk/get-involved/become-a-member-of-parliament/",
+      "whoCanUse": "A person who meets the current election-specific qualifications and completes the legal candidacy process.",
+      "action": [
+        "Understand the role before choosing a party or independent route.",
+        "Use the separate Public Office Pathfinder for qualifications, nomination, money and duties.",
+        "Treat election as a public choice, not a guaranteed route to government office or policy control."
+      ],
+      "relevantStageIds": [
+        "evaluate-and-reopen"
+      ],
+      "requiredInputs": [
+        "Current legal qualifications",
+        "A party-selection or independent candidacy route",
+        "Election-specific nomination and campaign compliance"
+      ],
+      "deadlineRule": "Election-specific; the notice of election and current Electoral Commission guide control.",
+      "directEffect": "electoral-route",
+      "expectedOutput": "A lawful candidacy can place the person before voters; election creates an MP mandate and Parliamentary role.",
+      "cannotPromise": "Selection, election, ministerial office, committee membership, party support or control of tax policy.",
+      "privacyAndPublication": "Candidacy creates statutory public records and campaign disclosures. Read the Public Office Pathfinder and official election guidance.",
+      "accountOrIdentity": "No TaxSorted account; nomination uses the official statutory process.",
+      "taxSortedEffects": "no-storage-no-submission",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "sourceIds": [
+        "parliament-become-mp",
+        "parliament-contact-mp"
+      ]
+    }
+  ],
+  "personalRoutes": [
+    {
+      "id": "hmrc-tax-decision-appeal-review",
+      "title": "Challenge an HMRC tax decision",
+      "useWhen": "HMRC has issued an assessment, penalty, refusal or other decision for which the law provides an appeal or review route.",
+      "notFor": "Changing tax policy for everyone, complaining only about service, or asking a minister to decide a taxpayer's liability.",
+      "officialUrl": "https://www.gov.uk/tax-appeals",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Read the decision letter and the tax-specific appeal rights immediately.",
+          "deadline": "The letter and legislation control; many appeals are normally required within 30 days.",
+          "caution": "Do not wait for a petition, consultation, complaint or policy reply while an appeal deadline runs.",
+          "sourceIds": [
+            "hmrc-tax-review",
+            "tax-tribunal"
+          ]
+        },
+        {
+          "order": 2,
+          "action": "Use the correct first appeal route.",
+          "deadline": "Direct-tax decisions normally go to HMRC first; indirect-tax decisions can have a different review or tribunal choice.",
+          "caution": "The correct route depends on the tax and decision. TaxSorted does not infer it from a description.",
+          "sourceIds": [
+            "hmrc-tax-review",
+            "tax-tribunal"
+          ]
+        },
+        {
+          "order": 3,
+          "action": "Consider or accept a statutory review where available.",
+          "deadline": "A review is normally completed within 45 days unless the review officer says it will take longer.",
+          "caution": "A different HMRC team reviews the decision, but this is still not a general policy consultation.",
+          "sourceIds": [
+            "hmrc-tax-review"
+          ]
+        },
+        {
+          "order": 4,
+          "action": "Protect the First-tier Tribunal route if the dispute remains.",
+          "deadline": "Following a review result, a tribunal appeal is usually required within 30 days of the review-result letter.",
+          "caution": "Payment, interest, evidence, cost and late-appeal rules vary; use the official guide and professional help for a difficult case.",
+          "sourceIds": [
+            "hmrc-tax-review",
+            "tax-tribunal"
+          ]
+        }
+      ],
+      "exceptionalRoutes": [
+        {
+          "id": "judicial-review-parallel-route",
+          "title": "Judicial review is a parallel exceptional route, not step 5",
+          "territory": "England and Wales court procedure only",
+          "useWhen": "Only seek specialist public-law advice where the legality of public action is in issue and no adequate statutory appeal or other remedy exists.",
+          "timing": "Act immediately. A claim form must be filed promptly and is normally due no later than three months after the grounds first arose; another enactment can impose a shorter limit.",
+          "caution": "Do not wait for the appeal sequence to finish merely because this card appears beside it. Judicial review is not a general merits appeal, can expose a claimant to costs and requires case-specific specialist advice. Scotland and Northern Ireland use different court procedures and deadlines; this card does not route those claims.",
+          "officialUrl": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54",
+          "sourceIds": [
+            "hmrc-judicial-review",
+            "civil-procedure-rule-54-5"
+          ]
+        }
+      ],
+      "possibleEffect": "HMRC review can uphold, vary or cancel a decision; an eligible tribunal can replace a decision or require it to be looked at again.",
+      "limits": [
+        "Not every HMRC action has the same appeal right",
+        "An appeal may not suspend payment and interest",
+        "This route changes a case outcome, not the tax rule for everyone"
+      ],
+      "sourceIds": [
+        "hmrc-tax-review",
+        "tax-tribunal",
+        "hmrc-judicial-review",
+        "civil-procedure-rule-54-5"
+      ],
+      "notLegalAdvice": "Read the actual decision letter and obtain qualified advice where the amount, deadline, evidence or route matters. TaxSorted has not seen the facts."
+    },
+    {
+      "id": "hmrc-service-complaint",
+      "title": "Complain about HMRC service",
+      "useWhen": "The concern is unreasonable delay, poor communication, behaviour, mistakes in handling or another service failure.",
+      "notFor": "A technical tax decision that should be appealed, or general disagreement with government tax policy.",
+      "officialUrl": "https://www.gov.uk/complain-about-hmrc",
+      "steps": [
+        {
+          "order": 1,
+          "action": "Raise the complaint with HMRC and explain what happened, what should have happened and the requested remedy.",
+          "deadline": "Complain as soon as possible and keep the current official correspondence.",
+          "caution": "Continue protecting any separate appeal and payment deadlines.",
+          "sourceIds": [
+            "hmrc-complaints"
+          ]
+        },
+        {
+          "order": 2,
+          "action": "Ask HMRC for a second-tier review if the first response does not resolve the complaint.",
+          "deadline": "Use the address and time instruction in HMRC's first-tier response.",
+          "caution": "A different person reviews complaint handling; this does not replace a statutory appeal.",
+          "sourceIds": [
+            "hmrc-complaints"
+          ]
+        },
+        {
+          "order": 3,
+          "action": "Ask the Adjudicator's Office for an independent review after both HMRC tiers.",
+          "deadline": "Use the current Adjudicator guidance and the deadline stated after the second-tier response.",
+          "caution": "The Adjudicator can recommend complaint redress but cannot decide tax policy or a tribunal issue.",
+          "sourceIds": [
+            "adjudicator-role",
+            "hmrc-complaints"
+          ]
+        },
+        {
+          "order": 4,
+          "action": "Use the official Parliamentary Ombudsman hand-off if the unresolved complaint reaches that stage.",
+          "deadline": "Follow the current complaint outcome and MP-referral requirements.",
+          "caution": "An MP's casework role is discretionary and separate from changing tax law.",
+          "sourceIds": [
+            "parliament-contact-mp",
+            "hmrc-complaints"
+          ]
+        }
+      ],
+      "exceptionalRoutes": [],
+      "possibleEffect": "HMRC or an independent reviewer may apologise, correct service handling, recommend redress, reimburse evidenced reasonable costs or identify institutional learning.",
+      "limits": [
+        "A complaint is not a substitute for an appeal",
+        "It does not overturn government tax policy",
+        "Compensation and redress are not guaranteed"
+      ],
+      "sourceIds": [
+        "hmrc-complaints",
+        "adjudicator-role",
+        "parliament-contact-mp"
+      ],
+      "notLegalAdvice": "Keep technical appeal rights and service complaints on separate tracks and use the official letters and guidance."
+    }
+  ],
+  "officialHandoffs": [
+    {
+      "id": "hmrc-policy-maintenance-handoff",
+      "title": "HMRC administration and policy-maintenance hand-off",
+      "status": "bounded-handoff",
+      "useWhen": "The concern is how existing law is implemented through guidance, forms, systems or administrative policy rather than a personal appeal.",
+      "officialUrl": "https://www.gov.uk/guidance/check-the-status-of-tax-policy-consultations",
+      "actions": [
+        "Check for an open administration or compliance consultation.",
+        "Use HM Treasury policy correspondence or the constituency MP for a general policy issue.",
+        "Use the HMRC service complaint route only for service failure, not policy disagreement.",
+        "Return to legislation when the desired outcome cannot lawfully be achieved through administration."
+      ],
+      "limits": [
+        "This release does not classify every HMRC manual or administrative discretion",
+        "Guidance cannot override primary law",
+        "No personal case facts are accepted"
+      ],
+      "sourceIds": [
+        "hmrc-about",
+        "hmrc-tax-consultation-tracker",
+        "hmt-contact",
+        "hmrc-complaints"
+      ]
+    },
+    {
+      "id": "tax-policy-records-handoff",
+      "title": "Tax-policy public-record hand-off",
+      "status": "bounded-handoff",
+      "useWhen": "The immediate goal is to understand what has been proposed, costed, authorised, enacted or implemented.",
+      "officialUrl": "https://www.gov.uk/government/organisations/hm-treasury/about/publication-scheme",
+      "actions": [
+        "Read the relevant policy paper, consultation, TIIN, OBR costing, Ways and Means resolution, Bill, Act and HMRC guidance in order.",
+        "Check the Treasury and HMRC publication schemes and Parliamentary records.",
+        "Use a precise FOI request only for recorded information not already published."
+      ],
+      "limits": [
+        "FOI does not create a policy explanation or prove influence",
+        "Exemptions and taxpayer confidentiality apply",
+        "This release does not mirror every upstream document"
+      ],
+      "sourceIds": [
+        "gov-foi-guide",
+        "hmt-publication-scheme",
+        "hmrc-publication-scheme",
+        "obr-policy-costings",
+        "parliament-ways-means"
+      ]
+    }
+  ],
+  "eventWindows": [
+    {
+      "id": "finance-bill-2026-27-draft-technical-consultation",
+      "title": "Finance Bill 2026-27 draft-legislation technical consultation",
+      "statusAsAt": "open",
+      "checkedOn": "2026-07-16",
+      "opensOn": "2026-07-13",
+      "closesOn": "2026-09-07",
+      "reviewAfter": "2026-09-08",
+      "officialUrl": "https://www.gov.uk/government/collections/finance-bill-2026-27-draft-legislation-and-technical-tax-documents",
+      "pathwayId": "uk-central-tax-policy-primary-law",
+      "publicDoorId": "respond-open-tax-consultation",
+      "legalStatus": "draft-legislation",
+      "territory": "United Kingdom, subject to each measure's stated application",
+      "scopeStatus": "partly-fixed",
+      "scope": "Technical consultation on published draft clauses and whether they work as intended; each measure has its own documents and response contact.",
+      "whatCanStillChange": "Technical drafting, operation and potentially final inclusion can change; the Chancellor decides the final contents proposed for the next Finance Bill.",
+      "whoCanRespond": "Anyone within a measure's stated audience using its named response address.",
+      "proceduralEffect": "A timely response enters the technical-consultation process and may inform revised drafting or the final government proposal.",
+      "cannotPromise": "Inclusion in the Bill, acceptance of a suggestion, a personal reply, enactment or commencement.",
+      "privacyAndPublication": "Read the privacy and publication wording on the collection and each measure before responding. Do not send through TaxSorted.",
+      "effectiveFrom": null,
+      "sourceIds": [
+        "finance-bill-2026-27-draft",
+        "hmt-tax-policy-principles-2025"
+      ]
+    }
+  ],
+  "barriers": [
+    {
+      "id": "government-financial-initiative",
+      "title": "Only government can initiate many tax charges",
+      "kind": "government-initiative",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "Commons financial procedure reserves the initiative for taxation to the Crown, in practice the Government, before the Commons authorises it.",
+      "publicPurpose": "Keeps taxation tied to government fiscal responsibility and elected Commons authorisation.",
+      "burden": [
+        "A public, backbench or opposition proposal normally needs government adoption or a different lawful vehicle",
+        "A popular idea cannot be inserted as a new or larger tax by an unrestricted amendment"
+      ],
+      "generalLowerFrictionOptions": [
+        "Engage while policy is formative through a relevant consultation or evidence route",
+        "Ask the constituency MP to raise the proposal",
+        "Build a public record through evidence, scrutiny and petition without pretending it is a direct vote"
+      ],
+      "doesNotMean": "The public has no voice; it means public doors influence, scrutinise or build support rather than directly exercise the financial initiative.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "contact-constituency-mp",
+        "submit-select-committee-evidence",
+        "start-or-sign-petition"
+      ],
+      "sourceIds": [
+        "parliament-taxation-spending",
+        "parliament-ways-means"
+      ]
+    },
+    {
+      "id": "consultation-not-guaranteed",
+      "title": "Formal consultation is not guaranteed",
+      "kind": "timing",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "The current Treasury principles use flexible, targeted and proportionate consultation and say formal consultation may be inappropriate for simple rate or threshold changes and where there is significant forestalling risk.",
+      "publicPurpose": "Allows a case-by-case process, including speed where advance notice could create significant forestalling risk.",
+      "burden": [
+        "There may be no open public form at the most formative moment",
+        "A later technical consultation may leave the policy objective outside scope",
+        "No universal minimum duration can be assumed"
+      ],
+      "generalLowerFrictionOptions": [
+        "Follow the official tax consultation tracker",
+        "Use standing MP and Treasury correspondence routes without calling them consultations",
+        "Read the exact scope before investing in a response"
+      ],
+      "doesNotMean": "Every unconsulted measure is unlawful or hidden; it means the existence and scope of consultation must be checked, not assumed.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "write-to-hm-treasury",
+        "contact-constituency-mp"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "cabinet-consultation-principles"
+      ]
+    },
+    {
+      "id": "professional-access-asymmetry",
+      "title": "Organised expertise gets an easier route to repeated engagement",
+      "kind": "access-asymmetry",
+      "mechanismAnalysisStatus": "taxsorted-inference",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "The current official principles expressly prioritise dynamic and frequent engagement with tax professionals, while an individual member of the public may rely more heavily on event-specific formal doors.",
+      "publicPurpose": "Tax professionals can supply specialist drafting, compliance and implementation evidence at scale.",
+      "burden": [
+        "Unorganised people can lack the time, vocabulary, networks and repeated access of professional bodies",
+        "Private engagement can be harder for outsiders to observe than a published consultation"
+      ],
+      "generalLowerFrictionOptions": [
+        "Use plain first-hand impact evidence rather than imitating technical jargon",
+        "Combine evidence through a relevant public-interest or sector organisation",
+        "Use published consultation, committee and FOI doors that create an observable trail"
+      ],
+      "doesNotMean": "A professional submission controls the result or that private engagement proves improper influence.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "submit-select-committee-evidence",
+        "request-recorded-information"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "lords-tax-policy-report-2026"
+      ]
+    },
+    {
+      "id": "technical-consultation-scope",
+      "title": "A consultation can open after the objective is largely settled",
+      "kind": "procedural",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "Draft-legislation consultation often asks whether legal text works as intended rather than whether the underlying objective should exist.",
+      "publicPurpose": "Focuses specialist scrutiny on clarity, operability and unintended drafting effects before introduction.",
+      "burden": [
+        "A broad policy objection can fall outside the live questions",
+        "Responders must identify what remains changeable rather than treating every consultation as formative"
+      ],
+      "generalLowerFrictionOptions": [
+        "Answer the technical questions with concrete drafting or implementation evidence",
+        "Use Parliament, policy correspondence or petitions for the wider objective",
+        "State clearly when evidence concerns an unintended effect inside scope"
+      ],
+      "doesNotMean": "Technical consultation is meaningless; it can materially improve text and operation within its scope.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "respond-open-tax-consultation",
+        "contact-constituency-mp",
+        "submit-finance-bill-evidence"
+      ],
+      "sourceIds": [
+        "finance-bill-2026-27-draft",
+        "hmt-tax-policy-principles-2025"
+      ]
+    },
+    {
+      "id": "finance-bill-procedure",
+      "title": "Finance Bill amendments have narrow financial limits",
+      "kind": "procedural",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "The Bill is founded on Commons financial resolutions; amendments cannot introduce a new tax or increase or extend the Government's proposed charge, and the Lords does not amend the Bill.",
+      "publicPurpose": "Preserves Commons financial privilege and government responsibility for taxation.",
+      "burden": [
+        "Late-stage proposals outside the resolutions cannot simply be added",
+        "The Lords scrutiny route cannot directly amend the Finance Bill",
+        "Programme orders can time-limit Commons proceedings"
+      ],
+      "generalLowerFrictionOptions": [
+        "Engage before the resolutions where a new policy is needed",
+        "Target written Bill evidence to clauses actually in scope",
+        "Ask MPs for a procedurally possible action rather than a legally impossible amendment"
+      ],
+      "doesNotMean": "MPs and committees cannot scrutinise tax; it means the form and timing of change are constrained.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "contact-constituency-mp",
+        "submit-finance-bill-evidence",
+        "submit-select-committee-evidence"
+      ],
+      "sourceIds": [
+        "parliament-finance-bill",
+        "parliament-taxation-spending"
+      ]
+    },
+    {
+      "id": "representative-discretion",
+      "title": "An MP represents but is not instructed by one message",
+      "kind": "representation",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "An MP may raise a matter, question a minister, support an amendment or handle a case, but decides whether and how to act.",
+      "publicPurpose": "Lets an elected representative balance law, evidence, party position, constituency interests and Parliamentary judgment.",
+      "burden": [
+        "A constituent cannot compel a reply or the requested vote",
+        "MPs generally act for their own constituents and receive large volumes of correspondence"
+      ],
+      "generalLowerFrictionOptions": [
+        "Contact the correct constituency MP and include the address once",
+        "Ask for one clear, lawful action tied to the current stage",
+        "Follow up politely if there is no response after a reasonable period"
+      ],
+      "doesNotMean": "Contact is pointless; it means the formal effect is representative discretion rather than a binding instruction.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "contact-constituency-mp"
+      ],
+      "sourceIds": [
+        "parliament-contact-mp"
+      ]
+    },
+    {
+      "id": "petition-is-not-a-vote",
+      "title": "Petition thresholds create responses and consideration, not law",
+      "kind": "representation",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "The official e-petition system gives a government response at 10,000 signatures and debate consideration at 100,000.",
+      "publicPurpose": "Creates a visible, accessible signal and a structured Parliamentary response route.",
+      "burden": [
+        "Even 100,000 signatures do not guarantee a debate",
+        "A debate does not guarantee a vote or legal change",
+        "The request must fall within UK Government or Parliament responsibility"
+      ],
+      "generalLowerFrictionOptions": [
+        "Check responsibility and similar petitions before drafting",
+        "Ask for one clear action",
+        "Use consultation or committee evidence in parallel when those doors are open"
+      ],
+      "doesNotMean": "Signatures are ignored; it means the published procedural effect must not be exaggerated.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "start-or-sign-petition"
+      ],
+      "sourceIds": [
+        "parliament-petitions-help"
+      ]
+    },
+    {
+      "id": "evidence-may-be-public",
+      "title": "Parliamentary evidence can become a permanent public record",
+      "kind": "evidence",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "Committees normally publish accepted written evidence online and retain contact information for their work; confidentiality is for the committee to decide.",
+      "publicPurpose": "Makes the evidence base visible and lets Parliament scrutinise openly.",
+      "burden": [
+        "A submission can remain searchable after the inquiry",
+        "Previously published material and sensitive information need careful handling",
+        "A person may need an alternative format or to contact committee staff"
+      ],
+      "generalLowerFrictionOptions": [
+        "Read the publication warning before submitting",
+        "Remove unnecessary personal and third-party information",
+        "Contact the clerk before including confidential material"
+      ],
+      "doesNotMean": "Every contact detail is published; the formal evidence and publication decision must be checked separately.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "submit-select-committee-evidence",
+        "submit-finance-bill-evidence"
+      ],
+      "sourceIds": [
+        "parliament-select-committee-evidence",
+        "parliament-finance-bill-evidence"
+      ]
+    },
+    {
+      "id": "foi-is-information-not-influence",
+      "title": "FOI opens records, not policy control",
+      "kind": "transparency",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "FOI requires disclosure of recorded information unless a lawful limit applies; it does not require an authority to create an answer or change policy.",
+      "publicPurpose": "Supports transparency while preserving statutory exemptions, workable cost limits and taxpayer confidentiality.",
+      "burden": [
+        "Broad or unclear requests can be delayed or refused",
+        "Policy-development and other exemptions can apply",
+        "Identifiable HMRC taxpayer information is protected"
+      ],
+      "generalLowerFrictionOptions": [
+        "Search publication schemes and prior disclosures first",
+        "Ask for a narrow record, date range or document",
+        "Keep policy advocacy separate from the information request"
+      ],
+      "doesNotMean": "The authority can hide anything it dislikes; refusals must rely on law and have review or complaint routes.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "request-recorded-information"
+      ],
+      "sourceIds": [
+        "gov-foi-guide",
+        "hmt-publication-scheme",
+        "hmrc-publication-scheme"
+      ]
+    },
+    {
+      "id": "personal-remedy-deadlines",
+      "title": "Policy activity does not stop an appeal deadline",
+      "kind": "legal-complexity",
+      "mechanismAnalysisStatus": "official-process-description",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "A personal tax decision follows statutory appeal and tribunal routes whose deadlines continue while policy correspondence, complaints or petitions happen.",
+      "publicPurpose": "Creates finality and an orderly evidence process for individual tax disputes.",
+      "burden": [
+        "Choosing the wrong door can lose time",
+        "Direct and indirect tax routes differ",
+        "Payment and interest can continue during a dispute"
+      ],
+      "generalLowerFrictionOptions": [
+        "Read the decision letter first",
+        "Protect the formal appeal deadline before pursuing wider policy activity",
+        "Separate a technical appeal from a service complaint"
+      ],
+      "doesNotMean": "Every decision is unchallengeable; it means the legal route and time limit must be identified from the actual decision.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [],
+      "sourceIds": [
+        "hmrc-tax-review",
+        "tax-tribunal",
+        "hmrc-complaints"
+      ]
+    },
+    {
+      "id": "fragmented-decision-trail",
+      "title": "The official trail is split across many institutions",
+      "kind": "transparency",
+      "mechanismAnalysisStatus": "taxsorted-inference",
+      "generalOptionsStatus": "taxsorted-written-general-guidance",
+      "mechanism": "Policy, consultation, costing, resolutions, Bill text, committee work, enactment and HMRC implementation live on separate official services. HM Treasury itself records stakeholder concern that policy is hard to track.",
+      "publicPurpose": "Different institutions publish the records for the powers they actually hold.",
+      "burden": [
+        "A person can mistake an announcement for law or guidance for legislation",
+        "Finding the live decision stage requires several sources",
+        "A contact directory alone does not show who can legally do what"
+      ],
+      "generalLowerFrictionOptions": [
+        "Follow the pathway in stage order and retain source IDs",
+        "Use the consultation tracker, Parliament record, OBR material and HMRC implementation record together",
+        "Correct TaxSorted through the public correction door when a source changes"
+      ],
+      "doesNotMean": "One website is the canonical source for every stage; TaxSorted is a connective map and the official records remain authoritative.",
+      "pathwayIds": [
+        "uk-central-tax-policy-primary-law"
+      ],
+      "publicDoorIds": [
+        "request-recorded-information",
+        "respond-open-tax-consultation",
+        "contact-constituency-mp"
+      ],
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "hmrc-tax-consultation-tracker",
+        "parliament-finance-bill",
+        "obr-policy-costings"
+      ]
+    }
+  ],
+  "coverageGaps": [
+    {
+      "id": "devolved-and-local-tax-powers",
+      "title": "Devolved and local tax powers",
+      "status": "intentionally-not-generalised",
+      "whySeparate": "Scottish, Welsh, Northern Irish and local taxes can have different legislatures, executives, revenue authorities, council powers, notices, appeals and effective dates.",
+      "safeFallback": "Identify the tax and territory, then use the responsible legislature, revenue authority or council. Do not reuse the Westminster Finance Bill path.",
+      "sourceIds": [
+        "hmrc-about",
+        "parliament-taxation-spending"
+      ]
+    },
+    {
+      "id": "secondary-tax-legislation",
+      "title": "Secondary tax legislation and delegated powers",
+      "status": "intentionally-not-generalised",
+      "whySeparate": "A statutory instrument depends on its parent Act and can use affirmative, negative, Commons-only or another procedure; Parliament normally cannot amend the instrument.",
+      "safeFallback": "Read the parent power, draft or made instrument, explanatory memorandum and exact Parliamentary procedure before choosing a door.",
+      "sourceIds": [
+        "parliament-secondary-legislation"
+      ]
+    },
+    {
+      "id": "live-events-beyond-first-window",
+      "title": "All live consultations, Bills and inquiry deadlines",
+      "status": "event-data-not-loaded",
+      "whySeparate": "Openings and deadlines change faster than the reviewed structural map and each source has its own scope and privacy terms.",
+      "safeFallback": "Use the official tax consultation tracker, GOV.UK consultation search, Bills service and committee inquiry pages. Treat the one included event window only as checked on its stated date.",
+      "sourceIds": [
+        "hmrc-tax-consultation-tracker",
+        "gov-get-involved",
+        "parliament-select-committee-evidence",
+        "finance-bill-2026-27-draft"
+      ]
+    },
+    {
+      "id": "international-tax-negotiations",
+      "title": "Tax treaties and international negotiations",
+      "status": "intentionally-not-generalised",
+      "whySeparate": "Treaties, multilateral standards, domestic implementation and Parliamentary procedures form a different authority chain.",
+      "safeFallback": "Use the measure-specific HM Treasury, HMRC, treaty and Parliamentary sources and seek specialist advice where rights or cross-border liability are involved.",
+      "sourceIds": [
+        "hmt-about",
+        "hmrc-about"
+      ]
+    },
+    {
+      "id": "personalised-case-and-judicial-review",
+      "title": "Personal appeal choice and judicial-review merits",
+      "status": "legal-advice-not-provided",
+      "whySeparate": "The decision letter, tax type, facts, statutory power, evidence, territory and deadlines determine the route; judicial review has specialist law, time and cost risk, and court procedure differs across UK jurisdictions.",
+      "safeFallback": "Read the official decision and guidance immediately and obtain qualified advice where the route, amount or deadline matters. The included CPR Part 54 timing is only for England and Wales; use the current Scottish or Northern Irish court procedure for claims there.",
+      "sourceIds": [
+        "hmrc-tax-review",
+        "tax-tribunal",
+        "hmrc-judicial-review",
+        "civil-procedure-rule-54-5"
+      ]
+    },
+    {
+      "id": "private-influence-and-causation",
+      "title": "Private meetings, lobbying and causal influence",
+      "status": "intentionally-not-generalised",
+      "whySeparate": "A meeting, submission, donation or relationship does not prove that it caused a policy outcome. Many internal discussions are not fully public.",
+      "safeFallback": "Record only sourced formal roles, published meetings, submissions, acknowledgements and decision records; never infer a hidden bargain or score an official as influenceable.",
+      "sourceIds": [
+        "hmt-tax-policy-principles-2025",
+        "lords-tax-policy-report-2026"
+      ]
+    },
+    {
+      "id": "non-tax-public-decisions",
+      "title": "Housing, planning, schools, benefits and other public decisions",
+      "status": "intentionally-not-generalised",
+      "whySeparate": "Each domain has a different legal owner, territory, funding chain, consultation duty and appeal route.",
+      "safeFallback": "Build a separate deeply sourced decision family rather than copying the tax-policy chain.",
+      "sourceIds": [
+        "parliament-contact-mp",
+        "gov-get-involved"
+      ]
+    }
+  ]
+}

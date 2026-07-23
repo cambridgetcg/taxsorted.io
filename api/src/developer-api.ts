@@ -26,6 +26,11 @@ import {
 } from "./uk-charities.js";
 import { ukPublicFundingSchema } from "./uk-public-funding.js";
 import {
+  publicDecisionPathSchema,
+  publicDecisionPathwayRightsSchema,
+  publicDecisionPathwaysSchema,
+} from "./uk-public-decision-pathways.js";
+import {
   publicOfficePathSchema,
   publicOfficePathwayRightsSchema,
   publicOfficePathwaysSchema,
@@ -141,6 +146,8 @@ const publicAgentPaths = new Set([
   "/v1/wake",
   "/v1/health",
   "/v1/uk/tax-expert",
+  "/v1/uk/tax-expert/tax-position-passport/schema",
+  "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
   professionalToolsPath,
 ]);
 
@@ -1106,6 +1113,20 @@ const AgentWake = z
         corrections: z.string(),
         effects: z.string(),
       }),
+      publicDecisionPathways: z.object({
+        href: z.string(),
+        decisions: z.string(),
+        doors: z.string(),
+        schema: z.string(),
+        openApi: z.string(),
+        humanGuide: z.string().url(),
+        availability: z.literal("conditional-public"),
+        unavailableWhen: z.literal("politics-bulk-data-emergency-stop"),
+        rights: z.string(),
+        corrections: z.string(),
+        effects: z.string(),
+        eventStatus: z.string(),
+      }),
       whyGraph: z
         .object({
           framework: z.string(),
@@ -1742,6 +1763,90 @@ const PublicOfficePathwayRights = z
   .object({ ...publicOfficePathwayRightsSchema.shape })
   .strict()
   .openapi("UkPublicOfficePathwayRights");
+const PublicDecisionPathwaysResponse = z
+  .object({
+    ...publicDecisionPathwaysSchema.shape,
+    availability: z.object({
+      status: z.literal("open"),
+      normalPublicationGates: z.literal("independent"),
+      emergencyStop: z.literal("politics-bulk-data-emergency-stop"),
+      methods: z.tuple([z.literal("GET"), z.literal("HEAD")]),
+      writes: z.literal(false),
+    }).strict(),
+    links: z.object({
+      self: z.string(),
+      decisions: z.string(),
+      doors: z.string(),
+      schema: z.string(),
+      humanGuide: z.string().url(),
+      openApi: z.string(),
+      rights: z.string(),
+      corrections: z.string(),
+    }).strict(),
+  })
+  .strict()
+  .openapi("UkPublicDecisionPathways");
+const PublicDecisionPathwayDetail = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-decision-pathways/1"),
+    meta: publicDecisionPathwaysSchema.shape.meta,
+    pathway: publicDecisionPathSchema,
+    actors: publicDecisionPathwaysSchema.shape.actors,
+    participants: publicDecisionPathwaysSchema.shape.participants,
+    publicDoors: publicDecisionPathwaysSchema.shape.publicDoors,
+    barriers: publicDecisionPathwaysSchema.shape.barriers,
+    eventWindows: publicDecisionPathwaysSchema.shape.eventWindows,
+    sources: publicDecisionPathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicDecisionPathwayDetail");
+const PublicDecisionPathwayList = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-decision-pathways/1"),
+    meta: publicDecisionPathwaysSchema.shape.meta,
+    routingRule: z.string(),
+    decisionIntents: publicDecisionPathwaysSchema.shape.decisionIntents,
+    decisions: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        decisionKind: z.literal(
+          "central-government-tax-policy-and-primary-law",
+        ),
+        jurisdiction: z.string(),
+        coverageStatus: z.literal("deep"),
+        summary: z.string(),
+        currentLawAsAt: z.string(),
+        stageCount: z.number().int().positive(),
+        publicDoorIds: z.array(z.string()),
+        participantIds: z.array(z.string()),
+        linkedOfficePaths:
+          publicDecisionPathSchema.shape.linkedOfficePaths,
+        detail: z.string(),
+      }).strict(),
+    ),
+    personalRoutes: publicDecisionPathwaysSchema.shape.personalRoutes,
+    officialHandoffs: publicDecisionPathwaysSchema.shape.officialHandoffs,
+    coverageGaps: publicDecisionPathwaysSchema.shape.coverageGaps,
+    sources: publicDecisionPathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicDecisionPathwayList");
+const PublicDecisionPathwayDoors = z
+  .object({
+    schema: z.literal("taxsorted.uk.public-decision-pathways/1"),
+    meta: publicDecisionPathwaysSchema.shape.meta,
+    selectionRule: z.string(),
+    publicDoors: publicDecisionPathwaysSchema.shape.publicDoors,
+    eventWindows: publicDecisionPathwaysSchema.shape.eventWindows,
+    sources: publicDecisionPathwaysSchema.shape.sources,
+  })
+  .strict()
+  .openapi("UkPublicDecisionPathwayDoors");
+const PublicDecisionPathwayRights = z
+  .object({ ...publicDecisionPathwayRightsSchema.shape })
+  .strict()
+  .openapi("UkPublicDecisionPathwayRights");
 const PoliticsDatasetField = z
   .object({
     name: z.string(),
@@ -4933,6 +5038,22 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       "Read the curation and upstream-source rights boundary",
     ],
     [
+      "/v1/politics/uk/public-decision-pathways",
+      "Read the public-decision authority and participation map",
+    ],
+    [
+      "/v1/politics/uk/public-decision-pathways/decisions",
+      "List deeply mapped decisions and bounded hand-offs",
+    ],
+    [
+      "/v1/politics/uk/public-decision-pathways/doors",
+      "Read public doors and their formal procedural effects",
+    ],
+    [
+      "/v1/politics/uk/public-decision-pathways/rights",
+      "Read the public-decision curation and source-rights boundary",
+    ],
+    [
       "/v1/politics/uk/sources",
       "Read politics coverage, sources, licences and gaps",
     ],
@@ -4942,6 +5063,11 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     const isPublicOfficePathwayRoute = path.startsWith(
       "/v1/politics/uk/public-office-pathways",
     );
+    const isPublicDecisionPathwayRoute = path.startsWith(
+      "/v1/politics/uk/public-decision-pathways",
+    );
+    const isConditionalReferenceRoute =
+      isPublicOfficePathwayRoute || isPublicDecisionPathwayRoute;
     const responseSchema =
       path === "/v1/politics/uk/public-office-pathways"
         ? PublicOfficePathwaysResponse
@@ -4951,19 +5077,27 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
             ? PublicOfficePathwaySupport
             : path === "/v1/politics/uk/public-office-pathways/rights"
               ? PublicOfficePathwayRights
+              : path === "/v1/politics/uk/public-decision-pathways"
+                ? PublicDecisionPathwaysResponse
+                : path === "/v1/politics/uk/public-decision-pathways/decisions"
+                  ? PublicDecisionPathwayList
+                  : path === "/v1/politics/uk/public-decision-pathways/doors"
+                    ? PublicDecisionPathwayDoors
+                    : path === "/v1/politics/uk/public-decision-pathways/rights"
+                      ? PublicDecisionPathwayRights
             : PoliticsPublicJson;
     app.openAPIRegistry.registerPath({
       method: "get",
       path,
       summary,
-      ...(isPublicOfficePathwayRoute
+      ...(isConditionalReferenceRoute
         ? { request: { headers: ConditionalRequestHeaders } }
         : {}),
       security: [],
       responses: {
         200: {
           description: "Source-linked public reference data.",
-          ...(isPublicOfficePathwayRoute
+          ...(isConditionalReferenceRoute
             ? { headers: publicResponseHeaders }
             : {}),
           content: {
@@ -4972,7 +5106,7 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
             },
           },
         },
-        ...(isPublicOfficePathwayRoute
+        ...(isConditionalReferenceRoute
           ? {
               304: {
                 description: "The supplied ETag still identifies this representation.",
@@ -4981,10 +5115,10 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
             }
           : {}),
         503: {
-          description: isPublicOfficePathwayRoute
-            ? "The politics bulk emergency stop is active. Pending bulk-record and named-person approval alone do not close this rules-only route."
+          description: isConditionalReferenceRoute
+            ? "The politics bulk emergency stop is active. Pending bulk-record and named-person approval alone do not close this read-only rules route."
             : "Bulk publication is awaiting approval or has been emergency-stopped.",
-          ...(isPublicOfficePathwayRoute ? { content: problemContent } : {}),
+          ...(isConditionalReferenceRoute ? { content: problemContent } : {}),
         },
       },
     });
@@ -5015,7 +5149,38 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
     },
   });
 
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/politics/uk/public-decision-pathways/schema",
+    summary: "Read the public-decision pathway JSON Schema",
+    request: { headers: ConditionalRequestHeaders },
+    security: [],
+    responses: {
+      200: {
+        description:
+          "Strict structural schema for authority, stages, public doors, bounded hand-offs and source integrity.",
+        headers: publicResponseHeaders,
+        content: {
+          "application/schema+json": { schema: PoliticsPublicJson },
+        },
+      },
+      304: {
+        description: "The supplied ETag still identifies this schema.",
+        headers: publicResponseHeaders,
+      },
+      503: {
+        description: "The politics bulk emergency stop is active.",
+        content: problemContent,
+      },
+    },
+  });
+
   const dynamicPoliticsRoutes = [
+    [
+      "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}",
+      "decisionId",
+      "Read one public-decision pathway",
+    ],
     [
       "/v1/politics/uk/public-office-pathways/offices/{officeId}",
       "officeId",
@@ -5049,6 +5214,13 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
   ] as const;
 
   for (const [path, parameter, summary] of dynamicPoliticsRoutes) {
+    const isPublicOfficeDetail =
+      path === "/v1/politics/uk/public-office-pathways/offices/{officeId}";
+    const isPublicDecisionDetail =
+      path ===
+      "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}";
+    const isConditionalReferenceDetail =
+      isPublicOfficeDetail || isPublicDecisionDetail;
     app.openAPIRegistry.registerPath({
       method: "get",
       path,
@@ -5056,32 +5228,32 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       security: [],
       request: {
         params: z.object({ [parameter]: z.string().min(1).max(200) }),
-        ...(path ===
-        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+        ...(isConditionalReferenceDetail
           ? { headers: ConditionalRequestHeaders }
           : {}),
       },
       responses: {
         200: {
           description: "Source-linked public response.",
-          ...(path ===
-          "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+          ...(isConditionalReferenceDetail
             ? { headers: publicResponseHeaders }
             : {}),
           content: {
             "application/json": {
               schema:
-                path === "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+                isPublicOfficeDetail
                   ? PublicOfficePathwayDetail
+                  : isPublicDecisionDetail
+                    ? PublicDecisionPathwayDetail
                   : PoliticsPublicJson,
             },
           },
         },
-        ...(path ===
-        "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+        ...(isConditionalReferenceDetail
           ? {
               304: {
-                description: "The supplied ETag still identifies this office representation.",
+                description:
+                  "The supplied ETag still identifies this reference representation.",
                 headers: publicResponseHeaders,
               },
             }
@@ -5089,12 +5261,10 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
         404: { description: "No matching public record." },
         503: {
           description:
-            path ===
-            "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+            isConditionalReferenceDetail
               ? "The politics bulk emergency stop is active."
               : "A named-data or bulk-data safety gate is closed.",
-          ...(path ===
-          "/v1/politics/uk/public-office-pathways/offices/{officeId}"
+          ...(isConditionalReferenceDetail
             ? { content: problemContent }
             : {}),
         },
@@ -5104,11 +5274,16 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
 
   for (const [path, summary] of [
     ...staticPoliticsRoutes.filter(([path]) =>
-      path.startsWith("/v1/politics/uk/public-office-pathways"),
+      path.startsWith("/v1/politics/uk/public-office-pathways") ||
+      path.startsWith("/v1/politics/uk/public-decision-pathways"),
     ),
     [
       "/v1/politics/uk/public-office-pathways/schema",
       "Check the public-office pathway JSON Schema",
+    ] as const,
+    [
+      "/v1/politics/uk/public-decision-pathways/schema",
+      "Check the public-decision pathway JSON Schema",
     ] as const,
   ]) {
     app.openAPIRegistry.registerPath({
@@ -5119,7 +5294,7 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
       security: [],
       responses: {
         200: {
-          description: "Current public-office pathway representation metadata.",
+          description: "Current public reference representation metadata.",
           headers: publicResponseHeaders,
         },
         304: {
@@ -5152,6 +5327,30 @@ function registerPoliticsOpenApi(app: OpenAPIHono) {
         headers: publicResponseHeaders,
       },
       404: { description: "No matching public-office pathway." },
+      503: { description: "The politics bulk emergency stop is active." },
+    },
+  });
+
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/politics/uk/public-decision-pathways/decisions/{decisionId}",
+    summary: "Check one public-decision pathway",
+    request: {
+      params: z.object({ decisionId: z.string().min(1).max(200) }),
+      headers: ConditionalRequestHeaders,
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current decision-pathway representation metadata.",
+        headers: publicResponseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this decision representation.",
+        headers: publicResponseHeaders,
+      },
+      404: { description: "No matching public-decision pathway." },
       503: { description: "The politics bulk emergency stop is active." },
     },
   });

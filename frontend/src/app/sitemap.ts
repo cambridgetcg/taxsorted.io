@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ["/", 1],
     ["/checkup/", 1],
+    ["/passport/", 1],
     ["/about/", 0.6],
     ["/tools/", 0.9],
     ["/learn/", 0.9],
@@ -15,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/learn/income-tax/", 0.8],
     ["/learn/for-landlords/", 0.8],
     ["/learn/self-employed/", 0.8],
+    ["/learn/history/window-tax/", 0.8],
     ["/learn/gov/how-tax-law-is-made/", 0.7],
     ["/learn/gov/who-runs-your-taxes/", 0.7],
     ["/learn/gov/what-we-send-hmrc/", 0.7],
@@ -29,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/accountability/", 0.9],
     ["/uk/politics/", 0.9],
     ["/uk/politics/system/", 0.9],
+    ["/uk/politics/decisions/", 0.9],
     ["/uk/politics/stand/", 0.9],
     ["/uk/politics/integrity/", 0.9],
     ["/uk/politics/api/", 0.8],

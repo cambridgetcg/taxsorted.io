@@ -2,6 +2,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { createRecordsStore } from "@/lib/records";
+import {
+  LOCAL_BOOKS_SCHEMA,
+  eventFromRecord,
+  type LocalBooksState,
+  type LocalLedger,
+} from "@/lib/local-books";
 import DashboardClient from "../dashboard-client";
 
 // The dashboard now embeds the HMRC connect panel (Task 3), which calls the
@@ -30,5 +36,54 @@ describe("dashboard client", () => {
       await screen.findByText(/falls outside the 2026-27 quarterly periods/i)
     ).toBeInTheDocument();
     expect(screen.queryByText(/loading your quarter/i)).toBeNull();
+  });
+
+  it("pauses totals and estimates rather than combining two separate trades", async () => {
+    const confirmed = (id: string, name: string): LocalLedger => ({
+      id,
+      name,
+      activity: "self-employment",
+      scopeState: "confirmed",
+      scopeConfirmedAt: "2026-07-01T00:00:00.000Z",
+    });
+    const ledgers = [confirmed("shop-a", "Shop A"), confirmed("shop-b", "Shop B")];
+    const now = "2026-07-01T00:00:00.000Z";
+    const state: LocalBooksState = {
+      schema: LOCAL_BOOKS_SCHEMA,
+      storeRevision: 1,
+      ledgers,
+      events: ledgers.map((ledger, index) =>
+        eventFromRecord(
+          {
+            date: "2026-05-01",
+            amount: (index + 1) * 10000,
+            kind: "income",
+            category: "turnover",
+            source: "self-employment",
+          },
+          {
+            id: `sale-${index}`,
+            ledgerId: ledger.id,
+            now,
+            reviewState: "ready",
+            origin: { kind: "manual", externalId: `sale-${index}` },
+            contentDigest: `sale-${index}`,
+          }
+        )
+      ),
+      history: [],
+      imports: [],
+    };
+    const backend = new Map<string, unknown>([["taxsorted-local-books-v2", state]]);
+
+    render(<DashboardClient today="2026-06-01" store={createRecordsStore(backend)} />);
+
+    expect(
+      await screen.findByText(/totals are paused because separate businesses must not be combined/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/estimate is paused because separate businesses must not be combined/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText("£300.00")).not.toBeInTheDocument();
   });
 });

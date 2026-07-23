@@ -10,7 +10,7 @@ describe("Tax Checkup front door", () => {
     const heading = screen.getByRole("heading", { name: /find where you stand/i });
     expect(heading).toBeInTheDocument();
     expect(heading.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
-    expect(screen.getAllByRole("radio")).toHaveLength(5);
+    expect(screen.getAllByRole("radio")).toHaveLength(6);
     expect(screen.getByText(/asks for no name, address, National Insurance number or tax reference/i))
       .toBeInTheDocument();
     expect(screen.getByText(/no tax figures or quarterly updates are sent to HMRC/i))
@@ -47,6 +47,26 @@ describe("Tax Checkup front door", () => {
     expect(screen.getByRole("link", { name: "Open the ITSA cockpit" }))
       .toHaveAttribute("href", "/dashboard");
     expect(screen.getByText(/Prepared does not mean filed/i)).toBeInTheDocument();
+  });
+
+  it("opens a portable Passport without claiming identity or professional review", () => {
+    render(<CheckupPage />);
+
+    fireEvent.click(
+      screen.getByRole("radio", {
+        name: /one tax picture I can keep or hand over/i,
+      }),
+    );
+
+    expect(
+      screen.getByRole("link", { name: /start or resume my passport/i }),
+    ).toHaveAttribute("href", "/passport");
+    expect(
+      screen.getByText(/evidence is named by you, not inspected/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/PAYE and full liability calculations remain outside/i),
+    ).toBeInTheDocument();
   });
 
   it("keeps thresholds, VAT and plain-language learning behind the same door", () => {

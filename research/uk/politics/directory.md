@@ -1,6 +1,6 @@
 # UK politics directory — source and publishing record
 
-**Last checked:** 2026-07-10
+**Last checked:** 2026-07-16
 **Status:** non-personal system API ready; personal publication gated
 **Stance:** official-source first, non-partisan, no inferred personal data
 
@@ -68,6 +68,24 @@ does not yet cover.
 The market decision is in `public-office-market.md`; the editorial boundary is
 in `public-office-pathways-method.md`; the reviewed machine corpus is
 `data/public-office-pathways.json`.
+
+## Public-decision pathways
+
+The decision pathfinder starts with the outcome a person wants, then keeps
+three different processes apart: changing a public tax rule, challenging an
+HMRC decision in one case, and complaining about HMRC service. Version 1
+deeply maps one UK central-tax primary-law route from policy development to
+Commons authority, scrutiny, enactment, commencement and HMRC implementation.
+
+Eight public doors state their formal effect, deadline rule, publication and
+identity boundary, limitation and lack of guaranteed outcome. Participants are
+separate from legal decision-makers. Dated event windows are examples, not
+permanent openings. Devolved and local taxes, secondary legislation and
+non-tax public decisions remain explicit gaps.
+
+The bounded market review is in `public-decision-market.md`; the editorial and
+safety boundary is in `public-decision-pathways-method.md`; the reviewed
+machine corpus is `data/public-decision-pathways.json`.
 
 ## Sources and terms
 
@@ -166,6 +184,8 @@ Non-personal doors:
 - `/system`, `/elections/process`, `/funding/rules`, `/funding/public`;
 - `/power/method`, `/power/offices`, `/budgets/accountability`;
 - `/relationships/method`, `/enforcement/method`, `/history/method`, `/law/watch`.
+- `/public-office-pathways` and `/public-decision-pathways`, with their
+  separately documented read-only children.
 - `/integrity`, `/integrity/sources`, `/relationships/schema`,
   `/relationships/datasets`, `/relationships/contracts`;
 - `/enforcement/institutions`, `/enforcement/governance`, generic rank/pay/

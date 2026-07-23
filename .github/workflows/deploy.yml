@@ -244,6 +244,8 @@ jobs:
             /v1/why-graph/schema \
             /v1/uk/professional-tools \
             /v1/uk/tax-expert \
+            /v1/uk/tax-expert/tax-position-passport/schema \
+            /v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax \
             /v1/public-funding/uk \
             /v1/public-funding/uk/manifest \
             /v1/public-funding/uk/sources \
@@ -265,6 +267,8 @@ jobs:
             https://api.taxsorted.io/v1/politics/uk
           pathway_publication_status=$(jq --raw-output \
             '.publicOfficePathways.status' "${politics_root}")
+          decision_pathway_publication_status=$(jq --raw-output \
+            '.publicDecisionPathways.status' "${politics_root}")
 
           pathway_index=0
           for path in \
@@ -301,6 +305,82 @@ jobs:
             esac
           done
 
+          decision_pathway_index=0
+          for path in \
+            /v1/politics/uk/public-decision-pathways \
+            /v1/politics/uk/public-decision-pathways/decisions \
+            /v1/politics/uk/public-decision-pathways/decisions/uk-central-tax-policy-primary-law \
+            /v1/politics/uk/public-decision-pathways/doors \
+            /v1/politics/uk/public-decision-pathways/rights \
+            /v1/politics/uk/public-decision-pathways/schema
+          do
+            decision_pathway_index=$((decision_pathway_index + 1))
+            decision_headers="${RUNNER_TEMP}/decision-pathway-${decision_pathway_index}.headers"
+            decision_body="${RUNNER_TEMP}/decision-pathway-${decision_pathway_index}.json"
+            decision_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --dump-header "${decision_headers}" --output "${decision_body}" \
+              --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${decision_pathway_publication_status}:${decision_status}" in
+              open:200)
+                case "${path}" in
+                  /v1/politics/uk/public-decision-pathways)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      .availability.status == "open" and
+                      .availability.writes == false
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/decisions)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      (.decisions | length == 1) and
+                      (.personalRoutes | length == 2)
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/decisions/uk-central-tax-policy-primary-law)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      .pathway.id == "uk-central-tax-policy-primary-law" and
+                      (.pathway.stages | length == 10)
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/doors)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways/1" and
+                      (.publicDoors | length == 8) and
+                      (.eventWindows[0].checkedOn == "2026-07-16")
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/rights)
+                    jq --exit-status '
+                      .schema == "taxsorted.uk.public-decision-pathways-rights/1" and
+                      .status == "mixed-rights-read-before-reuse"
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                  /v1/politics/uk/public-decision-pathways/schema)
+                    jq --exit-status '
+                      ."$id" == "https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/schema"
+                    ' "${decision_body}" >/dev/null
+                    ;;
+                esac
+                ;;
+              emergency-stopped:503)
+                awk 'tolower($1) == "cache-control:" { gsub("\\r", "", $2); found = ($2 == "no-store") } END { exit !found }' \
+                  "${decision_headers}"
+                jq --exit-status \
+                  '.error == "bulk_data_emergency_stop" and .status == 503' \
+                  "${decision_body}" >/dev/null
+                ;;
+              *)
+                echo "Public-decision pathway state disagrees: ${decision_pathway_publication_status}:${decision_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
           curl --fail --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             https://api.taxsorted.io/v1/health | \
@@ -309,6 +389,42 @@ jobs:
               .hmrc.configured == true and
               .hmrc.env == "sandbox"
             ' >/dev/null
+
+          passport_schema="${RUNNER_TEMP}/tax-position-passport.schema.json"
+          passport_example="${RUNNER_TEMP}/tax-position-passport.example.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${passport_schema}" \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema
+          jq --exit-status '
+            ."$schema" == "https://json-schema.org/draft/2020-12/schema" and
+            ."$id" == "https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/schema" and
+            ."x-taxsorted-generation" == "Committed build-time snapshot of TaxPositionPassportSchema; no runtime schema conversion." and
+            .additionalProperties == false and
+            (has("x-taxsorted-structural-dependencies") | not) and
+            .properties.positions.items.properties.request.additionalProperties == false and
+            .properties.positions.items.properties.answer.additionalProperties == false and
+            .properties.positions.items.properties.request.properties.exemption.properties.returnIndicators.anyOf[0].uniqueItems == true
+          ' "${passport_schema}" >/dev/null
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${passport_example}" \
+            https://api.taxsorted.io/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax
+          jq --exit-status '
+            .schema == "taxsorted.uk.tax-position-passport/1" and
+            .assurance.identityVerified == false and
+            .assurance.signed == false and
+            .assurance.professionallyReviewed == false and
+            .assurance.filed == false and
+            .dataHandling.sentToTaxSorted == false and
+            .dataHandling.rawDocumentsIncluded == false and
+            (.profile.incomeSources | length) == 5 and
+            (.profile.evidence | length) == 8 and
+            (.positions | length) == 1 and
+            .positions[0].answer.capability.id == "uk.mtd-income-tax.readiness"
+          ' "${passport_example}" >/dev/null
 
           api_agent_manifest="${RUNNER_TEMP}/api-agent.txt"
           api_well_known_manifest="${RUNNER_TEMP}/api-well-known-agent.txt"
@@ -331,6 +447,14 @@ jobs:
             'politics-public-office-pathways-availability: public outside the pending bulk-record and named-person gates; returns 503 while the politics bulk emergency stop is active' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'politics-public-office-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways/rights' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-decisions: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/decisions' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-effects: read-only general guidance; no political profile; no personalised, ideological or ranked recommendation; no effectiveness score, account, tracking, message, submission, appeal decision or legal representation' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-event-status: every event window is dated; compare checkedOn and closesOn, then verify the official source before acting' "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'politics-public-decision-pathways-rights: GET https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/rights' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-accountability-records: none' "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
@@ -1137,7 +1261,9 @@ jobs:
                 "/v1/uk/professional-tools",
                 "/v1/uk/sdlt/calculations",
                 "/v1/uk/tax-expert",
-                "/v1/uk/tax-expert/mtd-income-tax/assessments"
+                "/v1/uk/tax-expert/mtd-income-tax/assessments",
+                "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+                "/v1/uk/tax-expert/tax-position-passport/schema"
               ] and
               .paths["/v1/api-workspace"].get.operationId == "inspectAuthenticatedApiWorkspace" and
               .paths["/v1/api-workspace"].get.security == [{"WorkspaceKey": []}] and
@@ -1166,9 +1292,17 @@ jobs:
               .openapi == "3.1.0" and
               (.paths | keys | sort) == [
                 "/v1/uk/tax-expert",
-                "/v1/uk/tax-expert/mtd-income-tax/assessments"
+                "/v1/uk/tax-expert/mtd-income-tax/assessments",
+                "/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax",
+                "/v1/uk/tax-expert/tax-position-passport/schema"
               ] and
               .paths["/v1/uk/tax-expert"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.operationId == "getTaxPositionPassportSchema" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/schema"].get.responses["200"].content["application/schema+json"].schema["$ref"] == "#/components/schemas/TaxPositionPassportJsonSchema" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.operationId == "getTaxPositionPassportMtdExample" and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.security == [] and
+              .paths["/v1/uk/tax-expert/tax-position-passport/examples/mtd-income-tax"].get.responses["200"].content["application/json"].schema["$ref"] == "#/components/schemas/TaxPositionPassportExample" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.operationId == "assessMtdIncomeTaxReadiness" and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post.security == [{"WorkspaceKey": []}] and
               .paths["/v1/uk/tax-expert/mtd-income-tax/assessments"].post["x-taxsorted-required-workspace-scopes"] == ["tax-expert:assess"] and
@@ -1565,7 +1699,17 @@ jobs:
       - name: Smoke-test the deployed human and machine doors
         run: |
           set -euo pipefail
-          for path in /uk/public-funding /uk/accountability /uk/tax-expert /uk/politics/stand /agent.txt /.well-known/agent.txt
+          for path in \
+            /passport \
+            /uk/public-funding \
+            /uk/accountability \
+            /uk/tax-expert \
+            /uk/politics/stand \
+            /uk/politics/decisions \
+            /learn/history/window-tax \
+            /media/window-tax/manifest.json \
+            /agent.txt \
+            /.well-known/agent.txt
           do
             curl --fail --silent --show-error \
               --location \
@@ -1636,13 +1780,76 @@ jobs:
               ;;
           esac
 
+          deployed_window_tax_manifest="${RUNNER_TEMP}/window-tax-manifest.json"
+          expected_window_tax_manifest="frontend/public/media/window-tax/manifest.json"
+          window_tax_manifest_ready=false
+          for _ in $(seq 1 12)
+          do
+            if curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --output "${deployed_window_tax_manifest}" \
+              https://taxsorted.io/media/window-tax/manifest.json && \
+              cmp --silent \
+                "${expected_window_tax_manifest}" \
+                "${deployed_window_tax_manifest}"
+            then
+              window_tax_manifest_ready=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "${window_tax_manifest_ready}" != true ]; then
+            echo 'The deployed Window Tax media manifest did not match the released bytes.' >&2
+            sha256sum \
+              "${expected_window_tax_manifest}" \
+              "${deployed_window_tax_manifest}" >&2
+            exit 1
+          fi
+
+          while IFS=$'\t' read -r asset_path expected_sha expected_bytes
+          do
+            deployed_asset="${RUNNER_TEMP}/window-tax-$(basename "${asset_path}")"
+            asset_ready=false
+            for _ in $(seq 1 12)
+            do
+              if curl --fail --silent --show-error --location \
+                --connect-timeout 5 --max-time 30 \
+                --output "${deployed_asset}" \
+                "https://taxsorted.io${asset_path}" && \
+                test "$(sha256sum "${deployed_asset}" | awk '{ print $1 }')" = "${expected_sha}" && \
+                test "$(wc -c < "${deployed_asset}" | tr -d ' ')" = "${expected_bytes}"
+              then
+                asset_ready=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "${asset_ready}" != true ]; then
+              echo "The deployed Window Tax asset ${asset_path} did not match its manifest." >&2
+              if [ -f "${deployed_asset}" ]; then
+                sha256sum "${deployed_asset}" >&2
+                wc -c "${deployed_asset}" >&2
+              fi
+              exit 1
+            fi
+          done < <(
+            jq --raw-output \
+              '.materials[] | [.path, .sha256, (.bytes | tostring)] | @tsv' \
+              "${expected_window_tax_manifest}"
+          )
+
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
-            '/uk/charities|Words beside actions' \
-            '/uk/accountability|Watch the watchers' \
-            '/uk/tax-expert|A UK tax expert that knows where the edge is.' \
-            '/uk/politics/stand|Start with the work, not the title.'
+            '/passport|Understanding that travels.' \
+            '/uk/charities|Check a charity, understand its tax, ask it for help.' \
+            '/uk/accountability|Who checks the checkers' \
+            '/uk/tax-expert|Check which tax rules apply to you' \
+            '/uk/politics/stand|Start with the work, not the title.' \
+            '/uk/politics/decisions|Find where the decision lives.' \
+            '/learn/history/window-tax|The paper trail says more than a wall' \
+            '/itsa/records|Starter Books' \
+            '/itsa/quarter|Quarterly figures'
           do
             page=${page_and_marker%%|*}
             marker=${page_and_marker#*|}
