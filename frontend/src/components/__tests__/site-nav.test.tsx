@@ -50,6 +50,16 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: "Learn" })).not.toHaveAttribute("aria-current");
   });
 
+  it("keeps the Tax Position Passport inside the Do my tax door", () => {
+    navigation.pathname = "/passport/";
+    render(<SiteNav />);
+
+    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+  });
+
   it("distinguishes standing on a hub from standing inside its section", () => {
     navigation.pathname = "/uk/"; // trailing slash: trailingSlash is on
     render(<SiteNav />);
