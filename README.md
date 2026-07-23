@@ -35,6 +35,8 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/itsa` — MTD and records.** Eligibility, local records, mileage, quarter figures and the
   visible boundary between preparation, sandbox work and production filing.
 - **`/learn` — Understand the rules.** Plain guides with official sources and scope notes.
+- **`/understanding` — See how an answer is built.** Questions, exact words, bounded
+  answers, named sources, visible unknowns and safe next steps in one public map.
 - **`/uk` — Understand the system.** Personal-tax paths, public money, politics,
   accountability, charities, the tax industry and the reusable API doors in one map.
 
@@ -215,6 +217,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 - [`research/uk/tax-expert/README.md`](research/uk/tax-expert/README.md) — the shared evidence contract, capability map, privacy boundary and first deep MTD path
 - [`docs/TAX-POSITION-PASSPORT.md`](docs/TAX-POSITION-PASSPORT.md) — the local-storage,
   portable export, assurance, API schema and privacy boundaries of the Tax Position Passport
+- [`docs/UNDERSTANDING-METHOD.md`](docs/UNDERSTANDING-METHOD.md) — how the public Castle
+  method meets TaxSorted's sources, why graph, visible unknowns and strict privacy boundary
 - [`research/uk/tax-types/sdlt.md`](research/uk/tax-types/sdlt.md) — the first SDLT ruleset,
   its primary sources, exclusions, rounding and legacy XML recognition path
 - [`research/uk/tax-system/README.md`](research/uk/tax-system/README.md) — who makes,

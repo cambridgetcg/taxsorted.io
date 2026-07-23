@@ -1,0 +1,155 @@
+{
+  "schema": "taxsorted.understanding-map/1",
+  "status": "public-method",
+  "reviewedOn": "2026-07-23",
+  "title": "How TaxSorted builds understanding",
+  "purpose": "A small public map from a person's question to a bounded, source-backed answer and an honest next step.",
+  "origin": {
+    "name": "Castle of Understanding",
+    "publicGate": "https://cambridgetcg.github.io/castle-gate/",
+    "sourceRepository": "https://github.com/cambridgetcg/castle-gate",
+    "reviewedSource": "https://github.com/cambridgetcg/castle-gate/tree/bee8c2bd04169dd7ad5026dfff380d7562b8b133",
+    "reviewedCommit": "bee8c2bd04169dd7ad5026dfff380d7562b8b133",
+    "use": "method-and-link-only",
+    "contentImported": false,
+    "note": "TaxSorted adapts the public Castle method. It does not import Castle rooms or treat Castle material as tax evidence."
+  },
+  "contentLicence": {
+    "id": "CC-BY-SA-4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "TaxSorted (taxsorted.io)",
+    "scope": "The TaxSorted-authored understanding map only. Linked Castle material keeps its own rights and is not relicensed here."
+  },
+  "parts": [
+    {
+      "id": "door",
+      "name": "Door",
+      "plainMeaning": "A question begins the path.",
+      "taxSortedMeaning": "Start with what the person needs to understand or do, not with a product feature.",
+      "lineage": "castle"
+    },
+    {
+      "id": "brick",
+      "name": "Brick",
+      "plainMeaning": "An exact word carries one stated meaning here.",
+      "taxSortedMeaning": "Define tax terms in plain words for this country, period and task, then keep that stated meaning across the page, calculation and API.",
+      "lineage": "castle"
+    },
+    {
+      "id": "room",
+      "name": "Room",
+      "plainMeaning": "A bounded answer gives the thought walls.",
+      "taxSortedMeaning": "Keep each answer inside its stated country, tax period, supplied facts and task.",
+      "lineage": "castle"
+    },
+    {
+      "id": "window",
+      "name": "Window",
+      "plainMeaning": "A source lets the reader look beyond our words.",
+      "taxSortedMeaning": "Show the official source, applicable date, legal force and evidence limit.",
+      "lineage": "taxsorted"
+    },
+    {
+      "id": "open-door",
+      "name": "Open door",
+      "plainMeaning": "An unanswered question stays visible.",
+      "taxSortedMeaning": "Keep missing facts, uncovered rules and genuine disagreements explicit instead of guessing.",
+      "lineage": "castle"
+    },
+    {
+      "id": "path",
+      "name": "Path",
+      "plainMeaning": "Understanding should lead somewhere useful.",
+      "taxSortedMeaning": "End with a safe next action, correction route or clear reason to stop.",
+      "lineage": "taxsorted"
+    }
+  ],
+  "stack": [
+    {
+      "id": "question",
+      "name": "Question",
+      "keeps": "The exact thing that needs answering."
+    },
+    {
+      "id": "facts",
+      "name": "Supplied facts, derived values and unknowns",
+      "keeps": "What was supplied, what was derived and what is still missing."
+    },
+    {
+      "id": "rules",
+      "name": "Rules and sources",
+      "keeps": "The authority, applicable period, scope and legal force."
+    },
+    {
+      "id": "reasoning",
+      "name": "Reasoning",
+      "keeps": "The visible path from facts and rules to the conclusion."
+    },
+    {
+      "id": "answer",
+      "name": "Answer and next step",
+      "keeps": "A bounded conclusion, its limits and the safest useful action."
+    },
+    {
+      "id": "correction",
+      "name": "Correction",
+      "keeps": "A public route to challenge, repair and improve the answer."
+    }
+  ],
+  "doors": [
+    {
+      "id": "start",
+      "question": "What do I need to do?",
+      "answer": "Say what changed. TaxSorted points to the narrowest useful check, record tool or guide.",
+      "href": "/checkup/",
+      "linkLabel": "Start with the Tax Checkup",
+      "external": false
+    },
+    {
+      "id": "rule",
+      "question": "What does the rule actually say?",
+      "answer": "Read a plain-words guide with the figures, official sources and scope kept together.",
+      "href": "/learn/",
+      "linkLabel": "Read the open book",
+      "external": false
+    },
+    {
+      "id": "why",
+      "question": "Why did TaxSorted reach this answer?",
+      "answer": "Inspect the supplied facts, derived values, unknowns, rules, sources, reasoning and escalation boundary.",
+      "href": "/uk/tax-expert/",
+      "linkLabel": "See the tax-expert foundation",
+      "external": false
+    },
+    {
+      "id": "carry",
+      "question": "What have I provided, and what is missing?",
+      "answer": "Keep facts, unknowns, evidence states and a complete checked answer in a portable local record.",
+      "href": "/passport/",
+      "linkLabel": "Open the Tax Position Passport",
+      "external": false
+    },
+    {
+      "id": "system",
+      "question": "Who makes, runs and challenges the system?",
+      "answer": "Follow the rule into institutions, public money, accountability and official challenge routes.",
+      "href": "/uk/",
+      "linkLabel": "Explore the UK system",
+      "external": false
+    },
+    {
+      "id": "reuse",
+      "question": "How can software inspect the same foundations?",
+      "answer": "Begin at the read-only machine doorway for current datasets, evidence lanes, safety walls and typed next actions.",
+      "href": "https://api.taxsorted.io/v1/wake",
+      "linkLabel": "Open the machine doorway",
+      "external": true
+    }
+  ],
+  "walls": [
+    "No raw or private Castle material is read, copied or fetched.",
+    "Castle material is not a tax authority and is never used as tax evidence.",
+    "This integration adds no tax-data storage, telemetry or live Castle request. TaxSorted's shared shell may remember a reader's chosen language on their device.",
+    "A future Castle data import requires a separate public licence, allowlist, provenance receipt, tax-source review and fail-closed freshness rule."
+  ]
+}
