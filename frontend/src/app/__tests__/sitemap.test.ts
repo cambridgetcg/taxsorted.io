@@ -49,6 +49,7 @@ describe("public sitemap", () => {
     for (const path of [
       "/about/",
       "/tools/",
+      "/understanding/",
       "/checkup/",
       "/passport/",
       "/vat/",

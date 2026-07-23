@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/about/", 0.6],
     ["/tools/", 0.9],
     ["/learn/", 0.9],
+    ["/understanding/", 0.8],
     ["/learn/mtd-income-tax/", 0.9],
     ["/learn/income-tax/", 0.8],
     ["/learn/for-landlords/", 0.8],

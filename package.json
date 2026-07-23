@@ -9,6 +9,10 @@
     "frontend",
     "api"
   ],
+  "overrides": {
+    "postcss": "8.5.22",
+    "sharp": "0.35.3"
+  },
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace frontend",

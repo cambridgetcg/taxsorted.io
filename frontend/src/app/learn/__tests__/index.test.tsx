@@ -11,6 +11,14 @@ describe('learn index', () => {
     expect(dePanic).toHaveAttribute('href', '/learn/mtd-income-tax')
   })
 
+  it('opens the public map for how TaxSorted builds understanding', () => {
+    render(<LearnPage />)
+    expect(screen.getByRole('heading', { name: /enter the castle of understanding/i }))
+      .toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /see how taxsorted builds understanding/i }))
+      .toHaveAttribute('href', '/understanding')
+  })
+
   it('has a "The tax state, explained" section with all four gov guide cards', () => {
     render(<LearnPage />)
     expect(screen.getByText(/the tax state, explained/i)).toBeInTheDocument()
