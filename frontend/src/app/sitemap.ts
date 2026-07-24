@@ -1,17 +1,22 @@
 import type { MetadataRoute } from "next";
+import {
+  ukProfessionalOpportunityCorpus,
+  ukProfessionalOpportunityPublicationAvailable,
+} from "@/lib/uk-professional-opportunities";
 
 const origin = "https://taxsorted.io";
 
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+  const paths: Array<[string, number]> = [
     ["/", 1],
     ["/checkup/", 1],
     ["/passport/", 1],
     ["/about/", 0.6],
     ["/tools/", 0.9],
     ["/learn/", 0.9],
+    ["/understanding/", 0.8],
     ["/learn/mtd-income-tax/", 0.9],
     ["/learn/income-tax/", 0.8],
     ["/learn/for-landlords/", 0.8],
@@ -29,6 +34,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/uk/charities/", 0.9],
     ["/uk/public-funding/", 0.9],
     ["/uk/accountability/", 0.9],
+    ["/uk/cases/", 0.9],
+    ["/uk/cases/haworth-v-hmrc/", 0.8],
     ["/uk/politics/", 0.9],
     ["/uk/politics/system/", 0.9],
     ["/uk/politics/decisions/", 0.9],
@@ -46,7 +53,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/tools/mileage/", 0.7],
     ["/feedback/", 0.6],
     ["/from-the-builders/", 0.5],
-  ].map(([path, priority]) => ({
+  ];
+
+  if (ukProfessionalOpportunityPublicationAvailable) {
+    paths.push(
+      ["/uk/regulator-scrutiny/", 0.9],
+      ["/uk/opportunities/", 0.9],
+      ...(ukProfessionalOpportunityCorpus?.opportunities.map(
+        (opportunity) =>
+          [`/uk/opportunities/${opportunity.slug}/`, 0.8] as [
+            string,
+            number,
+          ],
+      ) ?? []),
+    );
+  }
+
+  return paths.map(([path, priority]) => ({
     url: `${origin}${path}`,
     changeFrequency: "weekly" as const,
     priority: priority as number,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ukProfessionalOpportunityPublicationAvailable } from "@/lib/uk-professional-opportunities";
 
 export const metadata: Metadata = {
   title: "The UK tax system — money, rules and public data | TaxSorted",
@@ -40,6 +41,16 @@ const PUBLIC_PATHS = [
     href: "/uk/accountability",
     title: "Accountability",
     body: "Who watches public bodies, who can challenge them and where coverage still stops.",
+  },
+  {
+    href: "/uk/cases",
+    title: "Public-power case commons",
+    body: "Decided cases, exact remedies, honest money meanings and local professional review packets.",
+  },
+  {
+    href: "/uk/opportunities",
+    title: "Professional opportunity atlas",
+    body: "Under-covered tax work, real professional gates, finite local pipelines and public-body scrutiny.",
   },
   {
     href: "/uk/tax-industry",
@@ -101,6 +112,9 @@ function Door({ href, title, body }: { href: string; title: string; body: string
 }
 
 export default function UkSystemPage() {
+  const publicPaths = ukProfessionalOpportunityPublicationAvailable
+    ? PUBLIC_PATHS
+    : PUBLIC_PATHS.filter((path) => path.href !== "/uk/opportunities");
   return (
     <div lang="en" dir="ltr" className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <Link href="/" className="text-sm font-medium text-accent hover:text-accent-deep">
@@ -140,7 +154,7 @@ export default function UkSystemPage() {
           from private life; publication status and evidence gaps stay visible.
         </p>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {PUBLIC_PATHS.map((path) => <Door key={path.href} {...path} />)}
+          {publicPaths.map((path) => <Door key={path.href} {...path} />)}
         </div>
       </section>
 

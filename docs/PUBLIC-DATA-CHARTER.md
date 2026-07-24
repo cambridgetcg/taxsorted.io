@@ -52,7 +52,8 @@ layer is separately reviewed and closed until its checks are approved.
 - **Where a claim came from** is what technical documents call provenance.
 - **Schema** means the machine-readable shape of a record. A schema major is the first version
   number and changes when an old reader could no longer understand the new meaning safely.
-- **ETag** and **checksum** mean change fingerprints for exact response bytes.
+- **ETag** and **checksum** mean change fingerprints for the exact selected GET
+  representation bytes.
 - **Wildcard CORS** means a browser on any website may read the public response.
 - **NDJSON** means one complete JSON record per line, which permits streaming.
 - **Opaque ID** means an identifier callers compare exactly rather than interpreting or
@@ -294,6 +295,76 @@ equals the cumulative retained ledger through that release.
 Two money records cannot be labelled `inconsistent-with` unless their money
 basis, measurement stage and amount date match as well as their organisation,
 period, scope and metric. A changed stage stays a difference, not an accusation.
+
+### Public-power cases are research, not a claims market
+
+The UK case commons admits decided cases and official public sources, not anonymous accusations
+or claimant files. A court finding, allegation, inference, later appeal result and unresolved
+question are different states. Every published case needs a procedural status, review date,
+source-resolving timeline, contrary or limiting result, correction route and independent
+case-level stop.
+
+Money must retain its legal meaning. An amount demanded, liability avoided, statutory refund,
+damages award, claimant loss, costs exposure and net recovery are different fields. A successful
+public-law challenge may produce no payment; every recovery discussion must include a £0 or
+negative outcome and must not become a platform probability, expected value or promise.
+
+The public surface has no personal intake, raw evidence upload, comments, professional bids,
+lead sale, paid ranking, success-fee share, targeted outreach or firm recommendation. A blank
+professional assessment can be downloaded and completed under the user's own custody. Any later
+handoff needs its own consent, conflicts, professional-permission, privacy and regulatory release;
+the public research corpus does not silently grow into that service.
+
+The embedded digest identifies the packet's canonical substantive fields; the response checksum
+identifies the exact selected GET representation bytes. Neither proves the packet true, complete,
+current, independently witnessed or legally sufficient. Raw or privileged material stays outside
+the public corpus, and corrections remain possible even after a public copy has escaped operator
+control. Publication approval binds the exact corpus digest, version and reviewed case IDs, so a
+later edit or addition cannot silently inherit an earlier decision.
+
+### Professional opportunity means reviewable work, not a lead
+
+The UK professional-opportunity atlas describes recurring, source-backed
+classes of specialist work. It does not identify a claimant, assess a private
+matter, estimate a firm's revenue, rank professionals or promise a recovery.
+Tax advice is not treated as one universally licensed reserved activity. Each
+record instead names the exact legal requirement, regulator or platform
+condition, professional-body rule or prudent specialism that applies.
+
+Regulator scrutiny follows the same evidence discipline. A court finding,
+oversight finding, official statistic, stakeholder assessment and TaxSorted
+fairness question remain visibly different. Every criticism says what it does
+not prove, carries the public body's response or a real counterweight, and
+names a correction or review route. The subject is an institutional act or
+system, never an employee dossier or inferred motive.
+
+After qualified review and explicit activation, public opportunity packets are
+forkable; the blank local assessment schema is available while the atlas is
+closed. Client identity, authority, documents, advice, conflicts and private
+professional decisions remain in the prospective client's or instructed
+professional's approved matter system. There is no upload endpoint. The finite
+workflow may end only in decline, a request for more evidence, a consented
+referral, or suitability for further private review. A new fact creates a new
+versioned turn; it does not keep an unattended loop alive.
+
+“Qualified review” is a machine-checked release record, not an unrecorded
+conversation or a status label. It names the reviewer and capacity, completion
+date and evidence reference, and confirms current law and territory, privacy and
+threat review, absence of intake or a marketplace, an exercised stop drill, and
+correction and withdrawal ownership. It also records how institutional right of
+reply was completed, found inapplicable with reasons, or satisfied by a documented
+official response. Review cannot predate source retrieval and the decision cannot
+predate review. Names, bases and references are public-safe metadata, never contact
+details or private evidence. Every confirmation must be true. The corpus
+digest, complete ordered ID list, both explicit serving switches and inactive
+emergency stops remain separate required gates.
+
+Amounts affected, qualifying bases, claims, acceptances, money received or
+credited, money paid by the client, redress, costs, interest received, interest
+paid, professional fees and the net client position are separate states. A
+complaint does not by itself pause an appeal clock, a repayment does not prove
+final acceptance, and an official review statistic does not predict one
+person's outcome.
 
 ### Agent discovery should orient, not enlarge authority
 

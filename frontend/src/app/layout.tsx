@@ -38,13 +38,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT_SCRIPT }} />
         <I18nProvider>
-          <a
-            href="#main-content"
-            className="fixed left-4 top-3 z-[100] -translate-y-24 rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
-          >
-            Skip to main content
-          </a>
-          {/* One shared shell on every page — navigation can never disappear. */}
+          {/* One shared shell on every page — navigation can never disappear.
+              The skip link lives inside SiteNav so it can speak the reader's
+              language; it is still the first focusable thing on the page. */}
           <SiteNav />
           <main id="main-content" tabIndex={-1} className="focus:outline-none">
             {children}

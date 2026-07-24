@@ -403,3 +403,172 @@ describe("config.publicFunding — publication gate and stop", () => {
     });
   });
 });
+
+describe("config.caseCommons — publication gate and stop", () => {
+  it("opens locally, requires the exact production switch and lets the stop win", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "");
+    vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv("UK_CASE_COMMONS_STOPPED_CASE_IDS", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.caseCommons).toEqual({
+      emergencyStop: false,
+      publicDataEnabled: true,
+      stoppedCaseIds: [],
+    });
+
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "TRUE");
+    loaded = await import("../config.js");
+    expect(loaded.config.caseCommons.publicDataEnabled).toBe(false);
+
+    vi.resetModules();
+    vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.caseCommons.publicDataEnabled).toBe(true);
+
+    vi.resetModules();
+    vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.caseCommons).toEqual({
+      emergencyStop: true,
+      publicDataEnabled: false,
+      stoppedCaseIds: [],
+    });
+
+    vi.resetModules();
+    vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv(
+      "UK_CASE_COMMONS_STOPPED_CASE_IDS",
+      "haworth-v-hmrc-2021, haworth-v-hmrc-2021",
+    );
+    loaded = await import("../config.js");
+    expect(loaded.config.caseCommons.stoppedCaseIds).toEqual([
+      "haworth-v-hmrc-2021",
+    ]);
+  });
+
+  it("preserves an invalid stop value for the route to isolate safely", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "true");
+    vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv(
+      "UK_CASE_COMMONS_STOPPED_CASE_IDS",
+      "not-a-case, NOT A CASE",
+    );
+
+    const loaded = await import("../config.js");
+
+    expect(loaded.config.caseCommons).toEqual({
+      emergencyStop: false,
+      publicDataEnabled: true,
+      stoppedCaseIds: ["not-a-case", "NOT A CASE"],
+    });
+  });
+});
+
+describe("config.professionalOpportunities — publication gate and stop", () => {
+  it("requires the exact public enable value in every environment", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED", "");
+    vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP", "");
+    vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.professionalOpportunities).toEqual({
+      emergencyStop: false,
+      publicDataEnabled: false,
+      stoppedOpportunityIds: [],
+    });
+
+    for (const value of ["TRUE", "1", "malformed"]) {
+      vi.resetModules();
+      vi.stubEnv(
+        "UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED",
+        value,
+      );
+      loaded = await import("../config.js");
+      expect(
+        loaded.config.professionalOpportunities.publicDataEnabled,
+      ).toBe(false);
+    }
+
+    vi.resetModules();
+    vi.stubEnv(
+      "UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED",
+      "true",
+    );
+    loaded = await import("../config.js");
+    expect(
+      loaded.config.professionalOpportunities.publicDataEnabled,
+    ).toBe(true);
+  });
+
+  it.each(["true", "TRUE", "1", "malformed", " false "])(
+    "fails closed for non-empty emergency-stop value %j",
+    async (value) => {
+      vi.stubEnv("NODE_ENV", "test");
+      vi.stubEnv(
+        "UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED",
+        "true",
+      );
+      vi.stubEnv(
+        "UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP",
+        value,
+      );
+      vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS", "");
+
+      const loaded = await import("../config.js");
+      expect(loaded.config.professionalOpportunities).toEqual({
+        emergencyStop: true,
+        publicDataEnabled: false,
+        stoppedOpportunityIds: [],
+      });
+    },
+  );
+
+  it.each(["", "false"])(
+    "leaves the emergency stop off only for %j",
+    async (value) => {
+      vi.stubEnv("NODE_ENV", "test");
+      vi.stubEnv(
+        "UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED",
+        "true",
+      );
+      vi.stubEnv(
+        "UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP",
+        value,
+      );
+      vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS", "");
+
+      const loaded = await import("../config.js");
+      expect(loaded.config.professionalOpportunities).toEqual({
+        emergencyStop: false,
+        publicDataEnabled: true,
+        stoppedOpportunityIds: [],
+      });
+    },
+  );
+
+  it("deduplicates stop IDs but leaves validation to the route", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv(
+      "UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED",
+      "true",
+    );
+    vi.stubEnv("UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP", "");
+    vi.stubEnv(
+      "UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS",
+      "hmrc-decision-and-deadline-audit, hmrc-decision-and-deadline-audit, NOT VALID",
+    );
+
+    const loaded = await import("../config.js");
+
+    expect(
+      loaded.config.professionalOpportunities.stoppedOpportunityIds,
+    ).toEqual([
+      "hmrc-decision-and-deadline-audit",
+      "NOT VALID",
+    ]);
+  });
+});

@@ -38,6 +38,40 @@ const charityAccountabilitySchemaPath =
   "/v1/charities/uk/accountability/schema";
 const observerAccountabilityPath = "/v1/accountability/uk";
 const observerAccountabilitySchemaPath = "/v1/accountability/uk/schema";
+const caseCommonsPath = "/v1/case-commons/uk";
+const caseCommonsCasesPath = "/v1/case-commons/uk/cases";
+const caseCommonsSchemaPath = "/v1/case-commons/uk/schema";
+const caseCommonsPacketSchemaPath =
+  "/v1/case-commons/uk/packet-schema";
+const caseCommonsAssessmentPath =
+  "/v1/case-commons/uk/assessment-template";
+const caseCommonsOpenApiPath = "/openapi/case-commons-uk.json";
+const caseCommonsAgentToolGuide =
+  "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md";
+const professionalOpportunitiesPath =
+  "/v1/professional-opportunities/uk";
+const professionalOpportunitiesMethodPath =
+  "/v1/professional-opportunities/uk/method";
+const professionalOpportunitiesListPath =
+  "/v1/professional-opportunities/uk/opportunities";
+const professionalOpportunitiesScrutinyPath =
+  "/v1/professional-opportunities/uk/scrutiny";
+const professionalOpportunitiesSourcesPath =
+  "/v1/professional-opportunities/uk/sources";
+const professionalOpportunitiesSchemaPath =
+  "/v1/professional-opportunities/uk/schema";
+const professionalOpportunitiesPacketSchemaPath =
+  "/v1/professional-opportunities/uk/packet-schema";
+const professionalOpportunitiesAssessmentPath =
+  "/v1/professional-opportunities/uk/assessment-template";
+const professionalOpportunitiesAssessmentSchemaPath =
+  "/v1/professional-opportunities/uk/assessment-schema";
+const professionalOpportunitiesRightsPath =
+  "/v1/professional-opportunities/uk/rights";
+const professionalOpportunitiesOpenApiPath =
+  "/openapi/professional-opportunities-uk.json";
+const professionalOpportunitiesAgentToolGuide =
+  "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/professional-opportunities/AGENTTOOL.md";
 const publicOfficePathwaysPath = "/v1/politics/uk/public-office-pathways";
 const publicOfficePathwaysSchemaPath =
   "/v1/politics/uk/public-office-pathways/schema";
@@ -110,6 +144,34 @@ observer-accountability: GET ${apiOrigin}${observerAccountabilityPath}
 observer-accountability-schema: GET ${apiOrigin}${observerAccountabilitySchemaPath}
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+case-commons: GET ${apiOrigin}${caseCommonsPath}
+case-commons-cases: GET ${apiOrigin}${caseCommonsCasesPath}
+case-commons-schema: GET ${apiOrigin}${caseCommonsSchemaPath}
+case-commons-packet-schema: GET ${apiOrigin}${caseCommonsPacketSchemaPath}
+case-commons-assessment-template: GET ${apiOrigin}${caseCommonsAssessmentPath}
+case-commons-openapi: GET ${apiOrigin}${caseCommonsOpenApiPath}
+case-commons-agenttool-local-mirror: ${caseCommonsAgentToolGuide}
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-scope: decided public records; one England-and-Wales deep case; source-resolving packets; remedies and money meanings; local assessment template
+case-commons-effects: read-only research; no personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
+case-commons-private-material: stays with the prospective client or instructed professional in their approved matter system
+professional-opportunities: GET ${apiOrigin}${professionalOpportunitiesPath}
+professional-opportunities-method: GET ${apiOrigin}${professionalOpportunitiesMethodPath}
+professional-opportunities-list: GET ${apiOrigin}${professionalOpportunitiesListPath}
+professional-opportunities-scrutiny: GET ${apiOrigin}${professionalOpportunitiesScrutinyPath}
+professional-opportunities-sources: GET ${apiOrigin}${professionalOpportunitiesSourcesPath}
+professional-opportunities-schema: GET ${apiOrigin}${professionalOpportunitiesSchemaPath}
+professional-opportunities-packet-schema: GET ${apiOrigin}${professionalOpportunitiesPacketSchemaPath}
+professional-opportunities-assessment-template: GET ${apiOrigin}${professionalOpportunitiesAssessmentPath}
+professional-opportunities-assessment-schema: GET ${apiOrigin}${professionalOpportunitiesAssessmentSchemaPath}
+professional-opportunities-rights: GET ${apiOrigin}${professionalOpportunitiesRightsPath}
+professional-opportunities-openapi: GET ${apiOrigin}${professionalOpportunitiesOpenApiPath}
+professional-opportunities-agenttool-guide: ${professionalOpportunitiesAgentToolGuide}
+professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
+professional-opportunities-scope: source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a blank finite local assessment
+professional-opportunities-status-boundary: the user must independently verify the status required for the exact work; TaxSorted verifies no professional; no claim that all UK tax work has one universal licence
+professional-opportunities-effects: read-only research; no client intake, private upload, probability, expected value, ranking, matching, outreach, recommendation, case assignment, representation, filing, payment or referral fee
+professional-opportunities-private-material: stays with the prospective client or instructed professional in their approved matter system
 professional-tools: GET ${apiOrigin}${professionalToolsPath}
 professional-tools-openapi: GET ${apiOrigin}${professionalToolsOpenApiPath}
 professional-tools-status: credentialed design partner; two executable stateless tasks
@@ -210,6 +272,11 @@ wall: the charity map does not publish a people, personal-contact or inferred-be
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
 wall: every observer needs a sourced accountability route or an explicit coverage gap
 wall: a formal institutional relation is not proof of control, collusion, motive or character
+wall: case party positions, court findings, later outcomes, TaxSorted analysis and unknowns remain separate
+wall: an amount demanded or affected is not automatically an award, refund, recovery or net gain
+wall: the case commons has no claimant intake, lawyer bid, ranking, probability or outreach route
+wall: regulator scrutiny states the evidence type, what it does not prove, the public-body response or counterweight and a lawful correction route
+wall: the professional-opportunity atlas has no client intake, professional marketplace, case assignment, probability, expected value, ranking or outreach route
 `;
 
 function acceptsJson(header: string | undefined) {
@@ -357,7 +424,27 @@ function evidenceLane(
   return { id, title, description, resources };
 }
 
-export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
+type AgentInterfaceOptions = OpenDataRouteOptions & {
+  caseCommonsPublic?: boolean;
+  caseCommonsEmergencyStop?: boolean;
+  caseCommonsStoppedCaseIds?: string[];
+  professionalOpportunitiesPublic?: boolean;
+  professionalOpportunitiesPublicationIsCurrent?: () => boolean;
+  professionalOpportunitiesEmergencyStop?: boolean;
+  professionalOpportunitiesStoppedIds?: string[];
+};
+
+export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
+  let professionalOpportunitiesReviewCurrent = true;
+  try {
+    professionalOpportunitiesReviewCurrent =
+      options.professionalOpportunitiesPublicationIsCurrent?.() ?? true;
+  } catch {
+    professionalOpportunitiesReviewCurrent = false;
+  }
+  const professionalOpportunitiesPublic =
+    options.professionalOpportunitiesPublic === true &&
+    professionalOpportunitiesReviewCurrent;
   const catalog = buildOpenDataCatalog(options);
   const catalogBody = canonicalJson(catalog);
   const datasetChangeLane = evidenceLane(
@@ -439,6 +526,26 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         statement:
           "Every observer needs a sourced accountability or challenge route, or an explicit coverage gap; institutional links never become character or collusion claims.",
       },
+      {
+        id: "case-outcomes-stay-labelled",
+        statement:
+          "Case party positions, court findings, later procedural outcomes, TaxSorted analysis and unknowns remain separate; a public-law win is not automatically a monetary recovery.",
+      },
+      {
+        id: "no-case-marketplace-or-intake",
+        statement:
+          "The public case commons has no personal intake, private upload, viability score, expected value, lawyer ranking, matching, outreach, recommendation or referral fee.",
+      },
+      {
+        id: "regulator-scrutiny-keeps-proof-limits",
+        statement:
+          "Institutional scrutiny states its evidence type, what it does not prove, the public-body response or counterweight and a lawful correction or review route.",
+      },
+      {
+        id: "no-opportunity-marketplace-or-intake",
+        statement:
+          "The professional-opportunity atlas has no client intake, private upload, professional marketplace, case assignment, probability, expected value, ranking, matching, outreach, recommendation or referral fee.",
+      },
     ],
     publicationStates: catalog.datasets.map((dataset) => ({
       datasetId: dataset.id,
@@ -471,6 +578,9 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         },
         frameworkSlices: {
           accountability: "/openapi/accountability-uk.json",
+          caseCommons: caseCommonsOpenApiPath,
+          professionalOpportunities:
+            professionalOpportunitiesOpenApiPath,
           whyGraph: whyGraphOpenApiPath,
         },
         taskSlices: {
@@ -500,6 +610,89 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
         schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
+      },
+      caseCommons: {
+        href: caseCommonsPath,
+        cases: caseCommonsCasesPath,
+        schema: caseCommonsSchemaPath,
+        packetSchema: caseCommonsPacketSchemaPath,
+        assessmentTemplate: caseCommonsAssessmentPath,
+        openApi: caseCommonsOpenApiPath,
+        humanGuide: `${humanOrigin}/uk/cases/`,
+        availability: options.caseCommonsEmergencyStop
+          ? "emergency-stopped"
+          : !options.caseCommonsPublic
+            ? "publication-review"
+            : options.caseCommonsStoppedCaseIds?.length
+              ? "case-level-stops-active"
+              : "open",
+        stoppedCaseCount: new Set(
+          options.caseCommonsStoppedCaseIds ?? [],
+        ).size,
+        writes: false,
+        personalIntake: false,
+        privateUploads: false,
+        professionalMarketplace: false,
+        probabilityOrExpectedValue: false,
+        optionalAgentToolBridge: {
+          required: false,
+          sdk: "@agenttool/sdk",
+          version: "0.16.3",
+          client: "DataClient",
+          custody: "caller-operated-loopback-agent-data-node",
+          guide: caseCommonsAgentToolGuide,
+          defaultEffect: "dry-run-verification-only",
+          writeEffect:
+            "One explicit caller-directed local collect operation containing only the verified public packet.",
+          hostedAgentToolWrite: false,
+          privateCaseFacts: false,
+        },
+        effects:
+          "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
+      },
+      professionalOpportunities: {
+        href: professionalOpportunitiesPath,
+        method: professionalOpportunitiesMethodPath,
+        opportunities: professionalOpportunitiesListPath,
+        scrutiny: professionalOpportunitiesScrutinyPath,
+        sources: professionalOpportunitiesSourcesPath,
+        schema: professionalOpportunitiesSchemaPath,
+        packetSchema: professionalOpportunitiesPacketSchemaPath,
+        assessmentTemplate: professionalOpportunitiesAssessmentPath,
+        assessmentSchema:
+          professionalOpportunitiesAssessmentSchemaPath,
+        rights: professionalOpportunitiesRightsPath,
+        openApi: professionalOpportunitiesOpenApiPath,
+        humanGuide: `${humanOrigin}/uk/opportunities/`,
+        availability: options.professionalOpportunitiesEmergencyStop
+          ? "emergency-stopped"
+          : !professionalOpportunitiesPublic
+            ? "publication-review"
+            : options.professionalOpportunitiesStoppedIds?.length
+              ? "record-level-stops-active"
+              : "open",
+        stoppedOpportunityCount: new Set(
+          options.professionalOpportunitiesStoppedIds ?? [],
+        ).size,
+        writes: false,
+        clientIntake: false,
+        privateUploads: false,
+        professionalMarketplace: false,
+        caseAssignment: false,
+        probabilityOrExpectedValue: false,
+        professionalStatusBoundary:
+          "The user must independently verify the status required for the exact work; TaxSorted verifies no professional, and UK tax work does not have one universal professional licence.",
+        optionalAgentToolBridge: {
+          required: false,
+          sdk: "@agenttool/sdk",
+          version: "0.16.3",
+          guide: professionalOpportunitiesAgentToolGuide,
+          directHttpsIsUniversalDoor: true,
+          hostedAgentToolWrite: false,
+          privateMatterFacts: false,
+        },
+        effects:
+          "Read-only public research and a blank finite local assessment; no matching, ranking, outreach, recommendation, representation, filing, payment or external state change.",
       },
       publicOfficePathways: {
         href: publicOfficePathwaysPath,
@@ -803,6 +996,22 @@ export function buildAgentWakePayload(options: OpenDataRouteOptions = {}) {
           "Read the reciprocal watching-the-watchers protocol, official source doors, hard walls and zero-row candidate contract.",
       },
       {
+        id: "inspect-case-commons",
+        method: "GET",
+        href: caseCommonsPath,
+        accepts: ["application/json"],
+        description:
+          "Read decided public-law cases, exact remedy and money meanings, digest-bearing source packets, and the closed marketplace boundary.",
+      },
+      {
+        id: "inspect-professional-opportunities",
+        method: "GET",
+        href: professionalOpportunitiesPath,
+        accepts: ["application/json"],
+        description:
+          "Read source-backed specialist-work classes, institutional scrutiny, separate money meanings and the local professional-assessment boundary.",
+      },
+      {
         id: "inspect-why-graph-contract",
         method: "GET",
         href: whyGraphBasePath,
@@ -866,6 +1075,7 @@ function sendWake(c: Context, body: string, etag: string) {
     "application/json; charset=utf-8",
     "taxsorted.agent-wake/1",
   );
+  c.header("Cache-Control", "public, max-age=0, must-revalidate");
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
     return c.body(null, 304);
   }
@@ -873,12 +1083,13 @@ function sendWake(c: Context, body: string, etag: string) {
   return c.body(body, 200);
 }
 
-export function createAgentInterfaceRoutes(options: OpenDataRouteOptions = {}) {
+export function createAgentInterfaceRoutes(options: AgentInterfaceOptions = {}) {
   const app = new Hono();
-  const payload = buildAgentWakePayload(options);
-  const wakeBody = canonicalJson(payload);
-  const wakeEtag = representationEtag(wakeBody);
   const manifestEtag = representationEtag(agentManifestText);
+  const currentWake = () => {
+    const body = canonicalJson(buildAgentWakePayload(options));
+    return { body, etag: representationEtag(body) };
+  };
 
   const manifest = (canonicalPath: string) => (c: Context) => {
     const parameters = queryParameters(c);
@@ -906,12 +1117,16 @@ export function createAgentInterfaceRoutes(options: OpenDataRouteOptions = {}) {
     "/.well-known/agent.txt",
     manifest("/.well-known/agent.txt"),
   );
-  app.on(["GET", "HEAD"], wakePath, (c) => sendWake(c, wakeBody, wakeEtag));
+  app.on(["GET", "HEAD"], wakePath, (c) => {
+    const wake = currentWake();
+    return sendWake(c, wake.body, wake.etag);
+  });
   app.on(["GET", "HEAD"], "/", (c) => {
     if (!acceptsJson(c.req.header("Accept"))) {
       return noSuchDoorProblem(c);
     }
-    return sendWake(c, wakeBody, wakeEtag);
+    const wake = currentWake();
+    return sendWake(c, wake.body, wake.etag);
   });
 
   for (const { path, accepts } of [

@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import UkSystemPage from "../page";
 
 describe("UK system hub", () => {
-  it("keeps every deep public-system page one click away", () => {
+  it("keeps every admitted deep public-system page one click away", () => {
     render(<UkSystemPage />);
 
     const heading = screen.getByRole("heading", { name: /follow the rules/i });
@@ -19,6 +19,9 @@ describe("UK system hub", () => {
     ] as const) {
       expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
     }
+    expect(
+      screen.queryByRole("link", { name: /professional opportunity atlas/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("organises the human checks and bounded API doors together", () => {

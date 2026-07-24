@@ -26,6 +26,18 @@ import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
 import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
 import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accountability.js";
 import { createWhyGraphRoutes } from "./routes/why-graph.js";
+import { createUkCaseCommonsRoutes } from "./routes/uk-case-commons.js";
+import { ukCaseCommonsPublicationDecision } from "./uk-case-commons.js";
+import {
+  createUkProfessionalOpportunityRoutes,
+} from "./routes/uk-professional-opportunities.js";
+import {
+  evaluateProfessionalOpportunityPublicationApproval,
+  ukProfessionalOpportunities,
+  ukProfessionalOpportunityPublicationApproval,
+  ukProfessionalOpportunityPublicationDecision,
+  ukProfessionalOpportunityReviewPack,
+} from "./uk-professional-opportunities.js";
 
 const app = new OpenAPIHono();
 
@@ -42,6 +54,24 @@ const openDataRouteOptions = {
   politicsBulkDataAvailable: config.politics.bulkDataEnabled,
   politicsBulkDataEmergencyStop: config.politics.bulkDataEmergencyStop,
   politicsBulkDataApproval: config.politics.bulkDataApproval,
+  caseCommonsPublic:
+    config.caseCommons.publicDataEnabled &&
+    ukCaseCommonsPublicationDecision.approved,
+  caseCommonsEmergencyStop: config.caseCommons.emergencyStop,
+  caseCommonsStoppedCaseIds: config.caseCommons.stoppedCaseIds,
+  professionalOpportunitiesPublic:
+    config.professionalOpportunities.publicDataEnabled &&
+    ukProfessionalOpportunityPublicationDecision.approved,
+  professionalOpportunitiesPublicationIsCurrent: () =>
+    evaluateProfessionalOpportunityPublicationApproval(
+      ukProfessionalOpportunities,
+      ukProfessionalOpportunityPublicationApproval,
+      ukProfessionalOpportunityReviewPack,
+    ).approved,
+  professionalOpportunitiesEmergencyStop:
+    config.professionalOpportunities.emergencyStop,
+  professionalOpportunitiesStoppedIds:
+    config.professionalOpportunities.stoppedOpportunityIds,
 };
 
 // A machine can orient itself without opening a taxpayer/browser session.
@@ -101,6 +131,24 @@ app.route(
 app.route(
   "/v1/accountability/uk",
   createUkObserverAccountabilityRoutes()
+);
+app.route(
+  "/v1/case-commons/uk",
+  createUkCaseCommonsRoutes({
+    publicDataEnabled: config.caseCommons.publicDataEnabled,
+    emergencyStop: config.caseCommons.emergencyStop,
+    stoppedCaseIds: config.caseCommons.stoppedCaseIds,
+  }),
+);
+app.route(
+  "/v1/professional-opportunities/uk",
+  createUkProfessionalOpportunityRoutes({
+    enabled: config.professionalOpportunities.publicDataEnabled,
+    emergencyStop: config.professionalOpportunities.emergencyStop,
+    stoppedOpportunityIds:
+      config.professionalOpportunities.stoppedOpportunityIds,
+    publicationApproval: ukProfessionalOpportunityPublicationApproval,
+  }),
 );
 app.route("/v1/why-graph", createWhyGraphRoutes());
 

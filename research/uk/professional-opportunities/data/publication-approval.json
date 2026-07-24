@@ -1,0 +1,47 @@
+{
+  "schema": "taxsorted.uk.professional-opportunities-publication-approval/3",
+  "status": "pending-qualified-review",
+  "decisionRecordedOn": null,
+  "corpusVersion": "2026-07-24.3",
+  "corpusDigest": "sha256:4a5b678963a72e0f781da3f5a3ab3f5467144ee8de2450ced6a1df13110dad98",
+  "opportunityIds": [
+    "uk-business-rates-valuation",
+    "uk-capital-allowances-fixtures-s198",
+    "uk-customs-repayment-classification",
+    "uk-discovery-assessment-review",
+    "uk-hmrc-decision-and-deadline-audit",
+    "uk-information-notice-schedule-36",
+    "uk-off-payroll-status-disagreement",
+    "uk-rd-evidence-enquiry",
+    "uk-vat-section-80-correction"
+  ],
+  "hostedDistributionDecision": {
+    "status": "pending",
+    "decisionMakerName": null,
+    "decisionMakerCapacity": null,
+    "decisionEvidenceReference": null,
+    "reviewPackReference": null,
+    "exactCorpusAndPackReviewed": false,
+    "activationRemainsSeparate": false
+  },
+  "qualifiedReview": {
+    "status": "pending",
+    "reviewerName": null,
+    "reviewerCapacity": null,
+    "completedOn": null,
+    "evidenceReference": null,
+    "institutionalRightOfReply": {
+      "status": "pending",
+      "basis": null,
+      "evidenceReference": null
+    },
+    "confirmations": {
+      "currentLawTerritoryDeadlineAndRoute": false,
+      "privacySecurityAndThreatReview": false,
+      "noIntakeMarketplaceOrSubmission": false,
+      "emergencyStopExercised": false,
+      "correctionAndWithdrawalOwnersAssigned": false
+    }
+  },
+  "effects": "Binds the exact corpus digest and listed professional-opportunity IDs for qualified review only. This pending record is not a hosted-distribution decision and does not represent regulated-professional sign-off. A completed review pack, a separate accountable human publisher decision, and a separate activation are all required before TaxSorted may host the corpus. No status opens intake, matching, recommendations, representation, filing, payment, private uploads or professional acceptance."
+}

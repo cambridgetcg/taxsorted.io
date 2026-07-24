@@ -520,6 +520,232 @@ roll the Cloudflare Pages deployment back to the last safe build and purge its c
 same response. Record both the API and frontend versions; do not describe the incident as contained
 until every operator-controlled copy in scope has been checked.
 
+## UK case commons
+
+The UK case commons is a read-only public-law research surface. It accepts no claimant facts,
+evidence, professional bids or outreach requests. Before opening it in production, run the case
+commons tests, both workspace typechecks and the static frontend build, then read the rendered
+Haworth case against its linked official judgments.
+
+Publication is explicit:
+
+```bash
+fly secrets set -a taxsorted-api UK_CASE_COMMONS_PUBLIC_DATA_ENABLED=true
+```
+
+The switch is necessary but not sufficient. The checked-in
+`research/uk/case-commons/data/publication-approval.json` must also name the
+exact canonical corpus digest, corpus version and reviewed case IDs. Any data
+change that does not receive a new approval fails closed for both API cases and
+the static human projection.
+
+After the reviewed corpus is final, compute its canonical digest with:
+
+```bash
+npm exec --workspace api tsx -- -e \
+  'import { caseCommonsCorpusDigest, ukCaseCommons } from "./src/uk-case-commons.ts"; console.log(caseCommonsCorpusDigest(ukCaseCommons))'
+```
+
+Record that exact value, version and reviewed case IDs in the approval file,
+then rerun the API, frontend and production-build gates. Computing a digest is
+not itself approval.
+
+Until that switch is open, `/sources` contains only the general method sources;
+it does not preview sources linked to an unpublished case.
+
+Verify the corpus, method, case list, Haworth packet, source ledger, schemas, blank local
+assessment template, task-sized OpenAPI and `/v1/wake`. The Haworth amount must remain labelled
+as a demand affected by a quashed notice, never an award, refund, damages figure or promised gain.
+
+If a source, accuracy, rights or publication-safety problem appears, close case publication:
+
+```bash
+fly secrets set -a taxsorted-api UK_CASE_COMMONS_EMERGENCY_STOP=true
+```
+
+For an issue confined to one case, stop its stable ID without closing the others:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_CASE_COMMONS_STOPPED_CASE_IDS=haworth-v-hmrc-2021
+```
+
+Every value must be an exact stable case ID. A typo, stale ID or malformed value
+closes the whole case-publication surface instead of stopping API startup.
+Unrelated routes, including `/v1/health`, accounts and HMRC, remain available.
+Public discovery and errors report only that case-level stops are active and
+their count; they never publish the configured IDs. After changing the setting,
+verify `/v1/case-commons/uk/cases`, `/sources`, one case-detail request and
+`/v1/health`.
+
+The global stop closes every case packet and reduces `/sources` to the general method sources.
+A valid case-level stop removes the named case and its case-specific sources while leaving other
+admitted cases readable; a malformed case-stop setting fails closed for the whole case surface.
+Both controls leave the method, schemas, rights statement and blank local template readable for
+correction work. Neither removes the
+separately deployed static pages nor recalls copies already downloaded. Roll Cloudflare Pages back
+to the last safe build when the incident affects those pages, and remove the stop only after an
+explicit human review. Never turn this route into intake, lead sale, targeted outreach or a
+platform-generated merits score without a separate legal, privacy and regulatory release.
+
+Static publication consumes the same checked-in exact-content approval, with a
+separate deployment stop at `frontend/src/lib/uk-case-publication.ts`. Admitting
+a case to the research JSON does not put it on the human site. Add its stable ID
+and new corpus digest only with the publication decision. For a frontend
+incident, set that file's stop or remove the affected ID from the approval,
+rebuild, deploy and verify the generated output; use a Cloudflare rollback when
+it is faster. This is a deployment brake, not instant revocation.
+
+## UK professional opportunity atlas
+
+This surface is designed to host qualified-review-approved classes of
+specialist work and institutional scrutiny, not private cases. The source
+repository is public, so the corpus and research notes are already readable on
+GitHub. The controls below govern TaxSorted's official hosted API and frontend
+distribution and endorsement; they do not provide pre-publication
+confidentiality or retract the GitHub files. Its current hosted-distribution
+decision remains pending. It accepts no client fact, document, bid, contact,
+referral or completed assessment. Before enabling the official hosted
+surfaces, read every opportunity against its official sources and confirm that
+each criticism carries a proof limit, counterweight or public-body response,
+and correction or review route.
+
+Production hosted distribution is explicit:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED=true
+```
+
+The switch is necessary but not sufficient. The checked-in
+`research/uk/professional-opportunities/data/publication-approval.json` must
+bind the exact canonical corpus digest, version and approved opportunity IDs.
+The schema keeps its existing publication-approval name, but in this public
+repository it records approval for the official hosted projection. Any changed
+source, wording, workflow or scrutiny record closes protected packet routes
+until a new review records a new approval.
+
+Approval schema version 3 requires two separate human acts. `qualifiedReview`
+records independently verified reviewer capacity, public-safe conflict
+declarations, completion, purpose-typed evidence, the five detailed controls
+and the institutional right-of-reply matrix. A separate
+`hostedDistributionDecision` names the accountable human publisher, their
+capacity, separate decision evidence and the exact review-pack reference. The
+decision confirms that the exact corpus and pack were reviewed and that
+activation remains a later action. Do not invent or prefill either person, and
+do not put private contact, client or matter evidence in this file. Changing
+only `status` to `approved-for-hosted-distribution` remains closed.
+
+The five summary confirmations must be derived from the exact
+`research/uk/professional-opportunities/review/qualified-review-pack.json`.
+The pack covers all sources, opportunities, scrutiny records and affected
+institutions, actively assigns specialist roles, records the two-surface stop
+drill, completes within 93 days and sets a later review-by date no more than 93
+days after completion. The API, static frontend and request-time edge guard
+require exact review and decision references; arbitrary labels or evidence
+text cannot open the surface.
+
+Prepare and check a working copy locally:
+
+```bash
+npm run review:professional-opportunities -- \
+  prepare ./research/uk/professional-opportunities/review/private/working-pack.json
+npm run review:professional-opportunities -- \
+  check ./research/uk/professional-opportunities/review/private/working-pack.json \
+  --allow-pending
+```
+
+After every row and control is genuinely complete, omit `--allow-pending`.
+Then `seal` can write only a new digest-sealed pack and its schema into a new
+directory:
+
+```bash
+npm run review:professional-opportunities -- \
+  seal ./research/uk/professional-opportunities/review/private/working-pack.json \
+  ./research/uk/professional-opportunities/review/private/sealed
+```
+
+It writes no approval, never edits the live decision, deploys nothing and
+changes no switch. A separately authorised, named human publisher must review
+the exact sealed diff and record any affirmative version 3 decision in a
+separately reviewed change.
+Follow
+`research/uk/professional-opportunities/review/README.md`; never commit the
+ignored private working directory.
+
+Future drafts that genuinely need review before public disclosure must use
+private review storage with appropriate access control. A branch, pull request
+or unapproved file in this public repository is still public.
+
+The static frontend has separate GitHub repository variables with the same
+`UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED` and
+`UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP` names. Missing variables build
+the sealed review shell. The release job also reads the deployed API wake
+state and forces the static atlas closed unless that API state is exactly
+`open`; an API emergency or record-level stop therefore cannot produce a new
+open frontend release. Set neither public switch until a qualified UK reviewer
+has confirmed every displayed law, territory, deadline and route.
+
+The generated static atlas is also behind `out/_worker.js`, scoped by
+`out/_routes.json` only to `/uk/opportunities` and
+`/uk/regulator-scrutiny`. It derives `reviewBy` from the same exact frontend
+decision, checks the UTC date on every request and makes both open and closed
+responses `no-store`. Missing, malformed, closed or expired state returns a
+corpus-free `noindex` shell. Before any open release, configure the Cloudflare
+Pages Functions failure mode to **fail closed**. Then verify both protected
+routes return
+`X-TaxSorted-Professional-Opportunity-Guard: open`. Without that setting and
+header, do not call the static atlas safely open. `reviewBy` is inclusive; the
+edge closes at the start of the following UTC date.
+
+Verify the overview, method, opportunity list, every packet, scrutiny ledger,
+source ledger, all three schemas, blank assessment, task-sized OpenAPI and
+`/v1/wake`. Also run one local assessment validation:
+
+```bash
+npm run validate:professional-opportunity-assessment -- \
+  ./private-assessment.json
+```
+
+Do not paste the private file into logs, issues or a TaxSorted request. The
+validator reports schema shape and finite internal-state status only and has no
+network or write step. It does not fetch or verify the caller-maintained packet
+id, version or digest. It prints no input path, field name, value, raw validation
+message or private fact.
+
+For a source, accuracy, rights or publication-safety incident, close every
+protected packet:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP=true
+```
+
+For a problem confined to exact stable opportunity IDs:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS=uk-business-rates-valuation
+```
+
+A malformed, unknown or stale ID closes this atlas without preventing the
+main API from booting. Errors and discovery expose only the number of active
+stops, never the configured IDs. While qualified review is pending or the
+global stop is active, the rights, schemas and blank assessment stay available
+for repair; the substantive method and source ledger close with the atlas.
+
+The API stop cannot recall the public GitHub files, a downloaded packet or the
+separately deployed static pages. If the same problem affects
+`/uk/opportunities` or `/uk/regulator-scrutiny`, roll Cloudflare Pages back or
+deploy a corrected exact-content approval and purge operator-controlled
+caches. Record the API and frontend versions before calling the hosted
+incident contained.
+
+Never describe HMRC review or complaint statistics as a claimant probability.
+Never describe an amount affected, qualifying base or provisional repayment
+as a professional fee or net client gain. A complaint does not by itself pause
+an appeal, payment or judicial-review clock.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register

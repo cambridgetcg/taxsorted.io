@@ -1,0 +1,11 @@
+{
+  "schema": "taxsorted.uk.case-commons-publication-approval/1",
+  "status": "approved-for-publication",
+  "decisionRecordedOn": "2026-07-24",
+  "corpusVersion": "2026-07-24.1",
+  "corpusDigest": "sha256:043e29956e121d0d9df2a36ab810d453726ffd0740d9b142770ff55868522dd1",
+  "caseIds": [
+    "haworth-v-hmrc-2021"
+  ],
+  "effects": "Approves only the exact reviewed corpus digest and listed decided case IDs. It does not open intake, comments, matching, outreach, recommendation, representation or private uploads."
+}

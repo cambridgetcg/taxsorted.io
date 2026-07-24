@@ -17,6 +17,7 @@ const publicCivicCors = cors({
     "ETag",
     "X-Corpus-Version",
     "X-Corpus-Reviewed-On",
+    "X-Corpus-Retrieved-On",
     "Link",
     "Content-Disposition",
     "Content-Location",
@@ -39,6 +40,8 @@ const publicCivicBases = [
   "/v1/charities/uk",
   "/v1/public-funding/uk",
   "/v1/accountability/uk",
+  "/v1/case-commons/uk",
+  "/v1/professional-opportunities/uk",
   "/v1/why-graph",
 ];
 
@@ -63,6 +66,8 @@ const publicOpenApiPaths = new Set([
   "/openapi/public-funding-uk.json",
   "/openapi/politics-uk.json",
   "/openapi/accountability-uk.json",
+  "/openapi/case-commons-uk.json",
+  "/openapi/professional-opportunities-uk.json",
   "/openapi/tax-expert-uk.json",
   professionalToolsOpenApiPath,
   "/openapi/why-graph.json",

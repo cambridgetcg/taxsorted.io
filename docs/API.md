@@ -80,6 +80,8 @@ GET /openapi/charities-uk.json
 GET /openapi/public-funding-uk.json
 GET /openapi/politics-uk.json
 GET /openapi/accountability-uk.json
+GET /openapi/case-commons-uk.json
+GET /openapi/professional-opportunities-uk.json
 GET /openapi/tax-expert-uk.json
 GET /openapi/professional-tools-uk.json
 ```
@@ -393,6 +395,80 @@ graph ends in `gap:official-enforcement-and-review-route`; it never invents an a
 The graph keeps the caller, relevant-person duty holder, administrator and official decision-maker
 separate. It does not invent an authorised-agent identity: who will actually perform a duty and any
 authority to act remain an explicit gap unless a future capability can prove them.
+
+## UK professional opportunity atlas — read-only research
+
+The atlas maps source-backed classes of specialist work rather than private
+claimants or professional leads:
+
+```text
+GET /v1/professional-opportunities/uk
+GET /v1/professional-opportunities/uk/method
+GET /v1/professional-opportunities/uk/opportunities
+GET /v1/professional-opportunities/uk/opportunities/{id}
+GET /v1/professional-opportunities/uk/scrutiny
+GET /v1/professional-opportunities/uk/sources
+GET /v1/professional-opportunities/uk/assessment-template
+GET /v1/professional-opportunities/uk/assessment-schema
+GET /v1/professional-opportunities/uk/schema
+GET /v1/professional-opportunities/uk/packet-schema
+GET /v1/professional-opportunities/uk/rights
+GET /openapi/professional-opportunities-uk.json
+```
+
+All routes are sessionless `GET`/`HEAD` resources with wildcard public CORS,
+ETags and exact-byte checksums. They accept no query, body, account or key.
+There is no POST route, private intake, professional matching, firm ranking,
+revenue estimate, win probability, filing or external action.
+
+An opportunity packet resolves all of its cited official sources and relevant
+institutional-scrutiny records. Its content digest identifies the canonical
+packet fields; it does not establish truth, current law, professional status or
+the merits of a private matter. Evidence labels keep court findings, oversight
+findings, official statistics, stakeholder assessments and TaxSorted fairness
+questions distinct.
+
+The shared workflow also carries three source-resolved route guides: appeal or
+statutory review, complaint through the Adjudicator and PHSO, and judicial
+review in England and Wales. Their route, deadline and boundary wording is part
+of the exact corpus digest rather than duplicated in the frontend.
+
+The blank assessment is a portable local contract. A professional can validate
+a completed private copy without sending it anywhere:
+
+```bash
+npm run validate:professional-opportunity-assessment -- \
+  ./private-assessment.json
+```
+
+The validator checks schema shape and finite internal stage and terminal-decision
+transitions only. Packet id, version and digest are caller-maintained references:
+the command does not fetch the public packet or verify that identity, a register,
+professional status or a declaration against an external source. Required fields
+depend on the reached stage and terminal decision. It prints no file path, field
+name, value, raw validation message or client fact. Completed files remain in the
+firm's approved matter system and have no TaxSorted submission endpoint.
+
+Production packet publication additionally requires the exact corpus-bound
+approval, a complete machine-checked qualified UK professional review record and
+`UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED=true`.
+That review record must identify the reviewer and capacity, completion date and
+evidence reference, and must affirm current law and territory, privacy and threat
+review, no intake or marketplace, an exercised emergency-stop drill, and assigned
+correction and withdrawal owners. It must also record a public-safe institutional
+right-of-reply disposition, basis and evidence reference. Review cannot predate
+source retrieval and the decision cannot predate review. Do not put private contact,
+client or matter evidence in this record. Missing or partly false review data fails
+closed.
+`UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP=true` closes the packet surface;
+`UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS` can contain exact stable IDs.
+While qualified review is pending or the global stop is active, only the
+schemas, rights and blank local assessment remain inspectable; the substantive
+method and source ledger close with the atlas.
+
+The separately deployed static site has its own public-data and emergency-stop
+build variables with the same names. Neither deployment can recall a downloaded
+copy.
 
 ## Professional tools — lawyers and accountants
 

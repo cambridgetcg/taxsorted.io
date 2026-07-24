@@ -1,0 +1,1488 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "taxsorted.uk.professional-opportunities-qualified-review-pack/1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "changes-required",
+        "complete"
+      ]
+    },
+    "corpus": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "lawAsAt": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "opportunityIds": {
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        },
+        "scrutinyIds": {
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        },
+        "sourceIds": {
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "digest",
+        "lawAsAt",
+        "retrievedAt",
+        "opportunityIds",
+        "scrutinyIds",
+        "sourceIds"
+      ],
+      "additionalProperties": false
+    },
+    "reviewers": {
+      "maxItems": 50,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "publicName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "capacity": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "capacityBasis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "capacityVerification": {
+            "type": "object",
+            "properties": {
+              "verifierPublicLabel": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "verifiedOn": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              "evidenceIds": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^[a-z0-9][a-z0-9-]*$"
+                }
+              }
+            },
+            "required": [
+              "verifierPublicLabel",
+              "verifiedOn",
+              "evidenceIds"
+            ],
+            "additionalProperties": false
+          },
+          "independence": {
+            "type": "object",
+            "properties": {
+              "independentOfCorpusAuthors": {
+                "type": "boolean"
+              },
+              "independentOfAffectedInstitutionsInScope": {
+                "type": "boolean"
+              },
+              "noUndisclosedRelevantInterest": {
+                "type": "boolean"
+              },
+              "declarationEvidenceIds": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^[a-z0-9][a-z0-9-]*$"
+                }
+              }
+            },
+            "required": [
+              "independentOfCorpusAuthors",
+              "independentOfAffectedInstitutionsInScope",
+              "noUndisclosedRelevantInterest",
+              "declarationEvidenceIds"
+            ],
+            "additionalProperties": false
+          },
+          "roles": {
+            "minItems": 1,
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "tax-technical",
+                "legal-procedure",
+                "editorial-fairness",
+                "privacy-security",
+                "release-operations"
+              ]
+            }
+          },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "opportunityIds": {
+                "maxItems": 500,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^[a-z0-9][a-z0-9-]*$"
+                }
+              },
+              "scrutinyIds": {
+                "maxItems": 500,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^[a-z0-9][a-z0-9-]*$"
+                }
+              }
+            },
+            "required": [
+              "opportunityIds",
+              "scrutinyIds"
+            ],
+            "additionalProperties": false
+          },
+          "qualificationEvidenceIds": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "verifiedOn": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "consentToPublishLabel": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "publicName",
+          "capacity",
+          "capacityBasis",
+          "capacityVerification",
+          "independence",
+          "roles",
+          "scope",
+          "qualificationEvidenceIds",
+          "verifiedOn",
+          "consentToPublishLabel"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evidenceIndex": {
+      "maxItems": 1000,
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "purpose": {
+                "type": "string",
+                "enum": [
+                  "source-material",
+                  "reviewer-qualification",
+                  "reviewer-independence",
+                  "review-work",
+                  "institutional-reply",
+                  "privacy-security",
+                  "public-surface",
+                  "emergency-stop-drill",
+                  "correction-control",
+                  "withdrawal-control"
+                ]
+              },
+              "visibility": {
+                "type": "string",
+                "const": "public-https"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "visibility",
+              "url"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "purpose": {
+                "type": "string",
+                "enum": [
+                  "source-material",
+                  "reviewer-qualification",
+                  "reviewer-independence",
+                  "review-work",
+                  "institutional-reply",
+                  "privacy-security",
+                  "public-surface",
+                  "emergency-stop-drill",
+                  "correction-control",
+                  "withdrawal-control"
+                ]
+              },
+              "visibility": {
+                "type": "string",
+                "const": "private-custodian-record"
+              },
+              "custodianRole": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              "opaqueRecordId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "required": [
+              "id",
+              "purpose",
+              "visibility",
+              "custodianRole",
+              "opaqueRecordId"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "sourceChecks": {
+      "maxItems": 500,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "sourceRecordDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "reviewerIds": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "checkedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "supports-stated-use",
+              "changes-required"
+            ]
+          },
+          "versionOrPublicationDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pinpointOrScope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidenceIds": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          }
+        },
+        "required": [
+          "sourceId",
+          "title",
+          "publisher",
+          "url",
+          "sourceRecordDigest",
+          "reviewerIds",
+          "checkedOn",
+          "result",
+          "versionOrPublicationDate",
+          "pinpointOrScope",
+          "evidenceIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "methodAndWorkflowReview": {
+      "type": "object",
+      "properties": {
+        "reviewerIds": {
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        },
+        "completedOn": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "confirmed",
+            "changes-required"
+          ]
+        },
+        "professionalStatusBoundaryConfirmed": {
+          "type": "boolean"
+        },
+        "deadlineControlConfirmed": {
+          "type": "boolean"
+        },
+        "challengeSeparationConfirmed": {
+          "type": "boolean"
+        },
+        "moneyStateSeparationConfirmed": {
+          "type": "boolean"
+        },
+        "localCustodyAndNoSubmissionConfirmed": {
+          "type": "boolean"
+        },
+        "evidenceIds": {
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        }
+      },
+      "required": [
+        "reviewerIds",
+        "completedOn",
+        "result",
+        "professionalStatusBoundaryConfirmed",
+        "deadlineControlConfirmed",
+        "challengeSeparationConfirmed",
+        "moneyStateSeparationConfirmed",
+        "localCustodyAndNoSubmissionConfirmed",
+        "evidenceIds"
+      ],
+      "additionalProperties": false
+    },
+    "opportunityReviews": {
+      "maxItems": 500,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "opportunityId": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "territories": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "opportunityRecordDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "reviewerIds": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "completedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "changes-required"
+            ]
+          },
+          "lawAndSourceHierarchyConfirmed": {
+            "type": "boolean"
+          },
+          "territoryConfirmed": {
+            "type": "boolean"
+          },
+          "deadlinesAndClockConfirmed": {
+            "type": "boolean"
+          },
+          "routesAndRemedySeparationConfirmed": {
+            "type": "boolean"
+          },
+          "professionalGatesAndAuthorityConfirmed": {
+            "type": "boolean"
+          },
+          "sourceSupportConfirmed": {
+            "type": "boolean"
+          },
+          "moneyAndOutcomeBoundariesConfirmed": {
+            "type": "boolean"
+          },
+          "evidenceIds": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          }
+        },
+        "required": [
+          "opportunityId",
+          "title",
+          "territories",
+          "opportunityRecordDigest",
+          "reviewerIds",
+          "completedOn",
+          "result",
+          "lawAndSourceHierarchyConfirmed",
+          "territoryConfirmed",
+          "deadlinesAndClockConfirmed",
+          "routesAndRemedySeparationConfirmed",
+          "professionalGatesAndAuthorityConfirmed",
+          "sourceSupportConfirmed",
+          "moneyAndOutcomeBoundariesConfirmed",
+          "evidenceIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "scrutinyReviews": {
+      "maxItems": 500,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "scrutinyId": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "scrutinyFramingDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "reviewerIds": {
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "completedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "confirmed",
+              "changes-required"
+            ]
+          },
+          "statementSupportConfirmed": {
+            "type": "boolean"
+          },
+          "evidenceStateConfirmed": {
+            "type": "boolean"
+          },
+          "doesNotProveConfirmed": {
+            "type": "boolean"
+          },
+          "counterweightOrResponseConfirmed": {
+            "type": "boolean"
+          },
+          "correctionOrReviewRouteConfirmed": {
+            "type": "boolean"
+          },
+          "noPersonalTargetOrMotiveInferenceConfirmed": {
+            "type": "boolean"
+          },
+          "evidenceIds": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "rightOfReply": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "institution": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "scrutinyFramingDigest": {
+                  "type": "string",
+                  "pattern": "^sha256:[a-f0-9]{64}$"
+                },
+                "disposition": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "official-response-documented",
+                    "fresh-reply-completed",
+                    "no-response-after-deadline",
+                    "not-applicable-with-reason"
+                  ]
+                },
+                "sentOn": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "replyDueOn": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receivedOn": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "resolvedOn": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicBasis": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "evidenceIds": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                }
+              },
+              "required": [
+                "institution",
+                "scrutinyFramingDigest",
+                "disposition",
+                "sentOn",
+                "replyDueOn",
+                "receivedOn",
+                "resolvedOn",
+                "publicBasis",
+                "evidenceIds"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "scrutinyId",
+          "title",
+          "scrutinyFramingDigest",
+          "reviewerIds",
+          "completedOn",
+          "result",
+          "statementSupportConfirmed",
+          "evidenceStateConfirmed",
+          "doesNotProveConfirmed",
+          "counterweightOrResponseConfirmed",
+          "correctionOrReviewRouteConfirmed",
+          "noPersonalTargetOrMotiveInferenceConfirmed",
+          "evidenceIds",
+          "rightOfReply"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "privacySecurityThreatReview": {
+          "type": "object",
+          "properties": {
+            "reviewerIds": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            },
+            "completedOn": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "result": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "pass",
+                "fail"
+              ]
+            },
+            "evidenceIds": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            }
+          },
+          "required": [
+            "reviewerIds",
+            "completedOn",
+            "result",
+            "evidenceIds"
+          ],
+          "additionalProperties": false
+        },
+        "publicSurfaceInspection": {
+          "type": "object",
+          "properties": {
+            "reviewerIds": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            },
+            "completedOn": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "result": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "pass",
+                "fail"
+              ]
+            },
+            "noIntake": {
+              "type": "boolean"
+            },
+            "noMarketplace": {
+              "type": "boolean"
+            },
+            "noSubmission": {
+              "type": "boolean"
+            },
+            "noPrivateUpload": {
+              "type": "boolean"
+            },
+            "evidenceIds": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            }
+          },
+          "required": [
+            "reviewerIds",
+            "completedOn",
+            "result",
+            "noIntake",
+            "noMarketplace",
+            "noSubmission",
+            "noPrivateUpload",
+            "evidenceIds"
+          ],
+          "additionalProperties": false
+        },
+        "emergencyStopDrill": {
+          "type": "object",
+          "properties": {
+            "operatorReviewerId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 160,
+                  "pattern": "^[a-z0-9][a-z0-9-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "result": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "pass",
+                "fail"
+              ]
+            },
+            "corpusDigest": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^sha256:[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "commitSha": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{40}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "environment": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "isolated-control-path",
+                    "production-closed-release"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "startedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stopActivatedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "apiContainedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "frontendContainedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "restoredClosedAt": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "apiProtectedRoutesReturned503": {
+              "type": "boolean"
+            },
+            "wakeReportedStopped": {
+              "type": "boolean"
+            },
+            "safeSchemasRightsAndBlankTemplateRemainedReadable": {
+              "type": "boolean"
+            },
+            "frontendContainedOnlyClosedShells": {
+              "type": "boolean"
+            },
+            "cacheDisposition": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "purged",
+                    "non-cacheable-isolated-run"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "evidenceIds": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            }
+          },
+          "required": [
+            "operatorReviewerId",
+            "result",
+            "corpusDigest",
+            "commitSha",
+            "environment",
+            "startedAt",
+            "stopActivatedAt",
+            "apiContainedAt",
+            "frontendContainedAt",
+            "restoredClosedAt",
+            "apiProtectedRoutesReturned503",
+            "wakeReportedStopped",
+            "safeSchemasRightsAndBlankTemplateRemainedReadable",
+            "frontendContainedOnlyClosedShells",
+            "cacheDisposition",
+            "evidenceIds"
+          ],
+          "additionalProperties": false
+        },
+        "ownership": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "pass",
+                "fail"
+              ]
+            },
+            "reviewerIds": {
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 160,
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              }
+            },
+            "assignedOn": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "correction": {
+              "type": "object",
+              "properties": {
+                "primaryPublicLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "backupPublicLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicRouteOrControl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "accessTestedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "evidenceIds": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                }
+              },
+              "required": [
+                "primaryPublicLabel",
+                "backupPublicLabel",
+                "publicRouteOrControl",
+                "accessTestedAt",
+                "evidenceIds"
+              ],
+              "additionalProperties": false
+            },
+            "withdrawal": {
+              "type": "object",
+              "properties": {
+                "primaryPublicLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "backupPublicLabel": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "publicRouteOrControl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "accessTestedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "evidenceIds": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "pattern": "^[a-z0-9][a-z0-9-]*$"
+                  }
+                }
+              },
+              "required": [
+                "primaryPublicLabel",
+                "backupPublicLabel",
+                "publicRouteOrControl",
+                "accessTestedAt",
+                "evidenceIds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "result",
+            "reviewerIds",
+            "assignedOn",
+            "correction",
+            "withdrawal"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "privacySecurityThreatReview",
+        "publicSurfaceInspection",
+        "emergencyStopDrill",
+        "ownership"
+      ],
+      "additionalProperties": false
+    },
+    "declaration": {
+      "type": "object",
+      "properties": {
+        "reviewLeadId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 160,
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewStartedOn": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rightOfReplyResolvedOn": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "completedOn": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewBy": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "publicFieldsDisclosureChecked": {
+          "type": "boolean"
+        },
+        "privateEvidenceOutsideRepository": {
+          "type": "boolean",
+          "const": true
+        },
+        "publicGithubDisclosureAcknowledged": {
+          "type": "boolean",
+          "const": true
+        },
+        "packDoesNotApproveHostedDistribution": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "reviewLeadId",
+        "reviewStartedOn",
+        "rightOfReplyResolvedOn",
+        "completedOn",
+        "reviewBy",
+        "publicFieldsDisclosureChecked",
+        "privateEvidenceOutsideRepository",
+        "publicGithubDisclosureAcknowledged",
+        "packDoesNotApproveHostedDistribution"
+      ],
+      "additionalProperties": false
+    },
+    "boundaries": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "const": "This pack is public-safe review evidence, not hosted-distribution approval."
+        },
+        {
+          "type": "string",
+          "const": "A complete pack does not change an API, frontend, deployment, intake or marketplace switch."
+        },
+        {
+          "type": "string",
+          "const": "Keep client facts, contact details, private documents and filesystem paths outside this pack."
+        },
+        {
+          "type": "string",
+          "const": "A private evidence reference is an opaque UUID held by a named custodian role; it is never the evidence itself."
+        },
+        {
+          "type": "string",
+          "const": "The corpus is already visible in the public GitHub repository; this pack governs later official TaxSorted hosting and endorsement."
+        }
+      ]
+    },
+    "integrity": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "digestScope": {
+          "type": "string",
+          "const": "Canonical JSON of this pack excluding the integrity object."
+        }
+      },
+      "required": [
+        "algorithm",
+        "digest",
+        "digestScope"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "status",
+    "corpus",
+    "reviewers",
+    "evidenceIndex",
+    "sourceChecks",
+    "methodAndWorkflowReview",
+    "opportunityReviews",
+    "scrutinyReviews",
+    "controls",
+    "declaration",
+    "boundaries",
+    "integrity"
+  ],
+  "additionalProperties": false,
+  "$id": "https://api.taxsorted.io/schemas/uk-professional-opportunities-qualified-review-pack-1.json",
+  "title": "TaxSorted UK professional-opportunity qualified-review pack",
+  "description": "Public-safe, corpus-bound evidence for multidisciplinary review of the hosted professional-opportunity atlas.",
+  "x-taxsorted-runtime-invariants": [
+    "The pack digest excludes only its integrity object and must match canonical content.",
+    "Corpus version, digest, source IDs, opportunity IDs, scrutiny IDs and record digests match exactly.",
+    "A complete pack covers every source, opportunity and scrutiny record once.",
+    "Right of reply covers every affected institution for each exact scrutiny framing.",
+    "A complete pack expires no more than 93 days after review completion.",
+    "Private evidence uses only a public-safe custodian role and an opaque random UUID v4.",
+    "Reviewer-authored public text rejects @ contact markers and filesystem-shaped paths; public URLs reject embedded credentials.",
+    "The independent release operator proves both API and static-frontend containment while the hosted release remains closed.",
+    "No pack approves distribution, changes a switch or accepts private evidence."
+  ]
+}

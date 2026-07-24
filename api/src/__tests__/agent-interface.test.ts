@@ -303,6 +303,9 @@ describe("agent interface", () => {
       },
       frameworkSlices: {
         accountability: "/openapi/accountability-uk.json",
+        caseCommons: "/openapi/case-commons-uk.json",
+        professionalOpportunities:
+          "/openapi/professional-opportunities-uk.json",
         whyGraph: "/openapi/why-graph.json",
       },
       taskSlices: {
@@ -326,6 +329,38 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.caseCommons).toEqual({
+      href: "/v1/case-commons/uk",
+      cases: "/v1/case-commons/uk/cases",
+      schema: "/v1/case-commons/uk/schema",
+      packetSchema: "/v1/case-commons/uk/packet-schema",
+      assessmentTemplate: "/v1/case-commons/uk/assessment-template",
+      openApi: "/openapi/case-commons-uk.json",
+      humanGuide: "https://taxsorted.io/uk/cases/",
+      availability: "publication-review",
+      stoppedCaseCount: 0,
+      writes: false,
+      personalIntake: false,
+      privateUploads: false,
+      professionalMarketplace: false,
+      probabilityOrExpectedValue: false,
+      optionalAgentToolBridge: {
+        required: false,
+        sdk: "@agenttool/sdk",
+        version: "0.16.3",
+        client: "DataClient",
+        custody: "caller-operated-loopback-agent-data-node",
+        guide:
+          "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md",
+        defaultEffect: "dry-run-verification-only",
+        writeEffect:
+          "One explicit caller-directed local collect operation containing only the verified public packet.",
+        hostedAgentToolWrite: false,
+        privateCaseFacts: false,
+      },
+      effects:
+        "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
     });
     expect(body.resources.publicOfficePathways).toEqual({
       href: "/v1/politics/uk/public-office-pathways",
@@ -666,6 +701,37 @@ describe("agent interface", () => {
     expect(await unchanged.text()).toBe("");
   });
 
+  it("re-evaluates professional-opportunity review currentness for every wake", async () => {
+    let current = true;
+    const app = new Hono();
+    app.route(
+      "/",
+      createAgentInterfaceRoutes({
+        professionalOpportunitiesPublic: true,
+        professionalOpportunitiesPublicationIsCurrent: () => current,
+      }),
+    );
+
+    const open = await app.request("/v1/wake");
+    const openBody = await open.json();
+    expect(
+      openBody.resources.professionalOpportunities.availability,
+    ).toBe("open");
+    expect(open.headers.get("cache-control")).toBe(
+      "public, max-age=0, must-revalidate",
+    );
+
+    current = false;
+    const closed = await app.request("/v1/wake");
+    const closedBody = await closed.json();
+    expect(
+      closedBody.resources.professionalOpportunities.availability,
+    ).toBe("publication-review");
+    expect(closed.headers.get("etag")).not.toBe(
+      open.headers.get("etag"),
+    );
+  });
+
   it("validates queries before ETags and returns a typed recovery action", async () => {
     const { app } = mount();
     const etag = (await app.request("/v1/wake")).headers.get("etag")!;
@@ -758,6 +824,23 @@ describe("agent interface", () => {
     const downstream = await app.request("/v1/probe");
     expect(downstream.status).toBe(200);
     expect(await downstream.json()).toEqual({ reachable: true });
+  });
+
+  it("reports case-level stops without publishing stopped case identities", () => {
+    const wake = buildAgentWakePayload({
+      ...options,
+      caseCommonsPublic: true,
+      caseCommonsStoppedCaseIds: ["haworth-v-hmrc-2021"],
+    });
+
+    expect(wake.resources.caseCommons).toMatchObject({
+      availability: "case-level-stops-active",
+      stoppedCaseCount: 1,
+    });
+    expect(wake.resources.caseCommons).not.toHaveProperty("stoppedCaseIds");
+    expect(JSON.stringify(wake.resources.caseCommons)).not.toContain(
+      "haworth-v-hmrc-2021",
+    );
   });
 
   it("answers public preflight without admitting near-match paths", async () => {

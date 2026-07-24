@@ -67,3 +67,6 @@ api-keys.json
 
 # Local agent config
 .claude/
+
+# Qualified-review working evidence stays outside the public repository.
+research/uk/professional-opportunities/review/private/

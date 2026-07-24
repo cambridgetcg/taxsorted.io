@@ -84,6 +84,28 @@ export default function LearnPage() {
         materials link to their sources. Free, open, no account.
       </p>
 
+      <section
+        aria-labelledby="understanding-title"
+        className="mt-8 rounded-2xl border border-accent bg-accent-soft p-5 sm:p-6"
+      >
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent-deep">
+          The map behind the book
+        </p>
+        <h2 id="understanding-title" className="mt-2 text-xl font-semibold text-ink">
+          Enter the Castle of Understanding
+        </h2>
+        <p className="mt-2 max-w-3xl text-base leading-7 text-ink-soft">
+          See how questions become doors, exact words become bricks, and bounded answers
+          keep their sources, unknowns and next paths attached.
+        </p>
+        <Link
+          href="/understanding"
+          className="mt-3 inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4 hover:text-accent-deep"
+        >
+          See how TaxSorted builds understanding <span aria-hidden="true">&nbsp;→</span>
+        </Link>
+      </section>
+
       <h2 className="mt-10 text-2xl font-bold text-ink">Your taxes, explained</h2>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {GUIDES.map((g) => (
