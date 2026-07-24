@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sitemap from "../sitemap";
+import { ukProfessionalOpportunityCorpus } from "@/lib/uk-professional-opportunities";
 
 describe("public sitemap", () => {
   it("includes every substantive Learn guide", () => {
@@ -35,6 +36,8 @@ describe("public sitemap", () => {
       "/uk/",
       "/uk/personal-tax/",
       "/uk/tax-expert/",
+      "/uk/cases/",
+      "/uk/cases/haworth-v-hmrc/",
       "/uk/politics/decisions/",
       "/uk/politics/stand/",
       "/itsa/records/",
@@ -42,6 +45,13 @@ describe("public sitemap", () => {
     ]) {
       expect(urls).toContain(`https://taxsorted.io${path}`);
     }
+  });
+
+  it("keeps pending professional-opportunity research out of discovery", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(ukProfessionalOpportunityCorpus).toBeNull();
+    expect(urls).not.toContain("https://taxsorted.io/uk/opportunities/");
+    expect(urls).not.toContain("https://taxsorted.io/uk/regulator-scrutiny/");
   });
 
   it("lists the section hubs, About, and the once-orphaned routes", () => {

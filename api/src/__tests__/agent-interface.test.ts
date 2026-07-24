@@ -304,6 +304,8 @@ describe("agent interface", () => {
       frameworkSlices: {
         accountability: "/openapi/accountability-uk.json",
         caseCommons: "/openapi/case-commons-uk.json",
+        professionalOpportunities:
+          "/openapi/professional-opportunities-uk.json",
         whyGraph: "/openapi/why-graph.json",
       },
       taskSlices: {
@@ -346,7 +348,7 @@ describe("agent interface", () => {
       optionalAgentToolBridge: {
         required: false,
         sdk: "@agenttool/sdk",
-        version: "0.16.0",
+        version: "0.16.2",
         client: "DataClient",
         custody: "caller-operated-loopback-agent-data-node",
         guide:

@@ -55,7 +55,11 @@ jobs:
 
       - run: npm audit --omit=dev --audit-level=high
 
-      - run: npm run build
+      - name: Build frontend with explicit UK professional-opportunity gates
+        env:
+          UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED }}
+          UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP }}
+        run: npm run build
 
   # The API ships first. A failed or skipped API deploy must never leave a new
   # frontend pointing at an older API contract.
@@ -63,6 +67,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: test-build
+    outputs:
+      professional_opportunities_state: ${{ steps.smoke_public_contracts.outputs.professional_opportunities_state }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -200,6 +206,7 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Smoke-test the deployed public contracts
+        id: smoke_public_contracts
         env:
           TAX_EXPERT_CANARY_API_KEY: ${{ secrets.TAX_EXPERT_CANARY_API_KEY }}
         run: |
@@ -222,6 +229,7 @@ jobs:
             /openapi/politics-uk.json \
             /openapi/accountability-uk.json \
             /openapi/case-commons-uk.json \
+            /openapi/professional-opportunities-uk.json \
             /openapi/why-graph.json \
             /openapi/tax-expert-uk.json \
             /openapi/professional-tools-uk.json \
@@ -247,6 +255,11 @@ jobs:
             /v1/case-commons/uk/schema \
             /v1/case-commons/uk/packet-schema \
             /v1/case-commons/uk/rights \
+            /v1/professional-opportunities/uk/assessment-template \
+            /v1/professional-opportunities/uk/assessment-schema \
+            /v1/professional-opportunities/uk/schema \
+            /v1/professional-opportunities/uk/packet-schema \
+            /v1/professional-opportunities/uk/rights \
             /v1/why-graph \
             /v1/why-graph/adopters \
             /v1/why-graph/schema \
@@ -323,6 +336,79 @@ jobs:
                 ;;
             esac
           done
+
+          professional_state=$(jq --raw-output \
+            '.resources.professionalOpportunities.availability' "${case_wake}")
+          echo "professional_opportunities_state=${professional_state}" \
+            >>"${GITHUB_OUTPUT}"
+          professional_index=0
+          for path in \
+            /v1/professional-opportunities/uk \
+            /v1/professional-opportunities/uk/method \
+            /v1/professional-opportunities/uk/opportunities \
+            /v1/professional-opportunities/uk/scrutiny \
+            /v1/professional-opportunities/uk/sources
+          do
+            professional_index=$((professional_index + 1))
+            professional_body="${RUNNER_TEMP}/professional-opportunities-${professional_index}.json"
+            professional_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --output "${professional_body}" --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${professional_state}:${professional_status}" in
+              open:200)
+                jq --exit-status \
+                  '.schema == "taxsorted.uk.professional-opportunities.v1"' \
+                  "${professional_body}" >/dev/null
+                ;;
+              publication-review:503)
+                jq --exit-status \
+                  '.error == "publication_review_pending" and .status == 503' \
+                  "${professional_body}" >/dev/null
+                ;;
+              emergency-stopped:503)
+                jq --exit-status \
+                  '.error == "publication_emergency_stop" and .status == 503' \
+                  "${professional_body}" >/dev/null
+                ;;
+              record-level-stops-active:200)
+                jq --exit-status '
+                  .method != null or
+                  .availability.status == "record-level-stops-active" or
+                  .availability == "record-level-stops-active"
+                ' "${professional_body}" >/dev/null
+                ;;
+              record-level-stops-active:503)
+                jq --exit-status '
+                  .error == "opportunity_publication_stop" and
+                  .status == 503 and
+                  .stoppedOpportunityCount > 0
+                ' "${professional_body}" >/dev/null
+                ;;
+              *)
+                echo "Professional-opportunity state disagrees: ${professional_state}:${professional_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+          if [ "${professional_state}" = open ]; then
+            professional_id=$(curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              https://api.taxsorted.io/v1/professional-opportunities/uk/opportunities | \
+              jq --raw-output '.opportunities[0].id // empty')
+            test -n "${professional_id}"
+            curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              "https://api.taxsorted.io/v1/professional-opportunities/uk/opportunities/${professional_id}" | \
+              jq --exit-status '
+                .schema == "taxsorted.uk.professional-opportunity-packet/1" and
+                (.integrity.digest | test("^sha256:[0-9a-f]{64}$"))
+              ' >/dev/null
+          fi
 
           politics_root="${RUNNER_TEMP}/politics-root.json"
           curl --fail --silent --show-error \
@@ -1743,7 +1829,79 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      - name: Build the exact frontend release
+        id: build_frontend
+        env:
+          UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED }}
+          UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP }}
+          API_PROFESSIONAL_OPPORTUNITIES_STATE: ${{ needs.deploy-api.outputs.professional_opportunities_state }}
+        run: |
+          set -euo pipefail
+          requested_open=false
+          if [ "${UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED}" = true ] && \
+             { [ -z "${UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP}" ] || \
+               [ "${UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP}" = false ]; }
+          then
+            requested_open=true
+          fi
+
+          frontend_state=closed
+          effective_public=false
+          effective_stop=true
+          if [ "${requested_open}" = true ] && \
+             [ "${API_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
+          then
+            frontend_state=open
+            effective_public=true
+            effective_stop=false
+          elif [ "${requested_open}" = true ]
+          then
+            echo "API atlas is ${API_PROFESSIONAL_OPPORTUNITIES_STATE}; forcing the static atlas closed." >&2
+          fi
+
+          UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED="${effective_public}" \
+          UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP="${effective_stop}" \
+            npm run build
+          echo "publication_state=${frontend_state}" >>"${GITHUB_OUTPUT}"
+
+      - name: Verify the generated UK professional-opportunity gate
+        env:
+          FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE: ${{ steps.build_frontend.outputs.publication_state }}
+        run: |
+          set -euo pipefail
+          opportunities_page='frontend/out/uk/opportunities/index.html'
+          scrutiny_page='frontend/out/uk/regulator-scrutiny/index.html'
+          test -f "${opportunities_page}"
+          test -f "${scrutiny_page}"
+          if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
+          then
+            grep --fixed-strings --quiet \
+              'Specialist work, mapped without the sales pitch.' \
+              "${opportunities_page}"
+            grep --fixed-strings --quiet \
+              'Regulators answer to evidence too.' \
+              "${scrutiny_page}"
+          else
+            grep --fixed-strings --quiet \
+              'This research is awaiting its required independent review.' \
+              "${opportunities_page}"
+            grep --fixed-strings --quiet \
+              'This evidence ledger is awaiting its required independent review.' \
+              "${scrutiny_page}"
+            for protected_phrase in \
+              'Commercial-property fixtures' \
+              'Most automated-penalty decisions reviewed in 2025 to 2026 were cancelled' \
+              'Business rates valuation, property state and list correction' \
+              'Schedule 36 information notices and privilege'
+            do
+              if grep --recursive --fixed-strings --quiet \
+                "${protected_phrase}" frontend/out
+              then
+                echo "Protected UK professional-opportunity content leaked into the closed frontend artifact." >&2
+                exit 1
+              fi
+            done
+          fi
 
       - name: Require Cloudflare deploy token
         env:
@@ -1763,6 +1921,8 @@ jobs:
           command: pages deploy out --project-name=taxsorted --branch=main
 
       - name: Smoke-test the deployed human and machine doors
+        env:
+          FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE: ${{ steps.build_frontend.outputs.publication_state }}
         run: |
           set -euo pipefail
           for path in \
@@ -1771,6 +1931,8 @@ jobs:
             /uk/accountability \
             /uk/cases \
             /uk/cases/haworth-v-hmrc \
+            /uk/opportunities \
+            /uk/regulator-scrutiny \
             /uk/tax-expert \
             /uk/politics/stand \
             /uk/politics/decisions \
@@ -1785,6 +1947,43 @@ jobs:
               --retry 12 --retry-delay 5 --retry-all-errors \
               --output /dev/null "https://taxsorted.io${path}"
           done
+
+          opportunities_page="${RUNNER_TEMP}/uk-professional-opportunities.html"
+          scrutiny_page="${RUNNER_TEMP}/uk-regulator-scrutiny.html"
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --output "${opportunities_page}" \
+            https://taxsorted.io/uk/opportunities
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --output "${scrutiny_page}" \
+            https://taxsorted.io/uk/regulator-scrutiny
+
+          if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
+          then
+            grep --fixed-strings --quiet \
+              'Specialist work, mapped without the sales pitch.' \
+              "${opportunities_page}"
+            grep --fixed-strings --quiet \
+              'Regulators answer to evidence too.' \
+              "${scrutiny_page}"
+          else
+            grep --fixed-strings --quiet \
+              'This research is awaiting its required independent review.' \
+              "${opportunities_page}"
+            grep --fixed-strings --quiet \
+              'This evidence ledger is awaiting its required independent review.' \
+              "${scrutiny_page}"
+            if grep --fixed-strings --quiet \
+              'Commercial-property fixtures' "${opportunities_page}" || \
+               grep --fixed-strings --quiet \
+              'Most automated-penalty decisions reviewed in 2025 to 2026 were cancelled' \
+              "${scrutiny_page}"
+            then
+              echo 'Protected UK professional-opportunity content leaked through a closed frontend gate.' >&2
+              exit 1
+            fi
+          fi
 
           frontend_agent_manifest="${RUNNER_TEMP}/frontend-agent.txt"
           frontend_well_known_manifest="${RUNNER_TEMP}/frontend-well-known-agent.txt"

@@ -48,6 +48,30 @@ const caseCommonsAssessmentPath =
 const caseCommonsOpenApiPath = "/openapi/case-commons-uk.json";
 const caseCommonsAgentToolGuide =
   "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md";
+const professionalOpportunitiesPath =
+  "/v1/professional-opportunities/uk";
+const professionalOpportunitiesMethodPath =
+  "/v1/professional-opportunities/uk/method";
+const professionalOpportunitiesListPath =
+  "/v1/professional-opportunities/uk/opportunities";
+const professionalOpportunitiesScrutinyPath =
+  "/v1/professional-opportunities/uk/scrutiny";
+const professionalOpportunitiesSourcesPath =
+  "/v1/professional-opportunities/uk/sources";
+const professionalOpportunitiesSchemaPath =
+  "/v1/professional-opportunities/uk/schema";
+const professionalOpportunitiesPacketSchemaPath =
+  "/v1/professional-opportunities/uk/packet-schema";
+const professionalOpportunitiesAssessmentPath =
+  "/v1/professional-opportunities/uk/assessment-template";
+const professionalOpportunitiesAssessmentSchemaPath =
+  "/v1/professional-opportunities/uk/assessment-schema";
+const professionalOpportunitiesRightsPath =
+  "/v1/professional-opportunities/uk/rights";
+const professionalOpportunitiesOpenApiPath =
+  "/openapi/professional-opportunities-uk.json";
+const professionalOpportunitiesAgentToolGuide =
+  "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/professional-opportunities/AGENTTOOL.md";
 const publicOfficePathwaysPath = "/v1/politics/uk/public-office-pathways";
 const publicOfficePathwaysSchemaPath =
   "/v1/politics/uk/public-office-pathways/schema";
@@ -127,10 +151,27 @@ case-commons-packet-schema: GET ${apiOrigin}${caseCommonsPacketSchemaPath}
 case-commons-assessment-template: GET ${apiOrigin}${caseCommonsAssessmentPath}
 case-commons-openapi: GET ${apiOrigin}${caseCommonsOpenApiPath}
 case-commons-agenttool-local-mirror: ${caseCommonsAgentToolGuide}
-case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.0 DataClient; exact pin; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.2 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
 case-commons-scope: decided public records; one England-and-Wales deep case; source-resolving packets; remedies and money meanings; local assessment template
 case-commons-effects: read-only research; no personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
 case-commons-private-material: stays with the prospective client or instructed professional in their approved matter system
+professional-opportunities: GET ${apiOrigin}${professionalOpportunitiesPath}
+professional-opportunities-method: GET ${apiOrigin}${professionalOpportunitiesMethodPath}
+professional-opportunities-list: GET ${apiOrigin}${professionalOpportunitiesListPath}
+professional-opportunities-scrutiny: GET ${apiOrigin}${professionalOpportunitiesScrutinyPath}
+professional-opportunities-sources: GET ${apiOrigin}${professionalOpportunitiesSourcesPath}
+professional-opportunities-schema: GET ${apiOrigin}${professionalOpportunitiesSchemaPath}
+professional-opportunities-packet-schema: GET ${apiOrigin}${professionalOpportunitiesPacketSchemaPath}
+professional-opportunities-assessment-template: GET ${apiOrigin}${professionalOpportunitiesAssessmentPath}
+professional-opportunities-assessment-schema: GET ${apiOrigin}${professionalOpportunitiesAssessmentSchemaPath}
+professional-opportunities-rights: GET ${apiOrigin}${professionalOpportunitiesRightsPath}
+professional-opportunities-openapi: GET ${apiOrigin}${professionalOpportunitiesOpenApiPath}
+professional-opportunities-agenttool-guide: ${professionalOpportunitiesAgentToolGuide}
+professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.2; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
+professional-opportunities-scope: source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a blank finite local assessment
+professional-opportunities-status-boundary: the user must independently verify the status required for the exact work; TaxSorted verifies no professional; no claim that all UK tax work has one universal licence
+professional-opportunities-effects: read-only research; no client intake, private upload, probability, expected value, ranking, matching, outreach, recommendation, case assignment, representation, filing, payment or referral fee
+professional-opportunities-private-material: stays with the prospective client or instructed professional in their approved matter system
 professional-tools: GET ${apiOrigin}${professionalToolsPath}
 professional-tools-openapi: GET ${apiOrigin}${professionalToolsOpenApiPath}
 professional-tools-status: credentialed design partner; two executable stateless tasks
@@ -234,6 +275,8 @@ wall: a formal institutional relation is not proof of control, collusion, motive
 wall: case party positions, court findings, later outcomes, TaxSorted analysis and unknowns remain separate
 wall: an amount demanded or affected is not automatically an award, refund, recovery or net gain
 wall: the case commons has no claimant intake, lawyer bid, ranking, probability or outreach route
+wall: regulator scrutiny states the evidence type, what it does not prove, the public-body response or counterweight and a lawful correction route
+wall: the professional-opportunity atlas has no client intake, professional marketplace, case assignment, probability, expected value, ranking or outreach route
 `;
 
 function acceptsJson(header: string | undefined) {
@@ -385,6 +428,9 @@ type AgentInterfaceOptions = OpenDataRouteOptions & {
   caseCommonsPublic?: boolean;
   caseCommonsEmergencyStop?: boolean;
   caseCommonsStoppedCaseIds?: string[];
+  professionalOpportunitiesPublic?: boolean;
+  professionalOpportunitiesEmergencyStop?: boolean;
+  professionalOpportunitiesStoppedIds?: string[];
 };
 
 export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
@@ -479,6 +525,16 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         statement:
           "The public case commons has no personal intake, private upload, viability score, expected value, lawyer ranking, matching, outreach, recommendation or referral fee.",
       },
+      {
+        id: "regulator-scrutiny-keeps-proof-limits",
+        statement:
+          "Institutional scrutiny states its evidence type, what it does not prove, the public-body response or counterweight and a lawful correction or review route.",
+      },
+      {
+        id: "no-opportunity-marketplace-or-intake",
+        statement:
+          "The professional-opportunity atlas has no client intake, private upload, professional marketplace, case assignment, probability, expected value, ranking, matching, outreach, recommendation or referral fee.",
+      },
     ],
     publicationStates: catalog.datasets.map((dataset) => ({
       datasetId: dataset.id,
@@ -512,6 +568,8 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         frameworkSlices: {
           accountability: "/openapi/accountability-uk.json",
           caseCommons: caseCommonsOpenApiPath,
+          professionalOpportunities:
+            professionalOpportunitiesOpenApiPath,
           whyGraph: whyGraphOpenApiPath,
         },
         taskSlices: {
@@ -568,7 +626,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         optionalAgentToolBridge: {
           required: false,
           sdk: "@agenttool/sdk",
-          version: "0.16.0",
+          version: "0.16.2",
           client: "DataClient",
           custody: "caller-operated-loopback-agent-data-node",
           guide: caseCommonsAgentToolGuide,
@@ -580,6 +638,50 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         },
         effects:
           "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
+      },
+      professionalOpportunities: {
+        href: professionalOpportunitiesPath,
+        method: professionalOpportunitiesMethodPath,
+        opportunities: professionalOpportunitiesListPath,
+        scrutiny: professionalOpportunitiesScrutinyPath,
+        sources: professionalOpportunitiesSourcesPath,
+        schema: professionalOpportunitiesSchemaPath,
+        packetSchema: professionalOpportunitiesPacketSchemaPath,
+        assessmentTemplate: professionalOpportunitiesAssessmentPath,
+        assessmentSchema:
+          professionalOpportunitiesAssessmentSchemaPath,
+        rights: professionalOpportunitiesRightsPath,
+        openApi: professionalOpportunitiesOpenApiPath,
+        humanGuide: `${humanOrigin}/uk/opportunities/`,
+        availability: options.professionalOpportunitiesEmergencyStop
+          ? "emergency-stopped"
+          : !options.professionalOpportunitiesPublic
+            ? "publication-review"
+            : options.professionalOpportunitiesStoppedIds?.length
+              ? "record-level-stops-active"
+              : "open",
+        stoppedOpportunityCount: new Set(
+          options.professionalOpportunitiesStoppedIds ?? [],
+        ).size,
+        writes: false,
+        clientIntake: false,
+        privateUploads: false,
+        professionalMarketplace: false,
+        caseAssignment: false,
+        probabilityOrExpectedValue: false,
+        professionalStatusBoundary:
+          "The user must independently verify the status required for the exact work; TaxSorted verifies no professional, and UK tax work does not have one universal professional licence.",
+        optionalAgentToolBridge: {
+          required: false,
+          sdk: "@agenttool/sdk",
+          version: "0.16.2",
+          guide: professionalOpportunitiesAgentToolGuide,
+          directHttpsIsUniversalDoor: true,
+          hostedAgentToolWrite: false,
+          privateMatterFacts: false,
+        },
+        effects:
+          "Read-only public research and a blank finite local assessment; no matching, ranking, outreach, recommendation, representation, filing, payment or external state change.",
       },
       publicOfficePathways: {
         href: publicOfficePathwaysPath,
@@ -889,6 +991,14 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read decided public-law cases, exact remedy and money meanings, digest-bearing source packets, and the closed marketplace boundary.",
+      },
+      {
+        id: "inspect-professional-opportunities",
+        method: "GET",
+        href: professionalOpportunitiesPath,
+        accepts: ["application/json"],
+        description:
+          "Read source-backed specialist-work classes, institutional scrutiny, separate money meanings and the local professional-assessment boundary.",
       },
       {
         id: "inspect-why-graph-contract",

@@ -63,6 +63,27 @@ const caseCommonsStoppedCaseIds = [
       .filter(Boolean),
   ),
 ];
+const professionalOpportunitiesEmergencyStopValue =
+  env.UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP ?? "";
+// An explicitly empty value or exact "false" leaves this stop off. Every
+// other non-empty spelling fails closed, including malformed operator input.
+const professionalOpportunitiesEmergencyStop =
+  professionalOpportunitiesEmergencyStopValue !== "" &&
+  professionalOpportunitiesEmergencyStopValue !== "false";
+const professionalOpportunitiesPublicDataEnabled =
+  !professionalOpportunitiesEmergencyStop &&
+  env.UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED === "true";
+// A malformed or stale ID is handled by the opportunity route itself. It
+// closes only that public surface and never prevents the rest of TaxSorted
+// from booting.
+const professionalOpportunitiesStoppedIds = [
+  ...new Set(
+    (env.UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS || "")
+      .split(",")
+      .map((opportunityId) => opportunityId.trim())
+      .filter(Boolean),
+  ),
+];
 
 export const config = {
   port: Number(env.PORT || 8787),
@@ -157,6 +178,15 @@ export const config = {
     emergencyStop: caseCommonsEmergencyStop,
     publicDataEnabled: caseCommonsPublicDataEnabled,
     stoppedCaseIds: caseCommonsStoppedCaseIds,
+  },
+  // Reviewed classes of specialist work and institutional scrutiny only.
+  // There is no client intake, private upload, professional marketplace or
+  // case assignment. A global stop leaves only rights, schemas and the blank
+  // local assessment template inspectable.
+  professionalOpportunities: {
+    emergencyStop: professionalOpportunitiesEmergencyStop,
+    publicDataEnabled: professionalOpportunitiesPublicDataEnabled,
+    stoppedOpportunityIds: professionalOpportunitiesStoppedIds,
   },
   corsOrigins:
     env.NODE_ENV === "production"

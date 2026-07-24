@@ -596,6 +596,95 @@ incident, set that file's stop or remove the affected ID from the approval,
 rebuild, deploy and verify the generated output; use a Cloudflare rollback when
 it is faster. This is a deployment brake, not instant revocation.
 
+## UK professional opportunity atlas
+
+This surface is designed to publish qualified-review-approved classes of
+specialist work and institutional scrutiny, not private cases. Its current
+decision remains pending. It accepts no client fact, document, bid, contact,
+referral or completed assessment. Before opening it, read every opportunity
+against its official sources and confirm that each criticism carries a proof
+limit, counterweight or public-body response, and correction or review route.
+
+Production publication is explicit:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED=true
+```
+
+The switch is necessary but not sufficient. The checked-in
+`research/uk/professional-opportunities/data/publication-approval.json` must
+bind the exact canonical corpus digest, version and approved opportunity IDs.
+Any changed source, wording, workflow or scrutiny record closes protected
+packet routes until a new review records a new approval.
+
+Approval schema version 2 also requires a complete `qualifiedReview`: named
+reviewer and capacity, completion date, evidence reference, and five true
+confirmations for current law and territory, privacy and threat review, no
+intake or marketplace, an exercised emergency-stop drill, and assigned
+correction and withdrawal owners. It also requires a public-safe institutional
+right-of-reply disposition, basis and evidence reference. The review date must
+not predate source retrieval; the decision date must not predate review. Do not
+invent or prefill an attestor, and do not put private contact, client or matter
+evidence in this file. Changing only `status` to
+`approved-for-publication` remains closed.
+
+The static frontend has separate GitHub repository variables with the same
+`UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED` and
+`UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP` names. Missing variables build
+the sealed review shell. The release job also reads the deployed API wake
+state and forces the static atlas closed unless that API state is exactly
+`open`; an API emergency or record-level stop therefore cannot produce a new
+open frontend release. Set neither public switch until a qualified UK reviewer
+has confirmed every displayed law, territory, deadline and route.
+
+Verify the overview, method, opportunity list, every packet, scrutiny ledger,
+source ledger, all three schemas, blank assessment, task-sized OpenAPI and
+`/v1/wake`. Also run one local assessment validation:
+
+```bash
+npm run validate:professional-opportunity-assessment -- \
+  ./private-assessment.json
+```
+
+Do not paste the private file into logs, issues or a TaxSorted request. The
+validator reports schema shape and finite internal-state status only and has no
+network or write step. It does not fetch or verify the caller-maintained packet
+id, version or digest. It prints no input path, field name, value, raw validation
+message or private fact.
+
+For a source, accuracy, rights or publication-safety incident, close every
+protected packet:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP=true
+```
+
+For a problem confined to exact stable opportunity IDs:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_PROFESSIONAL_OPPORTUNITIES_STOPPED_IDS=uk-business-rates-valuation
+```
+
+A malformed, unknown or stale ID closes this atlas without preventing the
+main API from booting. Errors and discovery expose only the number of active
+stops, never the configured IDs. While qualified review is pending or the
+global stop is active, the rights, schemas and blank assessment stay available
+for repair; the substantive method and source ledger close with the atlas.
+
+The API stop cannot recall a downloaded packet or remove the separately
+deployed static pages. If the same problem affects `/uk/opportunities` or
+`/uk/regulator-scrutiny`, roll Cloudflare Pages back or deploy a corrected
+exact-content approval and purge operator-controlled caches. Record the API
+and frontend versions before calling the incident contained.
+
+Never describe HMRC review or complaint statistics as a claimant probability.
+Never describe an amount affected, qualifying base or provisional repayment
+as a professional fee or net client gain. A complaint does not by itself pause
+an appeal, payment or judicial-review clock.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register
