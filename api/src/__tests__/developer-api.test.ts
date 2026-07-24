@@ -115,6 +115,10 @@ describe("developer API boundary", () => {
     ).toHaveProperty("whyGraph");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.properties.frameworkSlices.properties,
+    ).toHaveProperty("professionalOpportunities");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
         .openApi.properties.frameworkSlices.required,
     ).not.toContain("whyGraph");
     expect(
@@ -130,6 +134,9 @@ describe("developer API boundary", () => {
     expect(
       document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("whyGraph");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("professionalOpportunities");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
         .publicDecisionPathways.properties,
@@ -1010,6 +1017,9 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths).toHaveProperty("/openapi/case-commons-uk.json");
+    expect(document.paths).toHaveProperty(
+      "/openapi/professional-opportunities-uk.json",
+    );
     expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
     expect(document.paths).toHaveProperty(
       "/openapi/professional-tools-uk.json",
@@ -1071,6 +1081,11 @@ describe("developer API boundary", () => {
         path: "/openapi/case-commons-uk.json",
         id: "case-commons-uk",
         prefix: "/v1/case-commons/uk",
+      },
+      {
+        path: "/openapi/professional-opportunities-uk.json",
+        id: "professional-opportunities-uk",
+        prefix: "/v1/professional-opportunities/uk",
       },
       {
         path: "/openapi/why-graph.json",
@@ -1235,6 +1250,9 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).toHaveProperty("/v1/open-data/releases");
     expect(publicDocument.paths).toHaveProperty("/v1/charities/uk");
     expect(publicDocument.paths).toHaveProperty("/v1/accountability/uk");
+    expect(publicDocument.paths).toHaveProperty(
+      "/v1/professional-opportunities/uk",
+    );
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph/adopters");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph/schema");

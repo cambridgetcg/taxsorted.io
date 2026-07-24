@@ -5,9 +5,10 @@ the universal door.
 
 For a citizen or professional who already operates a local `agent-data/v1`
 node, TaxSorted also ships a bounded mirror using
-[`@agenttool/sdk` 0.16.0](https://github.com/cambridgetcg/agenttool/releases/tag/sdk-v0.16.0).
-That was the latest published SDK checked on 24 July 2026. The dependency is
-pinned exactly rather than floated.
+[`@agenttool/sdk` 0.16.2](https://github.com/cambridgetcg/agenttool/releases/tag/sdk-v0.16.2).
+That was the latest stable GitHub SDK release checked on 24 July 2026. Its
+official release artifact is pinned exactly, including lockfile integrity,
+because the npm `latest` tag still points to 0.16.0.
 
 The bridge:
 
@@ -47,7 +48,7 @@ assessment, client identity, instructions, advice, conflict material or raw
 evidence belongs in the professional's approved private matter system—not this
 mirror.
 
-AgentTool 0.16.0 also introduced optional credential-backed transports for its
+AgentTool 0.16.0 introduced optional credential-backed transports for its
 hosted client. This bridge does not claim that protection: it uses only the
 separate local-node client and refuses a remote node URL. A fork that changes
 that custody boundary needs its own threat review.

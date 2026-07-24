@@ -17,12 +17,14 @@ research/uk/*
 !research/uk/public-funding/
 !research/uk/politics/
 !research/uk/case-commons/
+!research/uk/professional-opportunities/
 research/uk/tax-system/*
 research/uk/tax-industry/*
 research/uk/charities/*
 research/uk/public-funding/*
 research/uk/politics/*
 research/uk/case-commons/*
+research/uk/professional-opportunities/*
 !research/uk/tax-system/data/
 !research/uk/tax-system/data/**
 !research/uk/tax-industry/data/
@@ -35,6 +37,8 @@ research/uk/case-commons/*
 !research/uk/politics/data/**
 !research/uk/case-commons/data/
 !research/uk/case-commons/data/**
+!research/uk/professional-opportunities/data/
+!research/uk/professional-opportunities/data/**
 infrastructure
 **/*.pem
 **/*.key

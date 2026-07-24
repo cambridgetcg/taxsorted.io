@@ -30,9 +30,15 @@ describe("UK observer-accountability page", () => {
       screen.getByRole("heading", { name: /unhappy with how hmrc treated you/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/statutory review, then appeal to the first-tier tribunal/i),
+      screen.getByText(
+        /statutory review may be available or offered; tribunal timing and any later appeal depend on the exact regime/i,
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/a complaint does not pause tax or replace an appeal/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /a complaint does not by itself pause a tax, payment or appeal clock/i,
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /start at gov\.uk: complain about hmrc/i }),
     ).toHaveAttribute("href", "https://www.gov.uk/complain-about-hmrc");

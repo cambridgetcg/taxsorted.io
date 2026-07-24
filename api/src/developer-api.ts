@@ -54,6 +54,11 @@ import {
   caseCommonsResponseSchema,
   caseCommonsRightsSchema,
 } from "./uk-case-commons.js";
+import {
+  professionalOpportunityAssessmentTemplateSchema,
+  professionalOpportunityPacketSchema,
+  professionalOpportunityResponseSchema,
+} from "./uk-professional-opportunities.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 const OPENAPI_MEDIA_TYPE = "application/vnd.oai.openapi+json;version=3.1";
@@ -113,6 +118,11 @@ const openApiTags = [
       "Decided public-law case packets, exact remedy and money meanings, local assessment templates and a no-brokerage boundary.",
   },
   {
+    name: "UK professional opportunities",
+    description:
+      "Source-backed specialist-work classes, institutional scrutiny, separate money meanings and a finite local assessment with no marketplace.",
+  },
+  {
     name: "OpenAPI descriptions",
     description:
       "Cacheable, task-sized API descriptions for machine callers.",
@@ -148,6 +158,7 @@ const publicApiPathPrefixes = [
   "/v1/politics/uk",
   "/v1/accountability/uk",
   "/v1/case-commons/uk",
+  "/v1/professional-opportunities/uk",
   "/v1/why-graph",
 ] as const;
 
@@ -232,6 +243,15 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     description:
       "Task-sized read-only contract for decided case packets, source resolution, local professional assessment and publication boundaries.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/case-commons/uk"),
+  },
+  {
+    id: "professional-opportunities-uk",
+    path: "/openapi/professional-opportunities-uk.json",
+    title: "TaxSorted UK Professional Opportunity Atlas API",
+    description:
+      "Task-sized read-only contract for specialist-work research, institutional scrutiny, source resolution and a blank local professional assessment.",
+    matchesPath: (path) =>
+      hasPathPrefix(path, "/v1/professional-opportunities/uk"),
   },
   {
     id: "why-graph",
@@ -1088,6 +1108,7 @@ const AgentWake = z
         frameworkSlices: z.object({
           accountability: z.string(),
           caseCommons: z.string(),
+          professionalOpportunities: z.string(),
           whyGraph: z.string().optional(),
         }),
         taskSlices: z
@@ -1147,7 +1168,7 @@ const AgentWake = z
         optionalAgentToolBridge: z.object({
           required: z.literal(false),
           sdk: z.literal("@agenttool/sdk"),
-          version: z.literal("0.16.0"),
+          version: z.literal("0.16.2"),
           client: z.literal("DataClient"),
           custody: z.literal(
             "caller-operated-loopback-agent-data-node",
@@ -1157,6 +1178,44 @@ const AgentWake = z
           writeEffect: z.string(),
           hostedAgentToolWrite: z.literal(false),
           privateCaseFacts: z.literal(false),
+        }),
+        effects: z.string(),
+      }),
+      professionalOpportunities: z.object({
+        href: z.string(),
+        method: z.string(),
+        opportunities: z.string(),
+        scrutiny: z.string(),
+        sources: z.string(),
+        schema: z.string(),
+        packetSchema: z.string(),
+        assessmentTemplate: z.string(),
+        assessmentSchema: z.string(),
+        rights: z.string(),
+        openApi: z.string(),
+        humanGuide: z.string().url(),
+        availability: z.enum([
+          "open",
+          "publication-review",
+          "emergency-stopped",
+          "record-level-stops-active",
+        ]),
+        stoppedOpportunityCount: z.number().int().nonnegative(),
+        writes: z.literal(false),
+        clientIntake: z.literal(false),
+        privateUploads: z.literal(false),
+        professionalMarketplace: z.literal(false),
+        caseAssignment: z.literal(false),
+        probabilityOrExpectedValue: z.literal(false),
+        professionalStatusBoundary: z.string(),
+        optionalAgentToolBridge: z.object({
+          required: z.literal(false),
+          sdk: z.literal("@agenttool/sdk"),
+          version: z.literal("0.16.2"),
+          guide: z.string().url(),
+          directHttpsIsUniversalDoor: z.literal(true),
+          hostedAgentToolWrite: z.literal(false),
+          privateMatterFacts: z.literal(false),
         }),
         effects: z.string(),
       }),
@@ -4361,6 +4420,356 @@ function registerCaseCommonsOpenApi(app: OpenAPIHono) {
   });
 }
 
+function registerProfessionalOpportunitiesOpenApi(app: OpenAPIHono) {
+  const responseHeaders = {
+    ETag: publicResponseHeaders.ETag,
+    "Cache-Control": publicResponseHeaders["Cache-Control"],
+    Link: publicResponseHeaders.Link,
+    "Content-Location": publicResponseHeaders["Content-Location"],
+    "X-Corpus-Version": publicResponseHeaders["X-Corpus-Version"],
+    "X-Corpus-Retrieved-On": {
+      description:
+        "Date on which the professional-opportunity source set was retrieved.",
+      schema: { type: "string" as const },
+    },
+    "X-Checksum-SHA256": {
+      description:
+        "Lowercase hexadecimal SHA-256 of the exact selected GET representation bytes.",
+      schema: { type: "string" as const },
+    },
+  };
+  const corpusSchema = z.literal(
+    "taxsorted.uk.professional-opportunities.v1",
+  );
+  const MethodJson = z
+    .object({
+      schema: corpusSchema,
+      meta: z.object({}).passthrough(),
+      publication: z.object({}).passthrough(),
+      method: z.object({}).passthrough(),
+      sharedWorkflow: z.object({}).passthrough(),
+      routes: z.record(z.string(), z.string()),
+    })
+    .openapi("UkProfessionalOpportunityMethod");
+  const OpportunityListJson = z
+    .object({
+      schema: corpusSchema,
+      version: z.string(),
+      warning: z.string(),
+      availability: z.enum(["open", "record-level-stops-active"]),
+      stoppedOpportunityCount: z.number().int().nonnegative(),
+      opportunities: z.array(z.object({}).passthrough()),
+    })
+    .openapi("UkProfessionalOpportunityList");
+  const ScrutinyJson = z
+    .object({
+      schema: corpusSchema,
+      version: z.string(),
+      scope: z.enum([
+        "complete-reviewed-scrutiny",
+        "visible-opportunity-scrutiny",
+      ]),
+      availability: z.enum(["open", "record-level-stops-active"]),
+      stoppedOpportunityCount: z.number().int().nonnegative(),
+      scrutiny: z.array(z.object({}).passthrough()),
+    })
+    .openapi("UkProfessionalOpportunityScrutiny");
+  const SourcesJson = z
+    .object({
+      schema: corpusSchema,
+      version: z.string(),
+      scope: z.enum([
+        "complete-reviewed-ledger",
+        "visible-opportunity-and-method-ledger",
+      ]),
+      availability: z.enum(["open", "record-level-stops-active"]),
+      stoppedOpportunityCount: z.number().int().nonnegative(),
+      sources: z.array(z.object({}).passthrough()),
+      sourceUseBoundary: z.string(),
+    })
+    .openapi("UkProfessionalOpportunitySources");
+  const RightsJson = z
+    .object({
+      schema: z.literal(
+        "taxsorted.uk.professional-opportunities-rights/1",
+      ),
+      status: z.literal("mixed-rights-read-before-reuse"),
+      curation: z.object({
+        name: z.literal("CC BY-SA 4.0"),
+        url: z.string().url(),
+        attribution: z.string(),
+        appliesTo: z.string(),
+      }),
+      sourceMaterial: z.string(),
+      reuseRule: z.string(),
+      software: z.object({
+        name: z.literal("AGPL-3.0"),
+        source: z.string().url(),
+      }),
+    })
+    .openapi("UkProfessionalOpportunityRights");
+  const JsonSchemaDocument = z
+    .object({
+      $id: z.string().url(),
+      title: z.string(),
+      description: z.string(),
+    })
+    .passthrough()
+    .openapi("UkProfessionalOpportunityJsonSchema");
+
+  const routes = [
+    {
+      path: "/v1/professional-opportunities/uk",
+      operationId: "getUkProfessionalOpportunities",
+      summary: "Read the UK professional opportunity atlas",
+      description:
+        "Source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a finite local assessment boundary. No intake, probability, expected value, ranking, matching, outreach or representation.",
+      schema: professionalOpportunityResponseSchema,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/method",
+      operationId: "getUkProfessionalOpportunityMethod",
+      summary: "Read the opportunity and scrutiny method",
+      description:
+        "Read the evidence states, professional-status boundary, finite workflow, money-state separation and no-marketplace rule after the qualified publication gate opens.",
+      schema: MethodJson,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/opportunities",
+      operationId: "listUkProfessionalOpportunities",
+      summary: "List reviewed specialist-work classes",
+      description:
+        "Compact source-backed work classes and lawful value mechanisms. The list contains no person, lead, case assignment, probability, expected value or firm ranking.",
+      schema: OpportunityListJson,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/scrutiny",
+      operationId: "listUkRegulatorScrutiny",
+      summary: "Read institutional regulator scrutiny",
+      description:
+        "Each record labels its evidence state, what the evidence does not prove, a response or counterweight and a lawful correction or review route.",
+      schema: ScrutinyJson,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/sources",
+      operationId: "listUkProfessionalOpportunitySources",
+      summary: "Read the opportunity atlas source ledger",
+      description:
+        "Official and primary source links with retrieval dates, territorial scope and source-use notes after the qualified publication gate opens.",
+      schema: SourcesJson,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path:
+        "/v1/professional-opportunities/uk/assessment-template",
+      operationId: "getUkProfessionalOpportunityAssessmentTemplate",
+      summary: "Download the blank local professional assessment",
+      description:
+        "A finite staged template with no client facts and no submission endpoint. Completed files stay in the professional's local or approved confidential matter system.",
+      schema: professionalOpportunityAssessmentTemplateSchema,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/rights",
+      operationId: "getUkProfessionalOpportunityRights",
+      summary: "Read the opportunity atlas reuse boundary",
+      description:
+        "Separates TaxSorted-authored curation from linked legislation, decisions, guidance, consultations, manuals and registers.",
+      schema: RightsJson,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/schema",
+      operationId: "getUkProfessionalOpportunitySchema",
+      summary: "Read the opportunity atlas JSON Schema",
+      description:
+        "Structural contract and runtime invariants for source resolution, scrutiny linkage, money-state separation and publication safety.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
+      path: "/v1/professional-opportunities/uk/packet-schema",
+      operationId: "getUkProfessionalOpportunityPacketSchema",
+      summary: "Read the opportunity-packet JSON Schema",
+      description:
+        "Contract for one source-resolved digest-bearing specialist-work packet, including the digest's exact proof limits.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
+      path:
+        "/v1/professional-opportunities/uk/assessment-schema",
+      operationId: "getUkProfessionalOpportunityAssessmentSchema",
+      summary: "Read the local professional-assessment JSON Schema",
+      description:
+        "Portable finite-state contract for private professional review. TaxSorted has no endpoint that accepts a completed assessment or client facts.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+  ] as const;
+
+  for (const route of routes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      tags: ["UK professional opportunities"],
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current approved static representation.",
+          headers: responseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: responseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+          content: problemContent,
+        },
+        ...(route.protected
+          ? {
+              503: {
+                description:
+                  "Production publication is awaiting approval or an independent opportunity stop is active.",
+                content: problemContent,
+              },
+            }
+          : {}),
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: `head${route.operationId.slice(3)}`,
+      summary: `Check ${route.summary.slice(5).toLowerCase()}`,
+      tags: ["UK professional opportunities"],
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: responseHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: responseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+        },
+        ...(route.protected
+          ? {
+              503: {
+                description:
+                  "Production publication is awaiting approval or an independent opportunity stop is active.",
+              },
+            }
+          : {}),
+      },
+    });
+  }
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path:
+      "/v1/professional-opportunities/uk/opportunities/{opportunityId}",
+    operationId: "getUkProfessionalOpportunity",
+    summary: "Read one complete digest-bearing opportunity packet",
+    description:
+      "Resolves the sources and scrutiny used by one specialist-work class. Its digest proves content identity only, not professional status, current applicability, legal viability, probability or value.",
+    tags: ["UK professional opportunities"],
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        opportunityId: z.string().min(1).max(200),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Complete source-resolving opportunity packet.",
+        headers: responseHeaders,
+        content: {
+          "application/json": {
+            schema: professionalOpportunityPacketSchema,
+          },
+        },
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this opportunity packet.",
+        headers: responseHeaders,
+      },
+      400: {
+        description: "Opportunity packets do not accept query parameters.",
+        content: problemContent,
+      },
+      404: {
+        description:
+          "No reviewed opportunity has that stable ID or slug.",
+        content: problemContent,
+      },
+      503: {
+        description:
+          "Production publication is awaiting approval or an independent opportunity stop is active.",
+        content: problemContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path:
+      "/v1/professional-opportunities/uk/opportunities/{opportunityId}",
+    operationId: "headUkProfessionalOpportunity",
+    summary: "Check one professional-opportunity packet",
+    tags: ["UK professional opportunities"],
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({
+        opportunityId: z.string().min(1).max(200),
+      }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current opportunity-packet metadata.",
+        headers: responseHeaders,
+      },
+      304: {
+        description:
+          "The supplied ETag still identifies this opportunity packet.",
+        headers: responseHeaders,
+      },
+      404: {
+        description: "No reviewed opportunity has that ID or slug.",
+      },
+      503: { description: "Opportunity publication is closed." },
+    },
+  });
+}
+
 function registerWhyGraphOpenApi(app: OpenAPIHono) {
   const routes = [
     {
@@ -5867,6 +6276,9 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/case-commons/uk")) {
     return "UK public-power case commons";
   }
+  if (hasPathPrefix(path, "/v1/professional-opportunities/uk")) {
+    return "UK professional opportunities";
+  }
   if (hasPathPrefix(path, "/v1/why-graph")) {
     return "Explanation contracts";
   }
@@ -6290,6 +6702,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerCharitiesOpenApi(app);
   registerObserverAccountabilityOpenApi(app);
   registerCaseCommonsOpenApi(app);
+  registerProfessionalOpportunitiesOpenApi(app);
   registerWhyGraphOpenApi(app);
   registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);

@@ -28,6 +28,13 @@ import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accou
 import { createWhyGraphRoutes } from "./routes/why-graph.js";
 import { createUkCaseCommonsRoutes } from "./routes/uk-case-commons.js";
 import { ukCaseCommonsPublicationDecision } from "./uk-case-commons.js";
+import {
+  createUkProfessionalOpportunityRoutes,
+} from "./routes/uk-professional-opportunities.js";
+import {
+  ukProfessionalOpportunityPublicationApproval,
+  ukProfessionalOpportunityPublicationDecision,
+} from "./uk-professional-opportunities.js";
 
 const app = new OpenAPIHono();
 
@@ -49,6 +56,13 @@ const openDataRouteOptions = {
     ukCaseCommonsPublicationDecision.approved,
   caseCommonsEmergencyStop: config.caseCommons.emergencyStop,
   caseCommonsStoppedCaseIds: config.caseCommons.stoppedCaseIds,
+  professionalOpportunitiesPublic:
+    config.professionalOpportunities.publicDataEnabled &&
+    ukProfessionalOpportunityPublicationDecision.approved,
+  professionalOpportunitiesEmergencyStop:
+    config.professionalOpportunities.emergencyStop,
+  professionalOpportunitiesStoppedIds:
+    config.professionalOpportunities.stoppedOpportunityIds,
 };
 
 // A machine can orient itself without opening a taxpayer/browser session.
@@ -115,6 +129,16 @@ app.route(
     publicDataEnabled: config.caseCommons.publicDataEnabled,
     emergencyStop: config.caseCommons.emergencyStop,
     stoppedCaseIds: config.caseCommons.stoppedCaseIds,
+  }),
+);
+app.route(
+  "/v1/professional-opportunities/uk",
+  createUkProfessionalOpportunityRoutes({
+    enabled: config.professionalOpportunities.publicDataEnabled,
+    emergencyStop: config.professionalOpportunities.emergencyStop,
+    stoppedOpportunityIds:
+      config.professionalOpportunities.stoppedOpportunityIds,
+    publicationApproval: ukProfessionalOpportunityPublicationApproval,
   }),
 );
 app.route("/v1/why-graph", createWhyGraphRoutes());

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { ShortVersion } from "@/components/ui/short-version";
+import { ukProfessionalOpportunityPublicationAvailable } from "@/lib/uk-professional-opportunities";
 
 export const dynamic = "force-static";
 
@@ -168,16 +170,20 @@ export default function AccountabilityPage() {
         </h2>
         <ul className="mt-4 max-w-4xl list-disc space-y-3 pl-5 text-base leading-7 text-ink-soft">
           <li>
-            <strong className="text-ink">To challenge a tax decision:</strong>{" "} ask HMRC for a
-            statutory review, then appeal to the First-tier Tribunal, then possibly the
-            Upper Tribunal.
+            <strong className="text-ink">To challenge a tax decision:</strong>{" "}
+            preserve the appeal shown by the notice and governing rule. A
+            statutory review may be available or offered; tribunal timing and
+            any later appeal depend on the exact regime.
           </li>
           <li>
             <strong className="text-ink">To complain about service:</strong>{" "} HMRC&apos;s first and
-            second review, then the Adjudicator, then your MP or the Parliamentary and
-            Health Service Ombudsman (PHSO).
+            second review, then the Adjudicator, then—where eligible—an MP and
+            the Parliamentary and Health Service Ombudsman (PHSO).
           </li>
-          <li>A complaint does not pause tax or replace an appeal.</li>
+          <li>
+            A complaint does not by itself pause a tax, payment or appeal
+            clock and does not replace the decision-specific route.
+          </li>
         </ul>
         <a
           href="https://www.gov.uk/complain-about-hmrc"
@@ -214,6 +220,29 @@ export default function AccountabilityPage() {
           </p>
         </aside>
       </section>
+
+      {ukProfessionalOpportunityPublicationAvailable ? (
+      <section className="mt-8 rounded-3xl border border-violet-200 bg-violet-50 p-6 sm:p-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-violet-900">
+          Evidence in practice
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          Inspect the regulator-scrutiny ledger.
+        </h2>
+        <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
+          Official statistics, oversight findings, stakeholder assessments and
+          TaxSorted fairness questions now have separate labels. Each record
+          carries what it does not prove, the public body&apos;s response or a real
+          counterweight, and the lawful correction or review route.
+        </p>
+        <Link
+          href="/uk/regulator-scrutiny"
+          className="mt-5 inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-2.5 text-base font-semibold text-white hover:bg-accent-deep"
+        >
+          Open regulator scrutiny →
+        </Link>
+      </section>
+      ) : null}
 
       <details
         id="method"

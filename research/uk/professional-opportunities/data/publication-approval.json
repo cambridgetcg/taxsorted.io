@@ -1,0 +1,38 @@
+{
+  "schema": "taxsorted.uk.professional-opportunities-publication-approval/2",
+  "status": "pending-qualified-review",
+  "decisionRecordedOn": "2026-07-24",
+  "corpusVersion": "2026-07-24.3",
+  "corpusDigest": "sha256:4a5b678963a72e0f781da3f5a3ab3f5467144ee8de2450ced6a1df13110dad98",
+  "opportunityIds": [
+    "uk-business-rates-valuation",
+    "uk-capital-allowances-fixtures-s198",
+    "uk-customs-repayment-classification",
+    "uk-discovery-assessment-review",
+    "uk-hmrc-decision-and-deadline-audit",
+    "uk-information-notice-schedule-36",
+    "uk-off-payroll-status-disagreement",
+    "uk-rd-evidence-enquiry",
+    "uk-vat-section-80-correction"
+  ],
+  "qualifiedReview": {
+    "status": "pending",
+    "reviewerName": null,
+    "reviewerCapacity": null,
+    "completedOn": null,
+    "evidenceReference": null,
+    "institutionalRightOfReply": {
+      "status": "pending",
+      "basis": null,
+      "evidenceReference": null
+    },
+    "confirmations": {
+      "currentLawTerritoryDeadlineAndRoute": false,
+      "privacySecurityAndThreatReview": false,
+      "noIntakeMarketplaceOrSubmission": false,
+      "emergencyStopExercised": false,
+      "correctionAndWithdrawalOwnersAssigned": false
+    }
+  },
+  "effects": "Binds the exact corpus digest and listed professional-opportunity IDs for technical review only. It does not approve publication or represent regulated-professional sign-off. API and frontend public-data switches must remain closed until an accountable, appropriately qualified UK reviewer confirms the displayed law, territory, deadlines and routes. No status opens intake, matching, recommendations, representation, filing, payment, private uploads or professional acceptance."
+}
