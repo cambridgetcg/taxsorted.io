@@ -29,7 +29,7 @@ describe("UK regulator-scrutiny page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Regulators answer to evidence too.",
+        name: "Public bodies answer to evidence too.",
       }),
     ).toBeInTheDocument();
     expect(

@@ -24,7 +24,9 @@
     "validate:uk-observer-accountability": "npm run validate:observer-accountability-candidate --workspace api",
     "validate:uk-public-funding": "npm run validate:public-funding --workspace api",
     "validate:professional-opportunity-assessment": "npm run validate:professional-opportunity-assessment --workspace api --",
-    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry && npm run validate:uk-charities && npm run validate:uk-observer-accountability && npm run validate:uk-public-funding",
+    "review:professional-opportunities": "npm run review:professional-opportunities --workspace api --",
+    "validate:professional-opportunity-review": "npm run check:professional-opportunity-review --workspace api",
+    "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-industry && npm run validate:uk-charities && npm run validate:uk-observer-accountability && npm run validate:uk-public-funding && npm run validate:professional-opportunity-review",
     "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }

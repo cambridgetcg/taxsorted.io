@@ -1168,7 +1168,7 @@ const AgentWake = z
         optionalAgentToolBridge: z.object({
           required: z.literal(false),
           sdk: z.literal("@agenttool/sdk"),
-          version: z.literal("0.16.2"),
+          version: z.literal("0.16.3"),
           client: z.literal("DataClient"),
           custody: z.literal(
             "caller-operated-loopback-agent-data-node",
@@ -1211,7 +1211,7 @@ const AgentWake = z
         optionalAgentToolBridge: z.object({
           required: z.literal(false),
           sdk: z.literal("@agenttool/sdk"),
-          version: z.literal("0.16.2"),
+          version: z.literal("0.16.3"),
           guide: z.string().url(),
           directHttpsIsUniversalDoor: z.literal(true),
           hostedAgentToolWrite: z.literal(false),

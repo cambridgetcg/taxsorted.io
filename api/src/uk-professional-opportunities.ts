@@ -1,4 +1,4 @@
-// Reviewed classes of specialist UK tax work, regulator scrutiny and a
+// Reviewed classes of specialist UK tax work, public-body scrutiny and a
 // portable local assessment. This module never accepts client facts or
 // creates a lead, matter, referral or professional recommendation.
 
@@ -7,6 +7,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { canonicalJson } from "./open-data.js";
+import { assertNoDuplicateJsonKeys } from "./strict-json.js";
+import {
+  loadProfessionalOpportunityReviewPack,
+  professionalOpportunityReviewPackApprovalFacts,
+  validateProfessionalOpportunityReviewPackForCorpus,
+  type ProfessionalOpportunityReviewPack,
+} from "./uk-professional-opportunity-review.js";
 
 const strictObject = <T extends z.ZodRawShape>(shape: T) =>
   z.object(shape).strict();
@@ -21,7 +28,30 @@ const nonEmptyStrings = z.array(shortText).min(1).max(100);
 const httpsUrl = z
   .string()
   .url()
-  .refine((value) => value.startsWith("https://"), "URL must use HTTPS");
+  .refine((value) => {
+    if (!value.startsWith("https://")) return false;
+    const url = new URL(value);
+    return url.username === "" && url.password === "";
+  }, "URL must use HTTPS without embedded credentials");
+function professionalOpportunityTextIsPublicSafe(value: string) {
+  return (
+    !/@/u.test(value) &&
+    !/(?:^|[\s("'`])\/(?!\/)[a-z0-9._~-]+(?:\/[a-z0-9._~-]+)+/iu.test(
+      value,
+    ) &&
+    !/\b[a-z0-9._~-]+\/[a-z0-9._~-]+\/[a-z0-9._~/-]+\b/iu.test(
+      value,
+    ) &&
+    !/(?:^|[\s("'`])~\//u.test(value) &&
+    !/(?:^|[\s("'`])[a-z]:[\\/]/iu.test(value) &&
+    !/\\\\/u.test(value) &&
+    !/\bfile:\/\//iu.test(value)
+  );
+}
+const professionalOpportunityPublicSafeNarrative = shortText.refine(
+  professionalOpportunityTextIsPublicSafe,
+  "Public review text must not contain @ contact markers or filesystem-shaped paths",
+);
 const calendarDatePattern =
   "^(?:(?:[0-9]{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)-(?:0[1-9]|[12][0-9]|30)|02-(?:0[1-9]|1[0-9]|2[0-8])))|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:[02468][048]|[13579][26])00)-02-29))$";
 const date = z
@@ -839,18 +869,60 @@ const professionalOpportunityReviewAttestorFields = [
   "evidenceReference",
 ] as const;
 
-const professionalOpportunityOfflineEvidenceReference = shortText.refine(
-  (value) => !/^[a-z][a-z0-9+.-]*:\/\//iu.test(value),
-  "URL evidence references must use a valid HTTPS URL",
-);
+const professionalOpportunityStoredShortText = z
+  .string()
+  .min(1)
+  .max(1_000)
+  .refine(
+    (value) => value === value.trim(),
+    "Public approval text must already be trimmed",
+  );
+const professionalOpportunityPublicApprovalText = z
+  .string()
+  .min(1)
+  .max(8_000)
+  .refine(
+    (value) => value === value.trim(),
+    "Public approval text must already be trimmed",
+  )
+  .refine(
+    professionalOpportunityTextIsPublicSafe,
+    "Public approval text must not contain @ contact markers or filesystem-shaped paths",
+  );
 
-const professionalOpportunityPublicReviewLabel = shortText.describe(
-  "Public-safe reviewer label only; never a private contact detail or private matter fact.",
-);
+const professionalOpportunityOfflineEvidenceReference =
+  professionalOpportunityStoredShortText
+  .regex(
+    /^[a-z0-9][a-z0-9.-]{0,159}@sha256:[a-f0-9]{64}(?:#[a-z0-9][a-z0-9-]{0,159})?$/u,
+    "Offline evidence references must be content-addressed public artifact references",
+  );
 
-const professionalOpportunityPublicReviewBasis = shortText.describe(
-  "Public-safe review explanation only; never a private contact detail or private matter fact.",
-);
+const professionalOpportunityPublicPersonLabel =
+  professionalOpportunityStoredShortText
+  .refine(
+    (value) =>
+      !/[\\/@]/u.test(value) &&
+      !/^~/u.test(value) &&
+      !/^[a-z]:/iu.test(value),
+    "Public person labels must not contain paths or contact details",
+  )
+  .describe(
+    "Public-safe reviewer or publisher label only; never a private contact detail or private matter fact.",
+  );
+
+const professionalOpportunityPublicCapacityLabel =
+  professionalOpportunityStoredShortText
+    .and(professionalOpportunityPublicSafeNarrative)
+    .describe(
+      "Public-safe reviewer label only; never a private contact detail or private matter fact.",
+    );
+
+const professionalOpportunityPublicReviewBasis =
+  professionalOpportunityStoredShortText
+    .and(professionalOpportunityPublicSafeNarrative)
+    .describe(
+      "Public-safe review explanation only; never a private contact detail or private matter fact.",
+    );
 
 const professionalOpportunityPublicEvidenceReference = z
   .union([
@@ -863,13 +935,13 @@ const professionalOpportunityPublicEvidenceReference = z
 
 const professionalOpportunityPublicationApprovalBaseSchema = strictObject({
   schema: z.literal(
-    "taxsorted.uk.professional-opportunities-publication-approval/2",
+    "taxsorted.uk.professional-opportunities-publication-approval/3",
   ),
   status: z.enum([
     "pending-qualified-review",
-    "approved-for-publication",
+    "approved-for-hosted-distribution",
   ]),
-  decisionRecordedOn: date,
+  decisionRecordedOn: date.nullable(),
   corpusVersion: shortText,
   corpusDigest: sha256,
   opportunityIds: z
@@ -879,10 +951,24 @@ const professionalOpportunityPublicationApprovalBaseSchema = strictObject({
       (values) => new Set(values).size === values.length,
       "approved opportunity IDs must be unique",
     ),
+  hostedDistributionDecision: strictObject({
+    status: z.enum(["pending", "approved"]),
+    decisionMakerName:
+      professionalOpportunityPublicPersonLabel.nullable(),
+    decisionMakerCapacity:
+      professionalOpportunityPublicCapacityLabel.nullable(),
+    decisionEvidenceReference:
+      professionalOpportunityPublicEvidenceReference.nullable(),
+    reviewPackReference:
+      professionalOpportunityPublicEvidenceReference.nullable(),
+    exactCorpusAndPackReviewed: z.boolean(),
+    activationRemainsSeparate: z.boolean(),
+  }),
   qualifiedReview: strictObject({
     status: z.enum(["pending", "complete"]),
-    reviewerName: professionalOpportunityPublicReviewLabel.nullable(),
-    reviewerCapacity: professionalOpportunityPublicReviewLabel.nullable(),
+    reviewerName: professionalOpportunityPublicPersonLabel.nullable(),
+    reviewerCapacity:
+      professionalOpportunityPublicCapacityLabel.nullable(),
     completedOn: date.nullable(),
     evidenceReference:
       professionalOpportunityPublicEvidenceReference.nullable(),
@@ -905,7 +991,7 @@ const professionalOpportunityPublicationApprovalBaseSchema = strictObject({
         professionalOpportunityPublicEvidenceReference.nullable(),
     }),
   }),
-  effects: text,
+  effects: professionalOpportunityPublicApprovalText,
 });
 
 export const professionalOpportunityPublicationApprovalSchema =
@@ -913,6 +999,7 @@ export const professionalOpportunityPublicationApprovalSchema =
     (approval, context) => {
       const pending =
         approval.status === "pending-qualified-review";
+      const decision = approval.hostedDistributionDecision;
       const requiredReviewStatus = pending ? "pending" : "complete";
       if (approval.qualifiedReview.status !== requiredReviewStatus) {
         context.addIssue({
@@ -933,6 +1020,87 @@ export const professionalOpportunityPublicationApprovalSchema =
               : `${field} is required when publication is approved`,
           });
         }
+      }
+
+      const decisionIdentityFields = [
+        "decisionMakerName",
+        "decisionMakerCapacity",
+        "decisionEvidenceReference",
+        "reviewPackReference",
+      ] as const;
+      if (decision.status !== (pending ? "pending" : "approved")) {
+        context.addIssue({
+          code: "custom",
+          path: ["hostedDistributionDecision", "status"],
+          message: pending
+            ? "a pending review cannot carry a hosted-distribution decision"
+            : "hosted distribution requires an explicit approved decision",
+        });
+      }
+      if (pending ? approval.decisionRecordedOn !== null : approval.decisionRecordedOn === null) {
+        context.addIssue({
+          code: "custom",
+          path: ["decisionRecordedOn"],
+          message: pending
+            ? "a pending review must not carry a decision date"
+            : "an approved hosted-distribution decision needs a date",
+        });
+      }
+      for (const field of decisionIdentityFields) {
+        const isNull = decision[field] === null;
+        if (pending ? !isNull : isNull) {
+          context.addIssue({
+            code: "custom",
+            path: ["hostedDistributionDecision", field],
+            message: pending
+              ? `${field} must remain null while the decision is pending`
+              : `${field} is required for hosted-distribution approval`,
+          });
+        }
+      }
+      for (const field of [
+        "exactCorpusAndPackReviewed",
+        "activationRemainsSeparate",
+      ] as const) {
+        if (decision[field] !== !pending) {
+          context.addIssue({
+            code: "custom",
+            path: ["hostedDistributionDecision", field],
+            message: pending
+              ? `${field} must remain false while the decision is pending`
+              : `${field} must be confirmed by the accountable publisher`,
+          });
+        }
+      }
+      if (
+        !pending &&
+        decision.decisionEvidenceReference ===
+          decision.reviewPackReference
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: [
+            "hostedDistributionDecision",
+            "decisionEvidenceReference",
+          ],
+          message:
+            "the publisher decision needs evidence separate from the review pack",
+        });
+      }
+      if (
+        !pending &&
+        decision.decisionMakerName ===
+          approval.qualifiedReview.reviewerName
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: [
+            "hostedDistributionDecision",
+            "decisionMakerName",
+          ],
+          message:
+            "the accountable publisher label must be separate from the review lead label",
+        });
       }
 
       for (
@@ -1016,6 +1184,7 @@ export const professionalOpportunityPublicationApprovalSchema =
         const completedOn = approval.qualifiedReview.completedOn;
         if (
           completedOn !== null &&
+          approval.decisionRecordedOn !== null &&
           approval.decisionRecordedOn < completedOn
         ) {
           context.addIssue({
@@ -1070,8 +1239,10 @@ export function loadProfessionalOpportunityPublicationApproval(
   path = defaultPublicationApprovalPath,
 ): ProfessionalOpportunityPublicationApproval | null {
   if (!existsSync(path)) return null;
+  const body = readFileSync(path, "utf8");
+  assertNoDuplicateJsonKeys(body);
   return professionalOpportunityPublicationApprovalSchema.parse(
-    JSON.parse(readFileSync(path, "utf8")),
+    JSON.parse(body),
   );
 }
 
@@ -2343,9 +2514,9 @@ export function validateUkProfessionalOpportunities(
 export function loadUkProfessionalOpportunities(
   path = defaultDataPath,
 ): UkProfessionalOpportunities {
-  return validateUkProfessionalOpportunities(
-    JSON.parse(readFileSync(path, "utf8")),
-  );
+  const body = readFileSync(path, "utf8");
+  assertNoDuplicateJsonKeys(body);
+  return validateUkProfessionalOpportunities(JSON.parse(body));
 }
 
 export function professionalOpportunityCorpusDigest(
@@ -2368,12 +2539,18 @@ export type ProfessionalOpportunityPublicationDecision = {
     | "approval-invalid"
     | "corpus-version-mismatch"
     | "corpus-digest-mismatch"
-    | "opportunity-ids-mismatch";
+    | "opportunity-ids-mismatch"
+    | "review-pack-missing"
+    | "review-pack-invalid"
+    | "review-pack-mismatch";
 };
 
 export function evaluateProfessionalOpportunityPublicationApproval(
   corpus: UkProfessionalOpportunities,
   approval: ProfessionalOpportunityPublicationApproval | null,
+  reviewPack: ProfessionalOpportunityReviewPack | null =
+    loadProfessionalOpportunityReviewPack(),
+  asOf = new Date().toISOString().slice(0, 10),
 ): ProfessionalOpportunityPublicationDecision {
   const reviewed = validateUkProfessionalOpportunities(corpus);
   const corpusDigest = professionalOpportunityCorpusDigest(reviewed);
@@ -2405,9 +2582,13 @@ export function evaluateProfessionalOpportunityPublicationApproval(
     };
   }
   const completedOn = parsed.data.qualifiedReview.completedOn;
+  const decisionRecordedOn = parsed.data.decisionRecordedOn;
   if (
     completedOn === null ||
-    completedOn < reviewed.meta.retrievedAt
+    decisionRecordedOn === null ||
+    completedOn < reviewed.meta.retrievedAt ||
+    completedOn > asOf ||
+    decisionRecordedOn > asOf
   ) {
     return {
       approved: false,
@@ -2446,6 +2627,58 @@ export function evaluateProfessionalOpportunityPublicationApproval(
       corpusDigest,
       approvedOpportunityIds: [],
       reason: "opportunity-ids-mismatch",
+    };
+  }
+  if (reviewPack === null) {
+    return {
+      approved: false,
+      corpusDigest,
+      approvedOpportunityIds: [],
+      reason: "review-pack-missing",
+    };
+  }
+  let exactReviewPack: ProfessionalOpportunityReviewPack;
+  try {
+    exactReviewPack =
+      validateProfessionalOpportunityReviewPackForCorpus(
+        reviewPack,
+        reviewed,
+        corpusDigest,
+        asOf,
+      );
+  } catch {
+    return {
+      approved: false,
+      corpusDigest,
+      approvedOpportunityIds: [],
+      reason: "review-pack-invalid",
+    };
+  }
+  const reviewFacts =
+    professionalOpportunityReviewPackApprovalFacts(exactReviewPack);
+  const rightOfReply =
+    parsed.data.qualifiedReview.institutionalRightOfReply;
+  if (
+    reviewFacts === null ||
+    parsed.data.qualifiedReview.reviewerName !==
+      reviewFacts.reviewerName ||
+    parsed.data.qualifiedReview.reviewerCapacity !==
+      reviewFacts.reviewerCapacity ||
+    parsed.data.qualifiedReview.completedOn !==
+      reviewFacts.completedOn ||
+    parsed.data.qualifiedReview.evidenceReference !==
+      reviewFacts.reference ||
+    parsed.data.hostedDistributionDecision.reviewPackReference !==
+      reviewFacts.reference ||
+    rightOfReply.status !== "completed" ||
+    rightOfReply.evidenceReference !==
+      reviewFacts.rightOfReplyReference
+  ) {
+    return {
+      approved: false,
+      corpusDigest,
+      approvedOpportunityIds: [],
+      reason: "review-pack-mismatch",
     };
   }
   return {
@@ -2715,7 +2948,7 @@ export const professionalOpportunityCorpusJsonSchema = publicJsonSchema(
     id: "https://api.taxsorted.io/v1/professional-opportunities/uk/schema",
     title: "TaxSorted UK professional-opportunity atlas response",
     description:
-      "Strict public response schema for source-linked specialist-work research, regulator scrutiny and source resolution.",
+      "Strict public response schema for source-linked specialist-work research, tax-administration and public-body scrutiny, and source resolution.",
     invariants: [
       "The production publication approval must match the exact canonical corpus digest, version and ordered opportunity IDs.",
       "Every source and scrutiny reference resolves; every source and scrutiny record is used.",
@@ -2744,8 +2977,11 @@ export const ukProfessionalOpportunities =
   loadUkProfessionalOpportunities();
 export const ukProfessionalOpportunityPublicationApproval =
   loadProfessionalOpportunityPublicationApproval();
+export const ukProfessionalOpportunityReviewPack =
+  loadProfessionalOpportunityReviewPack();
 export const ukProfessionalOpportunityPublicationDecision =
   evaluateProfessionalOpportunityPublicationApproval(
     ukProfessionalOpportunities,
     ukProfessionalOpportunityPublicationApproval,
+    ukProfessionalOpportunityReviewPack,
   );

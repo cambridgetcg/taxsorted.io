@@ -5,7 +5,11 @@ import { describe, expect, it } from "vitest";
 import { canonicalJson } from "../open-data.js";
 import { createUkProfessionalOpportunityRoutes } from "../routes/uk-professional-opportunities.js";
 import {
-  evaluateProfessionalOpportunityPublicationApproval,
+  professionalOpportunityReviewPackApprovalFacts,
+  type ProfessionalOpportunityReviewPack,
+} from "../uk-professional-opportunity-review.js";
+import {
+  evaluateProfessionalOpportunityPublicationApproval as evaluatePublicationApproval,
   makeProfessionalOpportunityPacket,
   professionalOpportunityCorpusDigest,
   professionalOpportunityCorpusJsonSchema,
@@ -22,8 +26,28 @@ import {
   type ProfessionalOpportunityPublicationApproval,
   type UkProfessionalOpportunities,
 } from "../uk-professional-opportunities.js";
+import { completeProfessionalOpportunityReviewPackFixture } from "./professional-opportunity-review-fixture.js";
 
 const basePath = "/v1/professional-opportunities/uk";
+
+function reviewPackFor(corpus: UkProfessionalOpportunities) {
+  return completeProfessionalOpportunityReviewPackFixture(corpus);
+}
+
+function evaluateProfessionalOpportunityPublicationApproval(
+  corpus: UkProfessionalOpportunities,
+  approval: ProfessionalOpportunityPublicationApproval | null,
+  reviewPack: ProfessionalOpportunityReviewPack | null =
+    reviewPackFor(corpus),
+  asOf = corpus.meta.retrievedAt,
+) {
+  return evaluatePublicationApproval(
+    corpus,
+    approval,
+    reviewPack,
+    asOf,
+  );
+}
 
 function mount(
   options: Parameters<typeof createUkProfessionalOpportunityRoutes>[0] = {},
@@ -35,12 +59,20 @@ function mount(
     options.publicationApproval === undefined
       ? approvalFor(corpus)
       : options.publicationApproval;
+  const reviewPack =
+    options.reviewPack === undefined
+      ? reviewPackFor(corpus)
+      : options.reviewPack;
   app.route(
     basePath,
     createUkProfessionalOpportunityRoutes({
       enabled: true,
       ...options,
       publicationApproval,
+      reviewPack,
+      now:
+        options.now ??
+        (() => new Date(`${corpus.meta.retrievedAt}T12:00:00.000Z`)),
     }),
   );
   app.use("/v1/*", async (c, next) => {
@@ -60,22 +92,38 @@ function cloneCorpus() {
 function approvalFor(
   corpus: UkProfessionalOpportunities,
 ): ProfessionalOpportunityPublicationApproval {
+  const reviewPack = reviewPackFor(corpus);
+  const reviewFacts =
+    professionalOpportunityReviewPackApprovalFacts(reviewPack);
+  if (!reviewFacts) {
+    throw new Error("synthetic review pack must be complete");
+  }
   return {
     schema:
-      "taxsorted.uk.professional-opportunities-publication-approval/2",
-    status: "approved-for-publication",
+      "taxsorted.uk.professional-opportunities-publication-approval/3",
+    status: "approved-for-hosted-distribution",
     decisionRecordedOn: corpus.meta.retrievedAt,
     corpusVersion: corpus.meta.version,
     corpusDigest: professionalOpportunityCorpusDigest(corpus),
     opportunityIds: corpus.opportunities.map(
       (opportunity) => opportunity.id,
     ),
+    hostedDistributionDecision: {
+      status: "approved",
+      decisionMakerName: "Synthetic accountable publisher",
+      decisionMakerCapacity: "Synthetic hosted-distribution test authority",
+      decisionEvidenceReference:
+        "https://example.test/hosted-distribution-decision",
+      reviewPackReference: reviewFacts.reference,
+      exactCorpusAndPackReviewed: true,
+      activationRemainsSeparate: true,
+    },
     qualifiedReview: {
       status: "complete",
-      reviewerName: "Synthetic qualified-review test fixture",
-      reviewerCapacity: "UK tax publication test reviewer",
-      completedOn: corpus.meta.retrievedAt,
-      evidenceReference: "synthetic-qualified-review-record",
+      reviewerName: reviewFacts.reviewerName,
+      reviewerCapacity: reviewFacts.reviewerCapacity,
+      completedOn: reviewFacts.completedOn,
+      evidenceReference: reviewFacts.reference,
       confirmations: {
         currentLawTerritoryDeadlineAndRoute: true,
         privacySecurityAndThreatReview: true,
@@ -84,11 +132,10 @@ function approvalFor(
         correctionAndWithdrawalOwnersAssigned: true,
       },
       institutionalRightOfReply: {
-        status: "not-applicable-with-reason",
+        status: "completed",
         basis:
           "Synthetic unit-test approval has no institutional subject.",
-        evidenceReference:
-          "synthetic-right-of-reply-test-record",
+        evidenceReference: reviewFacts.rightOfReplyReference,
       },
     },
     effects:
@@ -102,6 +149,16 @@ function pendingApprovalFor(
   return {
     ...approvalFor(corpus),
     status: "pending-qualified-review",
+    decisionRecordedOn: null,
+    hostedDistributionDecision: {
+      status: "pending",
+      decisionMakerName: null,
+      decisionMakerCapacity: null,
+      decisionEvidenceReference: null,
+      reviewPackReference: null,
+      exactCorpusAndPackReviewed: false,
+      activationRemainsSeparate: false,
+    },
     qualifiedReview: {
       status: "pending",
       reviewerName: null,
@@ -407,8 +464,69 @@ describe("UK professional-opportunity corpus", () => {
           .privacySecurityAndThreatReview = false;
       },
     },
+    {
+      state: "a missing accountable publisher",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionMakerName = null;
+      },
+    },
+    {
+      state: "a publisher label copied from the review lead",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionMakerName =
+          approval.qualifiedReview.reviewerName;
+      },
+    },
+    {
+      state: "a publisher label shaped like a private path",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionMakerName =
+          "/private/reviewer/alice";
+      },
+    },
+    {
+      state: "private publisher capacity text",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionMakerCapacity =
+          "Private authority at /Users/alice/matter";
+      },
+    },
+    {
+      state: "a private-path publisher decision reference",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionEvidenceReference =
+          "/private/review/decision";
+      },
+    },
+    {
+      state: "review evidence reused as the publisher decision",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.decisionEvidenceReference =
+          approval.hostedDistributionDecision.reviewPackReference;
+      },
+    },
+    {
+      state: "an activation decision hidden inside review",
+      mutate: (approval: any) => {
+        approval.hostedDistributionDecision.activationRemainsSeparate =
+          false;
+      },
+    },
+    {
+      state: "empty public effects text",
+      mutate: (approval: any) => {
+        approval.effects = "";
+      },
+    },
+    {
+      state: "a contact detail in the public reply basis",
+      mutate: (approval: any) => {
+        approval.qualifiedReview.institutionalRightOfReply.basis =
+          "Contact alice@example.test for the private reply";
+      },
+    },
   ])(
-    "never opens approved-for-publication with $state",
+    "never opens approved-for-hosted-distribution with $state",
     ({ mutate }) => {
       const approval = structuredClone(
         approvalFor(ukProfessionalOpportunities),
@@ -699,6 +817,34 @@ describe("UK professional-opportunity corpus", () => {
 });
 
 describe("read-only UK professional-opportunity routes", () => {
+  it("seals an already-running route when its review expires", async () => {
+    const pack = reviewPackFor(ukProfessionalOpportunities);
+    let now = new Date(
+      `${ukProfessionalOpportunities.meta.retrievedAt}T12:00:00.000Z`,
+    );
+    const { app } = mount({
+      reviewPack: pack,
+      now: () => now,
+    });
+    expect((await app.request(basePath)).status).toBe(200);
+    expect(
+      (
+        await app.request(`${basePath}/method`)
+      ).headers.get("cache-control"),
+    ).toBe("public, max-age=0, must-revalidate");
+
+    now = new Date(
+      Date.parse(`${pack.declaration.reviewBy}T12:00:00.000Z`) +
+        24 * 60 * 60 * 1_000,
+    );
+    const expired = await app.request(`${basePath}/method`);
+    expect(expired.status).toBe(503);
+    expect(expired.headers.get("cache-control")).toBe("no-store");
+    expect(await expired.json()).toMatchObject({
+      error: "publication_review_pending",
+    });
+  });
+
   it("serves the approved atlas without authentication, cookies or writes", async () => {
     const { app, sessionCalls } = mount();
     const response = await app.request(basePath, {

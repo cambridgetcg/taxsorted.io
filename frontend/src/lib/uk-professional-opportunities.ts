@@ -30,11 +30,15 @@ export function projectUkProfessionalOpportunityCorpus(
   options: {
     publicDataEnabled?: boolean;
     emergencyStop?: boolean;
+    reviewPack?: unknown;
+    asOf?: string;
   } = {},
 ): OpportunityCorpus | null {
   const decision = evaluateUkProfessionalOpportunityStaticPublication(
     corpus,
     approval,
+    options.reviewPack,
+    options.asOf,
   );
   if (
     !decision.approved ||

@@ -32,8 +32,11 @@ import {
   createUkProfessionalOpportunityRoutes,
 } from "./routes/uk-professional-opportunities.js";
 import {
+  evaluateProfessionalOpportunityPublicationApproval,
+  ukProfessionalOpportunities,
   ukProfessionalOpportunityPublicationApproval,
   ukProfessionalOpportunityPublicationDecision,
+  ukProfessionalOpportunityReviewPack,
 } from "./uk-professional-opportunities.js";
 
 const app = new OpenAPIHono();
@@ -59,6 +62,12 @@ const openDataRouteOptions = {
   professionalOpportunitiesPublic:
     config.professionalOpportunities.publicDataEnabled &&
     ukProfessionalOpportunityPublicationDecision.approved,
+  professionalOpportunitiesPublicationIsCurrent: () =>
+    evaluateProfessionalOpportunityPublicationApproval(
+      ukProfessionalOpportunities,
+      ukProfessionalOpportunityPublicationApproval,
+      ukProfessionalOpportunityReviewPack,
+    ).approved,
   professionalOpportunitiesEmergencyStop:
     config.professionalOpportunities.emergencyStop,
   professionalOpportunitiesStoppedIds:

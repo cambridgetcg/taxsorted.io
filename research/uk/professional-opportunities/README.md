@@ -17,6 +17,12 @@ The canonical data is
 - a shared evidence, deadline, money and challenge workflow; and
 - a current boundary for professional status and phased HMRC adviser registration.
 
+This repository is public, so this corpus and its research notes are already publicly readable on
+GitHub. The checked-in approval and serving switches are therefore a
+**hosted-distribution and endorsement gate**: they control TaxSorted's official API and frontend
+projection, not access to the GitHub files and not pre-publication confidentiality. “Closed” or
+“sealed” below refers only to those official hosted surfaces.
+
 The corpus is read-only research. It has no public intake, matching, marketplace, filing,
 submission or payment endpoint. Private evidence stays local or in a separately authorised
 confidential system.
@@ -86,16 +92,18 @@ and
 
 ## Sustainable without a lead market
 
-The public map, sources and blank workflow stay open. A professional can charge under their own
-clear engagement for genuine private work: inspection, evidence, calculation, advice,
-correspondence and representation within their verified competence and authority.
+The research files remain publicly readable on GitHub. The official hosted map and source
+projection open only after their separate hosted-distribution gate; the blank workflow remains
+available while that gate is closed. A professional can charge under their own clear engagement
+for genuine private work: inspection, evidence, calculation, advice, correspondence and
+representation within their verified competence and authority.
 
 TaxSorted does not sell the introduction, rank the professional, take a referral cut or hold the
 client file. The client chooses whom to instruct. The professional controls the confidential
 matter system, fees, insurance, conflicts and retention duties. That keeps professional livelihood
 attached to useful judgment rather than privileged access to public rules.
 
-## Regulators should be inspectable too
+## Tax administration and public bodies should be inspectable too
 
 Accountability here means evidence, routes and correction—not a dossier on an employee and not an
 inference about motive.
@@ -170,25 +178,39 @@ Northern Ireland have separate judicial-review court rules.
 
 Running one route must never be allowed to consume another route's deadline.
 
-## Corrections and release
+## Corrections and hosted release
 
 The dataset version is `2026-07-24.3` and its law-as-at date is 24 July 2026. Sources were
 retrieved on that date.
 
 The checked-in publication decision binds version `2026-07-24.3`, its exact canonical digest and
-all nine IDs, but its status is `pending-qualified-review`. It does not approve publication. Any
-corpus edit also fails the public gate closed until a new decision records the new digest.
-An approval also needs a completed, named qualified-review record: reviewer and capacity, completion
-date, evidence reference, a recorded institutional right-of-reply disposition, and five true
-confirmations covering current law and territory, privacy and threat review, absence of intake or a
-marketplace, an exercised emergency-stop drill, and assigned correction and withdrawal owners.
-Review cannot predate source retrieval, and the decision cannot predate the review. Names, bases and
-evidence references in this checked-in file must be public-safe; never put contact details, client
-facts or private evidence there. The current record leaves those fields empty and false; changing
-only the approval status cannot open either deployment. Production also needs its explicit serving
-switch. The public switches stay off until an accountable, appropriately qualified UK reviewer has
-completed that record. Public corrections can be reported through the
+all nine IDs, but its status is `pending-qualified-review`. It does not approve official hosted
+distribution or endorsement, and it does not make the public GitHub corpus private. Any corpus
+edit also fails the hosted-distribution gate closed until a new decision records the new digest.
+An approval also needs a completed, named qualified-review record: independently verified capacity,
+public-safe conflict declarations, completion date, purpose-typed evidence, a recorded institutional
+right-of-reply disposition, and five confirmations covering current law and territory, privacy and
+threat review, absence of intake or a marketplace, an exercised emergency-stop drill, and assigned
+correction and withdrawal owners.
+Those summary fields are no longer accepted on trust. The API and frontend require the exact
+digest-bound [`review/qualified-review-pack.json`](review/qualified-review-pack.json), which gives
+every source and record its own check, scopes each reviewer, resolves every affected institution,
+records both API and static-frontend containment, completes within 93 days and sets a second
+review-by bound of no more than 93 days. The checked-in pack is still pending and names no reviewer.
+Review cannot predate source retrieval. Sealing that evidence writes no approval. A separately
+authorised, named human publisher must record an `approved-for-hosted-distribution` version 3
+decision with separate decision evidence and the exact pack reference. Names, bases and evidence
+references must be public-safe; never put contact details, client facts or private evidence there.
+The current record leaves those fields empty and false; changing only the approval status cannot
+open either deployment. Production also needs its explicit serving switches. The public switches
+stay off until both human acts and the release controls are complete. Public corrections can be
+reported through the
 [TaxSorted issue tracker](https://github.com/cambridgetcg/taxsorted.io/issues). Do not put private
 tax evidence in a public issue.
 
-The research method is in [`METHOD.md`](METHOD.md).
+Any future draft that genuinely must remain pre-publication must be reviewed in private storage
+with appropriate access control. A branch, pull request or unapproved file in this public
+repository is still public and must not be described as sealed.
+
+The research method is in [`METHOD.md`](METHOD.md). The next unadmitted research questions are in
+[`NEXT.md`](NEXT.md); they are not part of this corpus or its hosted-distribution decision.

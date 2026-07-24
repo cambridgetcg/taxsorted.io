@@ -598,14 +598,19 @@ it is faster. This is a deployment brake, not instant revocation.
 
 ## UK professional opportunity atlas
 
-This surface is designed to publish qualified-review-approved classes of
-specialist work and institutional scrutiny, not private cases. Its current
+This surface is designed to host qualified-review-approved classes of
+specialist work and institutional scrutiny, not private cases. The source
+repository is public, so the corpus and research notes are already readable on
+GitHub. The controls below govern TaxSorted's official hosted API and frontend
+distribution and endorsement; they do not provide pre-publication
+confidentiality or retract the GitHub files. Its current hosted-distribution
 decision remains pending. It accepts no client fact, document, bid, contact,
-referral or completed assessment. Before opening it, read every opportunity
-against its official sources and confirm that each criticism carries a proof
-limit, counterweight or public-body response, and correction or review route.
+referral or completed assessment. Before enabling the official hosted
+surfaces, read every opportunity against its official sources and confirm that
+each criticism carries a proof limit, counterweight or public-body response,
+and correction or review route.
 
-Production publication is explicit:
+Production hosted distribution is explicit:
 
 ```bash
 fly secrets set -a taxsorted-api \
@@ -615,19 +620,62 @@ fly secrets set -a taxsorted-api \
 The switch is necessary but not sufficient. The checked-in
 `research/uk/professional-opportunities/data/publication-approval.json` must
 bind the exact canonical corpus digest, version and approved opportunity IDs.
-Any changed source, wording, workflow or scrutiny record closes protected
-packet routes until a new review records a new approval.
+The schema keeps its existing publication-approval name, but in this public
+repository it records approval for the official hosted projection. Any changed
+source, wording, workflow or scrutiny record closes protected packet routes
+until a new review records a new approval.
 
-Approval schema version 2 also requires a complete `qualifiedReview`: named
-reviewer and capacity, completion date, evidence reference, and five true
-confirmations for current law and territory, privacy and threat review, no
-intake or marketplace, an exercised emergency-stop drill, and assigned
-correction and withdrawal owners. It also requires a public-safe institutional
-right-of-reply disposition, basis and evidence reference. The review date must
-not predate source retrieval; the decision date must not predate review. Do not
-invent or prefill an attestor, and do not put private contact, client or matter
-evidence in this file. Changing only `status` to
-`approved-for-publication` remains closed.
+Approval schema version 3 requires two separate human acts. `qualifiedReview`
+records independently verified reviewer capacity, public-safe conflict
+declarations, completion, purpose-typed evidence, the five detailed controls
+and the institutional right-of-reply matrix. A separate
+`hostedDistributionDecision` names the accountable human publisher, their
+capacity, separate decision evidence and the exact review-pack reference. The
+decision confirms that the exact corpus and pack were reviewed and that
+activation remains a later action. Do not invent or prefill either person, and
+do not put private contact, client or matter evidence in this file. Changing
+only `status` to `approved-for-hosted-distribution` remains closed.
+
+The five summary confirmations must be derived from the exact
+`research/uk/professional-opportunities/review/qualified-review-pack.json`.
+The pack covers all sources, opportunities, scrutiny records and affected
+institutions, actively assigns specialist roles, records the two-surface stop
+drill, completes within 93 days and sets a later review-by date no more than 93
+days after completion. The API, static frontend and request-time edge guard
+require exact review and decision references; arbitrary labels or evidence
+text cannot open the surface.
+
+Prepare and check a working copy locally:
+
+```bash
+npm run review:professional-opportunities -- \
+  prepare ./research/uk/professional-opportunities/review/private/working-pack.json
+npm run review:professional-opportunities -- \
+  check ./research/uk/professional-opportunities/review/private/working-pack.json \
+  --allow-pending
+```
+
+After every row and control is genuinely complete, omit `--allow-pending`.
+Then `seal` can write only a new digest-sealed pack and its schema into a new
+directory:
+
+```bash
+npm run review:professional-opportunities -- \
+  seal ./research/uk/professional-opportunities/review/private/working-pack.json \
+  ./research/uk/professional-opportunities/review/private/sealed
+```
+
+It writes no approval, never edits the live decision, deploys nothing and
+changes no switch. A separately authorised, named human publisher must review
+the exact sealed diff and record any affirmative version 3 decision in a
+separately reviewed change.
+Follow
+`research/uk/professional-opportunities/review/README.md`; never commit the
+ignored private working directory.
+
+Future drafts that genuinely need review before public disclosure must use
+private review storage with appropriate access control. A branch, pull request
+or unapproved file in this public repository is still public.
 
 The static frontend has separate GitHub repository variables with the same
 `UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED` and
@@ -637,6 +685,18 @@ state and forces the static atlas closed unless that API state is exactly
 `open`; an API emergency or record-level stop therefore cannot produce a new
 open frontend release. Set neither public switch until a qualified UK reviewer
 has confirmed every displayed law, territory, deadline and route.
+
+The generated static atlas is also behind `out/_worker.js`, scoped by
+`out/_routes.json` only to `/uk/opportunities` and
+`/uk/regulator-scrutiny`. It derives `reviewBy` from the same exact frontend
+decision, checks the UTC date on every request and makes both open and closed
+responses `no-store`. Missing, malformed, closed or expired state returns a
+corpus-free `noindex` shell. Before any open release, configure the Cloudflare
+Pages Functions failure mode to **fail closed**. Then verify both protected
+routes return
+`X-TaxSorted-Professional-Opportunity-Guard: open`. Without that setting and
+header, do not call the static atlas safely open. `reviewBy` is inclusive; the
+edge closes at the start of the following UTC date.
 
 Verify the overview, method, opportunity list, every packet, scrutiny ledger,
 source ledger, all three schemas, blank assessment, task-sized OpenAPI and
@@ -674,11 +734,12 @@ stops, never the configured IDs. While qualified review is pending or the
 global stop is active, the rights, schemas and blank assessment stay available
 for repair; the substantive method and source ledger close with the atlas.
 
-The API stop cannot recall a downloaded packet or remove the separately
-deployed static pages. If the same problem affects `/uk/opportunities` or
-`/uk/regulator-scrutiny`, roll Cloudflare Pages back or deploy a corrected
-exact-content approval and purge operator-controlled caches. Record the API
-and frontend versions before calling the incident contained.
+The API stop cannot recall the public GitHub files, a downloaded packet or the
+separately deployed static pages. If the same problem affects
+`/uk/opportunities` or `/uk/regulator-scrutiny`, roll Cloudflare Pages back or
+deploy a corrected exact-content approval and purge operator-controlled
+caches. Record the API and frontend versions before calling the hosted
+incident contained.
 
 Never describe HMRC review or complaint statistics as a claimant probability.
 Never describe an amount affected, qualifying base or provisional repayment

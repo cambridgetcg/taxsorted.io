@@ -244,7 +244,7 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   public-power case method, source ledger, money-language rules, local custody boundary and first
   evidence-bounded Haworth deep dive
 - [`research/uk/case-commons/AGENTTOOL.md`](research/uk/case-commons/AGENTTOOL.md) —
-  optional, exact-pinned AgentTool SDK 0.16.2 GitHub release artifact for verifying one public
+  optional, exact-pinned AgentTool SDK 0.16.3 GitHub release artifact for verifying one public
   packet and placing it in a caller-operated loopback `agent-data/v1` node; dry-run by default and
   no hosted write
 - `/uk/cases` — public case commons and `/uk/cases/haworth-v-hmrc` — the first deep case

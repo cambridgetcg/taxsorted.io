@@ -14,7 +14,7 @@ export function generateMetadata(): Metadata {
     return {
       title: "Professional tax research awaiting review — TaxSorted",
       description:
-        "This research surface remains closed because its required independent publication checks are incomplete.",
+        "TaxSorted's hosted projection remains unavailable until its independent review and hosted-distribution decision are complete.",
       robots: { index: false, follow: false },
     };
   }
@@ -66,15 +66,17 @@ export default function UkProfessionalOpportunitiesPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Publication gate closed
+          Hosted distribution gate closed
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink">
           This research is awaiting its required independent review.
         </h1>
         <p className="mt-5 text-lg leading-8 text-ink-soft">
-          The public workstreams, sources and machine packets stay sealed until
-          their exact content passes review and is enabled for this deployment. There
-          is no client intake or private-evidence upload here.
+          TaxSorted&apos;s official hosted workstreams, sources and machine
+          packets stay unavailable until their exact content passes review and
+          is enabled for this deployment. The source corpus is already visible
+          in the public GitHub repository. There is no client intake or
+          private-evidence upload here.
         </p>
         <Link
           href="/uk"
@@ -311,7 +313,7 @@ export default function UkProfessionalOpportunitiesPage() {
 
         <aside className="rounded-[2rem] border border-violet-200 bg-violet-50 p-6 sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-violet-900">
-            Regulators are inside the evidence rule
+            Public bodies are inside the evidence rule
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
             Audit the act, not the employee.
@@ -325,7 +327,7 @@ export default function UkProfessionalOpportunitiesPage() {
             href="/uk/regulator-scrutiny"
             className="mt-6 inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-2.5 text-base font-semibold text-white hover:bg-accent-deep"
           >
-            Inspect the regulator evidence →
+            Inspect the public-body evidence →
           </Link>
         </aside>
       </section>

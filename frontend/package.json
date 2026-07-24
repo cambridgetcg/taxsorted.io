@@ -7,12 +7,14 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run check:professional-opportunity-review --workspace @taxsorted/api",
     "build": "next build",
+    "postbuild": "tsx scripts/build-professional-opportunity-edge-guard.ts",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "next build && npx wrangler pages deploy out --project-name=taxsorted --branch=main",
+    "deploy": "npm run build && npx wrangler pages deploy out --project-name=taxsorted --branch=main",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
     "eslint-config-next": "16.2.11",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.19.0",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }
