@@ -348,7 +348,7 @@ describe("agent interface", () => {
       optionalAgentToolBridge: {
         required: false,
         sdk: "@agenttool/sdk",
-        version: "0.16.2",
+        version: "0.16.3",
         client: "DataClient",
         custody: "caller-operated-loopback-agent-data-node",
         guide:
@@ -699,6 +699,37 @@ describe("agent interface", () => {
     });
     expect(unchanged.status).toBe(304);
     expect(await unchanged.text()).toBe("");
+  });
+
+  it("re-evaluates professional-opportunity review currentness for every wake", async () => {
+    let current = true;
+    const app = new Hono();
+    app.route(
+      "/",
+      createAgentInterfaceRoutes({
+        professionalOpportunitiesPublic: true,
+        professionalOpportunitiesPublicationIsCurrent: () => current,
+      }),
+    );
+
+    const open = await app.request("/v1/wake");
+    const openBody = await open.json();
+    expect(
+      openBody.resources.professionalOpportunities.availability,
+    ).toBe("open");
+    expect(open.headers.get("cache-control")).toBe(
+      "public, max-age=0, must-revalidate",
+    );
+
+    current = false;
+    const closed = await app.request("/v1/wake");
+    const closedBody = await closed.json();
+    expect(
+      closedBody.resources.professionalOpportunities.availability,
+    ).toBe("publication-review");
+    expect(closed.headers.get("etag")).not.toBe(
+      open.headers.get("etag"),
+    );
   });
 
   it("validates queries before ETags and returns a typed recovery action", async () => {

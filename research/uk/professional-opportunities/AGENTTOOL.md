@@ -4,14 +4,15 @@ Direct HTTPS is the universal door. When the qualified-review and deployment
 gates are open, reading TaxSorted's public opportunity packets requires no
 AgentTool identity, account, key or SDK. While they are closed, the method
 and source ledger close with the atlas; schemas, rights and the blank local
-assessment remain available.
+assessment remain available. The underlying repository and research corpus are
+already public on GitHub; “closed” here means the official TaxSorted hosted
+projection.
 
 TaxSorted already exact-pins
-[`@agenttool/sdk` 0.16.2](https://github.com/cambridgetcg/agenttool/releases/tag/sdk-v0.16.2).
+[`@agenttool/sdk` 0.16.3](https://github.com/cambridgetcg/agenttool/releases/tag/sdk-v0.16.3).
 The stable GitHub releases, npm `latest` tag and public AgentTool source were
-checked on 24 July 2026. The official 0.16.2 release artifact is pinned with
-lockfile integrity because npm `latest` still points to 0.16.0. Repository
-version 0.16.3 is not treated as released without a corresponding release.
+checked on 24 July 2026. The official 0.16.3 release artifact is pinned with
+lockfile integrity because npm `latest` still points to 0.16.0.
 
 This atlas does not add a second storage writer. Agents discover it through
 TaxSorted's plain-text manifest, wake response and task-sized OpenAPI, then use
@@ -37,3 +38,12 @@ The bounded machine path is:
 The blank local assessment contract is available separately. Completed files
 stay in the professional's approved matter system and TaxSorted provides no
 endpoint that accepts them.
+
+The qualified-review pack is also a local, finite file workflow. An agent may
+prepare the exact checklist, check its structure and recompute its digest. It
+must not invent a reviewer, qualification, reply exercise, stop drill or
+ownership test. Sealing succeeds only after the public-safe record contains the
+accountable human and operational evidence; it writes only the sealed pack and
+schema. An agent must not supply a publisher identity, authority, decision
+evidence or affirmative hosted-distribution decision. A separately reviewed
+human decision, merge, deployment and serving switches remain distinct.

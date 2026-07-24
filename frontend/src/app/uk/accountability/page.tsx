@@ -227,7 +227,7 @@ export default function AccountabilityPage() {
           Evidence in practice
         </p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Inspect the regulator-scrutiny ledger.
+          Inspect the tax-administration and public-body scrutiny ledger.
         </h2>
         <p className="mt-3 max-w-4xl text-base leading-7 text-ink-soft">
           Official statistics, oversight findings, stakeholder assessments and
@@ -239,7 +239,7 @@ export default function AccountabilityPage() {
           href="/uk/regulator-scrutiny"
           className="mt-5 inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-2.5 text-base font-semibold text-white hover:bg-accent-deep"
         >
-          Open regulator scrutiny →
+          Open public-body scrutiny →
         </Link>
       </section>
       ) : null}

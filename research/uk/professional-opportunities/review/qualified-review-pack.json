@@ -1,0 +1,1914 @@
+{
+  "schema": "taxsorted.uk.professional-opportunities-qualified-review-pack/1",
+  "status": "pending",
+  "corpus": {
+    "version": "2026-07-24.3",
+    "digest": "sha256:4a5b678963a72e0f781da3f5a3ab3f5467144ee8de2450ced6a1df13110dad98",
+    "lawAsAt": "2026-07-24",
+    "retrievedAt": "2026-07-24",
+    "opportunityIds": [
+      "uk-business-rates-valuation",
+      "uk-capital-allowances-fixtures-s198",
+      "uk-customs-repayment-classification",
+      "uk-discovery-assessment-review",
+      "uk-hmrc-decision-and-deadline-audit",
+      "uk-information-notice-schedule-36",
+      "uk-off-payroll-status-disagreement",
+      "uk-rd-evidence-enquiry",
+      "uk-vat-section-80-correction"
+    ],
+    "scrutinyIds": [
+      "automated-penalty-review-outcomes",
+      "charter-stakeholder-deadline-asymmetry",
+      "hmrc-nmw-mistaken-notice-persistence",
+      "nao-customer-service-evaluation-gap",
+      "voa-tribunal-deadline-failure"
+    ],
+    "sourceIds": [
+      "adjudicator-annual-report-2026",
+      "adjudicator-complaint-guidance",
+      "bar-ni-directory",
+      "bsb-register",
+      "business-rates-appeal",
+      "business-rates-challenge",
+      "caa-2001-s187a",
+      "caa-2001-s198",
+      "caa-2001-s201",
+      "capital-allowances-ca26476",
+      "capital-allowances-ca26850",
+      "capital-allowances-fixtures-change",
+      "charter-stakeholder-2025-26",
+      "council-tax-band-appeal",
+      "cpr-part-54",
+      "customs-authorisations-review-appeal",
+      "customs-repayment",
+      "customs-valuation-ruling",
+      "discovery-artg2510",
+      "discovery-em2030",
+      "discovery-salf411",
+      "faculty-advocates-directory",
+      "finance-act-2024-sch1",
+      "finance-act-2026",
+      "hmrc-annual-report-2025-26",
+      "hmrc-complaints",
+      "hmrc-penalty-appeal",
+      "hmrc-standard-for-agents",
+      "hmrc-tax-decision-appeal",
+      "hmrc-tax-decision-review",
+      "itepa-2003-s61t",
+      "judicial-review-protocol",
+      "law-society-ni-directory",
+      "law-society-scotland-directory",
+      "mandatory-adviser-registration",
+      "mandatory-adviser-registration-exceptions",
+      "mlr-2017",
+      "nao-hmrc-customer-service",
+      "newbigin-uksc",
+      "offpayroll-clients",
+      "offpayroll-esm10015",
+      "pgmol-uksc",
+      "phso-complaint-boundary",
+      "prudential-uksc",
+      "rd-additional-information-form",
+      "rd-cird182000",
+      "rd-cird80520",
+      "rd-cird81800",
+      "rd-claim-notification",
+      "rd-merged-scheme",
+      "regulated-profession-cta",
+      "rics-find-member",
+      "schedule36",
+      "schedule36-appealability",
+      "schedule36-appeals",
+      "schedule36-lpp",
+      "schedule36-lpp-procedure",
+      "sra-register",
+      "tax-tribunal-appeal",
+      "tma-1970-s29",
+      "tooth-uksc",
+      "vat-notice-70045",
+      "vat-refunds-vrm12100",
+      "vat-refunds-vrm12500",
+      "vat-refunds-vrm7000",
+      "vat-refunds-vrm8200",
+      "vat-s80"
+    ]
+  },
+  "reviewers": [],
+  "evidenceIndex": [
+    {
+      "id": "source-adjudicator-annual-report-2026",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/government/publications/the-adjudicators-office-annual-report-2026/the-adjudicators-office-annual-report-2025"
+    },
+    {
+      "id": "source-adjudicator-complaint-guidance",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/how-to-complain-to-the-adjudicators-office-about-hmrc-or-the-voa"
+    },
+    {
+      "id": "source-bar-ni-directory",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.barofni.com/directory"
+    },
+    {
+      "id": "source-bsb-register",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.barstandardsboard.org.uk/for-the-public/search-a-barristers-record/the-barristers-register.html"
+    },
+    {
+      "id": "source-business-rates-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/appeal-the-outcome"
+    },
+    {
+      "id": "source-business-rates-challenge",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/challenge-the-valuation"
+    },
+    {
+      "id": "source-caa-2001-s187a",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/187A"
+    },
+    {
+      "id": "source-caa-2001-s198",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/198"
+    },
+    {
+      "id": "source-caa-2001-s201",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/201"
+    },
+    {
+      "id": "source-capital-allowances-ca26476",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/capital-allowances-manual/ca26476"
+    },
+    {
+      "id": "source-capital-allowances-ca26850",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/capital-allowances-manual/ca26850"
+    },
+    {
+      "id": "source-capital-allowances-fixtures-change",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/plant-and-machinery-allowances-on-fixtures-when-theres-a-change-of-ownership"
+    },
+    {
+      "id": "source-charter-stakeholder-2025-26",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/government/publications/hmrc-annual-report-and-accounts-2025-to-2026/charter-stakeholder-group-2025-to-2026-report"
+    },
+    {
+      "id": "source-council-tax-band-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/challenge-council-tax-band/after-you-make-challenge"
+    },
+    {
+      "id": "source-cpr-part-54",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54"
+    },
+    {
+      "id": "source-customs-authorisations-review-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/customs-authorisations/reviews-and-appeals"
+    },
+    {
+      "id": "source-customs-repayment",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/how-to-claim-a-repayment-of-import-duty-and-vat-if-youve-overpaid"
+    },
+    {
+      "id": "source-customs-valuation-ruling",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/customs-valuation/advance-valuation-rulings"
+    },
+    {
+      "id": "source-discovery-artg2510",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/appeals-reviews-and-tribunals-guidance/artg2510"
+    },
+    {
+      "id": "source-discovery-em2030",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/enquiry-manual/em2030"
+    },
+    {
+      "id": "source-discovery-salf411",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/self-assessment-legal-framework/salf411"
+    },
+    {
+      "id": "source-faculty-advocates-directory",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.advocates.org.uk/about-advocates/find-an-advocate"
+    },
+    {
+      "id": "source-finance-act-2024-sch1",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2024/3/schedule/1"
+    },
+    {
+      "id": "source-finance-act-2026",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2026/11/contents"
+    },
+    {
+      "id": "source-hmrc-annual-report-2025-26",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/government/publications/hmrc-annual-report-and-accounts-2025-to-2026"
+    },
+    {
+      "id": "source-hmrc-complaints",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/complain-about-hmrc"
+    },
+    {
+      "id": "source-hmrc-penalty-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/tax-appeals/penalty"
+    },
+    {
+      "id": "source-hmrc-standard-for-agents",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/government/publications/hmrc-the-standard-for-agents/the-hmrc-standard-for-agents"
+    },
+    {
+      "id": "source-hmrc-tax-decision-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/tax-appeals/decision"
+    },
+    {
+      "id": "source-hmrc-tax-decision-review",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/tax-appeals/review-of-a-tax-or-penalty-decision"
+    },
+    {
+      "id": "source-itepa-2003-s61t",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2003/1/section/61T"
+    },
+    {
+      "id": "source-judicial-review-protocol",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_jrv"
+    },
+    {
+      "id": "source-law-society-ni-directory",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://lawsoc-ni.org/using-a-solicitor/find-a-solicitor"
+    },
+    {
+      "id": "source-law-society-scotland-directory",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.lawscot.org.uk/find-a-solicitor/"
+    },
+    {
+      "id": "source-mandatory-adviser-registration",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/check-if-and-when-you-need-to-register-as-a-tax-adviser-with-hmrc"
+    },
+    {
+      "id": "source-mandatory-adviser-registration-exceptions",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/mandatory-tax-adviser-registration/mtar10300"
+    },
+    {
+      "id": "source-mlr-2017",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/uksi/2017/692/contents"
+    },
+    {
+      "id": "source-nao-hmrc-customer-service",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.nao.org.uk/reports/hmrc-customer-service/"
+    },
+    {
+      "id": "source-newbigin-uksc",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://supremecourt.uk/uploads/uksc_2015_0069_judgment_9a1c0dbcea.pdf"
+    },
+    {
+      "id": "source-offpayroll-clients",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/off-payroll-working-for-clients"
+    },
+    {
+      "id": "source-offpayroll-esm10015",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/employment-status-manual/esm10015"
+    },
+    {
+      "id": "source-pgmol-uksc",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://supremecourt.uk/cases/judgments/uksc-2021-0220"
+    },
+    {
+      "id": "source-phso-complaint-boundary",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.ombudsman.org.uk/making-complaint/what-we-can-and-cant-help"
+    },
+    {
+      "id": "source-prudential-uksc",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://supremecourt.uk/uploads/uksc_2010_0215_judgment_18833298c8.pdf"
+    },
+    {
+      "id": "source-rd-additional-information-form",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/submit-detailed-information-before-you-claim-research-and-development-rd-tax-relief"
+    },
+    {
+      "id": "source-rd-cird182000",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird182000"
+    },
+    {
+      "id": "source-rd-cird80520",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird80520"
+    },
+    {
+      "id": "source-rd-cird81800",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird81800"
+    },
+    {
+      "id": "source-rd-claim-notification",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/tell-hmrc-that-youre-planning-to-claim-research-and-development-rd-tax-relief"
+    },
+    {
+      "id": "source-rd-merged-scheme",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/research-and-development-rd-tax-relief-the-merged-scheme-and-enhanced-rd-intensive-support"
+    },
+    {
+      "id": "source-regulated-profession-cta",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.regulated-professions.service.gov.uk/professions/chartered-tax-adviser"
+    },
+    {
+      "id": "source-rics-find-member",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.rics.org/find-a-member"
+    },
+    {
+      "id": "source-schedule36",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/2008/9/schedule/36"
+    },
+    {
+      "id": "source-schedule36-appealability",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch229950"
+    },
+    {
+      "id": "source-schedule36-appeals",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch24340"
+    },
+    {
+      "id": "source-schedule36-lpp",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch22244"
+    },
+    {
+      "id": "source-schedule36-lpp-procedure",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/appeals-reviews-and-tribunals-guidance/artg7591"
+    },
+    {
+      "id": "source-sra-register",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.sra.org.uk/solicitors-register/"
+    },
+    {
+      "id": "source-tax-tribunal-appeal",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/government/publications/appeal-to-the-tax-chamber-of-the-first-tier-tribunal-t242/how-to-appeal-to-the-first-tier-tax-tribunal"
+    },
+    {
+      "id": "source-tma-1970-s29",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/1970/9/section/29"
+    },
+    {
+      "id": "source-tooth-uksc",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://supremecourt.uk/uploads/uksc_2019_0136_judgment_abb3bdd7bb.pdf"
+    },
+    {
+      "id": "source-vat-notice-70045",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/guidance/how-to-correct-vat-errors-and-make-adjustments-or-claims-vat-notice-70045"
+    },
+    {
+      "id": "source-vat-refunds-vrm12100",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm12100"
+    },
+    {
+      "id": "source-vat-refunds-vrm12500",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm12500"
+    },
+    {
+      "id": "source-vat-refunds-vrm7000",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm7000"
+    },
+    {
+      "id": "source-vat-refunds-vrm8200",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm8200"
+    },
+    {
+      "id": "source-vat-s80",
+      "purpose": "source-material",
+      "visibility": "public-https",
+      "url": "https://www.legislation.gov.uk/ukpga/1994/23/section/80"
+    }
+  ],
+  "sourceChecks": [
+    {
+      "sourceId": "adjudicator-annual-report-2026",
+      "title": "The Adjudicator's Office annual report 2026",
+      "publisher": "Adjudicator's Office",
+      "url": "https://www.gov.uk/government/publications/the-adjudicators-office-annual-report-2026/the-adjudicators-office-annual-report-2025",
+      "sourceRecordDigest": "sha256:129c9f3482de9153e45d52054f5ceac123992636bf250c9956a71c821fba8261",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-adjudicator-annual-report-2026"
+      ]
+    },
+    {
+      "sourceId": "adjudicator-complaint-guidance",
+      "title": "How to complain to the Adjudicator's Office about HMRC or the VOA",
+      "publisher": "Adjudicator's Office",
+      "url": "https://www.gov.uk/guidance/how-to-complain-to-the-adjudicators-office-about-hmrc-or-the-voa",
+      "sourceRecordDigest": "sha256:83fde64ac8b186b1a5dc9f398eee7fb0729889e17ace218d819e18daface6ce4",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-adjudicator-complaint-guidance"
+      ]
+    },
+    {
+      "sourceId": "bar-ni-directory",
+      "title": "Barrister Directory",
+      "publisher": "The Bar of Northern Ireland",
+      "url": "https://www.barofni.com/directory",
+      "sourceRecordDigest": "sha256:0f49fa5c35b2b9e0d9fb04a72f4125394cc466a331d5585bc2b9ea584d747596",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-bar-ni-directory"
+      ]
+    },
+    {
+      "sourceId": "bsb-register",
+      "title": "The Barristers' Register",
+      "publisher": "Bar Standards Board",
+      "url": "https://www.barstandardsboard.org.uk/for-the-public/search-a-barristers-record/the-barristers-register.html",
+      "sourceRecordDigest": "sha256:027c69181bf8f4cab5c4eb3c5c84c6d99522c62a2a7eaeaf3939a68e909f3dc1",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-bsb-register"
+      ]
+    },
+    {
+      "sourceId": "business-rates-appeal",
+      "title": "Appeal the outcome of a business rates challenge",
+      "publisher": "Valuation Office Agency",
+      "url": "https://www.gov.uk/guidance/appeal-the-outcome",
+      "sourceRecordDigest": "sha256:ca69f3d329528e818480557fc27ed407d8539cb0fea92d2da51ded2805f65013",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-business-rates-appeal"
+      ]
+    },
+    {
+      "sourceId": "business-rates-challenge",
+      "title": "Challenge the valuation",
+      "publisher": "Valuation Office Agency",
+      "url": "https://www.gov.uk/guidance/challenge-the-valuation",
+      "sourceRecordDigest": "sha256:3b15556fd6009a78fa79346db530a116a3d0e0d2b9944f59529ff8a06e9a47da",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-business-rates-challenge"
+      ]
+    },
+    {
+      "sourceId": "caa-2001-s187a",
+      "title": "Capital Allowances Act 2001 section 187A",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/187A",
+      "sourceRecordDigest": "sha256:061f19b51ce1ff5aca87011c05f5f9bd363abafc5ed3262c9ecd99ce5fc9024a",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-caa-2001-s187a"
+      ]
+    },
+    {
+      "sourceId": "caa-2001-s198",
+      "title": "Capital Allowances Act 2001 section 198",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/198",
+      "sourceRecordDigest": "sha256:99b7dcea8dc691b6ae2705c16dd06ca3224d505a440adbcbb07166316d8d1f3e",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-caa-2001-s198"
+      ]
+    },
+    {
+      "sourceId": "caa-2001-s201",
+      "title": "Capital Allowances Act 2001 section 201",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2001/2/section/201",
+      "sourceRecordDigest": "sha256:58932d803881de9c97dcda7d926dd3afad9b8b1360be974086a514be1d02ccce",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-caa-2001-s201"
+      ]
+    },
+    {
+      "sourceId": "capital-allowances-ca26476",
+      "title": "CA26476: Fixtures — pooling requirement",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/capital-allowances-manual/ca26476",
+      "sourceRecordDigest": "sha256:b51fbdca2138b297ad48b1de8aef19f762a69fc03ca1ee165970e13504ad8011",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-capital-allowances-ca26476"
+      ]
+    },
+    {
+      "sourceId": "capital-allowances-ca26850",
+      "title": "CA26850: Fixtures — section 198 elections",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/capital-allowances-manual/ca26850",
+      "sourceRecordDigest": "sha256:90c379fed93bf826e7ab53038ce7c73bfb1a569b7a4b125810dead903bde4db4",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-capital-allowances-ca26850"
+      ]
+    },
+    {
+      "sourceId": "capital-allowances-fixtures-change",
+      "title": "Plant and machinery allowances on fixtures when there is a change of ownership",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/plant-and-machinery-allowances-on-fixtures-when-theres-a-change-of-ownership",
+      "sourceRecordDigest": "sha256:b28561dd954615f782695117bb25c2cd4b0f9210154b6bf6d9ebb5e233356be9",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-capital-allowances-fixtures-change"
+      ]
+    },
+    {
+      "sourceId": "charter-stakeholder-2025-26",
+      "title": "Charter Stakeholder Group 2025 to 2026 report",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/hmrc-annual-report-and-accounts-2025-to-2026/charter-stakeholder-group-2025-to-2026-report",
+      "sourceRecordDigest": "sha256:02becda68c1bc36ac3f659f00c8a4d8d6218955e75617c380c6d1630b5521a85",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-charter-stakeholder-2025-26"
+      ]
+    },
+    {
+      "sourceId": "council-tax-band-appeal",
+      "title": "After you challenge your Council Tax band",
+      "publisher": "Valuation Office Agency",
+      "url": "https://www.gov.uk/challenge-council-tax-band/after-you-make-challenge",
+      "sourceRecordDigest": "sha256:33d57265238e3c08e602f80852726c1ea3aa28e5bef94562a2517a16bab080e3",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-council-tax-band-appeal"
+      ]
+    },
+    {
+      "sourceId": "cpr-part-54",
+      "title": "Civil Procedure Rules Part 54: Judicial Review and Statutory Review",
+      "publisher": "Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54",
+      "sourceRecordDigest": "sha256:9389d119c0f6cecbf61e8306ccf1721ca5ed18bb14f73b781b01fee9f7bce5d4",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-cpr-part-54"
+      ]
+    },
+    {
+      "sourceId": "customs-authorisations-review-appeal",
+      "title": "Customs authorisations: reviews and appeals",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/customs-authorisations/reviews-and-appeals",
+      "sourceRecordDigest": "sha256:37c1a0fd5a5a1adddfbc37006bb1de4ff7e92cc0d2bb994e96bcd3ce4af8cc34",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-customs-authorisations-review-appeal"
+      ]
+    },
+    {
+      "sourceId": "customs-repayment",
+      "title": "Claim a repayment of import duty and VAT if you have overpaid",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/how-to-claim-a-repayment-of-import-duty-and-vat-if-youve-overpaid",
+      "sourceRecordDigest": "sha256:f829ce54fc866e7c64964de95621062a7389a8aa16b79f73fa257244e1791210",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-customs-repayment"
+      ]
+    },
+    {
+      "sourceId": "customs-valuation-ruling",
+      "title": "Apply for an Advance Valuation Ruling",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/customs-valuation/advance-valuation-rulings",
+      "sourceRecordDigest": "sha256:24fc2f49679a1be0d69a6a96e758a131df60f85663e8a4427d3eb337c2d3d9cc",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-customs-valuation-ruling"
+      ]
+    },
+    {
+      "sourceId": "discovery-artg2510",
+      "title": "ARTG2510: Postponement applications",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/appeals-reviews-and-tribunals-guidance/artg2510",
+      "sourceRecordDigest": "sha256:dcff8d556b1c6eaf8e44f7067c237c2872d0f5d0fa6d48d83318957e608e2471",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-discovery-artg2510"
+      ]
+    },
+    {
+      "sourceId": "discovery-em2030",
+      "title": "EM2030: Discovery assessments — timing and amount",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/enquiry-manual/em2030",
+      "sourceRecordDigest": "sha256:4bcc4868b0082803fd6c4d239e17f8d1406bfe0140d3d6e80afa8a4640a0ce88",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-discovery-em2030"
+      ]
+    },
+    {
+      "sourceId": "discovery-salf411",
+      "title": "SALF411: Discovery assessments",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/self-assessment-legal-framework/salf411",
+      "sourceRecordDigest": "sha256:8ad69060683428baffa14a962408c520dcca7db4e29accee589ee1ea50f3ef84",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-discovery-salf411"
+      ]
+    },
+    {
+      "sourceId": "faculty-advocates-directory",
+      "title": "Find an advocate",
+      "publisher": "Faculty of Advocates",
+      "url": "https://www.advocates.org.uk/about-advocates/find-an-advocate",
+      "sourceRecordDigest": "sha256:b003e1d70781182da9787b7411d8b288b2e0106b4698401f7e65f294f6c05def",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-faculty-advocates-directory"
+      ]
+    },
+    {
+      "sourceId": "finance-act-2024-sch1",
+      "title": "Finance Act 2024 Schedule 1",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2024/3/schedule/1",
+      "sourceRecordDigest": "sha256:df401270fd514b57f99dfff14913654432622f9901c78bf59b21a648653152a1",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-finance-act-2024-sch1"
+      ]
+    },
+    {
+      "sourceId": "finance-act-2026",
+      "title": "Finance Act 2026",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2026/11/contents",
+      "sourceRecordDigest": "sha256:5c22063f7de3a6da9b9c0741454e313cb904b3fbeb3d9ed24a99bd6d02916619",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-finance-act-2026"
+      ]
+    },
+    {
+      "sourceId": "hmrc-annual-report-2025-26",
+      "title": "HMRC annual report and accounts: 2025 to 2026",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/hmrc-annual-report-and-accounts-2025-to-2026",
+      "sourceRecordDigest": "sha256:3141caa6ba1d65102b3117d5d026c09d7f2a4b9aa665868818d1805f352d47a4",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-annual-report-2025-26"
+      ]
+    },
+    {
+      "sourceId": "hmrc-complaints",
+      "title": "Complain about HMRC",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/complain-about-hmrc",
+      "sourceRecordDigest": "sha256:439ccd648bb00acb2d2d0d4eb618f5ece367615a22573b274a986c4e5f3720e2",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-complaints"
+      ]
+    },
+    {
+      "sourceId": "hmrc-penalty-appeal",
+      "title": "Disagree with a tax decision or penalty: appeal a penalty",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/tax-appeals/penalty",
+      "sourceRecordDigest": "sha256:ca7d0bf2de635b65e5fef1b86bc978b857cd3321ba56f9a34ce6dbb6afed0eaa",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-penalty-appeal"
+      ]
+    },
+    {
+      "sourceId": "hmrc-standard-for-agents",
+      "title": "HMRC's standard for agents",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/hmrc-the-standard-for-agents/the-hmrc-standard-for-agents",
+      "sourceRecordDigest": "sha256:d801b8c33f43df656d1fe9f84aca678ef2628d63b73e1bae42cd675a423001fa",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-standard-for-agents"
+      ]
+    },
+    {
+      "sourceId": "hmrc-tax-decision-appeal",
+      "title": "Disagree with a tax decision or penalty: appeal a decision",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/tax-appeals/decision",
+      "sourceRecordDigest": "sha256:fb8111a370131327cc78f588681d627060cce25204e31a0831036f5ef8f9b8b0",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-tax-decision-appeal"
+      ]
+    },
+    {
+      "sourceId": "hmrc-tax-decision-review",
+      "title": "Disagree with a tax decision or penalty: get a review",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/tax-appeals/review-of-a-tax-or-penalty-decision",
+      "sourceRecordDigest": "sha256:623c1bc3df344dc9ff524bd6e70c4a260c166862cf304fc1e936983b51754d0b",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-hmrc-tax-decision-review"
+      ]
+    },
+    {
+      "sourceId": "itepa-2003-s61t",
+      "title": "Income Tax (Earnings and Pensions) Act 2003 section 61T",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2003/1/section/61T",
+      "sourceRecordDigest": "sha256:fc2d43012ecfd2874da9914da1814dc9764d291d859ff7aae513cdf2a06e5bd6",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-itepa-2003-s61t"
+      ]
+    },
+    {
+      "sourceId": "judicial-review-protocol",
+      "title": "Pre-Action Protocol for Judicial Review",
+      "publisher": "Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_jrv",
+      "sourceRecordDigest": "sha256:811a75f16c3ffd802e8960f09e7d0284ca8332017c3fb9b537a04387e9216f28",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-judicial-review-protocol"
+      ]
+    },
+    {
+      "sourceId": "law-society-ni-directory",
+      "title": "Find a Solicitor",
+      "publisher": "Law Society of Northern Ireland",
+      "url": "https://lawsoc-ni.org/using-a-solicitor/find-a-solicitor",
+      "sourceRecordDigest": "sha256:f5b93abfbf5f2dc5edbfa06045a328a9b6008cb5acfc02d9e4b3e6e9139bb963",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-law-society-ni-directory"
+      ]
+    },
+    {
+      "sourceId": "law-society-scotland-directory",
+      "title": "Find a Solicitor",
+      "publisher": "Law Society of Scotland",
+      "url": "https://www.lawscot.org.uk/find-a-solicitor/",
+      "sourceRecordDigest": "sha256:9abd3a94d190a5be33ec5968bfd0645eaa1d5213b9f081eec62c58b1116ae2cd",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-law-society-scotland-directory"
+      ]
+    },
+    {
+      "sourceId": "mandatory-adviser-registration",
+      "title": "Check if and when you need to register as a tax adviser with HMRC",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/check-if-and-when-you-need-to-register-as-a-tax-adviser-with-hmrc",
+      "sourceRecordDigest": "sha256:a3a7822345e82dac50cf9bc01d27ba15c02f38081dd38f3585130f59c1a10d18",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-mandatory-adviser-registration"
+      ]
+    },
+    {
+      "sourceId": "mandatory-adviser-registration-exceptions",
+      "title": "MTAR10300: Exceptions to the registration requirement",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/mandatory-tax-adviser-registration/mtar10300",
+      "sourceRecordDigest": "sha256:6a94a5bba63c6093030b2c7ae5c71d9f519cd0425add3085847eb84ad19ff26d",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-mandatory-adviser-registration-exceptions"
+      ]
+    },
+    {
+      "sourceId": "mlr-2017",
+      "title": "Money Laundering, Terrorist Financing and Transfer of Funds Regulations 2017",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/uksi/2017/692/contents",
+      "sourceRecordDigest": "sha256:e5deec9374d0519a63291d9d1083875d0106fe4c5c181e0a22969471867cad14",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-mlr-2017"
+      ]
+    },
+    {
+      "sourceId": "nao-hmrc-customer-service",
+      "title": "HMRC customer service",
+      "publisher": "National Audit Office",
+      "url": "https://www.nao.org.uk/reports/hmrc-customer-service/",
+      "sourceRecordDigest": "sha256:27a88f7f0575bae7cb5ecdcad7d8e5a516a6707c6342aec4cfa8158c906d23ff",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-nao-hmrc-customer-service"
+      ]
+    },
+    {
+      "sourceId": "newbigin-uksc",
+      "title": "Newbigin v S J & J Monk [2017] UKSC 14",
+      "publisher": "Supreme Court of the United Kingdom",
+      "url": "https://supremecourt.uk/uploads/uksc_2015_0069_judgment_9a1c0dbcea.pdf",
+      "sourceRecordDigest": "sha256:ae4d8de1712dd747ee4e806c8b0ef6b0adf64a65ed4c88e53a2be12ab30cd6b1",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-newbigin-uksc"
+      ]
+    },
+    {
+      "sourceId": "offpayroll-clients",
+      "title": "Understanding off-payroll working for clients",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/off-payroll-working-for-clients",
+      "sourceRecordDigest": "sha256:e7e8b97b8fa1f7f975ad2f47a2c21a7f668e3f69aa9c138d66eb06207b5f3971",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-offpayroll-clients"
+      ]
+    },
+    {
+      "sourceId": "offpayroll-esm10015",
+      "title": "ESM10015: Status disagreement process",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/employment-status-manual/esm10015",
+      "sourceRecordDigest": "sha256:28982f22e403863d2a13b3d4a130a36a2b5a32615ca3ef9d2e03d6a600d694c8",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-offpayroll-esm10015"
+      ]
+    },
+    {
+      "sourceId": "pgmol-uksc",
+      "title": "Commissioners for HMRC v Professional Game Match Officials Ltd [2024] UKSC 29",
+      "publisher": "Supreme Court of the United Kingdom",
+      "url": "https://supremecourt.uk/cases/judgments/uksc-2021-0220",
+      "sourceRecordDigest": "sha256:78f458d68fcc06820932b1f1a79c126c458c237d436da745461f151bbab66a53",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-pgmol-uksc"
+      ]
+    },
+    {
+      "sourceId": "phso-complaint-boundary",
+      "title": "What we can and can't help with",
+      "publisher": "Parliamentary and Health Service Ombudsman",
+      "url": "https://www.ombudsman.org.uk/making-complaint/what-we-can-and-cant-help",
+      "sourceRecordDigest": "sha256:b7630b49f441906c968ce5e28515013b097887c99c584cc6d0c7ee539158677f",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-phso-complaint-boundary"
+      ]
+    },
+    {
+      "sourceId": "prudential-uksc",
+      "title": "R (Prudential plc) v Special Commissioner of Income Tax [2013] UKSC 1",
+      "publisher": "Supreme Court of the United Kingdom",
+      "url": "https://supremecourt.uk/uploads/uksc_2010_0215_judgment_18833298c8.pdf",
+      "sourceRecordDigest": "sha256:9690b68ff5061a5ea50a3588826c3500a9ae29a37289b86b7e7962ec4a6ee660",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-prudential-uksc"
+      ]
+    },
+    {
+      "sourceId": "rd-additional-information-form",
+      "title": "Submit detailed information before you claim R&D tax relief",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/submit-detailed-information-before-you-claim-research-and-development-rd-tax-relief",
+      "sourceRecordDigest": "sha256:db17606fd485c35c13b1cd039a67531548d52cd44ebedc5b0dfb010012f51c83",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-additional-information-form"
+      ]
+    },
+    {
+      "sourceId": "rd-cird182000",
+      "title": "CIRD182000: Additional information form",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird182000",
+      "sourceRecordDigest": "sha256:c46cb915055007dd1fc7b0118bf7ed5b9566838f40f4e688fdecfcf0c4e38011",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-cird182000"
+      ]
+    },
+    {
+      "sourceId": "rd-cird80520",
+      "title": "CIRD80520: Examining a claim — introduction",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird80520",
+      "sourceRecordDigest": "sha256:7817af58787b07db7b0238b1771d40e6f88406bf0de5b591009acab64cf06f16",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-cird80520"
+      ]
+    },
+    {
+      "sourceId": "rd-cird81800",
+      "title": "CIRD81800: SME scheme claims — time limits",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/corporate-intangibles-research-and-development-manual/cird81800",
+      "sourceRecordDigest": "sha256:a3bad6bd5e69a9c8436cde73b96615afc5435684480388402bfd251a94700906",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-cird81800"
+      ]
+    },
+    {
+      "sourceId": "rd-claim-notification",
+      "title": "Tell HMRC that you are planning to claim R&D tax relief",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/tell-hmrc-that-youre-planning-to-claim-research-and-development-rd-tax-relief",
+      "sourceRecordDigest": "sha256:4359fa43ac291a90127013a4fb061e8488fa30dfdff13d85885fd5fd1d8572d5",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-claim-notification"
+      ]
+    },
+    {
+      "sourceId": "rd-merged-scheme",
+      "title": "R&D tax relief: merged scheme and enhanced R&D intensive support",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/research-and-development-rd-tax-relief-the-merged-scheme-and-enhanced-rd-intensive-support",
+      "sourceRecordDigest": "sha256:5beb2832f27c1feb418ef6c9af8a85e29bf65688f799de7f967810de3f575d40",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rd-merged-scheme"
+      ]
+    },
+    {
+      "sourceId": "regulated-profession-cta",
+      "title": "Chartered Tax Adviser",
+      "publisher": "UK Centre for Professional Qualifications",
+      "url": "https://www.regulated-professions.service.gov.uk/professions/chartered-tax-adviser",
+      "sourceRecordDigest": "sha256:b790702fab1c4d61e366c7ec10d702256ee17b5257306d60ee35f3dbd1c9ad1e",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-regulated-profession-cta"
+      ]
+    },
+    {
+      "sourceId": "rics-find-member",
+      "title": "Find a RICS member or firm",
+      "publisher": "Royal Institution of Chartered Surveyors",
+      "url": "https://www.rics.org/find-a-member",
+      "sourceRecordDigest": "sha256:ed9cd27c0a5665b0aeab4073a36e145867e3dd078f251ea75019461823934e63",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-rics-find-member"
+      ]
+    },
+    {
+      "sourceId": "schedule36",
+      "title": "Finance Act 2008 Schedule 36",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2008/9/schedule/36",
+      "sourceRecordDigest": "sha256:6af7d766fb50d0a23c4003cd14d1494ddc253eb386a416c75879d252053c322b",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-schedule36"
+      ]
+    },
+    {
+      "sourceId": "schedule36-appealability",
+      "title": "CH229950: Appeals against information notices",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch229950",
+      "sourceRecordDigest": "sha256:07a709fefdced1a752b4ada47724394d75e3c54f7d15dd7980df70b270273a8a",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-schedule36-appealability"
+      ]
+    },
+    {
+      "sourceId": "schedule36-appeals",
+      "title": "CH24340: Information notice appeal procedures",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch24340",
+      "sourceRecordDigest": "sha256:5cfa90edef1232e534c1712f45a0db0388f02d089c96a5117f5158b35ba13694",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-schedule36-appeals"
+      ]
+    },
+    {
+      "sourceId": "schedule36-lpp",
+      "title": "CH22244: What is legal professional privilege",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/compliance-handbook/ch22244",
+      "sourceRecordDigest": "sha256:8f19d577ea3e23c96dfbc7757abed96907c9e2a4d8eb87b920a2916cd2fbd3a4",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-schedule36-lpp"
+      ]
+    },
+    {
+      "sourceId": "schedule36-lpp-procedure",
+      "title": "ARTG7591: Dispute over privileged communication — information notice given in correspondence",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/appeals-reviews-and-tribunals-guidance/artg7591",
+      "sourceRecordDigest": "sha256:d7ee7643c9056253fc03ca6fe4744988e48eacacf91b7fca561147ef560659ff",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-schedule36-lpp-procedure"
+      ]
+    },
+    {
+      "sourceId": "sra-register",
+      "title": "Solicitors Register",
+      "publisher": "Solicitors Regulation Authority",
+      "url": "https://www.sra.org.uk/solicitors-register/",
+      "sourceRecordDigest": "sha256:dcb85118c6a8371e589b558473d506b336eb764ecd414db11d34474bf9ed6f58",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-sra-register"
+      ]
+    },
+    {
+      "sourceId": "tax-tribunal-appeal",
+      "title": "How to appeal to the First-tier Tribunal (Tax Chamber)",
+      "publisher": "HM Courts & Tribunals Service",
+      "url": "https://www.gov.uk/government/publications/appeal-to-the-tax-chamber-of-the-first-tier-tribunal-t242/how-to-appeal-to-the-first-tier-tax-tribunal",
+      "sourceRecordDigest": "sha256:346b616af3d2747c09045435b866d88e4fd86c36df37ac233222c7729847b2c9",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-tax-tribunal-appeal"
+      ]
+    },
+    {
+      "sourceId": "tma-1970-s29",
+      "title": "Taxes Management Act 1970 section 29",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1970/9/section/29",
+      "sourceRecordDigest": "sha256:254828db1f0f78e7baf392a56460c4d30c860ba07059335d74a8b3fbb5db70b0",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-tma-1970-s29"
+      ]
+    },
+    {
+      "sourceId": "tooth-uksc",
+      "title": "HMRC v Tooth [2021] UKSC 17",
+      "publisher": "Supreme Court of the United Kingdom",
+      "url": "https://supremecourt.uk/uploads/uksc_2019_0136_judgment_abb3bdd7bb.pdf",
+      "sourceRecordDigest": "sha256:5951a68c4a8680a2e26284e6402b5932fe9609419bcea93a2492c316f543a997",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-tooth-uksc"
+      ]
+    },
+    {
+      "sourceId": "vat-notice-70045",
+      "title": "How to correct VAT errors and make adjustments or claims: VAT Notice 700/45",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/how-to-correct-vat-errors-and-make-adjustments-or-claims-vat-notice-70045",
+      "sourceRecordDigest": "sha256:259cbf3e843cb721a8f0f266ce19c4109030e59c6feec619b1cfdfd489c38730",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-notice-70045"
+      ]
+    },
+    {
+      "sourceId": "vat-refunds-vrm12100",
+      "title": "VRM12100: Unjust enrichment",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm12100",
+      "sourceRecordDigest": "sha256:71962ec4a538715258fe9bca313b897a1046143147eccbfba08489b1083f55f5",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-refunds-vrm12100"
+      ]
+    },
+    {
+      "sourceId": "vat-refunds-vrm12500",
+      "title": "VRM12500: Reimbursement arrangements",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm12500",
+      "sourceRecordDigest": "sha256:fc3d51775b30359771cd3031d15653b8f91d5c0e39a2c76df51da2c2ce136690",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-refunds-vrm12500"
+      ]
+    },
+    {
+      "sourceId": "vat-refunds-vrm7000",
+      "title": "VRM7000: What must be set off in a claim",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm7000",
+      "sourceRecordDigest": "sha256:57000cde57f9116aa46fc14f0e8b69350b8e4f18bc9e0d1dcf58f4d7a4ec48b8",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-refunds-vrm7000"
+      ]
+    },
+    {
+      "sourceId": "vat-refunds-vrm8200",
+      "title": "VRM8200: Time limits — VATA 1994",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-refunds-manual/vrm8200",
+      "sourceRecordDigest": "sha256:14b61e56ba0f94422d74066b880da8ac9aaa7226bafe5a32547d89165859dfdf",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-refunds-vrm8200"
+      ]
+    },
+    {
+      "sourceId": "vat-s80",
+      "title": "Value Added Tax Act 1994 section 80",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1994/23/section/80",
+      "sourceRecordDigest": "sha256:77ed336d102be38aad332ea816a649b6108e4d88ba38fbb842b65a5ec05e162f",
+      "reviewerIds": [],
+      "checkedOn": null,
+      "result": "pending",
+      "versionOrPublicationDate": null,
+      "pinpointOrScope": null,
+      "evidenceIds": [
+        "source-vat-s80"
+      ]
+    }
+  ],
+  "methodAndWorkflowReview": {
+    "reviewerIds": [],
+    "completedOn": null,
+    "result": "pending",
+    "professionalStatusBoundaryConfirmed": false,
+    "deadlineControlConfirmed": false,
+    "challengeSeparationConfirmed": false,
+    "moneyStateSeparationConfirmed": false,
+    "localCustodyAndNoSubmissionConfirmed": false,
+    "evidenceIds": []
+  },
+  "opportunityReviews": [
+    {
+      "opportunityId": "uk-business-rates-valuation",
+      "title": "Business rates valuation, property state and list correction",
+      "territories": [
+        "England",
+        "Wales"
+      ],
+      "opportunityRecordDigest": "sha256:bd2018bbeb2e639b1b9bf0ed436451ce937b10a12f4550fbd299fbfb2a7f14ec",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-capital-allowances-fixtures-s198",
+      "title": "Commercial-property fixtures, pooling and section 198 elections",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:8a25d08c83a4f61a5489d626261063f926015a3621f64d09251f1080d8feb19b",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-customs-repayment-classification",
+      "title": "Customs classification, valuation, origin and repayment",
+      "territories": [
+        "Great Britain"
+      ],
+      "opportunityRecordDigest": "sha256:08018c6ec2d8700374178aa8196ebe210114c0faf465283775e5c35f3beeec8f",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-discovery-assessment-review",
+      "title": "Discovery assessment authority, time, behaviour and quantum",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:db2f18b82b61f482e848b3460c6f5edb01adf302aea48549f44b71c33fa4b018",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-hmrc-decision-and-deadline-audit",
+      "title": "HMRC decision, automated penalty and deadline audit",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:99c27490094af0da33b9053e7a728c08fffa6a641f6d4ed100154e3f9b226c19",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-information-notice-schedule-36",
+      "title": "Schedule 36 information-notice scope, privilege and response",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:32feca5643b6c4fa2d64125e37f9b8678d11a77b3e2edbad472dc7106bcf41ba",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-off-payroll-status-disagreement",
+      "title": "Off-payroll status determination and disagreement",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:f151637af3ef164184e249c6efb31077b6291873308bc5eeb2d34133e9fb89e5",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-rd-evidence-enquiry",
+      "title": "Research and development relief evidence and enquiry",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:6f6c17aaacead1c4ad315920162dca68db75cd44d1bf9b23e0b7968efefa7d34",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    },
+    {
+      "opportunityId": "uk-vat-section-80-correction",
+      "title": "VAT section 80 correction, repayment and reimbursement",
+      "territories": [
+        "United Kingdom"
+      ],
+      "opportunityRecordDigest": "sha256:82764faecee6648953bfd8de77075d3f4dfb36073dca58df5ec8fa01db420de3",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "lawAndSourceHierarchyConfirmed": false,
+      "territoryConfirmed": false,
+      "deadlinesAndClockConfirmed": false,
+      "routesAndRemedySeparationConfirmed": false,
+      "professionalGatesAndAuthorityConfirmed": false,
+      "sourceSupportConfirmed": false,
+      "moneyAndOutcomeBoundariesConfirmed": false,
+      "evidenceIds": []
+    }
+  ],
+  "scrutinyReviews": [
+    {
+      "scrutinyId": "automated-penalty-review-outcomes",
+      "title": "Most automated-penalty decisions reviewed in 2025 to 2026 were cancelled",
+      "scrutinyFramingDigest": "sha256:70a1f2fcfa7726cdb715df33b91662ad687375c8965c1debb4695310a7ed1bf1",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "statementSupportConfirmed": false,
+      "evidenceStateConfirmed": false,
+      "doesNotProveConfirmed": false,
+      "counterweightOrResponseConfirmed": false,
+      "correctionOrReviewRouteConfirmed": false,
+      "noPersonalTargetOrMotiveInferenceConfirmed": false,
+      "evidenceIds": [],
+      "rightOfReply": [
+        {
+          "institution": "HM Revenue & Customs",
+          "scrutinyFramingDigest": "sha256:70a1f2fcfa7726cdb715df33b91662ad687375c8965c1debb4695310a7ed1bf1",
+          "disposition": "pending",
+          "sentOn": null,
+          "replyDueOn": null,
+          "receivedOn": null,
+          "resolvedOn": null,
+          "publicBasis": null,
+          "evidenceIds": []
+        }
+      ]
+    },
+    {
+      "scrutinyId": "charter-stakeholder-deadline-asymmetry",
+      "title": "Charter respondents reported delay, weak resolution and deadline asymmetry",
+      "scrutinyFramingDigest": "sha256:51da50261c782f247a27f538e7de0ea6d5e51d077a268d93d16262e9801ebcd4",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "statementSupportConfirmed": false,
+      "evidenceStateConfirmed": false,
+      "doesNotProveConfirmed": false,
+      "counterweightOrResponseConfirmed": false,
+      "correctionOrReviewRouteConfirmed": false,
+      "noPersonalTargetOrMotiveInferenceConfirmed": false,
+      "evidenceIds": [],
+      "rightOfReply": [
+        {
+          "institution": "HM Revenue & Customs",
+          "scrutinyFramingDigest": "sha256:51da50261c782f247a27f538e7de0ea6d5e51d077a268d93d16262e9801ebcd4",
+          "disposition": "pending",
+          "sentOn": null,
+          "replyDueOn": null,
+          "receivedOn": null,
+          "resolvedOn": null,
+          "publicBasis": null,
+          "evidenceIds": []
+        }
+      ]
+    },
+    {
+      "scrutinyId": "hmrc-nmw-mistaken-notice-persistence",
+      "title": "Adjudicator found unreasonable persistence with a mistaken National Minimum Wage notice",
+      "scrutinyFramingDigest": "sha256:a35267529f5e1945081228aec1fbc5544b346b9d5fb57cd084cae1a39f604546",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "statementSupportConfirmed": false,
+      "evidenceStateConfirmed": false,
+      "doesNotProveConfirmed": false,
+      "counterweightOrResponseConfirmed": false,
+      "correctionOrReviewRouteConfirmed": false,
+      "noPersonalTargetOrMotiveInferenceConfirmed": false,
+      "evidenceIds": [],
+      "rightOfReply": [
+        {
+          "institution": "HM Revenue & Customs",
+          "scrutinyFramingDigest": "sha256:a35267529f5e1945081228aec1fbc5544b346b9d5fb57cd084cae1a39f604546",
+          "disposition": "pending",
+          "sentOn": null,
+          "replyDueOn": null,
+          "receivedOn": null,
+          "resolvedOn": null,
+          "publicBasis": null,
+          "evidenceIds": []
+        }
+      ]
+    },
+    {
+      "scrutinyId": "nao-customer-service-evaluation-gap",
+      "title": "NAO found customer impacts were not adequately evaluated before helpline changes",
+      "scrutinyFramingDigest": "sha256:9e98c206c984a06ef5f1fa52b42363645a99e3f61115a56ea7e5a4bf031a1265",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "statementSupportConfirmed": false,
+      "evidenceStateConfirmed": false,
+      "doesNotProveConfirmed": false,
+      "counterweightOrResponseConfirmed": false,
+      "correctionOrReviewRouteConfirmed": false,
+      "noPersonalTargetOrMotiveInferenceConfirmed": false,
+      "evidenceIds": [],
+      "rightOfReply": [
+        {
+          "institution": "HM Revenue & Customs",
+          "scrutinyFramingDigest": "sha256:9e98c206c984a06ef5f1fa52b42363645a99e3f61115a56ea7e5a4bf031a1265",
+          "disposition": "pending",
+          "sentOn": null,
+          "replyDueOn": null,
+          "receivedOn": null,
+          "resolvedOn": null,
+          "publicBasis": null,
+          "evidenceIds": []
+        }
+      ]
+    },
+    {
+      "scrutinyId": "voa-tribunal-deadline-failure",
+      "title": "Adjudicator recorded Valuation Office failures to meet tribunal deadlines",
+      "scrutinyFramingDigest": "sha256:b612561f37ee87c2f5e916dc0b682d6c8018d7a3f45f293ccd9fd75639a38313",
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "statementSupportConfirmed": false,
+      "evidenceStateConfirmed": false,
+      "doesNotProveConfirmed": false,
+      "counterweightOrResponseConfirmed": false,
+      "correctionOrReviewRouteConfirmed": false,
+      "noPersonalTargetOrMotiveInferenceConfirmed": false,
+      "evidenceIds": [],
+      "rightOfReply": [
+        {
+          "institution": "Valuation Office",
+          "scrutinyFramingDigest": "sha256:b612561f37ee87c2f5e916dc0b682d6c8018d7a3f45f293ccd9fd75639a38313",
+          "disposition": "pending",
+          "sentOn": null,
+          "replyDueOn": null,
+          "receivedOn": null,
+          "resolvedOn": null,
+          "publicBasis": null,
+          "evidenceIds": []
+        }
+      ]
+    }
+  ],
+  "controls": {
+    "privacySecurityThreatReview": {
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "evidenceIds": []
+    },
+    "publicSurfaceInspection": {
+      "reviewerIds": [],
+      "completedOn": null,
+      "result": "pending",
+      "noIntake": false,
+      "noMarketplace": false,
+      "noSubmission": false,
+      "noPrivateUpload": false,
+      "evidenceIds": []
+    },
+    "emergencyStopDrill": {
+      "operatorReviewerId": null,
+      "result": "pending",
+      "corpusDigest": null,
+      "commitSha": null,
+      "environment": null,
+      "startedAt": null,
+      "stopActivatedAt": null,
+      "apiContainedAt": null,
+      "frontendContainedAt": null,
+      "restoredClosedAt": null,
+      "apiProtectedRoutesReturned503": false,
+      "wakeReportedStopped": false,
+      "safeSchemasRightsAndBlankTemplateRemainedReadable": false,
+      "frontendContainedOnlyClosedShells": false,
+      "cacheDisposition": null,
+      "evidenceIds": []
+    },
+    "ownership": {
+      "result": "pending",
+      "reviewerIds": [],
+      "assignedOn": null,
+      "correction": {
+        "primaryPublicLabel": null,
+        "backupPublicLabel": null,
+        "publicRouteOrControl": null,
+        "accessTestedAt": null,
+        "evidenceIds": []
+      },
+      "withdrawal": {
+        "primaryPublicLabel": null,
+        "backupPublicLabel": null,
+        "publicRouteOrControl": null,
+        "accessTestedAt": null,
+        "evidenceIds": []
+      }
+    }
+  },
+  "declaration": {
+    "reviewLeadId": null,
+    "reviewStartedOn": null,
+    "rightOfReplyResolvedOn": null,
+    "completedOn": null,
+    "reviewBy": null,
+    "publicFieldsDisclosureChecked": false,
+    "privateEvidenceOutsideRepository": true,
+    "publicGithubDisclosureAcknowledged": true,
+    "packDoesNotApproveHostedDistribution": true
+  },
+  "boundaries": [
+    "This pack is public-safe review evidence, not hosted-distribution approval.",
+    "A complete pack does not change an API, frontend, deployment, intake or marketplace switch.",
+    "Keep client facts, contact details, private documents and filesystem paths outside this pack.",
+    "A private evidence reference is an opaque UUID held by a named custodian role; it is never the evidence itself.",
+    "The corpus is already visible in the public GitHub repository; this pack governs later official TaxSorted hosting and endorsement."
+  ],
+  "integrity": {
+    "algorithm": "sha256",
+    "digest": "sha256:49a27ff2541bd1edababe3a385eceb700450e669fb1bdcfe375b274575f1df13",
+    "digestScope": "Canonical JSON of this pack excluding the integrity object."
+  }
+}

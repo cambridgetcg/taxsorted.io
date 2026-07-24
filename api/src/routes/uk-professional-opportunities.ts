@@ -22,11 +22,13 @@ import {
   sourcesForProfessionalOpportunityValue,
   ukProfessionalOpportunities,
   ukProfessionalOpportunityPublicationApproval,
+  ukProfessionalOpportunityReviewPack,
   ukProfessionalOpportunitiesSchema,
   validateUkProfessionalOpportunities,
   type ProfessionalOpportunityPublicationApproval,
   type UkProfessionalOpportunities,
 } from "../uk-professional-opportunities.js";
+import type { ProfessionalOpportunityReviewPack } from "../uk-professional-opportunity-review.js";
 
 const basePath = "/v1/professional-opportunities/uk";
 const openApiPath = "/openapi/professional-opportunities-uk.json";
@@ -39,6 +41,8 @@ export type ProfessionalOpportunityRouteOptions = {
   emergencyStop?: boolean;
   stoppedOpportunityIds?: readonly string[];
   publicationApproval?: ProfessionalOpportunityPublicationApproval | null;
+  reviewPack?: ProfessionalOpportunityReviewPack | null;
+  now?: () => Date;
 };
 
 type SendOptions = {
@@ -257,8 +261,18 @@ export function createUkProfessionalOpportunityRoutes(
     options.publicationApproval === undefined
       ? ukProfessionalOpportunityPublicationApproval
       : options.publicationApproval;
+  const reviewPack =
+    options.reviewPack === undefined
+      ? ukProfessionalOpportunityReviewPack
+      : options.reviewPack;
+  const now = options.now ?? (() => new Date());
   const publicationDecision =
-    evaluateProfessionalOpportunityPublicationApproval(corpus, approval);
+    evaluateProfessionalOpportunityPublicationApproval(
+      corpus,
+      approval,
+      reviewPack,
+      now().toISOString().slice(0, 10),
+    );
   const enabled =
     (options.enabled ?? false) &&
     !emergencyStop &&
@@ -361,7 +375,15 @@ export function createUkProfessionalOpportunityRoutes(
       path.startsWith("/opportunities/") ||
       path === "/scrutiny" ||
       path === "/sources";
-    if (!enabled && protectedPath) {
+    const reviewStillCurrent =
+      enabled &&
+      evaluateProfessionalOpportunityPublicationApproval(
+        corpus,
+        approval,
+        reviewPack,
+        now().toISOString().slice(0, 10),
+      ).approved;
+    if (!reviewStillCurrent && protectedPath) {
       return closedProblem(c, emergencyStop);
     }
     if (enabled && !stopConfigurationValid && protectedPath) {
@@ -455,7 +477,7 @@ export function createUkProfessionalOpportunityRoutes(
       },
       `${basePath}/method`,
       corpus,
-      { describedBy: null },
+      { describedBy: null, cacheControl: protectedCacheControl },
     );
   });
 

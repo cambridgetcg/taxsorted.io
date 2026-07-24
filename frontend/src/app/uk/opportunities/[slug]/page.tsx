@@ -46,7 +46,7 @@ export async function generateMetadata({
     return {
       title: "Professional tax research awaiting review — TaxSorted",
       description:
-        "No professional-opportunity detail is public until the exact corpus completes independent review.",
+        "No professional-opportunity detail is hosted here until the exact corpus completes independent review and a separate hosted-distribution decision.",
       robots: { index: false, follow: false },
     };
   }
@@ -547,7 +547,7 @@ export function ProfessionalOpportunityDetail({
             href="/uk/regulator-scrutiny"
             className="mt-6 inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4"
           >
-            Read the full regulator-scrutiny ledger →
+            Read the full public-body scrutiny ledger →
           </Link>
         </section>
       ) : null}
@@ -628,21 +628,24 @@ export default async function ProfessionalOpportunityPage({
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Publication gate closed
+          Hosted distribution gate closed
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink">
-          No opportunity detail is published yet.
+          No opportunity detail is hosted here yet.
         </h1>
         <p className="mt-5 text-lg leading-8 text-ink-soft">
-          The exact research corpus still needs its required independent review
-          and explicit deployment approval. This status page contains no tax
-          opportunity, institutional finding or private intake.
+          The source corpus is already visible in the public GitHub repository,
+          but TaxSorted&apos;s official projection still needs its required
+          independent review and a separate accountable hosted-distribution
+          decision. This status
+          page contains no tax opportunity, institutional finding or private
+          intake.
         </p>
         <Link
           href="/uk/opportunities"
           className="mt-7 inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4"
         >
-          Return to the publication gate
+          Return to the hosted distribution gate
         </Link>
       </div>
     );

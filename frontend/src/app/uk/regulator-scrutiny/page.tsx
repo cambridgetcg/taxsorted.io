@@ -9,14 +9,14 @@ export const dynamic = "force-static";
 export function generateMetadata(): Metadata {
   if (!corpus) {
     return {
-      title: "Regulator research awaiting review — TaxSorted",
+      title: "Public-body research awaiting hosted review — TaxSorted",
       description:
-        "This evidence ledger remains closed because its required independent publication checks are incomplete.",
+        "TaxSorted's hosted evidence ledger remains unavailable until its independent review and hosted-distribution decision are complete.",
       robots: { index: false, follow: false },
     };
   }
   return {
-    title: "Regulators answer to evidence too — TaxSorted",
+    title: "Public bodies answer to evidence too — TaxSorted",
     description:
       "A source-linked UK ledger of institutional scrutiny, its proof limits, counterweights, correction routes and the legal clocks professionals must keep separate.",
   };
@@ -211,15 +211,16 @@ export default function RegulatorScrutinyPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          Publication gate closed
+          Hosted distribution gate closed
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink">
           This evidence ledger is awaiting its required independent review.
         </h1>
         <p className="mt-5 text-lg leading-8 text-ink-soft">
-          Institutional findings and source links stay sealed until the exact
-          corpus passes review and is enabled for this deployment. This page accepts no
-          allegation, client matter or private document.
+          TaxSorted&apos;s official hosted ledger stays closed until the exact
+          corpus passes review and is enabled for this deployment. The source
+          research is already visible in the public GitHub repository. This
+          page accepts no allegation, client matter or private document.
         </p>
         <Link
           href="/uk/accountability"
@@ -237,7 +238,7 @@ export default function RegulatorScrutinyPage() {
           { href: "/uk", label: "The UK system" },
           { href: "/uk/opportunities", label: "Professional opportunities" },
         ]}
-        current="Regulator scrutiny"
+        current="Public-body scrutiny"
         className="mb-6"
       />
 
@@ -255,7 +256,7 @@ export default function RegulatorScrutinyPage() {
             UK institutional scrutiny · evidence before accusation
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-6xl">
-            Regulators answer to evidence too.
+            Public bodies answer to evidence too.
           </h1>
           <p className="mt-5 max-w-4xl text-lg leading-8 text-white/80">
             Public power can be examined without turning public servants into

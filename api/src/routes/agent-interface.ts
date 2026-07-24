@@ -151,7 +151,7 @@ case-commons-packet-schema: GET ${apiOrigin}${caseCommonsPacketSchemaPath}
 case-commons-assessment-template: GET ${apiOrigin}${caseCommonsAssessmentPath}
 case-commons-openapi: GET ${apiOrigin}${caseCommonsOpenApiPath}
 case-commons-agenttool-local-mirror: ${caseCommonsAgentToolGuide}
-case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.2 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
 case-commons-scope: decided public records; one England-and-Wales deep case; source-resolving packets; remedies and money meanings; local assessment template
 case-commons-effects: read-only research; no personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
 case-commons-private-material: stays with the prospective client or instructed professional in their approved matter system
@@ -167,7 +167,7 @@ professional-opportunities-assessment-schema: GET ${apiOrigin}${professionalOppo
 professional-opportunities-rights: GET ${apiOrigin}${professionalOpportunitiesRightsPath}
 professional-opportunities-openapi: GET ${apiOrigin}${professionalOpportunitiesOpenApiPath}
 professional-opportunities-agenttool-guide: ${professionalOpportunitiesAgentToolGuide}
-professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.2; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
+professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
 professional-opportunities-scope: source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a blank finite local assessment
 professional-opportunities-status-boundary: the user must independently verify the status required for the exact work; TaxSorted verifies no professional; no claim that all UK tax work has one universal licence
 professional-opportunities-effects: read-only research; no client intake, private upload, probability, expected value, ranking, matching, outreach, recommendation, case assignment, representation, filing, payment or referral fee
@@ -429,11 +429,22 @@ type AgentInterfaceOptions = OpenDataRouteOptions & {
   caseCommonsEmergencyStop?: boolean;
   caseCommonsStoppedCaseIds?: string[];
   professionalOpportunitiesPublic?: boolean;
+  professionalOpportunitiesPublicationIsCurrent?: () => boolean;
   professionalOpportunitiesEmergencyStop?: boolean;
   professionalOpportunitiesStoppedIds?: string[];
 };
 
 export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
+  let professionalOpportunitiesReviewCurrent = true;
+  try {
+    professionalOpportunitiesReviewCurrent =
+      options.professionalOpportunitiesPublicationIsCurrent?.() ?? true;
+  } catch {
+    professionalOpportunitiesReviewCurrent = false;
+  }
+  const professionalOpportunitiesPublic =
+    options.professionalOpportunitiesPublic === true &&
+    professionalOpportunitiesReviewCurrent;
   const catalog = buildOpenDataCatalog(options);
   const catalogBody = canonicalJson(catalog);
   const datasetChangeLane = evidenceLane(
@@ -626,7 +637,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         optionalAgentToolBridge: {
           required: false,
           sdk: "@agenttool/sdk",
-          version: "0.16.2",
+          version: "0.16.3",
           client: "DataClient",
           custody: "caller-operated-loopback-agent-data-node",
           guide: caseCommonsAgentToolGuide,
@@ -655,7 +666,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         humanGuide: `${humanOrigin}/uk/opportunities/`,
         availability: options.professionalOpportunitiesEmergencyStop
           ? "emergency-stopped"
-          : !options.professionalOpportunitiesPublic
+          : !professionalOpportunitiesPublic
             ? "publication-review"
             : options.professionalOpportunitiesStoppedIds?.length
               ? "record-level-stops-active"
@@ -674,7 +685,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         optionalAgentToolBridge: {
           required: false,
           sdk: "@agenttool/sdk",
-          version: "0.16.2",
+          version: "0.16.3",
           guide: professionalOpportunitiesAgentToolGuide,
           directHttpsIsUniversalDoor: true,
           hostedAgentToolWrite: false,
@@ -1064,6 +1075,7 @@ function sendWake(c: Context, body: string, etag: string) {
     "application/json; charset=utf-8",
     "taxsorted.agent-wake/1",
   );
+  c.header("Cache-Control", "public, max-age=0, must-revalidate");
   if (ifNoneMatchMatches(c.req.header("If-None-Match"), etag)) {
     return c.body(null, 304);
   }
@@ -1073,10 +1085,11 @@ function sendWake(c: Context, body: string, etag: string) {
 
 export function createAgentInterfaceRoutes(options: AgentInterfaceOptions = {}) {
   const app = new Hono();
-  const payload = buildAgentWakePayload(options);
-  const wakeBody = canonicalJson(payload);
-  const wakeEtag = representationEtag(wakeBody);
   const manifestEtag = representationEtag(agentManifestText);
+  const currentWake = () => {
+    const body = canonicalJson(buildAgentWakePayload(options));
+    return { body, etag: representationEtag(body) };
+  };
 
   const manifest = (canonicalPath: string) => (c: Context) => {
     const parameters = queryParameters(c);
@@ -1104,12 +1117,16 @@ export function createAgentInterfaceRoutes(options: AgentInterfaceOptions = {}) 
     "/.well-known/agent.txt",
     manifest("/.well-known/agent.txt"),
   );
-  app.on(["GET", "HEAD"], wakePath, (c) => sendWake(c, wakeBody, wakeEtag));
+  app.on(["GET", "HEAD"], wakePath, (c) => {
+    const wake = currentWake();
+    return sendWake(c, wake.body, wake.etag);
+  });
   app.on(["GET", "HEAD"], "/", (c) => {
     if (!acceptsJson(c.req.header("Accept"))) {
       return noSuchDoorProblem(c);
     }
-    return sendWake(c, wakeBody, wakeEtag);
+    const wake = currentWake();
+    return sendWake(c, wake.body, wake.etag);
   });
 
   for (const { path, accepts } of [

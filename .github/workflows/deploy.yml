@@ -1873,14 +1873,37 @@ jobs:
           scrutiny_page='frontend/out/uk/regulator-scrutiny/index.html'
           test -f "${opportunities_page}"
           test -f "${scrutiny_page}"
+          test -f frontend/out/_worker.js
+          test -f frontend/out/_routes.json
+          grep --fixed-strings --quiet \
+            '"taxsorted.uk.professional-opportunity-edge-gate/1"' \
+            frontend/out/_worker.js
+          grep --fixed-strings --quiet \
+            "\"state\":\"${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}\"" \
+            frontend/out/_worker.js
+          grep --fixed-strings --quiet \
+            '"/uk/opportunities/*"' frontend/out/_routes.json
+          grep --fixed-strings --quiet \
+            '"/uk/regulator-scrutiny/*"' frontend/out/_routes.json
           if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
           then
             grep --fixed-strings --quiet \
               'Specialist work, mapped without the sales pitch.' \
               "${opportunities_page}"
             grep --fixed-strings --quiet \
-              'Regulators answer to evidence too.' \
+              'Public bodies answer to evidence too.' \
               "${scrutiny_page}"
+            for protected_phrase in \
+              'Commercial-property fixtures' \
+              'Most automated-penalty decisions reviewed in 2025 to 2026 were cancelled'
+            do
+              if grep --recursive --fixed-strings --quiet \
+                "${protected_phrase}" frontend/out/_next/static
+              then
+                echo "Guarded UK professional-opportunity content leaked into a shared static chunk." >&2
+                exit 1
+              fi
+            done
           else
             grep --fixed-strings --quiet \
               'This research is awaiting its required independent review.' \
@@ -1950,14 +1973,24 @@ jobs:
 
           opportunities_page="${RUNNER_TEMP}/uk-professional-opportunities.html"
           scrutiny_page="${RUNNER_TEMP}/uk-regulator-scrutiny.html"
+          opportunities_headers="${RUNNER_TEMP}/uk-professional-opportunities.headers"
+          scrutiny_headers="${RUNNER_TEMP}/uk-regulator-scrutiny.headers"
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
+            --dump-header "${opportunities_headers}" \
             --output "${opportunities_page}" \
             https://taxsorted.io/uk/opportunities
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
+            --dump-header "${scrutiny_headers}" \
             --output "${scrutiny_page}" \
             https://taxsorted.io/uk/regulator-scrutiny
+          grep --ignore-case --quiet \
+            "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
+            "${opportunities_headers}"
+          grep --ignore-case --quiet \
+            "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
+            "${scrutiny_headers}"
 
           if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
           then
@@ -1965,7 +1998,7 @@ jobs:
               'Specialist work, mapped without the sales pitch.' \
               "${opportunities_page}"
             grep --fixed-strings --quiet \
-              'Regulators answer to evidence too.' \
+              'Public bodies answer to evidence too.' \
               "${scrutiny_page}"
           else
             grep --fixed-strings --quiet \

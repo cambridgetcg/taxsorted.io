@@ -281,13 +281,19 @@ The shared terminal decisions are:
 
 There is no automatic acceptance state.
 
-## Publication and correction
+## Hosted distribution and correction
 
 Version `2026-07-24.3` has a separate checked-in publication decision bound to its exact canonical
-digest and nine IDs. Its current status is `pending-qualified-review`, so the protected public
-projection remains closed. A future `approved-for-publication` decision can open only the read-only
-research projection; it cannot activate intake, matching, advice, representation, filing or
-payment. Production activation also needs:
+digest and nine IDs. This repository is public, so the corpus and research notes are already
+publicly readable on GitHub. The decision is a hosted-distribution and endorsement gate, not a
+confidentiality or pre-publication gate.
+
+Its current status is `pending-qualified-review`, so TaxSorted's protected official API and
+frontend projection remain closed. A future `approved-for-hosted-distribution` decision can open
+only that read-only hosted research projection; it cannot activate intake, matching, advice,
+representation, filing or payment. That decision must be made by a named, separately authorised
+human publisher, cite evidence separate from the review pack and bind the exact pack reference.
+Hosted production activation also needs:
 
 - fresh law and source review;
 - qualified review of every displayed deadline;
@@ -296,6 +302,15 @@ payment. Production activation also needs:
 - an exercised `UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP`;
 - accessible corrections; and
 - an owner for withdrawal and downstream correction.
+
+The summary approval is backed by one exact, public-safe qualified-review pack. The pack must cover
+every source, opportunity, scrutiny record and affected institution; resolve independently verified
+capacity, conflict declarations and purpose-typed evidence for tax, legal/procedural,
+editorial-fairness, privacy/security and release-operations roles; actively assign those roles; and
+bind its canonical digest into the approval references. The review cycle and later review-by window
+are each bounded to 93 days. A complete pack remains evidence only: it cannot change a serving
+switch or approve its own hosted distribution. The API and machine wake recheck expiry per request;
+the static atlas is also behind a narrow Cloudflare UTC-date guard and uses no-store responses.
 
 The public correction URL is
 <https://github.com/cambridgetcg/taxsorted.io/issues>. It is not confidential. Private tax evidence
@@ -310,6 +325,10 @@ When a durable correction is made:
 4. identify every affected record and output;
 5. notify any downstream publisher that may still rely on the old claim; and
 6. retain the correction without silently rewriting history.
+
+Future material that genuinely requires review before any public disclosure must stay in private
+review storage with appropriate access control until that review is complete. Public repository
+branches, pull requests and unapproved files are not pre-publication storage.
 
 ## Validation
 

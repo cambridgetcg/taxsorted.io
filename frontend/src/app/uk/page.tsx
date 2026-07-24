@@ -50,7 +50,7 @@ const PUBLIC_PATHS = [
   {
     href: "/uk/opportunities",
     title: "Professional opportunity atlas",
-    body: "Under-covered tax work, real professional gates, finite local pipelines and regulator scrutiny.",
+    body: "Under-covered tax work, real professional gates, finite local pipelines and public-body scrutiny.",
   },
   {
     href: "/uk/tax-industry",

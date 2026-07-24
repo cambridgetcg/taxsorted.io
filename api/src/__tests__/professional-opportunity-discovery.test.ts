@@ -55,7 +55,7 @@ describe("professional-opportunity discovery", () => {
       optionalAgentToolBridge: {
         required: false,
         sdk: "@agenttool/sdk",
-        version: "0.16.2",
+        version: "0.16.3",
         directHttpsIsUniversalDoor: true,
         hostedAgentToolWrite: false,
         privateMatterFacts: false,
