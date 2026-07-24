@@ -52,7 +52,8 @@ layer is separately reviewed and closed until its checks are approved.
 - **Where a claim came from** is what technical documents call provenance.
 - **Schema** means the machine-readable shape of a record. A schema major is the first version
   number and changes when an old reader could no longer understand the new meaning safely.
-- **ETag** and **checksum** mean change fingerprints for exact response bytes.
+- **ETag** and **checksum** mean change fingerprints for the exact selected GET
+  representation bytes.
 - **Wildcard CORS** means a browser on any website may read the public response.
 - **NDJSON** means one complete JSON record per line, which permits streaming.
 - **Opaque ID** means an identifier callers compare exactly rather than interpreting or
@@ -294,6 +295,32 @@ equals the cumulative retained ledger through that release.
 Two money records cannot be labelled `inconsistent-with` unless their money
 basis, measurement stage and amount date match as well as their organisation,
 period, scope and metric. A changed stage stays a difference, not an accusation.
+
+### Public-power cases are research, not a claims market
+
+The UK case commons admits decided cases and official public sources, not anonymous accusations
+or claimant files. A court finding, allegation, inference, later appeal result and unresolved
+question are different states. Every published case needs a procedural status, review date,
+source-resolving timeline, contrary or limiting result, correction route and independent
+case-level stop.
+
+Money must retain its legal meaning. An amount demanded, liability avoided, statutory refund,
+damages award, claimant loss, costs exposure and net recovery are different fields. A successful
+public-law challenge may produce no payment; every recovery discussion must include a £0 or
+negative outcome and must not become a platform probability, expected value or promise.
+
+The public surface has no personal intake, raw evidence upload, comments, professional bids,
+lead sale, paid ranking, success-fee share, targeted outreach or firm recommendation. A blank
+professional assessment can be downloaded and completed under the user's own custody. Any later
+handoff needs its own consent, conflicts, professional-permission, privacy and regulatory release;
+the public research corpus does not silently grow into that service.
+
+The embedded digest identifies the packet's canonical substantive fields; the response checksum
+identifies the exact selected GET representation bytes. Neither proves the packet true, complete,
+current, independently witnessed or legally sufficient. Raw or privileged material stays outside
+the public corpus, and corrections remain possible even after a public copy has escaped operator
+control. Publication approval binds the exact corpus digest, version and reviewed case IDs, so a
+later edit or addition cannot silently inherit an earlier decision.
 
 ### Agent discovery should orient, not enlarge authority
 

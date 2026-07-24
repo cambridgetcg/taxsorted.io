@@ -42,6 +42,11 @@ const PUBLIC_PATHS = [
     body: "Who watches public bodies, who can challenge them and where coverage still stops.",
   },
   {
+    href: "/uk/cases",
+    title: "Public-power case commons",
+    body: "Decided cases, exact remedies, honest money meanings and local professional review packets.",
+  },
+  {
     href: "/uk/tax-industry",
     title: "The tax industry",
     body: "Roles, qualifications, pay evidence, market gates and lawful routes into the work.",

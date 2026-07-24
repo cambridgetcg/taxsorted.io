@@ -1009,6 +1009,7 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi-public.json");
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
+    expect(document.paths).toHaveProperty("/openapi/case-commons-uk.json");
     expect(document.paths).toHaveProperty("/openapi/tax-expert-uk.json");
     expect(document.paths).toHaveProperty(
       "/openapi/professional-tools-uk.json",
@@ -1065,6 +1066,11 @@ describe("developer API boundary", () => {
         path: "/openapi/accountability-uk.json",
         id: "accountability-uk",
         prefix: "/v1/accountability/uk",
+      },
+      {
+        path: "/openapi/case-commons-uk.json",
+        id: "case-commons-uk",
+        prefix: "/v1/case-commons/uk",
       },
       {
         path: "/openapi/why-graph.json",

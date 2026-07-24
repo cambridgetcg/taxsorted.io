@@ -221,6 +221,7 @@ jobs:
             /openapi/public-funding-uk.json \
             /openapi/politics-uk.json \
             /openapi/accountability-uk.json \
+            /openapi/case-commons-uk.json \
             /openapi/why-graph.json \
             /openapi/tax-expert-uk.json \
             /openapi/professional-tools-uk.json \
@@ -239,6 +240,13 @@ jobs:
             /v1/charities/uk/accountability/schema \
             /v1/accountability/uk \
             /v1/accountability/uk/schema \
+            /v1/case-commons/uk/method \
+            /v1/case-commons/uk/sources \
+            /v1/case-commons/uk/assessment-template \
+            /v1/case-commons/uk/assessment-schema \
+            /v1/case-commons/uk/schema \
+            /v1/case-commons/uk/packet-schema \
+            /v1/case-commons/uk/rights \
             /v1/why-graph \
             /v1/why-graph/adopters \
             /v1/why-graph/schema \
@@ -256,6 +264,64 @@ jobs:
               --connect-timeout 10 --max-time 30 --retry-max-time 120 \
               --retry 12 --retry-delay 5 --retry-all-errors \
               --output /dev/null "https://api.taxsorted.io${path}"
+          done
+
+          case_wake="${RUNNER_TEMP}/case-commons-wake.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${case_wake}" \
+            https://api.taxsorted.io/v1/wake
+          case_state=$(jq --raw-output \
+            '.resources.caseCommons.availability' "${case_wake}")
+
+          case_index=0
+          for path in \
+            /v1/case-commons/uk \
+            /v1/case-commons/uk/cases \
+            /v1/case-commons/uk/cases/haworth-v-hmrc-2021
+          do
+            case_index=$((case_index + 1))
+            case_body="${RUNNER_TEMP}/case-commons-${case_index}.json"
+            case_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --output "${case_body}" --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${case_state}:${case_status}" in
+              open:200)
+                jq --exit-status '
+                  (.schema == "taxsorted.uk.case-commons/1") or
+                  (.schema == "taxsorted.uk.case-packet/1")
+                ' "${case_body}" >/dev/null
+                ;;
+              publication-review:503)
+                jq --exit-status \
+                  '.error == "publication_review_pending" and .status == 503' \
+                  "${case_body}" >/dev/null
+                ;;
+              emergency-stopped:503)
+                jq --exit-status \
+                  '.error == "publication_emergency_stop" and .status == 503' \
+                  "${case_body}" >/dev/null
+                ;;
+              case-level-stops-active:200)
+                jq --exit-status '
+                  .availability.status == "case-level-stops-active" or
+                  .availability == "case-level-stops-active" or
+                  .schema == "taxsorted.uk.case-packet/1"
+                ' "${case_body}" >/dev/null
+                ;;
+              case-level-stops-active:503)
+                jq --exit-status \
+                  '.error == "case_publication_stop" and .status == 503 and .stoppedCaseCount > 0' \
+                  "${case_body}" >/dev/null
+                ;;
+              *)
+                echo "Case-commons state disagrees: ${case_state}:${case_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
           done
 
           politics_root="${RUNNER_TEMP}/politics-root.json"
@@ -1703,6 +1769,8 @@ jobs:
             /passport \
             /uk/public-funding \
             /uk/accountability \
+            /uk/cases \
+            /uk/cases/haworth-v-hmrc \
             /uk/tax-expert \
             /uk/politics/stand \
             /uk/politics/decisions \

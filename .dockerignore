@@ -6,7 +6,7 @@
 .github
 frontend/out
 frontend/.next
-# The API reads five reviewed JSON corpora at boot. Keep every other research
+# The API reads reviewed JSON corpora at boot. Keep every other research
 # file out of the image while allowing only those runtime data directories.
 research/*
 !research/uk/
@@ -16,11 +16,13 @@ research/uk/*
 !research/uk/charities/
 !research/uk/public-funding/
 !research/uk/politics/
+!research/uk/case-commons/
 research/uk/tax-system/*
 research/uk/tax-industry/*
 research/uk/charities/*
 research/uk/public-funding/*
 research/uk/politics/*
+research/uk/case-commons/*
 !research/uk/tax-system/data/
 !research/uk/tax-system/data/**
 !research/uk/tax-industry/data/
@@ -31,6 +33,8 @@ research/uk/politics/*
 !research/uk/public-funding/data/**
 !research/uk/politics/data/
 !research/uk/politics/data/**
+!research/uk/case-commons/data/
+!research/uk/case-commons/data/**
 infrastructure
 **/*.pem
 **/*.key

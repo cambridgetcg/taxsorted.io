@@ -46,6 +46,23 @@ const publicFundingPublicDataEnabled =
   !publicFundingEmergencyStop &&
   (env.NODE_ENV !== "production" ||
     env.UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED === "true");
+const caseCommonsEmergencyStop =
+  env.UK_CASE_COMMONS_EMERGENCY_STOP === "true";
+const caseCommonsPublicDataEnabled =
+  !caseCommonsEmergencyStop &&
+  (env.NODE_ENV !== "production" ||
+    env.UK_CASE_COMMONS_PUBLIC_DATA_ENABLED === "true");
+// Keep distinct operator values here. The case-commons route checks them
+// against the validated corpus and closes only its own surface if one is
+// malformed or stale.
+const caseCommonsStoppedCaseIds = [
+  ...new Set(
+    (env.UK_CASE_COMMONS_STOPPED_CASE_IDS || "")
+      .split(",")
+      .map((caseId) => caseId.trim())
+      .filter(Boolean),
+  ),
+];
 
 export const config = {
   port: Number(env.PORT || 8787),
@@ -132,6 +149,14 @@ export const config = {
   publicFunding: {
     emergencyStop: publicFundingEmergencyStop,
     publicDataEnabled: publicFundingPublicDataEnabled,
+  },
+  // Only reviewed, decided public records can enter this corpus. Production
+  // publication remains an explicit act and the independent stop closes every
+  // case packet without affecting tax filing or a professional's local file.
+  caseCommons: {
+    emergencyStop: caseCommonsEmergencyStop,
+    publicDataEnabled: caseCommonsPublicDataEnabled,
+    stoppedCaseIds: caseCommonsStoppedCaseIds,
   },
   corsOrigins:
     env.NODE_ENV === "production"

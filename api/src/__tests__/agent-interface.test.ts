@@ -303,6 +303,7 @@ describe("agent interface", () => {
       },
       frameworkSlices: {
         accountability: "/openapi/accountability-uk.json",
+        caseCommons: "/openapi/case-commons-uk.json",
         whyGraph: "/openapi/why-graph.json",
       },
       taskSlices: {
@@ -326,6 +327,38 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.caseCommons).toEqual({
+      href: "/v1/case-commons/uk",
+      cases: "/v1/case-commons/uk/cases",
+      schema: "/v1/case-commons/uk/schema",
+      packetSchema: "/v1/case-commons/uk/packet-schema",
+      assessmentTemplate: "/v1/case-commons/uk/assessment-template",
+      openApi: "/openapi/case-commons-uk.json",
+      humanGuide: "https://taxsorted.io/uk/cases/",
+      availability: "publication-review",
+      stoppedCaseCount: 0,
+      writes: false,
+      personalIntake: false,
+      privateUploads: false,
+      professionalMarketplace: false,
+      probabilityOrExpectedValue: false,
+      optionalAgentToolBridge: {
+        required: false,
+        sdk: "@agenttool/sdk",
+        version: "0.16.0",
+        client: "DataClient",
+        custody: "caller-operated-loopback-agent-data-node",
+        guide:
+          "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md",
+        defaultEffect: "dry-run-verification-only",
+        writeEffect:
+          "One explicit caller-directed local collect operation containing only the verified public packet.",
+        hostedAgentToolWrite: false,
+        privateCaseFacts: false,
+      },
+      effects:
+        "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
     });
     expect(body.resources.publicOfficePathways).toEqual({
       href: "/v1/politics/uk/public-office-pathways",
@@ -758,6 +791,23 @@ describe("agent interface", () => {
     const downstream = await app.request("/v1/probe");
     expect(downstream.status).toBe(200);
     expect(await downstream.json()).toEqual({ reachable: true });
+  });
+
+  it("reports case-level stops without publishing stopped case identities", () => {
+    const wake = buildAgentWakePayload({
+      ...options,
+      caseCommonsPublic: true,
+      caseCommonsStoppedCaseIds: ["haworth-v-hmrc-2021"],
+    });
+
+    expect(wake.resources.caseCommons).toMatchObject({
+      availability: "case-level-stops-active",
+      stoppedCaseCount: 1,
+    });
+    expect(wake.resources.caseCommons).not.toHaveProperty("stoppedCaseIds");
+    expect(JSON.stringify(wake.resources.caseCommons)).not.toContain(
+      "haworth-v-hmrc-2021",
+    );
   });
 
   it("answers public preflight without admitting near-match paths", async () => {
