@@ -1975,38 +1975,52 @@ jobs:
           scrutiny_page="${RUNNER_TEMP}/uk-regulator-scrutiny.html"
           opportunities_headers="${RUNNER_TEMP}/uk-professional-opportunities.headers"
           scrutiny_headers="${RUNNER_TEMP}/uk-regulator-scrutiny.headers"
-          curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 \
-            --dump-header "${opportunities_headers}" \
-            --output "${opportunities_page}" \
-            https://taxsorted.io/uk/opportunities
-          curl --fail --silent --show-error --location \
-            --connect-timeout 10 --max-time 30 \
-            --dump-header "${scrutiny_headers}" \
-            --output "${scrutiny_page}" \
-            https://taxsorted.io/uk/regulator-scrutiny
-          grep --ignore-case --quiet \
-            "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
-            "${opportunities_headers}"
-          grep --ignore-case --quiet \
-            "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
-            "${scrutiny_headers}"
-
           if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = open ]
           then
-            grep --fixed-strings --quiet \
-              'Specialist work, mapped without the sales pitch.' \
-              "${opportunities_page}"
-            grep --fixed-strings --quiet \
-              'Public bodies answer to evidence too.' \
-              "${scrutiny_page}"
+            opportunities_marker='Specialist work, mapped without the sales pitch.'
+            scrutiny_marker='Public bodies answer to evidence too.'
           else
-            grep --fixed-strings --quiet \
-              'This research is awaiting its required independent review.' \
-              "${opportunities_page}"
-            grep --fixed-strings --quiet \
-              'This evidence ledger is awaiting its required independent review.' \
-              "${scrutiny_page}"
+            opportunities_marker='This research is awaiting its required independent review.'
+            scrutiny_marker='This evidence ledger is awaiting its required independent review.'
+          fi
+
+          guard_ready=false
+          for _ in $(seq 1 12)
+          do
+            if curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --dump-header "${opportunities_headers}" \
+              --output "${opportunities_page}" \
+              https://taxsorted.io/uk/opportunities && \
+              curl --fail --silent --show-error --location \
+              --connect-timeout 5 --max-time 10 \
+              --dump-header "${scrutiny_headers}" \
+              --output "${scrutiny_page}" \
+              https://taxsorted.io/uk/regulator-scrutiny && \
+              grep --ignore-case --quiet \
+              "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
+              "${opportunities_headers}" && \
+              grep --ignore-case --quiet \
+              "^x-taxsorted-professional-opportunity-guard: ${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" \
+              "${scrutiny_headers}" && \
+              grep --fixed-strings --quiet \
+              "${opportunities_marker}" "${opportunities_page}" && \
+              grep --fixed-strings --quiet \
+              "${scrutiny_marker}" "${scrutiny_page}"
+            then
+              guard_ready=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "${guard_ready}" != true ]
+          then
+            echo 'The custom domain did not converge on the released professional-opportunity guard.' >&2
+            exit 1
+          fi
+
+          if [ "${FRONTEND_PROFESSIONAL_OPPORTUNITIES_STATE}" = closed ]
+          then
             if grep --fixed-strings --quiet \
               'Commercial-property fixtures' "${opportunities_page}" || \
                grep --fixed-strings --quiet \
