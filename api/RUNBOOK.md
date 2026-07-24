@@ -520,6 +520,82 @@ roll the Cloudflare Pages deployment back to the last safe build and purge its c
 same response. Record both the API and frontend versions; do not describe the incident as contained
 until every operator-controlled copy in scope has been checked.
 
+## UK case commons
+
+The UK case commons is a read-only public-law research surface. It accepts no claimant facts,
+evidence, professional bids or outreach requests. Before opening it in production, run the case
+commons tests, both workspace typechecks and the static frontend build, then read the rendered
+Haworth case against its linked official judgments.
+
+Publication is explicit:
+
+```bash
+fly secrets set -a taxsorted-api UK_CASE_COMMONS_PUBLIC_DATA_ENABLED=true
+```
+
+The switch is necessary but not sufficient. The checked-in
+`research/uk/case-commons/data/publication-approval.json` must also name the
+exact canonical corpus digest, corpus version and reviewed case IDs. Any data
+change that does not receive a new approval fails closed for both API cases and
+the static human projection.
+
+After the reviewed corpus is final, compute its canonical digest with:
+
+```bash
+npm exec --workspace api tsx -- -e \
+  'import { caseCommonsCorpusDigest, ukCaseCommons } from "./src/uk-case-commons.ts"; console.log(caseCommonsCorpusDigest(ukCaseCommons))'
+```
+
+Record that exact value, version and reviewed case IDs in the approval file,
+then rerun the API, frontend and production-build gates. Computing a digest is
+not itself approval.
+
+Until that switch is open, `/sources` contains only the general method sources;
+it does not preview sources linked to an unpublished case.
+
+Verify the corpus, method, case list, Haworth packet, source ledger, schemas, blank local
+assessment template, task-sized OpenAPI and `/v1/wake`. The Haworth amount must remain labelled
+as a demand affected by a quashed notice, never an award, refund, damages figure or promised gain.
+
+If a source, accuracy, rights or publication-safety problem appears, close case publication:
+
+```bash
+fly secrets set -a taxsorted-api UK_CASE_COMMONS_EMERGENCY_STOP=true
+```
+
+For an issue confined to one case, stop its stable ID without closing the others:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_CASE_COMMONS_STOPPED_CASE_IDS=haworth-v-hmrc-2021
+```
+
+Every value must be an exact stable case ID. A typo, stale ID or malformed value
+closes the whole case-publication surface instead of stopping API startup.
+Unrelated routes, including `/v1/health`, accounts and HMRC, remain available.
+Public discovery and errors report only that case-level stops are active and
+their count; they never publish the configured IDs. After changing the setting,
+verify `/v1/case-commons/uk/cases`, `/sources`, one case-detail request and
+`/v1/health`.
+
+The global stop closes every case packet and reduces `/sources` to the general method sources.
+A valid case-level stop removes the named case and its case-specific sources while leaving other
+admitted cases readable; a malformed case-stop setting fails closed for the whole case surface.
+Both controls leave the method, schemas, rights statement and blank local template readable for
+correction work. Neither removes the
+separately deployed static pages nor recalls copies already downloaded. Roll Cloudflare Pages back
+to the last safe build when the incident affects those pages, and remove the stop only after an
+explicit human review. Never turn this route into intake, lead sale, targeted outreach or a
+platform-generated merits score without a separate legal, privacy and regulatory release.
+
+Static publication consumes the same checked-in exact-content approval, with a
+separate deployment stop at `frontend/src/lib/uk-case-publication.ts`. Admitting
+a case to the research JSON does not put it on the human site. Add its stable ID
+and new corpus digest only with the publication decision. For a frontend
+incident, set that file's stop or remove the affected ID from the approval,
+rebuild, deploy and verify the generated output; use a Cloudflare rollback when
+it is faster. This is a deployment brake, not instant revocation.
+
 ## 1. Register on the HMRC Developer Hub (~5 minutes, Aleא's part)
 
 1. Go to https://developer.service.hmrc.gov.uk/developer/registration — register

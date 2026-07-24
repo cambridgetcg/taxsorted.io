@@ -35,6 +35,17 @@ observer-accountability: GET https://api.taxsorted.io/v1/accountability/uk
 observer-accountability-schema: GET https://api.taxsorted.io/v1/accountability/uk/schema
 observer-accountability-status: schema-only-not-admitted
 observer-accountability-records: none
+case-commons: GET https://api.taxsorted.io/v1/case-commons/uk
+case-commons-cases: GET https://api.taxsorted.io/v1/case-commons/uk/cases
+case-commons-schema: GET https://api.taxsorted.io/v1/case-commons/uk/schema
+case-commons-packet-schema: GET https://api.taxsorted.io/v1/case-commons/uk/packet-schema
+case-commons-assessment-template: GET https://api.taxsorted.io/v1/case-commons/uk/assessment-template
+case-commons-openapi: GET https://api.taxsorted.io/openapi/case-commons-uk.json
+case-commons-agenttool-local-mirror: https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.0 DataClient; exact pin; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-scope: decided public records; one England-and-Wales deep case; source-resolving packets; remedies and money meanings; local assessment template
+case-commons-effects: read-only research; no personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
+case-commons-private-material: stays with the prospective client or instructed professional in their approved matter system
 professional-tools: GET https://api.taxsorted.io/v1/uk/professional-tools
 professional-tools-openapi: GET https://api.taxsorted.io/openapi/professional-tools-uk.json
 professional-tools-status: credentialed design partner; two executable stateless tasks
@@ -135,3 +146,6 @@ wall: the charity map does not publish a people, personal-contact or inferred-be
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
 wall: every observer needs a sourced accountability route or an explicit coverage gap
 wall: a formal institutional relation is not proof of control, collusion, motive or character
+wall: case party positions, court findings, later outcomes, TaxSorted analysis and unknowns remain separate
+wall: an amount demanded or affected is not automatically an award, refund, recovery or net gain
+wall: the case commons has no claimant intake, lawyer bid, ranking, probability or outreach route

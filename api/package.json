@@ -20,21 +20,24 @@
     "validate:observer-accountability-candidate": "tsx scripts/validate-observer-accountability-candidate.ts",
     "validate:public-decision-pathways": "tsx scripts/validate-public-decision-pathways.ts",
     "validate:public-funding": "tsx scripts/validate-public-funding.ts",
+    "mirror:case-commons": "tsx scripts/mirror-case-commons-to-agenttool.ts",
     "create:api-key": "tsx scripts/create-api-key.ts",
     "manage:api-key": "tsx scripts/manage-api-key.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^1.14.0",
+    "@hono/node-server": "^2.0.11",
     "@hono/zod-openapi": "1.4.0",
     "@simplewebauthn/server": "13.3.2",
     "@taxsorted/engine": "*",
-    "hono": "^4.7.0",
+    "hono": "^4.12.31",
     "postgres": "^3.4.5",
     "tsx": "^4.19.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@agenttool/sdk": "0.16.0",
     "ajv": "^8.20.0",
+    "fast-uri": "^3.1.4",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

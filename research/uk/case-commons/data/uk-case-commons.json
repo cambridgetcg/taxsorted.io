@@ -1,0 +1,903 @@
+{
+  "schema": "taxsorted.uk.case-commons/1",
+  "meta": {
+    "title": "UK public-power case commons",
+    "version": "2026-07-24.1",
+    "retrievedAt": "2026-07-24",
+    "lawAsAt": "2026-07-24",
+    "jurisdiction": "United Kingdom; the judicial-review procedure mapped in this release is England and Wales",
+    "coverage": [
+      "One decided, source-backed tax and public-law case",
+      "The difference between a public-law remedy, money affected and money recovered",
+      "A local-first assessment and professional handoff protocol"
+    ],
+    "exclusions": [
+      "No live allegation, anonymous tip, claimant lead or unpublished evidence",
+      "No prediction of success, win score, lawyer ranking or promised return",
+      "No legal representation, client intake, referral, funding offer or contact brokerage",
+      "No private contact detail, raw case file or user submission"
+    ],
+    "warning": "This is public legal research, not legal advice. Deadlines, standing, alternative remedies, costs and the legal basis for any money claim need qualified review on the facts."
+  },
+  "publication": {
+    "status": "decided-public-record-only",
+    "writes": false,
+    "publicIntake": false,
+    "professionalMarketplace": false,
+    "emergencyStop": "UK_CASE_COMMONS_EMERGENCY_STOP",
+    "corrections": "https://github.com/cambridgetcg/taxsorted.io/issues",
+    "confidentialCorrectionChannel": null,
+    "privateEvidencePolicy": "Keep client identity, instructions, communications and raw evidence in the claimant's or instructed professional's matter file. This public release has no upload route.",
+    "activationGap": "A live lead or professional-pickup service remains closed until there is a lawful confidential intake, controller and retention policy, professional-regulatory review, conflicts process, safeguarding route, audit trail and tested emergency stop."
+  },
+  "protocol": {
+    "id": "claim-to-remedy",
+    "title": "From public power to a reviewable remedy",
+    "steps": [
+      {
+        "id": "decision",
+        "order": 1,
+        "question": "Which exact decision, action or failure to act is being challenged?",
+        "stopIf": "The target is only a general grievance, a private rumour or an unnamed decision."
+      },
+      {
+        "id": "authority",
+        "order": 2,
+        "question": "Which statute, rule or public-law duty gave the body power, and what exact condition or limit may not have been met?",
+        "stopIf": "No primary or official authority can be identified."
+      },
+      {
+        "id": "evidence",
+        "order": 3,
+        "question": "What supports the proposed ground, and what official material or contrary evidence weakens it?",
+        "stopIf": "The public version cannot separate allegation, evidence, finding, inference and unknown."
+      },
+      {
+        "id": "route",
+        "order": 4,
+        "question": "Is there a statutory appeal, review, complaint or ombudsman route that must or should be used instead?",
+        "stopIf": "An adequate alternative remedy exists and a qualified assessor has not explained why another route remains proper."
+      },
+      {
+        "id": "clock",
+        "order": 5,
+        "question": "When did the ground arise and which territory and procedure set the deadline?",
+        "stopIf": "A deadline cannot be checked immediately. In England and Wales, a judicial-review claim is generally required promptly and in any event within three months, with shorter limits in some fields."
+      },
+      {
+        "id": "remedy",
+        "order": 6,
+        "question": "What order could actually repair the problem: quashing, prohibiting, mandatory, declaration, injunction, reconsideration, restitution or a separately grounded damages claim?",
+        "stopIf": "The desired outcome is outside the court or tribunal's powers."
+      },
+      {
+        "id": "money",
+        "order": 7,
+        "question": "Is the figure a payment already made, a demand paused or removed, loss alleged, damages legally available, interest, costs, or only a hypothetical exposure?",
+        "stopIf": "A gross amount affected is being presented as an award, refund, net gain or expected value."
+      },
+      {
+        "id": "handoff",
+        "order": 8,
+        "question": "Has an authorised professional independently checked competence, current register status, conflicts, instructions, consent, evidence, funding and adverse-cost risk?",
+        "stopIf": "TaxSorted is being treated as the assessor, introducer, representative or secure matter file."
+      }
+    ],
+    "epistemicStates": [
+      "party-position",
+      "official-record",
+      "court-finding",
+      "later-procedural-outcome",
+      "taxsorted-analysis",
+      "unknown"
+    ],
+    "financialLanguage": {
+      "amountAffected": "A sum touched by a notice, decision or remedy. It is not automatically money received or saved.",
+      "grossRecovery": "Money legally recoverable before fees, funding share, tax, interest treatment and other deductions. Do not state this without a legal basis and evidence.",
+      "netRecovery": "Money remaining after every proved deduction and liability. Unknown unless the full matter is assessed.",
+      "expectedValue": "Not published. TaxSorted does not assign a probability of success or multiply a headline sum by a guessed win rate.",
+      "damagesBoundary": "A public decision being unlawful does not by itself establish a right to damages. A separate legal basis, loss, causation and any defences or limits need assessment.",
+      "illustrativeRangeRule": "Any later claimant-specific range must show public-law relief separately from money, include £0 and a negative net scenario, state every assumption and deduction, and be signed and dated by an authorised professional. The platform does not calculate it."
+    },
+    "routeMap": [
+      {
+        "id": "statutory-review-or-appeal",
+        "title": "Statutory review or appeal",
+        "mayDo": "Ask the body to review a decision or ask the specialist tribunal or court to change it, where the governing statute creates that route.",
+        "moneyBoundary": "A refund, liability reduction or award exists only where the particular tax or statutory scheme permits it.",
+        "firstCheck": "Identify the exact decision and its notice. HMRC tax appeals commonly use a 30-day clock, but the decision-specific rule controls.",
+        "sourceIds": [
+          "hmrc-tax-appeal-guidance",
+          "hmcts-tax-tribunal-guidance"
+        ]
+      },
+      {
+        "id": "judicial-review",
+        "title": "Judicial review",
+        "mayDo": "Review the lawfulness of an enactment or a decision, action or failure in a public function, with permission. Orders can include quashing, prohibiting and mandatory relief, declarations and injunctions.",
+        "moneyBoundary": "Damages, restitution or recovery of a sum may be joined where independently available, but cannot be the only judicial-review remedy.",
+        "firstCheck": "Use an adequate alternative remedy where available and check the clock immediately: in England and Wales the general rule is promptly and no later than three months, with shorter limits in some fields.",
+        "sourceIds": [
+          "cpr-part-54",
+          "jr-pre-action-protocol",
+          "senior-courts-act-section-31"
+        ]
+      },
+      {
+        "id": "human-rights-act",
+        "title": "Human Rights Act claim",
+        "mayDo": "A person who is, or would be, a victim of an unlawful public-authority act may bring proceedings or rely on Convention rights in existing proceedings.",
+        "moneyBoundary": "Damages are discretionary and may be awarded only where necessary for just satisfaction after considering the other relief available.",
+        "firstCheck": "Check victim status, the one-year general period and any shorter procedural clock.",
+        "sourceIds": [
+          "human-rights-act-section-7",
+          "human-rights-act-section-8"
+        ]
+      },
+      {
+        "id": "separate-private-law-or-restitution",
+        "title": "Separate compensation or repayment route",
+        "mayDo": "Seek compensation or repayment only where a statute, tort, contract, restitutionary rule or other cause of action supplies all required elements.",
+        "moneyBoundary": "Public-law unlawfulness alone is not a damages calculation. Duty or statutory basis, breach, payment or loss, causation, limitation and defences need proof.",
+        "firstCheck": "Name the cause of action before naming a value.",
+        "sourceIds": [
+          "senior-courts-act-section-31"
+        ]
+      },
+      {
+        "id": "complaint-or-ombudsman",
+        "title": "Complaint or ombudsman",
+        "mayDo": "Seek service correction, explanation, apology, reconsideration or a recommendation through the body's published complaint route and any applicable ombudsman.",
+        "moneyBoundary": "This is not a substitute for a court or tribunal damages claim; redress powers depend on the scheme.",
+        "firstCheck": "A complaint normally does not pause a tax appeal or litigation deadline.",
+        "sourceIds": [
+          "hmrc-complaint-guidance"
+        ]
+      }
+    ],
+    "decentralisation": {
+      "publicPacket": "Each admitted case can be downloaded as a complete source-resolving JSON packet and mirrored without an account.",
+      "privateSupplement": "A claimant or instructed professional keeps the private supplement locally or in their own approved matter system; TaxSorted never needs a copy.",
+      "digestMeaning": "The embedded SHA-256 digest identifies the canonical substantive packet fields before integrity metadata and route links are added. The X-Checksum-SHA256 response header verifies the exact delivered response bytes. Neither proves that a claim is true, a signer is qualified, or a source remains current.",
+      "signatureMeaning": "A later signature can prove only that the corresponding key signed specified bytes. Professional status must still be checked at the official register.",
+      "forkRule": "A corrected or external fork should keep the original case ID, source IDs, version and predecessor digest, then label additions and editorial responsibility. Version 1 does not yet publish a signed lineage ledger.",
+      "noCentralSelection": "TaxSorted does not choose a winner, assign a case owner or rank professionals. A prospective client decides whom to instruct."
+    },
+    "professionalHandoff": {
+      "status": "method-only-no-brokerage",
+      "firstContact": "The prospective claimant or their authorised representative, through a confidential channel they chose and consented to.",
+      "defendantContact": "The correctly identified public body's legal or service address only after instruction, conflicts and the applicable pre-action or tribunal procedure have been checked.",
+      "neverPublish": [
+        "A private claimant's email, phone number, address or evidence",
+        "A professional's expression of interest in a live matter",
+        "Conflict-check inputs, legal advice, privileged communication or funding terms"
+      ],
+      "qualificationChecks": [
+        {
+          "id": "sra-solicitor",
+          "role": "Solicitor or SRA-regulated firm in England and Wales",
+          "check": "Confirm the individual and firm independently in the Solicitors Register and verify contact details through an independent official source.",
+          "sourceIds": [
+            "sra-solicitors-register"
+          ]
+        },
+        {
+          "id": "bsb-barrister",
+          "role": "Practising barrister in England and Wales",
+          "check": "Confirm practising status, reserved-activity authorisation, public-access status where relevant, and any litigation authorisation in the Barristers' Register.",
+          "sourceIds": [
+            "bsb-barristers-register"
+          ]
+        }
+      ],
+      "minimumAssessment": [
+        "Jurisdiction and correct defendant",
+        "Client identity, authority and informed consent",
+        "Competence, practising status, insurance where applicable and conflicts",
+        "Standing, time limit and any adequate alternative remedy",
+        "Exact ground, supporting evidence and material counterevidence",
+        "Remedy, any separate monetary cause of action, loss and causation",
+        "Costs, adverse-cost exposure, funding, deductions and tax treatment",
+        "Privacy, privilege, defamation, contempt and reporting restrictions",
+        "A dated decision with reasons: unsuitable, needs evidence, or suitable for further professional review"
+      ]
+    },
+    "costsAndFunding": {
+      "warning": "A case can end negative even after some legal success. The ordinary civil-costs starting point is that the unsuccessful party pays the successful party's costs, subject to the court's discretion. Own fees, disbursements, insurance, funding deductions, tax and unrecovered work must sit beside any recovery scenario.",
+      "noRiskClaims": "Never describe conditional or damages-based funding as 'no risk'. Terms and adverse-cost exposure need independent advice.",
+      "sourceIds": [
+        "cpr-part-44",
+        "sra-no-win-no-fee"
+      ]
+    },
+    "marketplaceBoundary": {
+      "status": "closed-pending-regulatory-review",
+      "notLive": [
+        "Personal case intake",
+        "Paid, commissioned or ranked matching",
+        "Lead sale, referral fee or share of damages",
+        "Targeted or unsolicited outreach",
+        "Platform legal recommendation, retainer or representation"
+      ],
+      "reason": "Finding, referring, advising, investigating or representing claimants can enter regulated claims-management or legal-services activity depending on the sector, activity and business model. A later service needs specific authorisation analysis, fair and clear communications, consent, conflict checks and complete financial disclosure.",
+      "sourceIds": [
+        "fca-claims-management-regulation",
+        "sra-unsolicited-approaches",
+        "legal-services-act-section-12"
+      ]
+    },
+    "publicationSafety": {
+      "findingLanguage": "Say 'the court found' only where a final decision supports the exact words and date. Otherwise label a party position, unresolved allegation, community hypothesis, TaxSorted analysis or unknown.",
+      "activeCaseRule": "Do not admit an active case, public comments or speculative evidence until contempt, reporting restrictions, privacy, privilege and source rights have been reviewed. This first release is decided-case-only.",
+      "personalDataRule": "Public availability does not remove accuracy, lawful-basis, minimisation and risk-assessment duties. Raw evidence and personal material stay outside the commons.",
+      "rightOfReply": "A correction or reply should create a visible new version and can trigger a case-level stop; it never changes the historic source. Version 1 relies on repository history and does not claim a signed correction ledger.",
+      "sourceIds": [
+        "defamation-act-2013",
+        "contempt-of-court-act-1981",
+        "ico-dpia-guidance"
+      ]
+    },
+    "stopConditions": [
+      "A case is live or subject to a reporting restriction that has not been checked.",
+      "The public packet would expose private, special-category, privileged or safety-sensitive material.",
+      "A source does not support the wording attributed to it.",
+      "An allegation is being restated as a finding.",
+      "A money figure lacks a stated legal basis, meaning, date and explicit not-meaning.",
+      "A person or firm is being scored, ranked, pressured or contacted without consent.",
+      "The emergency stop is active."
+    ]
+  },
+  "sources": [
+    {
+      "id": "uksc-haworth-2021-case",
+      "title": "R (Haworth) v HMRC — case page",
+      "publisher": "UK Supreme Court",
+      "url": "https://supremecourt.uk/cases/uksc-2019-0124",
+      "kind": "official-court-case-page",
+      "status": "decided",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "Parties, issues, facts, dates and citation",
+        "The Court of Appeal quashed the follower and accelerated-payment notices"
+      ],
+      "limitations": [
+        "The page summary is not a substitute for the judgment",
+        "The case did not determine the underlying capital-gains-tax appeal"
+      ]
+    },
+    {
+      "id": "uksc-haworth-2021-judgment",
+      "title": "R (Haworth) v HMRC [2021] UKSC 25 — judgment",
+      "publisher": "UK Supreme Court",
+      "url": "https://supremecourt.uk/uploads/uksc_2019_0124_judgment_90ad362b5f.pdf",
+      "kind": "court-judgment",
+      "status": "decided",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The statutory follower-notice test and the Court's reasons",
+        "The £8,786,288.40 accelerated-payment notice",
+        "The then-applicable broad 50% penalty, reducible for cooperation but not below 10%",
+        "No penalty was imposed within the statutory time limit"
+      ],
+      "limitations": [
+        "The amount was an up-front demand on disputed tax, not damages or an award",
+        "Mr Haworth had not made the accelerated payment"
+      ]
+    },
+    {
+      "id": "uksc-haworth-2021-press-summary",
+      "title": "R (Haworth) v HMRC [2021] UKSC 25 — press summary",
+      "publisher": "UK Supreme Court",
+      "url": "https://supremecourt.uk/uploads/uksc_2019_0124_press_summary_a2a4362049.pdf",
+      "kind": "official-court-summary",
+      "status": "decided",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The Supreme Court unanimously dismissed HMRC's appeal",
+        "HMRC's 'likely' view did not meet the statutory threshold",
+        "HMRC had overstated the earlier Smallwood ruling",
+        "The penalty pressure engaged the constitutional right of access to justice"
+      ],
+      "limitations": [
+        "The summary says it is not part of the reasons; the judgment is authoritative"
+      ]
+    },
+    {
+      "id": "ukut-haworth-2024",
+      "title": "Haworth and others v HMRC [2024] UKUT 00058 (TCC)",
+      "publisher": "HM Courts & Tribunals Service and Upper Tribunal (Tax and Chancery Chamber)",
+      "url": "https://www.gov.uk/tax-and-chancery-tribunal-decisions/geoffrey-richard-haworth-ian-francis-lenagan-sg-kleinwort-hambros-trust-company-uk-limited-v-the-commissioners-for-his-majestys-revenue-and-customs-2024-ukut-00058-tcc",
+      "kind": "official-tribunal-decision-page",
+      "status": "decided",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The separate substantive tax appeal and its 2024 Upper Tribunal stage",
+        "The Upper Tribunal dismissed the taxpayers' appeals"
+      ],
+      "limitations": [
+        "This is a later, separate appeal about the underlying tax liability rather than the validity of the 2016 notices"
+      ]
+    },
+    {
+      "id": "uksc-haworth-2025-permission",
+      "title": "Haworth and others v HMRC — permission to appeal refused",
+      "publisher": "UK Supreme Court",
+      "url": "https://supremecourt.uk/cases/uksc-2025-0152",
+      "kind": "official-court-case-page",
+      "status": "permission-refused",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The First-tier Tribunal, Upper Tribunal and Court of Appeal rejected the underlying tax appeal",
+        "The Supreme Court refused permission on 30 October 2025 because the application did not raise an arguable point of law"
+      ],
+      "limitations": [
+        "Refusal of permission is not a fresh merits judgment on the 2021 judicial-review issues"
+      ]
+    },
+    {
+      "id": "cpr-part-54",
+      "title": "Civil Procedure Rules Part 54 — Judicial Review and Statutory Review",
+      "publisher": "Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part54",
+      "kind": "official-court-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "Judicial review concerns lawfulness of an enactment or a decision, action or failure in a public function",
+        "Permission is required",
+        "The general prompt and three-month filing limit and the existence of shorter limits",
+        "Quashing, mandatory and prohibiting orders, declarations and injunctions",
+        "Damages, restitution or recovery of a sum may be joined but not sought alone under the judicial-review procedure"
+      ],
+      "limitations": [
+        "This release maps England and Wales procedure only",
+        "Field-specific statutes and rules can change the route and deadline"
+      ]
+    },
+    {
+      "id": "jr-pre-action-protocol",
+      "title": "Pre-Action Protocol for Judicial Review",
+      "publisher": "Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/protocol/prot_jrv",
+      "kind": "official-court-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The protocol's England and Wales scope and aims",
+        "The need to identify issues, exchange information and consider settlement",
+        "Judicial review normally should not be used where an adequate alternative remedy exists",
+        "Protocol steps do not stop the judicial-review clock"
+      ],
+      "limitations": [
+        "Urgent cases and specialist proceedings can require a different approach",
+        "The protocol strongly advises appropriate legal advice"
+      ]
+    },
+    {
+      "id": "sra-solicitors-register",
+      "title": "Solicitors Register",
+      "publisher": "Solicitors Regulation Authority",
+      "url": "https://www.sra.org.uk/consumers/register/",
+      "kind": "official-professional-register",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The register can be used to check whether a solicitor or law firm is regulated by the SRA"
+      ],
+      "limitations": [
+        "Register status does not prove competence, availability or suitability for a particular matter, and contact details should still be verified independently"
+      ]
+    },
+    {
+      "id": "bsb-barristers-register",
+      "title": "The Barristers' Register",
+      "publisher": "Bar Standards Board",
+      "url": "https://www.barstandardsboard.org.uk/for-the-public/search-a-barristers-record/the-barristers-register.html",
+      "kind": "official-professional-register",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The register shows barristers authorised to practise, reserved activities, public-access status and litigation authorisation"
+      ],
+      "limitations": [
+        "Register status does not prove suitability, availability, independence or a likely case outcome"
+      ]
+    },
+    {
+      "id": "senior-courts-act-section-31",
+      "title": "Senior Courts Act 1981, section 31",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1981/54/section/31",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The High Court's judicial-review remedies and sufficient-interest requirement",
+        "The conditions for joining a damages claim to judicial review"
+      ],
+      "limitations": [
+        "Current procedural rules, later amendments and the facts still control"
+      ]
+    },
+    {
+      "id": "human-rights-act-section-7",
+      "title": "Human Rights Act 1998, section 7",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1998/42/section/7",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "Victim status and the general one-year period for proceedings against a public authority"
+      ],
+      "limitations": [
+        "The court can allow a longer period where equitable, and another applicable procedure can impose a stricter time limit"
+      ]
+    },
+    {
+      "id": "human-rights-act-section-8",
+      "title": "Human Rights Act 1998, section 8",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1998/42/section/8",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The court's just-and-appropriate relief and discretionary damages test"
+      ],
+      "limitations": [
+        "Damages are not automatic and require the court to be satisfied they are necessary for just satisfaction"
+      ]
+    },
+    {
+      "id": "hmrc-tax-appeal-guidance",
+      "title": "Disagree with a tax decision",
+      "publisher": "HM Revenue and Customs",
+      "url": "https://www.gov.uk/tax-appeals/decision",
+      "kind": "official-tax-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The ordinary HMRC review and appeal route and common 30-day response period"
+      ],
+      "limitations": [
+        "The exact decision notice, tax and statute determine whether and how an appeal exists"
+      ]
+    },
+    {
+      "id": "hmcts-tax-tribunal-guidance",
+      "title": "Appeal to the tax tribunal",
+      "publisher": "HM Courts & Tribunals Service",
+      "url": "https://www.gov.uk/tax-tribunal/appeal-to-tribunal",
+      "kind": "official-tribunal-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "How and when a tax appeal can move to the First-tier Tribunal"
+      ],
+      "limitations": [
+        "It is general procedural guidance, not a decision that a particular appeal is valid or in time"
+      ]
+    },
+    {
+      "id": "hmrc-complaint-guidance",
+      "title": "Complain about HMRC",
+      "publisher": "HM Revenue and Customs",
+      "url": "https://www.gov.uk/complain-about-hmrc",
+      "kind": "official-tax-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "HMRC's published service-complaint route"
+      ],
+      "limitations": [
+        "A complaint is distinct from challenging a tax decision and does not itself change the appeal clock"
+      ]
+    },
+    {
+      "id": "cpr-part-44",
+      "title": "Civil Procedure Rules Part 44 — General rules about costs",
+      "publisher": "Ministry of Justice",
+      "url": "https://www.justice.gov.uk/courts/procedure-rules/civil/rules/part-44-general-rules-about-costs",
+      "kind": "official-court-procedure",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The court's discretion on costs and the general rule that the unsuccessful party pays the successful party's costs"
+      ],
+      "limitations": [
+        "The court can make a different order after considering conduct, partial success and other circumstances"
+      ]
+    },
+    {
+      "id": "sra-no-win-no-fee",
+      "title": "No win, no fee agreements",
+      "publisher": "Solicitors Regulation Authority",
+      "url": "https://www.sra.org.uk/consumers/choosing/no-win-no-fee/",
+      "kind": "official-professional-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "Consumer cautions and cost questions for conditional-fee arrangements"
+      ],
+      "limitations": [
+        "The actual retainer and funding documents control the client's obligations"
+      ]
+    },
+    {
+      "id": "fca-claims-management-regulation",
+      "title": "Claims management regulation",
+      "publisher": "Financial Conduct Authority",
+      "url": "https://www.fca.org.uk/firms/claims-management-regulation",
+      "kind": "official-regulator-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The FCA regulates claims-management companies in specified sectors and activities can require authorisation"
+      ],
+      "limitations": [
+        "Whether a particular platform activity is regulated needs fact-specific perimeter advice"
+      ]
+    },
+    {
+      "id": "sra-unsolicited-approaches",
+      "title": "Unsolicited approaches and advertising",
+      "publisher": "Solicitors Regulation Authority",
+      "url": "https://www.sra.org.uk/solicitors/guidance/unsolicited-approaches-advertising/",
+      "kind": "official-professional-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "Professional duties affecting unsolicited approaches and clear, accurate publicity"
+      ],
+      "limitations": [
+        "The exact rule and permitted communication depend on the professional and circumstances"
+      ]
+    },
+    {
+      "id": "legal-services-act-section-12",
+      "title": "Legal Services Act 2007, section 12",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2007/29/section/12",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The statutory categories of reserved legal activity"
+      ],
+      "limitations": [
+        "Entitlement, exemptions and offence provisions require the rest of the Act and current regulatory rules"
+      ]
+    },
+    {
+      "id": "defamation-act-2013",
+      "title": "Defamation Act 2013",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/2013/26",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The statutory framework for defamation claims and defences in England and Wales"
+      ],
+      "limitations": [
+        "A public-interest label or website-operator status is not automatic immunity"
+      ]
+    },
+    {
+      "id": "contempt-of-court-act-1981",
+      "title": "Contempt of Court Act 1981",
+      "publisher": "The National Archives",
+      "url": "https://www.legislation.gov.uk/ukpga/1981/49",
+      "kind": "primary-legislation",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "The statutory contempt framework relevant to publications about active proceedings"
+      ],
+      "limitations": [
+        "Reporting restrictions and common-law contempt also require case-specific review"
+      ]
+    },
+    {
+      "id": "ico-dpia-guidance",
+      "title": "When do we need to do a DPIA?",
+      "publisher": "Information Commissioner's Office",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/accountability-and-governance/data-protection-impact-assessments-dpias/when-do-we-need-to-do-a-dpia/",
+      "kind": "official-data-protection-guidance",
+      "status": "current",
+      "retrievedAt": "2026-07-24",
+      "supports": [
+        "When high-risk personal-data processing requires a data-protection impact assessment"
+      ],
+      "limitations": [
+        "A DPIA is one part of lawful processing, not permission to publish"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "haworth-v-hmrc-2021",
+      "slug": "haworth-v-hmrc",
+      "title": "R (Haworth) v HMRC",
+      "citation": "[2021] UKSC 25",
+      "territory": "England and Wales",
+      "subject": "Tax administration and judicial review",
+      "caseStatus": "decided",
+      "publicationStatus": "admitted-decided-public-record",
+      "publicBody": {
+        "name": "HM Revenue and Customs",
+        "role": "Issuer of the follower notice and accelerated-payment notice",
+        "findingBoundary": "The Court found that the statutory conditions for these notices were not met. This packet does not infer motive, dishonesty or a general institutional character."
+      },
+      "publicInterestQuestion": "What happens when HMRC uses a penalty-backed notice that pressures a taxpayer to abandon an appeal, but has not reached the level of certainty Parliament required?",
+      "whyItMatters": "The case shows that a regulator can lose on the lawfulness of a coercive procedural notice even when the taxpayer later loses the underlying tax dispute. A remedy and a tax saving are different things.",
+      "controversyLabel": {
+        "state": "court-determined-public-law-dispute",
+        "statement": "The dispute concerned a tax-avoidance arrangement, an £8.786m accelerated demand and a penalty-backed notice. The Supreme Court upheld quashing the notices because HMRC had not met the statutory threshold and had misdirected itself about the earlier authority."
+      },
+      "timeline": [
+        {
+          "date": "2000-01-01",
+          "datePrecision": "year",
+          "state": "official-record",
+          "event": "The trust arrangements were implemented during tax year 2000–01. HMRC later opened an enquiry.",
+          "sourceIds": [
+            "uksc-haworth-2021-case",
+            "uksc-haworth-2021-judgment"
+          ]
+        },
+        {
+          "date": "2016-06-24",
+          "datePrecision": "day",
+          "state": "official-record",
+          "event": "HMRC issued a follower notice and an accelerated-payment notice for £8,786,288.40.",
+          "sourceIds": [
+            "uksc-haworth-2021-judgment"
+          ]
+        },
+        {
+          "date": "2019-05-01",
+          "datePrecision": "month",
+          "state": "court-finding",
+          "event": "The Court of Appeal allowed Mr Haworth's appeal and quashed the notices.",
+          "sourceIds": [
+            "uksc-haworth-2021-case"
+          ]
+        },
+        {
+          "date": "2021-07-02",
+          "datePrecision": "day",
+          "state": "court-finding",
+          "event": "The Supreme Court unanimously dismissed HMRC's appeal, leaving the notices quashed.",
+          "sourceIds": [
+            "uksc-haworth-2021-case",
+            "uksc-haworth-2021-press-summary"
+          ]
+        },
+        {
+          "date": "2024-03-04",
+          "datePrecision": "day",
+          "state": "later-procedural-outcome",
+          "event": "In the separate merits dispute, the Upper Tribunal dismissed the taxpayers' appeals about the underlying capital-gains-tax liability.",
+          "sourceIds": [
+            "ukut-haworth-2024"
+          ]
+        },
+        {
+          "date": "2025-10-30",
+          "datePrecision": "day",
+          "state": "later-procedural-outcome",
+          "event": "After the Court of Appeal also rejected the underlying tax appeal, the Supreme Court refused permission to appeal.",
+          "sourceIds": [
+            "uksc-haworth-2025-permission"
+          ]
+        }
+      ],
+      "findings": [
+        {
+          "id": "threshold-not-met",
+          "state": "court-finding",
+          "statement": "HMRC's conclusion that the earlier Smallwood ruling was likely to deny the tax advantage did not meet the statutory use of 'would'. The required opinion left no scope for a reasonable person to disagree.",
+          "sourceIds": [
+            "uksc-haworth-2021-press-summary",
+            "uksc-haworth-2021-judgment"
+          ]
+        },
+        {
+          "id": "earlier-ruling-overstated",
+          "state": "court-finding",
+          "statement": "HMRC misdirected itself by treating seven indicators from Smallwood as inevitably locating the trust's effective management in the UK.",
+          "sourceIds": [
+            "uksc-haworth-2021-press-summary",
+            "uksc-haworth-2021-judgment"
+          ]
+        },
+        {
+          "id": "access-to-justice",
+          "state": "court-finding",
+          "statement": "Because the penalty risk discouraged a taxpayer from continuing an appeal, the regime interfered with access to justice and the statutory power had to be interpreted restrictively.",
+          "sourceIds": [
+            "uksc-haworth-2021-press-summary",
+            "uksc-haworth-2021-judgment"
+          ]
+        }
+      ],
+      "counterweights": [
+        {
+          "id": "tax-liability-not-decided",
+          "state": "taxsorted-analysis",
+          "statement": "Quashing the notices did not decide whether the underlying tax was due.",
+          "sourceIds": [
+            "uksc-haworth-2021-case",
+            "uksc-haworth-2021-judgment"
+          ]
+        },
+        {
+          "id": "substantive-appeal-lost",
+          "state": "later-procedural-outcome",
+          "statement": "The underlying tax appeal was later dismissed through the First-tier Tribunal, Upper Tribunal and Court of Appeal; the Supreme Court refused permission to appeal.",
+          "sourceIds": [
+            "ukut-haworth-2024",
+            "uksc-haworth-2025-permission"
+          ]
+        },
+        {
+          "id": "no-penalty-imposed",
+          "state": "official-record",
+          "statement": "HMRC did not impose the follower-notice penalty within the statutory time limit.",
+          "sourceIds": [
+            "uksc-haworth-2021-judgment"
+          ]
+        }
+      ],
+      "remedies": [
+        {
+          "id": "quash-follower-notice",
+          "kind": "quashing-order",
+          "status": "granted",
+          "effect": "The follower notice was set aside.",
+          "notEffect": "It did not establish that no capital-gains tax was due.",
+          "sourceIds": [
+            "uksc-haworth-2021-case",
+            "uksc-haworth-2021-press-summary"
+          ]
+        },
+        {
+          "id": "quash-accelerated-payment-notice",
+          "kind": "quashing-order",
+          "status": "granted",
+          "effect": "The linked accelerated-payment notice was set aside.",
+          "notEffect": "It was not a damages award, and the judgment records that Mr Haworth had not made the accelerated payment.",
+          "sourceIds": [
+            "uksc-haworth-2021-case",
+            "uksc-haworth-2021-judgment",
+            "ukut-haworth-2024"
+          ]
+        }
+      ],
+      "financialEffect": {
+        "headline": "£8.786m demand affected; no damages award identified",
+        "status": "documented-amount-affected-not-recovery",
+        "currency": "GBP",
+        "documentedAmounts": [
+          {
+            "id": "accelerated-demand",
+            "amountPence": 878628840,
+            "kind": "upfront-demand-quashed",
+            "meaning": "The amount stated in the accelerated-payment notice that was quashed.",
+            "notMeaning": "Not money awarded, not a refund, not net gain and not a final decision that the tax was not due.",
+            "sourceIds": [
+              "uksc-haworth-2021-judgment",
+              "ukut-haworth-2024"
+            ]
+          },
+          {
+            "id": "then-potential-penalty-low",
+            "amountPence": 87862884,
+            "kind": "derived-historical-contingent-exposure",
+            "meaning": "Ten per cent of the denied advantage stated in the notice: the minimum percentage after cooperation described by the judgment under the law then applicable.",
+            "notMeaning": "Not a penalty imposed, paid, recovered or awarded. The judgment says no penalty was imposed in time.",
+            "sourceIds": [
+              "uksc-haworth-2021-judgment"
+            ]
+          },
+          {
+            "id": "then-potential-penalty-high",
+            "amountPence": 439314420,
+            "kind": "derived-historical-contingent-exposure",
+            "meaning": "Fifty per cent of the denied advantage stated in the notice: the broad penalty percentage described by the judgment under the law then applicable.",
+            "notMeaning": "Not a penalty imposed, paid, recovered or awarded. It is arithmetic context for the pressure created by the notice.",
+            "sourceIds": [
+              "uksc-haworth-2021-judgment"
+            ]
+          }
+        ],
+        "damagesAward": {
+          "status": "none-identified",
+          "amountPence": null,
+          "reason": "The reviewed official sources identify no damages award in these proceedings."
+        },
+        "netRecovery": {
+          "status": "not-established",
+          "amountPence": null,
+          "reason": "The sources identify no damages award, Mr Haworth had not paid the accelerated amount, the underlying tax appeal later failed, and this packet has no complete costs, interest, funding or tax-on-recovery record."
+        },
+        "professionalValuationQuestions": [
+          "Was money actually paid, retained, repaid or only demanded?",
+          "Which remedy and separate cause of action could lawfully produce money?",
+          "What loss was caused by the unlawful decision rather than the underlying lawful liability?",
+          "What limitation period, defence, interest rule, funding term, tax treatment and cost exposure applies?",
+          "What is the lowest defensible net scenario after every deduction, including zero?"
+        ],
+        "downside": {
+          "status": "not-quantified",
+          "minimumScenario": "£0 recovery plus own unrecovered costs and possible adverse costs; the net result can be negative.",
+          "reason": "The public sources do not provide a complete costs or funding record for this matter. A new claimant would need a matter-specific costs and funding assessment.",
+          "sourceIds": [
+            "cpr-part-44",
+            "sra-no-win-no-fee"
+          ]
+        },
+        "successProbabilityPublished": false
+      },
+      "applicability": {
+        "reasoningPattern": "Identify the exact statutory condition for a coercive notice; compare the public body's contemporaneous reasoning with that condition; preserve the distinction between procedural lawfulness and the merits of the underlying liability.",
+        "possibleSignals": [
+          "A notice relies on an earlier case but the facts, legal argument or concessions materially differ.",
+          "The decision-maker's record shows only likelihood where the statute requires a firmer conclusion.",
+          "The notice or penalty pressures a person to abandon an independent appeal.",
+          "The official explanation overstates what the earlier court actually decided."
+        ],
+        "notEnough": [
+          "Disagreement with HMRC or another regulator",
+          "A large amount, public controversy or political objection",
+          "A complaint, investigation or procedural mistake without material legal effect",
+          "Similarity to Haworth without checking the current statute, facts, route and deadline"
+        ],
+        "assessmentRoute": "A qualified assessor should first check any statutory review or appeal, then consider judicial review only where appropriate and within the applicable clock.",
+        "sourceIds": [
+          "cpr-part-54",
+          "jr-pre-action-protocol",
+          "uksc-haworth-2021-judgment"
+        ]
+      },
+      "professionalHandoff": {
+        "status": "historical-example-no-live-claimant-handoff",
+        "whoToContact": [
+          {
+            "order": 1,
+            "party": "Prospective client or authorised representative",
+            "when": "Only through a confidential channel the person has chosen, after clear consent to an initial review.",
+            "why": "Instructions, identity, objectives, documents and authority come from the client—not from a public case packet.",
+            "publicContactPublished": false
+          },
+          {
+            "order": 2,
+            "party": "The assessor's own conflicts and risk function",
+            "when": "Before receiving more than the minimum information needed for a conflict check.",
+            "why": "A public-interest theory does not displace conflicts, competence, insurance, privacy or matter-opening duties.",
+            "publicContactPublished": false
+          },
+          {
+            "order": 3,
+            "party": "Specialist public-law and, where relevant, revenue counsel",
+            "when": "After the instructing route and authorisation to practise have been checked.",
+            "why": "The public-law remedy, underlying tax appeal and any separate money claim may require different expertise.",
+            "publicContactPublished": false
+          },
+          {
+            "order": 4,
+            "party": "Correct public-body defendant and any interested party",
+            "when": "Only after instruction, route, urgency, service address and the applicable pre-action or tribunal rules are checked.",
+            "why": "The correct addressee and timing are procedural questions; unsolicited public pressure is not service.",
+            "publicContactPublished": false
+          }
+        ],
+        "pickupPacket": "/v1/case-commons/uk/assessment-template",
+        "casePacket": "/v1/case-commons/uk/cases/haworth-v-hmrc-2021",
+        "noIntroducerStatement": "TaxSorted does not introduce this historical party, receive expressions of interest, recommend a firm, take a referral fee or transmit a case file."
+      }
+    }
+  ]
+}

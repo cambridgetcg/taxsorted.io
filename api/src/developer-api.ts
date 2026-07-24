@@ -48,6 +48,12 @@ import {
   WhyGraphJsonSchemaDocumentSchema,
   WhyGraphSchema,
 } from "./why-graph.js";
+import {
+  caseAssessmentTemplateSchema,
+  caseCommonsPacketSchema,
+  caseCommonsResponseSchema,
+  caseCommonsRightsSchema,
+} from "./uk-case-commons.js";
 
 const MAX_CALCULATION_BODY_BYTES = 16 * 1024;
 const OPENAPI_MEDIA_TYPE = "application/vnd.oai.openapi+json;version=3.1";
@@ -102,6 +108,11 @@ const openApiTags = [
       "Reciprocal investigation accountability, public source doors and the zero-row candidate contract.",
   },
   {
+    name: "UK public-power case commons",
+    description:
+      "Decided public-law case packets, exact remedy and money meanings, local assessment templates and a no-brokerage boundary.",
+  },
+  {
     name: "OpenAPI descriptions",
     description:
       "Cacheable, task-sized API descriptions for machine callers.",
@@ -136,6 +147,7 @@ const publicApiPathPrefixes = [
   "/v1/public-funding/uk",
   "/v1/politics/uk",
   "/v1/accountability/uk",
+  "/v1/case-commons/uk",
   "/v1/why-graph",
 ] as const;
 
@@ -212,6 +224,14 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     description:
       "Task-sized contract for the watching-the-watchers framework and candidate schema.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/accountability/uk"),
+  },
+  {
+    id: "case-commons-uk",
+    path: "/openapi/case-commons-uk.json",
+    title: "TaxSorted UK Public-Power Case Commons API",
+    description:
+      "Task-sized read-only contract for decided case packets, source resolution, local professional assessment and publication boundaries.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/case-commons/uk"),
   },
   {
     id: "why-graph",
@@ -1067,6 +1087,7 @@ const AgentWake = z
         }),
         frameworkSlices: z.object({
           accountability: z.string(),
+          caseCommons: z.string(),
           whyGraph: z.string().optional(),
         }),
         taskSlices: z
@@ -1102,6 +1123,42 @@ const AgentWake = z
         schema: z.string(),
         status: z.literal("schema-only-not-admitted"),
         recordsAvailable: z.literal(false),
+      }),
+      caseCommons: z.object({
+        href: z.string(),
+        cases: z.string(),
+        schema: z.string(),
+        packetSchema: z.string(),
+        assessmentTemplate: z.string(),
+        openApi: z.string(),
+        humanGuide: z.string().url(),
+        availability: z.enum([
+          "open",
+          "publication-review",
+          "emergency-stopped",
+          "case-level-stops-active",
+        ]),
+        stoppedCaseCount: z.number().int().nonnegative(),
+        writes: z.literal(false),
+        personalIntake: z.literal(false),
+        privateUploads: z.literal(false),
+        professionalMarketplace: z.literal(false),
+        probabilityOrExpectedValue: z.literal(false),
+        optionalAgentToolBridge: z.object({
+          required: z.literal(false),
+          sdk: z.literal("@agenttool/sdk"),
+          version: z.literal("0.16.0"),
+          client: z.literal("DataClient"),
+          custody: z.literal(
+            "caller-operated-loopback-agent-data-node",
+          ),
+          guide: z.string().url(),
+          defaultEffect: z.literal("dry-run-verification-only"),
+          writeEffect: z.string(),
+          hostedAgentToolWrite: z.literal(false),
+          privateCaseFacts: z.literal(false),
+        }),
+        effects: z.string(),
       }),
       publicOfficePathways: z.object({
         href: z.string(),
@@ -1928,7 +1985,8 @@ const politicsRepresentationHeaders = {
     schema: { type: "string" as const },
   },
   "X-Checksum-SHA256": {
-    description: "Lowercase hexadecimal SHA-256 of the exact response bytes.",
+    description:
+      "Lowercase hexadecimal SHA-256 of the exact selected GET representation bytes.",
     schema: { type: "string" as const },
   },
 };
@@ -4020,6 +4078,289 @@ function registerObserverAccountabilityOpenApi(app: OpenAPIHono) {
   }
 }
 
+function registerCaseCommonsOpenApi(app: OpenAPIHono) {
+  const caseCommonsResponseHeaders = {
+    ...publicResponseHeaders,
+    "X-Checksum-SHA256": {
+      description:
+        "Lowercase hexadecimal SHA-256 of the exact selected GET representation bytes.",
+      schema: { type: "string" as const },
+    },
+  };
+  const CaseCommonsMethodJson = z
+    .object({
+      schema: z.literal("taxsorted.uk.case-commons/1"),
+      meta: z.object({}).passthrough(),
+      publication: z.object({}).passthrough(),
+      protocol: z.object({}).passthrough(),
+      routes: z.record(z.string(), z.string()),
+    })
+    .openapi("UkCaseCommonsMethod");
+  const CaseCommonsListJson = z
+    .object({
+      schema: z.literal("taxsorted.uk.case-commons/1"),
+      version: z.string(),
+      warning: z.string(),
+      availability: z.enum(["open", "case-level-stops-active"]),
+      stoppedCaseCount: z.number().int().nonnegative(),
+      cases: z.array(z.object({}).passthrough()),
+    })
+    .openapi("UkCaseCommonsList");
+  const CaseCommonsSourcesJson = z
+    .object({
+      schema: z.literal("taxsorted.uk.case-commons/1"),
+      version: z.string(),
+      scope: z.enum([
+        "complete-reviewed-ledger",
+        "method-only-during-emergency-stop",
+        "method-only-during-publication-review",
+        "method-only-during-case-level-stop",
+        "visible-case-and-method-ledger",
+      ]),
+      availability: z.enum([
+        "open",
+        "publication-review",
+        "emergency-stopped",
+        "case-level-stops-active",
+      ]),
+      stoppedCaseCount: z.number().int().nonnegative(),
+      sources: z.array(z.object({}).passthrough()),
+      sourceUseBoundary: z.string(),
+    })
+    .openapi("UkCaseCommonsSources");
+  const JsonSchemaDocument = z
+    .object({
+      $id: z.string().url(),
+      title: z.string(),
+      description: z.string(),
+    })
+    .passthrough()
+    .openapi("UkCaseCommonsJsonSchema");
+
+  const routes = [
+    {
+      path: "/v1/case-commons/uk",
+      operationId: "getUkCaseCommons",
+      summary: "Read the UK public-power case commons",
+      description:
+        "One reviewed decided case, the claim-to-remedy method, exact money meanings and public/private custody boundary. No intake, scoring, matching, outreach or representation.",
+      schema: caseCommonsResponseSchema,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/case-commons/uk/method",
+      operationId: "getUkCaseCommonsMethod",
+      summary: "Read the case-admission and assessment method",
+      description:
+        "Read the lawful-route map, financial language, costs, publication safety, local-first custody and closed marketplace boundary without opening a case packet.",
+      schema: CaseCommonsMethodJson,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/cases",
+      operationId: "listUkCaseCommonsCases",
+      summary: "List admitted decided cases",
+      description:
+        "Compact list with procedural status, financial status and explicit absence of a platform probability.",
+      schema: CaseCommonsListJson,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/case-commons/uk/sources",
+      operationId: "listUkCaseCommonsSources",
+      summary: "Read the official case-commons source ledger",
+      description:
+        "Every source states the narrow claims it supports and its limitations.",
+      schema: CaseCommonsSourcesJson,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/assessment-template",
+      operationId: "getUkCaseAssessmentTemplate",
+      summary: "Download the blank local case-assessment template",
+      description:
+        "Contains no client facts and has no submission endpoint. A professional fills and stores it only in a local or approved confidential matter system.",
+      schema: caseAssessmentTemplateSchema,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/rights",
+      operationId: "getUkCaseCommonsRights",
+      summary: "Read the case-commons reuse boundary",
+      description:
+        "Separates the TaxSorted curation licence from linked judgments, legislation, guidance and register material.",
+      schema: caseCommonsRightsSchema,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/schema",
+      operationId: "getUkCaseCommonsSchema",
+      summary: "Read the case-commons JSON Schema",
+      description:
+        "Structural contract plus runtime invariants excluding private contacts, rankings, probabilities and expected-value fields.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/packet-schema",
+      operationId: "getUkCaseCommonsPacketSchema",
+      summary: "Read the complete case-packet JSON Schema",
+      description:
+        "Exact structural contract for one resolved public case packet, including the digest scope and proof limits.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/assessment-schema",
+      operationId: "getUkCaseAssessmentSchema",
+      summary: "Read the local assessment JSON Schema",
+      description:
+        "Portable fillable contract with machine-enforced template, register, check-set and completion rules; TaxSorted has no assessment upload or pickup route.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+  ] as const;
+
+  for (const route of routes) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      summary: route.summary,
+      description: route.description,
+      tags: ["UK public-power case commons"],
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current reviewed static representation.",
+          headers: caseCommonsResponseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: caseCommonsResponseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+          content: problemContent,
+        },
+        ...(route.protected
+          ? {
+              503: {
+                description:
+                  "Production publication is awaiting approval or the independent case stop is active.",
+                content: problemContent,
+              },
+            }
+          : {}),
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: `head${route.operationId.slice(3)}`,
+      summary: `Check ${route.summary.slice(5).toLowerCase()}`,
+      tags: ["UK public-power case commons"],
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: caseCommonsResponseHeaders,
+        },
+        304: {
+          description: "The supplied ETag still identifies this representation.",
+          headers: caseCommonsResponseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+        },
+        ...(route.protected
+          ? {
+              503: {
+                description:
+                  "Production publication is awaiting approval or the independent case stop is active.",
+              },
+            }
+          : {}),
+      },
+    });
+  }
+
+  app.openAPIRegistry.registerPath({
+    method: "get",
+    path: "/v1/case-commons/uk/cases/{caseId}",
+    operationId: "getUkCaseCommonsCase",
+    summary: "Read one complete digest-bearing case packet",
+    description:
+      "Resolves every source used by the case and method. Its embedded SHA-256 identifies canonical substantive fields; the response checksum identifies exact selected GET representation bytes. Neither proves truth, qualification or legal viability.",
+    tags: ["UK public-power case commons"],
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ caseId: z.string().min(1).max(200) }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Complete source-resolving case packet.",
+        headers: caseCommonsResponseHeaders,
+        content: { "application/json": { schema: caseCommonsPacketSchema } },
+      },
+      304: {
+        description: "The supplied ETag still identifies this case packet.",
+        headers: caseCommonsResponseHeaders,
+      },
+      400: {
+        description: "Case packets do not accept query parameters.",
+        content: problemContent,
+      },
+      404: {
+        description: "No admitted decided case has that ID or slug.",
+        content: problemContent,
+      },
+      503: {
+        description:
+          "Production publication is awaiting approval or the independent case stop is active.",
+        content: problemContent,
+      },
+    },
+  });
+  app.openAPIRegistry.registerPath({
+    method: "head",
+    path: "/v1/case-commons/uk/cases/{caseId}",
+    operationId: "headUkCaseCommonsCase",
+    summary: "Check one case packet",
+    tags: ["UK public-power case commons"],
+    request: {
+      headers: ConditionalRequestHeaders,
+      params: z.object({ caseId: z.string().min(1).max(200) }),
+    },
+    security: [],
+    responses: {
+      200: {
+        description: "Current case-packet metadata.",
+        headers: caseCommonsResponseHeaders,
+      },
+      304: {
+        description: "The supplied ETag still identifies this case packet.",
+        headers: caseCommonsResponseHeaders,
+      },
+      404: { description: "No admitted case has that ID or slug." },
+      503: { description: "Case publication is closed." },
+    },
+  });
+}
+
 function registerWhyGraphOpenApi(app: OpenAPIHono) {
   const routes = [
     {
@@ -5523,6 +5864,9 @@ function openApiTagForPath(path: string): string {
   if (hasPathPrefix(path, "/v1/accountability/uk")) {
     return "UK observer accountability";
   }
+  if (hasPathPrefix(path, "/v1/case-commons/uk")) {
+    return "UK public-power case commons";
+  }
   if (hasPathPrefix(path, "/v1/why-graph")) {
     return "Explanation contracts";
   }
@@ -5945,6 +6289,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
   registerObserverAccountabilityOpenApi(app);
+  registerCaseCommonsOpenApi(app);
   registerWhyGraphOpenApi(app);
   registerPublicFundingOpenApi(app);
   registerPoliticsOpenApi(app);

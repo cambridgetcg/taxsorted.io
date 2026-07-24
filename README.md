@@ -39,6 +39,9 @@ The site keeps its depth, but the way in is deliberately small:
   answers, named sources, visible unknowns and safe next steps in one public map.
 - **`/uk` — Understand the system.** Personal-tax paths, public money, politics,
   accountability, charities, the tax industry and the reusable API doors in one map.
+- **`/uk/cases` — Examine public-power cases.** Decided facts, official sources, remedy
+  routes, money states and a local professional-assessment template. It is research, not
+  claimant intake, legal advice, lead sale or a prediction market.
 
 Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
 or a second copy of the datasets.
@@ -178,6 +181,12 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   institutional relations, investigation engagements, public actions, institutional responses
   and coverage gaps. Every observer needs a sourced accountability route or an explicit gap;
   there are no people dossiers, private networks, live-case records, motive inferences or scores.
+- **UK case commons**: sessionless `GET /v1/case-commons/uk` publishes a reviewed method,
+  official source ledger and portable, digest-bearing case packets behind an independent
+  production switch. The first deep dive is *R (Haworth) v HMRC*: the API keeps the quashed
+  notices, affected demand, absence of an established damages recovery, later tax result and
+  possible costs as separate facts. Its blank assessment template stays local and accepts no
+  upload; there are no claimant records, bids, rankings, viability scores or firm recommendations.
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
   all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
   checkpoints with JSON Feed and Atom views. `/openapi-public.json`, five dataset slices,
@@ -231,6 +240,13 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   — the zero-row words-and-actions contract, full admission conditions, example and validator
 - [`research/uk/public-funding/README.md`](research/uk/public-funding/README.md) — how pooled
   public money becomes authority, allocations, health and education delivery, accounts and audit
+- [`research/uk/case-commons/README.md`](research/uk/case-commons/README.md) — the UK
+  public-power case method, source ledger, money-language rules, local custody boundary and first
+  evidence-bounded Haworth deep dive
+- [`research/uk/case-commons/AGENTTOOL.md`](research/uk/case-commons/AGENTTOOL.md) —
+  optional, exact-pinned AgentTool SDK 0.16.0 bridge for verifying one public packet and placing it
+  in a caller-operated loopback `agent-data/v1` node; dry-run by default and no hosted write
+- `/uk/cases` — public case commons and `/uk/cases/haworth-v-hmrc` — the first deep case
 - `/uk/accountability` — public page: who watches, under what authority and method, what they
   publish, who can challenge them, and where the evidence still stops
 - [`research/uk/politics/official-events-method.md`](research/uk/politics/official-events-method.md)
