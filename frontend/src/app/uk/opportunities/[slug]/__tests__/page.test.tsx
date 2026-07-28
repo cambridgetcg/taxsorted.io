@@ -13,6 +13,11 @@ vi.mock("@/lib/uk-professional-opportunities", async (importOriginal) => {
   return {
     ...actual,
     ukProfessionalOpportunityCorpus: corpus,
+    professionalOpportunityBySlug: (slug: string) =>
+      corpus.opportunities.find(
+        (opportunity) =>
+          opportunity.slug === slug || opportunity.id === slug,
+      ),
     professionalOpportunitySources: (sourceIds: readonly string[]) => {
       const wanted = new Set(sourceIds);
       return corpus.sources.filter((source) => wanted.has(source.id));
@@ -24,10 +29,7 @@ vi.mock("@/lib/uk-professional-opportunities", async (importOriginal) => {
   };
 });
 
-import {
-  ProfessionalOpportunityDetail,
-  generateStaticParams,
-} from "../page";
+import ProfessionalOpportunityPage, { generateStaticParams } from "../page";
 import { ukProfessionalOpportunityCorpus } from "@/lib/uk-professional-opportunities";
 
 describe("professional opportunity detail", () => {
@@ -37,8 +39,12 @@ describe("professional opportunity detail", () => {
   const corpus = ukProfessionalOpportunityCorpus;
   const opportunity = corpus.opportunities[0]!;
 
-  it("turns one opportunity into evidence, workflow and route checks", () => {
-    render(<ProfessionalOpportunityDetail opportunity={opportunity} />);
+  it("turns one opportunity into evidence, workflow and route checks", async () => {
+    render(
+      await ProfessionalOpportunityPage({
+        params: Promise.resolve({ slug: opportunity.slug }),
+      }),
+    );
 
     expect(
       screen.getByRole("heading", { name: opportunity.title }),
@@ -76,8 +82,12 @@ describe("professional opportunity detail", () => {
     );
   });
 
-  it("offers a public packet but no completed-assessment upload", () => {
-    render(<ProfessionalOpportunityDetail opportunity={opportunity} />);
+  it("offers a public packet but no completed-assessment upload", async () => {
+    render(
+      await ProfessionalOpportunityPage({
+        params: Promise.resolve({ slug: opportunity.slug }),
+      }),
+    );
 
     expect(
       screen.getByRole("link", { name: /complete public packet json/i }),

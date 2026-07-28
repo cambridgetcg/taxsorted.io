@@ -113,7 +113,7 @@ function ClaimSourceLinks({
   );
 }
 
-export function ProfessionalOpportunityDetail({
+function ProfessionalOpportunityDetail({
   opportunity,
 }: {
   opportunity: UkProfessionalOpportunity;
