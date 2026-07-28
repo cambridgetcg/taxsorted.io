@@ -259,6 +259,10 @@ jobs:
             /v1/case-commons/uk/schema \
             /v1/case-commons/uk/packet-schema \
             /v1/case-commons/uk/rights \
+            /v1/case-commons/uk/interpretation \
+            /v1/case-commons/uk/interpretation/schema \
+            /v1/case-commons/uk/agent \
+            /v1/case-commons/uk/training/schema \
             /v1/professional-opportunities/uk/assessment-template \
             /v1/professional-opportunities/uk/assessment-schema \
             /v1/professional-opportunities/uk/schema \
@@ -291,8 +295,27 @@ jobs:
             https://api.taxsorted.io/v1/wake
           case_state=$(jq --raw-output \
             '.resources.caseCommons.availability' "${case_wake}")
+          dispute_state=$(jq --raw-output \
+            '.resources.caseCommons.interpretationAvailability' "${case_wake}")
+          dispute_emitted=$(jq --raw-output \
+            '.resources.whyGraph.thirdAdopter.runtimeEmitted' "${case_wake}")
           tax_identity_state=$(jq --raw-output \
             '.resources.taxIdentity.availability' "${case_wake}")
+
+          case "${dispute_state}:${dispute_emitted}" in
+            exact-release-verified-on-request:true) ;;
+            derived-release-review:false) ;;
+            emergency-stopped:false) ;;
+            *)
+              echo "Tax-dispute discovery state disagrees: ${dispute_state}:${dispute_emitted}" >&2
+              exit 1
+              ;;
+          esac
+          if [ "${dispute_state}" = "exact-release-verified-on-request" ] && \
+             [ "${case_state}" != "open" ]; then
+            echo "Tax-dispute routes cannot be advertised while case commons is ${case_state}" >&2
+            exit 1
+          fi
 
           tax_identity_index=0
           for path in \
@@ -405,6 +428,80 @@ jobs:
                 ;;
               *)
                 echo "Case-commons state disagrees: ${case_state}:${case_status} for ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+          dispute_index=0
+          for route in \
+            '/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation|taxsorted.uk.tax-dispute-interpretation/1|json' \
+            '/v1/case-commons/uk/cases/haworth-v-hmrc-2021/why-graph|taxsorted.why-graph/1|json' \
+            '/v1/case-commons/uk/training|taxsorted.uk.tax-dispute-training/1|json' \
+            '/v1/case-commons/uk/training/examples|taxsorted.uk.tax-dispute-training-bundle/1|json' \
+            '/v1/case-commons/uk/training/examples.ndjson|taxsorted.uk.tax-dispute-training-example/1|ndjson'
+          do
+            dispute_index=$((dispute_index + 1))
+            path="${route%%|*}"
+            route_tail="${route#*|}"
+            expected_schema="${route_tail%%|*}"
+            representation="${route_tail##*|}"
+            dispute_body="${RUNNER_TEMP}/tax-dispute-${dispute_index}.body"
+            dispute_headers="${RUNNER_TEMP}/tax-dispute-${dispute_index}.headers"
+            dispute_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --dump-header "${dispute_headers}" \
+              --output "${dispute_body}" --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${case_state}:${dispute_state}:${dispute_status}" in
+              open:exact-release-verified-on-request:200)
+                if [ "${representation}" = "ndjson" ]; then
+                  test -s "${dispute_body}"
+                  awk '
+                    tolower($1) == "content-type:" &&
+                    index(tolower($0), "application/x-ndjson") { found = 1 }
+                    END { exit !found }
+                  ' "${dispute_headers}"
+                  sed -n '1p' "${dispute_body}" | \
+                    jq --exit-status --arg schema "${expected_schema}" \
+                      '.schema == $schema' >/dev/null
+                else
+                  jq --exit-status --arg schema "${expected_schema}" \
+                    '.schema == $schema' "${dispute_body}" >/dev/null
+                fi
+                ;;
+              open:derived-release-review:503)
+                jq --exit-status '
+                  .error == "tax_dispute_interpretation_review_pending" and
+                  .status == 503 and
+                  .availability == "derived-release-review"
+                ' "${dispute_body}" >/dev/null
+                ;;
+              open:emergency-stopped:503)
+                jq --exit-status '
+                  .error == "tax_dispute_interpretation_review_pending" and
+                  .status == 503 and
+                  .reason == "derived-release-emergency-stop"
+                ' "${dispute_body}" >/dev/null
+                ;;
+              publication-review:*:503)
+                jq --exit-status \
+                  '.error == "publication_review_pending" and .status == 503' \
+                  "${dispute_body}" >/dev/null
+                ;;
+              emergency-stopped:*:503)
+                jq --exit-status \
+                  '.error == "publication_emergency_stop" and .status == 503' \
+                  "${dispute_body}" >/dev/null
+                ;;
+              case-level-stops-active:*:503)
+                jq --exit-status \
+                  '.error == "case_publication_stop" and .status == 503 and .stoppedCaseCount > 0' \
+                  "${dispute_body}" >/dev/null
+                ;;
+              *)
+                echo "Tax-dispute availability and route disagree: ${case_state}:${dispute_state}:${dispute_status} ${path}" >&2
                 exit 1
                 ;;
             esac

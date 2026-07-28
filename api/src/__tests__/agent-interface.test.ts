@@ -982,12 +982,17 @@ describe("agent interface", () => {
       ...options,
       caseCommonsPublic: true,
       caseCommonsStoppedCaseIds: ["haworth-v-hmrc-2021"],
+      caseCommonsInterpretationPublicationIsCurrent: () => true,
     });
 
     expect(wake.resources.caseCommons).toMatchObject({
       availability: "case-level-stops-active",
+      interpretationAvailability: "derived-release-review",
       stoppedCaseCount: 1,
     });
+    expect(
+      wake.resources.whyGraph.thirdAdopter?.runtimeEmitted,
+    ).toBe(false);
     expect(wake.resources.caseCommons).not.toHaveProperty("stoppedCaseIds");
     expect(JSON.stringify(wake.resources.caseCommons)).not.toContain(
       "haworth-v-hmrc-2021",

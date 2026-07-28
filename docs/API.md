@@ -7,8 +7,9 @@ purchase in England or Northern Ireland. The second is an evidence-backed MTD In
 readiness assessment and public capability registry. Both are bounded services, not a generic
 tax-advice chatbot and not a filing rail.
 
-Alongside calculations, six UK maps explain the systems around the answer. The
-tax-system graph covers authority, accounts, permissions, collection and challenge. The
+Alongside calculations, five UK record maps explain the systems around the answer, while a
+separate tax-identity framework explains identity across those systems. The tax-system graph
+covers authority, accounts, permissions, collection and challenge. The
 tax-identity framework separates eight legal, charge, capacity, nexus, grouping, control,
 reporting and obligation dimensions so a legal-form label is never mistaken for the whole tax
 answer. Status, sources and effective dates qualify every assertion. The
@@ -446,7 +447,7 @@ inventing fragment semantics in WhyGraph/1. The current corpus has guidance rath
 primary-law records, so binding provisions, case applicability and official challenge routes remain
 explicit gaps. Guidance never becomes a rule node.
 
-The candidate third adopter is a case interpretation available only after separate approval at
+The third adopter is a case interpretation available only after separate approval at
 `/v1/case-commons/uk/cases/{caseId}/why-graph`. Its root is the court's holding, not a TaxSorted
 prediction. Outcome-determinative issue branches, supporting public reasons, source records and
 unmapped case material stay separate. The graph has `authority: taxsorted-analysis` and

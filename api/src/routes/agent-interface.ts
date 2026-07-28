@@ -511,6 +511,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
     options.caseCommonsPublic === true &&
     !options.caseCommonsEmergencyStop &&
     !options.caseCommonsInterpretationEmergencyStop &&
+    (options.caseCommonsStoppedCaseIds?.length ?? 0) === 0 &&
     caseCommonsInterpretationPublicationCurrent;
   const catalog = buildOpenDataCatalog(options);
   const taxIdentityFramework = catalog.frameworks.find(
