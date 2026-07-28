@@ -15,6 +15,19 @@ import {
 import { ukTaxIndustrySchema } from "./uk-tax-industry.js";
 import { ukTaxSystemSchema } from "./uk-tax-system.js";
 import {
+  ukTaxIdentityArchetypesResponseSchema,
+  ukTaxIdentityDimensionsResponseSchema,
+  ukTaxIdentityExampleDetailSchema,
+  ukTaxIdentityExamplesResponseSchema,
+  ukTaxIdentityGapsResponseSchema,
+  ukTaxIdentityOverlapsResponseSchema,
+  ukTaxIdentityOverviewSchema,
+  ukTaxIdentityRightsSchema,
+  ukTaxIdentitySchema,
+  ukTaxIdentitySourcesResponseSchema,
+  ukTaxIdentityTimelineResponseSchema,
+} from "./uk-tax-identity.js";
+import {
   charityProcedureActorRoles,
   charityProcedureChallengeModes,
   charityProcedureStages,
@@ -89,6 +102,11 @@ const openApiTags = [
     description: "The reviewed UK tax-system map and bulk distributions.",
   },
   {
+    name: "UK tax identity",
+    description:
+      "Effective-dated legal and tax identity dimensions, origins, overlaps and synthetic interpretations.",
+  },
+  {
     name: "UK tax industry",
     description: "Roles, qualifications, institutions, gates and pathways.",
   },
@@ -152,6 +170,7 @@ const openApiTags = [
 const publicApiPathPrefixes = [
   "/v1/open-data",
   "/v1/tax-system/uk",
+  "/v1/tax-identity/uk",
   "/v1/tax-industry/uk",
   "/v1/charities/uk",
   "/v1/public-funding/uk",
@@ -195,6 +214,14 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     title: "TaxSorted UK Tax System API",
     description: "Task-sized contract for the reviewed UK tax-system map.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/tax-system/uk"),
+  },
+  {
+    id: "tax-identity-uk",
+    path: "/openapi/tax-identity-uk.json",
+    title: "TaxSorted UK Tax Identity API",
+    description:
+      "Task-sized read-only contract for the effective-dated identity framework and synthetic worked examples.",
+    matchesPath: (path) => hasPathPrefix(path, "/v1/tax-identity/uk"),
   },
   {
     id: "tax-industry-uk",
@@ -1109,6 +1136,7 @@ const AgentWake = z
           accountability: z.string(),
           caseCommons: z.string(),
           professionalOpportunities: z.string(),
+          taxIdentity: z.string(),
           whyGraph: z.string().optional(),
         }),
         taskSlices: z
@@ -1144,6 +1172,47 @@ const AgentWake = z
         schema: z.string(),
         status: z.literal("schema-only-not-admitted"),
         recordsAvailable: z.literal(false),
+      }),
+      taxIdentity: z.object({
+        availability: z.enum(["open", "emergency-stopped"]),
+        version: z.string(),
+        reviewedOn: z.string(),
+        lawAsAt: z.string(),
+        schema: z.string(),
+        href: z.string(),
+        graph: z.string(),
+        dimensions: z.string(),
+        archetypes: z.string(),
+        overlaps: z.string(),
+        timeline: z.string(),
+        examples: z.string(),
+        sources: z.string(),
+        gaps: z.string(),
+        schemaHref: z.string(),
+        rights: z.string(),
+        openApi: z.string(),
+        humanGuide: z.string().url(),
+        model: z.literal("effective-dated-multi-dimensional-vector"),
+        access: z.object({
+          methods: z.tuple([
+            z.literal("GET"),
+            z.literal("HEAD"),
+            z.literal("OPTIONS"),
+          ]),
+          authentication: z.literal("none"),
+          session: z.literal("none"),
+          cookies: z.literal("none"),
+          writes: z.literal("none"),
+          cors: z.literal("*"),
+        }),
+        boundaries: z.object({
+          personalFactsAccepted: z.literal(false),
+          realTaxpayerDecision: z.literal(false),
+          legalAdvice: z.literal(false),
+          filingOrSubmission: z.literal(false),
+          externalStateChange: z.literal(false),
+          syntheticExamplesOnly: z.literal(true),
+        }),
       }),
       caseCommons: z.object({
         href: z.string(),
@@ -1644,6 +1713,78 @@ const OpenDataDataset = z
   })
   .passthrough()
   .openapi("OpenDataDataset");
+const OpenDataFramework = z
+  .object({
+    id: z.literal("uk-tax-identity-framework"),
+    kind: z.literal("interpretation-framework"),
+    title: z.string(),
+    jurisdiction: z.literal("United Kingdom"),
+    schema: z.string(),
+    version: z.string(),
+    reviewedOn: z.string(),
+    lawAsAt: z.string(),
+    updatePolicy: z.object({
+      cadence: z.string(),
+      nextReviewDate: z.string().nullable(),
+    }),
+    access: z.object({
+      methods: z.tuple([
+        z.literal("GET"),
+        z.literal("HEAD"),
+        z.literal("OPTIONS"),
+      ]),
+      authentication: z.literal("none"),
+      session: z.literal("none"),
+      cookies: z.literal("none"),
+      writes: z.literal(false),
+      personalFactsAccepted: z.literal(false),
+      cors: z.literal("*"),
+    }),
+    availability: z.object({
+      status: z.enum(["open", "emergency-stopped"]),
+      contentAvailable: z.boolean(),
+      discoveryAvailable: z.literal(true),
+      schemaAvailable: z.literal(true),
+      rightsAvailable: z.literal(true),
+      openApiAvailable: z.literal(true),
+      humanGuideAvailable: z.literal(true),
+      emergencyStop: z.boolean(),
+      boundary: z.string(),
+    }),
+    licence: z.object({
+      name: z.string(),
+      url: z.string().url(),
+      scope: z.string(),
+      sourceRights: z.string(),
+    }),
+    boundaries: z.object({
+      sourceBackedOnly: z.literal(true),
+      syntheticExamplesOnly: z.literal(true),
+      personalFactsAccepted: z.literal(false),
+      realTaxpayerDecision: z.literal(false),
+      legalAdvice: z.literal(false),
+      filingOrSubmission: z.literal(false),
+      externalStateChange: z.literal(false),
+      statements: z.array(z.string()),
+    }),
+    resources: z.object({
+      overview: z.string(),
+      graph: z.string(),
+      dimensions: z.string(),
+      archetypes: z.string(),
+      overlaps: z.string(),
+      timeline: z.string(),
+      examples: z.string(),
+      exampleTemplate: z.string(),
+      sources: z.string(),
+      gaps: z.string(),
+      schema: z.string(),
+      rights: z.string(),
+      openApi: z.string(),
+      humanGuide: z.string().url(),
+    }),
+  })
+  .openapi("OpenDataFramework");
 const OpenDataCatalog = z
   .object({
     schema: z.literal("taxsorted.open-data-catalog/1"),
@@ -1664,6 +1805,7 @@ const OpenDataCatalog = z
         charities: z.string(),
         publicFunding: z.string(),
         politics: z.string(),
+        taxIdentity: z.string(),
       }),
       rateLimits: z.string(),
       availability: z.string(),
@@ -1684,6 +1826,7 @@ const OpenDataCatalog = z
       corrections: z.string().url(),
     }),
     datasets: z.array(OpenDataDataset),
+    frameworks: z.array(OpenDataFramework),
   })
   .openapi("OpenDataCatalog");
 const OpenDataRights = z
@@ -1695,6 +1838,9 @@ const OpenDataRights = z
     sourceMaterial: z.string(),
     automationRule: z.string(),
     datasetRights: z.record(z.string(), z.string()),
+    frameworkRights: z.object({
+      taxIdentity: z.string(),
+    }),
     publicIssueTracker: z.string().url(),
     correctionChannel: z.object({
       publicUrl: z.string().url(),
@@ -2243,9 +2389,9 @@ function registerOpenDataOpenApi(app: OpenAPIHono) {
     method: "get",
     path: "/v1/open-data",
     operationId: "listOpenDataDatasets",
-    summary: "Discover TaxSorted public datasets",
+    summary: "Discover TaxSorted public datasets and frameworks",
     description:
-      "Public, sessionless catalog of tax-system, tax-industry, charity-sector, public-funding and politics/public-integrity datasets, licences, review dates, schemas, dictionaries and bulk exports. No API key is read or required.",
+      "Public, sessionless catalog of five record datasets plus a separate UK tax-identity interpretation framework. Dataset entries name their data resources; the framework entry names only its real read routes and does not promise record resolution or bulk exports. No API key is read or required.",
     request: { headers: ConditionalRequestHeaders },
     security: [],
     responses: {
@@ -2907,6 +3053,306 @@ function registerTaxSystemOpenApi(app: OpenAPIHono) {
       },
     },
   });
+}
+
+function registerTaxIdentityOpenApi(app: OpenAPIHono) {
+  const TaxIdentityJsonSchema = z
+    .object({
+      $schema: z.string().url(),
+      $id: z.string().url(),
+      title: z.string(),
+      description: z.string(),
+    })
+    .passthrough()
+    .openapi("UkTaxIdentityJsonSchema");
+  const TaxIdentityEmergencyStopProblem = z
+    .object({
+      ...problemDetailsShape,
+      status: z.literal(503).openapi({ type: "integer", enum: [503] }),
+      error: z.literal("tax_identity_emergency_stop"),
+      schema: z.literal("taxsorted.uk.tax-identity-error/1"),
+      available: z.literal(false),
+      emergencyStop: z.literal(true),
+      personalFactsAccepted: z.literal(false),
+      externalStateChanged: z.literal(false),
+      writes: z.literal(false),
+    })
+    .openapi("UkTaxIdentityEmergencyStopProblem");
+  const emergencyStopContent = {
+    "application/problem+json": {
+      schema: TaxIdentityEmergencyStopProblem,
+    },
+    "application/json": {
+      schema: TaxIdentityEmergencyStopProblem,
+    },
+  };
+  const responseHeaders = {
+    ...publicResponseHeaders,
+    "X-Corpus-Version": {
+      description: "Version of the reviewed tax-identity corpus.",
+      schema: { type: "string" as const },
+    },
+    "X-Corpus-Reviewed-On": {
+      description: "Date on which the corpus was last reviewed.",
+      schema: { type: "string" as const, format: "date" },
+    },
+  };
+  const routes = [
+    {
+      path: "/v1/tax-identity/uk",
+      operationId: "getUkTaxIdentityOverview",
+      summary: "Read the UK tax-identity framework",
+      description:
+        "Orient to the effective-dated identity dimensions, legal-form archetypes, overlaps, selected category history and synthetic examples. No taxpayer facts are accepted.",
+      schema: ukTaxIdentityOverviewSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/graph",
+      operationId: "getUkTaxIdentityGraph",
+      summary: "Read the complete UK tax-identity graph",
+      description:
+        "Return the canonical source-backed corpus: dimensions, archetypes, overlaps, milestones, synthetic example profiles, sources and explicit gaps.",
+      schema: ukTaxIdentitySchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/dimensions",
+      operationId: "listUkTaxIdentityDimensions",
+      summary: "List the tax-identity dimensions",
+      description:
+        "Keep legal existence, attribution, capacity, nexus, grouping, control, reporting and obligations separate. Status, sources and effective dates qualify each assertion.",
+      schema: ukTaxIdentityDimensionsResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/archetypes",
+      operationId: "listUkTaxIdentityArchetypes",
+      summary: "List UK legal and tax archetypes",
+      description:
+        "Read familiar forms across several tax roles without treating the archetype as a taxpayer decision.",
+      schema: ukTaxIdentityArchetypesResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/overlaps",
+      operationId: "listUkTaxIdentityOverlaps",
+      summary: "List overlapping tax identities",
+      description:
+        "Read named situations where two correct classifications apply to different scopes, with dangerous shortcuts and review triggers.",
+      schema: ukTaxIdentityOverlapsResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/timeline",
+      operationId: "listUkTaxIdentityMilestones",
+      summary: "Read selected tax-identity category milestones",
+      description:
+        "Trace selected origins and changes while preserving what each event did not settle.",
+      schema: ukTaxIdentityTimelineResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/examples",
+      operationId: "listUkTaxIdentityExamples",
+      summary: "List synthetic tax-identity examples",
+      description:
+        "Return reviewed teaching profiles only; no record represents a real person or organisation.",
+      schema: ukTaxIdentityExamplesResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/sources",
+      operationId: "listUkTaxIdentitySources",
+      summary: "Read the tax-identity source ledger",
+      description:
+        "Every source states the narrow claims it supports and its limits.",
+      schema: ukTaxIdentitySourcesResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/gaps",
+      operationId: "listUkTaxIdentityGaps",
+      summary: "Read tax-identity coverage and method gaps",
+      description:
+        "Keep portability, evidence, privacy, method and effect boundaries explicit.",
+      schema: ukTaxIdentityGapsResponseSchema,
+      mediaType: "application/json",
+    },
+    {
+      path: "/v1/tax-identity/uk/schema",
+      operationId: "getUkTaxIdentitySchema",
+      summary: "Read the tax-identity JSON Schema",
+      description:
+        "Structural corpus contract with separately declared runtime reference and date invariants.",
+      schema: TaxIdentityJsonSchema,
+      mediaType: "application/schema+json",
+    },
+    {
+      path: "/v1/tax-identity/uk/rights",
+      operationId: "getUkTaxIdentityRights",
+      summary: "Read the tax-identity reuse boundary",
+      description:
+        "Separate TaxSorted curation rights from the terms attached to linked legislation, guidance and standards.",
+      schema: ukTaxIdentityRightsSchema,
+      mediaType: "application/json",
+    },
+  ] as const;
+  const alwaysAvailablePaths = new Set([
+    "/v1/tax-identity/uk/schema",
+    "/v1/tax-identity/uk/rights",
+  ]);
+  const headOperationId = (operationId: string) => {
+    const prefix = operationId.startsWith("get")
+      ? "get"
+      : operationId.startsWith("list")
+        ? "list"
+        : undefined;
+    if (!prefix) {
+      throw new Error(
+        `Tax-identity read operation ${operationId} must begin with get or list`,
+      );
+    }
+    return `head${operationId.slice(prefix.length)}`;
+  };
+
+  for (const route of routes) {
+    const stoppedByEmergencySwitch = !alwaysAvailablePaths.has(
+      route.path,
+    );
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: route.path,
+      operationId: route.operationId,
+      tags: ["UK tax identity"],
+      summary: route.summary,
+      description: route.description,
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current reviewed static representation.",
+          headers: responseHeaders,
+          content: { [route.mediaType]: { schema: route.schema } },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this exact representation.",
+          headers: responseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+          content: problemContent,
+        },
+        ...(stoppedByEmergencySwitch
+          ? {
+              503: {
+                description:
+                  "The independent tax-identity emergency stop is active. Schema, rights and OpenAPI discovery remain available.",
+                content: emergencyStopContent,
+              },
+            }
+          : {}),
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: route.path,
+      operationId: headOperationId(route.operationId),
+      tags: ["UK tax identity"],
+      summary: `Check ${route.summary.slice(5).toLowerCase()}`,
+      description: "Return validators and links without a response body.",
+      request: { headers: ConditionalRequestHeaders },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: responseHeaders,
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this exact representation.",
+          headers: responseHeaders,
+        },
+        400: {
+          description: "Static resources do not accept query parameters.",
+        },
+        ...(stoppedByEmergencySwitch
+          ? {
+              503: {
+                description:
+                  "The independent tax-identity emergency stop is active. Schema, rights and OpenAPI discovery remain available.",
+              },
+            }
+          : {}),
+      },
+    });
+  }
+
+  for (const method of ["get", "head"] as const) {
+    app.openAPIRegistry.registerPath({
+      method,
+      path: "/v1/tax-identity/uk/examples/{exampleId}",
+      operationId:
+        method === "get"
+          ? "getUkTaxIdentityExample"
+          : "headUkTaxIdentityExample",
+      tags: ["UK tax identity"],
+      summary:
+        method === "get"
+          ? "Interpret one reviewed synthetic identity profile"
+          : "Check one synthetic identity interpretation",
+      description:
+        method === "get"
+          ? "Apply the deterministic identity-vector interpreter to one named corpus example. This route accepts no request facts and makes no real taxpayer decision."
+          : "Return the example representation's validators and links without a body.",
+      request: {
+        headers: ConditionalRequestHeaders,
+        params: z.object({
+          exampleId: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
+        }),
+      },
+      security: [],
+      responses: {
+        200: {
+          description:
+            method === "get"
+              ? "Synthetic profile, identity vector, matched overlaps, review reasons and resolved sources."
+              : "Current representation metadata.",
+          headers: responseHeaders,
+          ...(method === "get"
+            ? {
+                content: {
+                  "application/json": {
+                    schema: ukTaxIdentityExampleDetailSchema,
+                  },
+                },
+              }
+            : {}),
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this exact interpretation.",
+          headers: responseHeaders,
+        },
+        400: {
+          description: "Synthetic example resources do not accept query parameters.",
+          ...(method === "get" ? { content: problemContent } : {}),
+        },
+        404: {
+          description: "No reviewed synthetic example has that ID.",
+          ...(method === "get" ? { content: problemContent } : {}),
+        },
+        503: {
+          description:
+            "The independent tax-identity emergency stop is active. Schema, rights and OpenAPI discovery remain available.",
+          ...(method === "get"
+            ? { content: emergencyStopContent }
+            : {}),
+        },
+      },
+    });
+  }
 }
 
 function registerTaxIndustryOpenApi(app: OpenAPIHono) {
@@ -6264,6 +6710,7 @@ function openApiTagForPath(path: string): string {
   if (publicAgentPaths.has(path)) return "Agent discovery";
   if (hasPathPrefix(path, "/v1/open-data")) return "Open-data catalogue";
   if (hasPathPrefix(path, "/v1/tax-system/uk")) return "UK tax system";
+  if (hasPathPrefix(path, "/v1/tax-identity/uk")) return "UK tax identity";
   if (hasPathPrefix(path, "/v1/tax-industry/uk")) return "UK tax industry";
   if (hasPathPrefix(path, "/v1/charities/uk")) return "UK charities";
   if (hasPathPrefix(path, "/v1/public-funding/uk")) {
@@ -6698,6 +7145,7 @@ export function registerDeveloperApi(app: OpenAPIHono, apiOrigin: string) {
   registerOpenDataOpenApi(app);
   registerReleaseDiscoveryOpenApi(app);
   registerTaxSystemOpenApi(app);
+  registerTaxIdentityOpenApi(app);
   registerTaxIndustryOpenApi(app);
   registerCharitiesOpenApi(app);
   registerObserverAccountabilityOpenApi(app);

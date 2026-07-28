@@ -28,6 +28,11 @@ const PERSONAL_PATHS = [
 
 const PUBLIC_PATHS = [
   {
+    href: "/uk/tax-identity",
+    title: "Tax identity framework",
+    body: "Eight scoped dimensions: legal form, tax attribution, activity, residence, registration, control, reporting and obligation roles.",
+  },
+  {
     href: "/uk/public-funding",
     title: "Public money",
     body: "How pooled tax becomes allocations, health and education delivery, accounts and audit.",
@@ -65,6 +70,11 @@ const PUBLIC_PATHS = [
 ] as const;
 
 const API_PATHS = [
+  {
+    href: "https://api.taxsorted.io/v1/tax-identity/uk",
+    title: "UK tax-identity API",
+    body: "The versioned framework, overlap graph, source register and synthetic examples.",
+  },
   {
     href: "https://api.taxsorted.io/v1/uk/tax-expert",
     title: "Tax expert capabilities",

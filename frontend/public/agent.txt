@@ -16,6 +16,14 @@ why-graph-adopters: GET https://api.taxsorted.io/v1/why-graph/adopters
 why-graph-schema: GET https://api.taxsorted.io/v1/why-graph/schema
 why-graph-openapi: GET https://api.taxsorted.io/openapi/why-graph.json
 why-graph-writes: none; read-only framework with no ingestion route
+tax-identity: GET https://api.taxsorted.io/v1/tax-identity/uk
+tax-identity-graph: GET https://api.taxsorted.io/v1/tax-identity/uk/graph
+tax-identity-examples: GET https://api.taxsorted.io/v1/tax-identity/uk/examples
+tax-identity-schema: GET https://api.taxsorted.io/v1/tax-identity/uk/schema
+tax-identity-openapi: GET https://api.taxsorted.io/openapi/tax-identity-uk.json
+tax-identity-human-guide: GET https://taxsorted.io/uk/tax-identity/
+tax-identity-scope: dated legal-existence, tax-attribution, capacity/activity, residence/nexus, registration/grouping, ownership/control, reporting-classification and obligation-role dimensions; UK-first classifications
+tax-identity-effects: read-only reviewed framework and synthetic examples; no personal fact intake, identity decision, advice, filing or external state change
 health: GET https://api.taxsorted.io/v1/health
 release-ledger: GET https://api.taxsorted.io/v1/open-data/releases
 release-json-feed: GET https://api.taxsorted.io/v1/open-data/releases/feed.json
@@ -159,6 +167,7 @@ wall: publication gates and emergency stops remain authoritative
 wall: a public-data licence is not a blanket licence over linked source material
 wall: private contacts, private communications and inferred personal ties do not belong here
 wall: uncertainty, source limits and known gaps stay visible
+wall: one legal-form or taxpayer-kind label is never the whole tax identity
 wall: the charity map does not publish a people, personal-contact or inferred-belief graph
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
 wall: every observer needs a sourced accountability route or an explicit coverage gap

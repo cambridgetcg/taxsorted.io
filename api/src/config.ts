@@ -46,6 +46,8 @@ const publicFundingPublicDataEnabled =
   !publicFundingEmergencyStop &&
   (env.NODE_ENV !== "production" ||
     env.UK_PUBLIC_FUNDING_PUBLIC_DATA_ENABLED === "true");
+const taxIdentityEmergencyStop =
+  env.UK_TAX_IDENTITY_EMERGENCY_STOP === "true";
 const caseCommonsEmergencyStop =
   env.UK_CASE_COMMONS_EMERGENCY_STOP === "true";
 const caseCommonsPublicDataEnabled =
@@ -154,6 +156,12 @@ export const config = {
   taxIndustry: {
     publicDataEnabled:
       env.NODE_ENV !== "production" || env.UK_TAX_INDUSTRY_PUBLIC_DATA_ENABLED === "true",
+  },
+  // The identity framework contains public sources and synthetic examples
+  // only. Its independent stop closes framework content while schema, rights
+  // and discovery remain readable.
+  taxIdentity: {
+    emergencyStop: taxIdentityEmergencyStop,
   },
   // This first charity release describes the sector, official register doors,
   // legal conditions and organisation-level disclosure rules. It contains no

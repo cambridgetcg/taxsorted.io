@@ -20,6 +20,7 @@ import { createUkPoliticsRoutes } from "./routes/uk-politics.js";
 import { createOpenDataRoutes } from "./routes/open-data.js";
 import { createUkTaxIndustryRoutes } from "./routes/uk-tax-industry.js";
 import { createUkTaxSystemRoutes } from "./routes/uk-tax-system.js";
+import { createUkTaxIdentityRoutes } from "./routes/uk-tax-identity.js";
 import { createUkCharitiesRoutes } from "./routes/uk-charities.js";
 import { createUkPublicFundingRoutes } from "./routes/uk-public-funding.js";
 import { createAgentInterfaceRoutes } from "./routes/agent-interface.js";
@@ -47,6 +48,7 @@ app.use("*", apiCors);
 const openDataRouteOptions = {
   taxSystemPublic: config.taxSystem.publicDataEnabled,
   taxIndustryPublic: config.taxIndustry.publicDataEnabled,
+  taxIdentityEmergencyStop: config.taxIdentity.emergencyStop,
   charitiesPublic: config.charities.publicDataEnabled,
   charitiesEmergencyStop: config.charities.emergencyStop,
   publicFundingPublic: config.publicFunding.publicDataEnabled,
@@ -109,6 +111,12 @@ app.route(
 app.route(
   "/v1/tax-system/uk",
   createUkTaxSystemRoutes({ publicDataEnabled: config.taxSystem.publicDataEnabled })
+);
+app.route(
+  "/v1/tax-identity/uk",
+  createUkTaxIdentityRoutes({
+    emergencyStop: config.taxIdentity.emergencyStop,
+  }),
 );
 app.route(
   "/v1/tax-industry/uk",

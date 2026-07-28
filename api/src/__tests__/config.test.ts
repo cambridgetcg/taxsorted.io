@@ -340,6 +340,24 @@ describe("config.taxIndustry — publication gate", () => {
   });
 });
 
+describe("config.taxIdentity — emergency stop", () => {
+  it("defaults off and turns on only for the exact true value", async () => {
+    vi.stubEnv("UK_TAX_IDENTITY_EMERGENCY_STOP", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.taxIdentity).toEqual({ emergencyStop: false });
+
+    vi.resetModules();
+    vi.stubEnv("UK_TAX_IDENTITY_EMERGENCY_STOP", "TRUE");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxIdentity).toEqual({ emergencyStop: false });
+
+    vi.resetModules();
+    vi.stubEnv("UK_TAX_IDENTITY_EMERGENCY_STOP", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.taxIdentity).toEqual({ emergencyStop: true });
+  });
+});
+
 describe("config.charities — publication gate and stop", () => {
   it("opens locally, requires the exact production switch and lets the stop win", async () => {
     vi.stubEnv("NODE_ENV", "test");

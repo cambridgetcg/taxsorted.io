@@ -13,6 +13,7 @@ COPY api/ api/
 # Only the reviewed static corpora are needed at runtime; research notes and
 # collection tooling stay out of the image.
 COPY research/uk/tax-system/data/ research/uk/tax-system/data/
+COPY research/uk/tax-identity/data/ research/uk/tax-identity/data/
 COPY research/uk/tax-industry/data/ research/uk/tax-industry/data/
 COPY research/uk/charities/data/ research/uk/charities/data/
 COPY research/uk/public-funding/data/ research/uk/public-funding/data/

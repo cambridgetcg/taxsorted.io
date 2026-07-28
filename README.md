@@ -146,6 +146,14 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   tax-treatment records. The graph is a derived traversal index, not a second source of truth or
   ingestion route. It separates who acts, who administers and who makes an official decision;
   a TaxSorted result is not an HMRC decision and missing enforcement or appeal coverage remains a gap.
+- **Tax identity framework**: sessionless `GET /v1/tax-identity/uk` separates legal
+  existence, tax attribution, capacity, residence and nexus, registration and grouping,
+  ownership and control, reporting, and obligation. Status, sources and effective dates qualify
+  every scoped assertion rather than forming a ninth identity category. Its graph has 8
+  dimensions, 10 archetypes, 13 lineage milestones, 8 named overlaps, 7 reviewed synthetic
+  profiles and 36 official or model-standard sources; it accepts no taxpayer facts. The static
+  guide is `/uk/tax-identity/` and the bounded contract is
+  `/openapi/tax-identity-uk.json`.
 - **Tax-system graph**: implemented sessionless `GET /v1/tax-system/uk` routes, with protected
   bodies behind an explicit production-publication switch, covering the
   authority chain, collection lanes, accounts, infrastructure, private collaborators,
@@ -188,10 +196,11 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   possible costs as separate facts. Its blank assessment template stays local and accepts no
   upload; there are no claimant records, bids, rankings, viability scores or firm recommendations.
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
-  all expose `/records/{id}`. `/v1/open-data/releases` publishes deployment-guarded dataset
+  expose `/records/{id}`. The separate tax-identity framework exposes named synthetic examples
+  but no taxpayer intake. `/v1/open-data/releases` publishes deployment-guarded dataset
   checkpoints with JSON Feed and Atom views. `/openapi-public.json`, five dataset slices,
-  separate observer-accountability and why-graph framework slices, a tax-expert task slice and a
-  professional-tools slice give agents bounded, cacheable contracts; the full `/openapi.json`
+  separate tax-identity, observer-accountability and why-graph framework slices, a tax-expert task
+  slice and a professional-tools slice give agents bounded, cacheable contracts; the full `/openapi.json`
   remains available. Public errors
   carry RFC 9457 fields and recovery actions without reflecting query values.
 - **Rails**: HMRC MTD (REST) first; each country's authority lights up as it's proven
@@ -255,6 +264,9 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   attributions remain unimplemented behind a separate legal and human review
 - [`docs/PUBLIC-DATA-CHARTER.md`](docs/PUBLIC-DATA-CHARTER.md) — the agent-authored draft
   explaining the public API's distribution, safety and rights choices; awaiting Yu's adoption
+- [`research/uk/tax-identity/README.md`](research/uk/tax-identity/README.md) — the
+  scoped, effective-dated identity vector, legal-form archetypes, overlapping identities,
+  category lineage, synthetic examples, source ledger and named coverage gaps
 - `/uk/tax-industry` — public page: roles, exams, lawful routes, pay, origins and barriers
 - `/uk/charities` — public page: conditional reliefs, regulators, money, control and help routes
 - `/uk/public-funding` — public page: where tax joins public funds and how health and education money moves

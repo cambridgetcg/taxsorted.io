@@ -10,6 +10,7 @@ import {
   createAgentInterfaceRoutes,
 } from "../routes/agent-interface.js";
 import { buildOpenDataCatalog } from "../routes/open-data.js";
+import { ukTaxIdentity } from "../uk-tax-identity.js";
 
 const options = {
   taxSystemPublic: true,
@@ -45,6 +46,9 @@ describe("agent interface", () => {
       "/v1/health",
       "/v1/uk/professional-tools",
       "/openapi/professional-tools-uk.json",
+      "/v1/tax-identity/uk",
+      "/v1/tax-identity/uk/examples/example-trading-llp",
+      "/openapi/tax-identity-uk.json",
     ]) {
       expect(isPublicCivicPath(path), path).toBe(true);
     }
@@ -55,6 +59,8 @@ describe("agent interface", () => {
       "/v1/healthcheck",
       "/v1/uk/professional-tools/extra",
       "/openapi/professional-tools-uk.json/extra",
+      "/v1/tax-identity/uk-evil",
+      "/openapi/tax-identity-uk.json/extra",
     ]) {
       expect(isPublicCivicPath(path), path).toBe(false);
     }
@@ -191,6 +197,18 @@ describe("agent interface", () => {
       "why-graph-writes: none; read-only framework with no ingestion route",
     );
     expect(body).toContain(
+      "tax-identity: GET https://api.taxsorted.io/v1/tax-identity/uk",
+    );
+    expect(body).toContain(
+      "tax-identity-openapi: GET https://api.taxsorted.io/openapi/tax-identity-uk.json",
+    );
+    expect(body).toContain(
+      "tax-identity-scope: dated legal-existence, tax-attribution, capacity/activity, residence/nexus, registration/grouping, ownership/control, reporting-classification and obligation-role dimensions; UK-first classifications",
+    );
+    expect(body).toContain(
+      "tax-identity-effects: read-only reviewed framework and synthetic examples; no personal fact intake, identity decision, advice, filing or external state change",
+    );
+    expect(body).toContain(
       "release-ledger: GET https://api.taxsorted.io/v1/open-data/releases",
     );
     expect(body).toContain(
@@ -265,6 +283,7 @@ describe("agent interface", () => {
         expect.objectContaining({ id: "no-session-on-doorway" }),
         expect.objectContaining({ id: "no-charity-people-or-belief-graph" }),
         expect.objectContaining({ id: "words-actions-and-analysis-stay-labelled" }),
+        expect.objectContaining({ id: "tax-identity-is-not-one-label" }),
       ]),
     );
     expect(body.publicationStates).toEqual(
@@ -306,6 +325,7 @@ describe("agent interface", () => {
         caseCommons: "/openapi/case-commons-uk.json",
         professionalOpportunities:
           "/openapi/professional-opportunities-uk.json",
+        taxIdentity: "/openapi/tax-identity-uk.json",
         whyGraph: "/openapi/why-graph.json",
       },
       taskSlices: {
@@ -329,6 +349,43 @@ describe("agent interface", () => {
       schema: "/v1/accountability/uk/schema",
       status: "schema-only-not-admitted",
       recordsAvailable: false,
+    });
+    expect(body.resources.taxIdentity).toEqual({
+      availability: "open",
+      version: ukTaxIdentity.meta.version,
+      reviewedOn: ukTaxIdentity.meta.reviewedOn,
+      lawAsAt: ukTaxIdentity.meta.lawAsAt,
+      schema: ukTaxIdentity.schema,
+      href: "/v1/tax-identity/uk",
+      graph: "/v1/tax-identity/uk/graph",
+      dimensions: "/v1/tax-identity/uk/dimensions",
+      archetypes: "/v1/tax-identity/uk/archetypes",
+      overlaps: "/v1/tax-identity/uk/overlaps",
+      timeline: "/v1/tax-identity/uk/timeline",
+      examples: "/v1/tax-identity/uk/examples",
+      sources: "/v1/tax-identity/uk/sources",
+      gaps: "/v1/tax-identity/uk/gaps",
+      schemaHref: "/v1/tax-identity/uk/schema",
+      rights: "/v1/tax-identity/uk/rights",
+      openApi: "/openapi/tax-identity-uk.json",
+      humanGuide: "https://taxsorted.io/uk/tax-identity/",
+      model: "effective-dated-multi-dimensional-vector",
+      access: {
+        methods: ["GET", "HEAD", "OPTIONS"],
+        authentication: "none",
+        session: "none",
+        cookies: "none",
+        writes: "none",
+        cors: "*",
+      },
+      boundaries: {
+        personalFactsAccepted: false,
+        realTaxpayerDecision: false,
+        legalAdvice: false,
+        filingOrSubmission: false,
+        externalStateChange: false,
+        syntheticExamplesOnly: true,
+      },
     });
     expect(body.resources.caseCommons).toEqual({
       href: "/v1/case-commons/uk",
@@ -624,6 +681,11 @@ describe("agent interface", () => {
           href: "/v1/why-graph/adopters",
         }),
         expect.objectContaining({
+          id: "inspect-tax-identity-framework",
+          method: "GET",
+          href: "/v1/tax-identity/uk",
+        }),
+        expect.objectContaining({
           id: "inspect-professional-tools",
           method: "GET",
           href: "/v1/uk/professional-tools",
@@ -840,6 +902,17 @@ describe("agent interface", () => {
     expect(wake.resources.caseCommons).not.toHaveProperty("stoppedCaseIds");
     expect(JSON.stringify(wake.resources.caseCommons)).not.toContain(
       "haworth-v-hmrc-2021",
+    );
+  });
+
+  it("reports the independent tax-identity emergency stop", () => {
+    const wake = buildAgentWakePayload({
+      ...options,
+      taxIdentityEmergencyStop: true,
+    });
+
+    expect(wake.resources.taxIdentity.availability).toBe(
+      "emergency-stopped",
     );
   });
 

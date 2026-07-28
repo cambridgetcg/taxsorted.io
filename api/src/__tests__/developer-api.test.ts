@@ -119,6 +119,10 @@ describe("developer API boundary", () => {
     ).toHaveProperty("professionalOpportunities");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
+        .openApi.properties.frameworkSlices.properties,
+    ).toHaveProperty("taxIdentity");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
         .openApi.properties.frameworkSlices.required,
     ).not.toContain("whyGraph");
     expect(
@@ -137,6 +141,23 @@ describe("developer API boundary", () => {
     expect(
       document.components.schemas.AgentWake.properties.resources.properties,
     ).toHaveProperty("professionalOpportunities");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties,
+    ).toHaveProperty("taxIdentity");
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .taxIdentity.properties.availability.enum,
+    ).toEqual(["open", "emergency-stopped"]);
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .taxIdentity.properties,
+    ).toMatchObject({
+      version: expect.any(Object),
+      reviewedOn: expect.any(Object),
+      lawAsAt: expect.any(Object),
+      schema: expect.any(Object),
+      schemaHref: expect.any(Object),
+    });
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
         .publicDecisionPathways.properties,
@@ -222,6 +243,50 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/v1/why-graph");
     expect(document.paths).toHaveProperty("/v1/why-graph/adopters");
     expect(document.paths).toHaveProperty("/v1/why-graph/schema");
+    expect(document.paths).toHaveProperty("/v1/tax-identity/uk");
+    expect(document.paths).toHaveProperty("/v1/tax-identity/uk/graph");
+    expect(document.paths).toHaveProperty(
+      "/v1/tax-identity/uk/examples/{exampleId}",
+    );
+    expect(
+      document.paths["/v1/tax-identity/uk/examples/{exampleId}"].get,
+    ).toMatchObject({
+      operationId: "getUkTaxIdentityExample",
+      tags: ["UK tax identity"],
+      security: [],
+    });
+    expect(
+      document.paths["/v1/tax-identity/uk"].head.operationId,
+    ).toBe("headUkTaxIdentityOverview");
+    expect(
+      document.paths["/v1/tax-identity/uk/dimensions"].head
+        .operationId,
+    ).toBe("headUkTaxIdentityDimensions");
+    expect(
+      document.paths["/v1/tax-identity/uk"].get.responses,
+    ).toHaveProperty("503");
+    expect(
+      document.paths["/v1/tax-identity/uk/examples/{exampleId}"].get
+        .responses,
+    ).toHaveProperty("503");
+    expect(
+      document.paths["/v1/tax-identity/uk/schema"].get.responses,
+    ).not.toHaveProperty("503");
+    expect(
+      document.paths["/v1/tax-identity/uk/rights"].get.responses,
+    ).not.toHaveProperty("503");
+    expect(
+      document.components.schemas.UkTaxIdentityEmergencyStopProblem
+        .properties,
+    ).toMatchObject({
+      status: { type: "integer", enum: [503] },
+      error: {
+        type: "string",
+        enum: ["tax_identity_emergency_stop"],
+      },
+      available: { type: "boolean", enum: [false] },
+      emergencyStop: { type: "boolean", enum: [true] },
+    });
     expect(document.paths["/v1/why-graph"].get.security).toEqual([]);
     expect(document.components.schemas.WhyGraph).toMatchObject({
       type: "object",
@@ -267,8 +332,40 @@ describe("developer API boundary", () => {
       document.components.schemas.OpenDataCatalog.properties,
     ).toHaveProperty("releaseDiscovery");
     expect(
+      document.components.schemas.OpenDataCatalog.properties,
+    ).toHaveProperty("frameworks");
+    expect(
+      document.components.schemas.OpenDataCatalog.properties.access.properties
+        .openApiSlices.properties,
+    ).toHaveProperty("taxIdentity");
+    expect(
+      document.components.schemas.OpenDataFramework.properties,
+    ).toMatchObject({
+      kind: { type: "string", enum: ["interpretation-framework"] },
+      version: expect.any(Object),
+      reviewedOn: expect.any(Object),
+      schema: expect.any(Object),
+      updatePolicy: expect.any(Object),
+      access: expect.any(Object),
+      licence: expect.any(Object),
+      boundaries: expect.any(Object),
+      resources: expect.any(Object),
+    });
+    expect(
+      document.components.schemas.OpenDataFramework.properties.licence
+        .properties,
+    ).toHaveProperty("scope");
+    expect(
+      document.components.schemas.OpenDataFramework.properties.access
+        .properties.cors.enum,
+    ).toEqual(["*"]);
+    expect(
       document.components.schemas.OpenDataCatalog.properties.access.properties,
     ).toHaveProperty("agentDiscovery");
+    expect(
+      document.components.schemas.OpenDataRights.properties.frameworkRights
+        .properties.taxIdentity,
+    ).toEqual(expect.any(Object));
     expect(
       document.components.schemas.OpenDataDataset.properties.publication
         .properties,
@@ -1025,6 +1122,9 @@ describe("developer API boundary", () => {
       "/openapi/professional-tools-uk.json",
     );
     expect(document.paths).toHaveProperty("/openapi/why-graph.json");
+    expect(document.paths).toHaveProperty(
+      "/openapi/tax-identity-uk.json",
+    );
     expect(document.paths["/openapi-public.json"].get).toMatchObject({
       operationId: "getPublicOpenApiDescription",
       tags: ["OpenAPI descriptions"],
@@ -1051,6 +1151,11 @@ describe("developer API boundary", () => {
         path: "/openapi/tax-system-uk.json",
         id: "tax-system-uk",
         prefix: "/v1/tax-system/uk",
+      },
+      {
+        path: "/openapi/tax-identity-uk.json",
+        id: "tax-identity-uk",
+        prefix: "/v1/tax-identity/uk",
       },
       {
         path: "/openapi/tax-industry-uk.json",
@@ -1256,6 +1361,10 @@ describe("developer API boundary", () => {
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph/adopters");
     expect(publicDocument.paths).toHaveProperty("/v1/why-graph/schema");
+    expect(publicDocument.paths).toHaveProperty("/v1/tax-identity/uk");
+    expect(publicDocument.paths).toHaveProperty(
+      "/v1/tax-identity/uk/examples/{exampleId}",
+    );
     expect(publicDocument.paths).toHaveProperty(
       "/v1/charities/uk/tax-treatments/{id}/why-graph",
     );

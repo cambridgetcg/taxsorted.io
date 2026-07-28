@@ -13,6 +13,7 @@ import {
   type OpenDataRouteOptions,
 } from "./open-data.js";
 import { releaseDiscoveryHandles } from "../release-discovery-contract.js";
+import { ukTaxIdentity } from "../uk-tax-identity.js";
 import {
   apiWorkspacePath,
   professionalToolsAccess,
@@ -33,6 +34,11 @@ const wakePath = "/v1/wake";
 const catalogPath = "/v1/open-data";
 const rightsPath = "/v1/open-data/rights";
 const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
+const taxIdentityPath = "/v1/tax-identity/uk";
+const taxIdentityGraphPath = "/v1/tax-identity/uk/graph";
+const taxIdentityExamplesPath = "/v1/tax-identity/uk/examples";
+const taxIdentitySchemaPath = "/v1/tax-identity/uk/schema";
+const taxIdentityOpenApiPath = "/openapi/tax-identity-uk.json";
 const charityAccountabilityPath = "/v1/charities/uk/accountability";
 const charityAccountabilitySchemaPath =
   "/v1/charities/uk/accountability/schema";
@@ -125,6 +131,14 @@ why-graph-adopters: GET ${apiOrigin}${whyGraphAdoptersPath}
 why-graph-schema: GET ${apiOrigin}${whyGraphSchemaPath}
 why-graph-openapi: GET ${apiOrigin}${whyGraphOpenApiPath}
 why-graph-writes: none; read-only framework with no ingestion route
+tax-identity: GET ${apiOrigin}${taxIdentityPath}
+tax-identity-graph: GET ${apiOrigin}${taxIdentityGraphPath}
+tax-identity-examples: GET ${apiOrigin}${taxIdentityExamplesPath}
+tax-identity-schema: GET ${apiOrigin}${taxIdentitySchemaPath}
+tax-identity-openapi: GET ${apiOrigin}${taxIdentityOpenApiPath}
+tax-identity-human-guide: GET ${humanOrigin}/uk/tax-identity/
+tax-identity-scope: dated legal-existence, tax-attribution, capacity/activity, residence/nexus, registration/grouping, ownership/control, reporting-classification and obligation-role dimensions; UK-first classifications
+tax-identity-effects: read-only reviewed framework and synthetic examples; no personal fact intake, identity decision, advice, filing or external state change
 health: GET ${apiOrigin}/v1/health
 release-ledger: GET ${apiOrigin}${releaseDiscoveryHandles.ledger}
 release-json-feed: GET ${apiOrigin}${releaseDiscoveryHandles.jsonFeed}
@@ -268,6 +282,7 @@ wall: publication gates and emergency stops remain authoritative
 wall: a public-data licence is not a blanket licence over linked source material
 wall: private contacts, private communications and inferred personal ties do not belong here
 wall: uncertainty, source limits and known gaps stay visible
+wall: one legal-form or taxpayer-kind label is never the whole tax identity
 wall: the charity map does not publish a people, personal-contact or inferred-belief graph
 wall: attributed statements, reported action, official findings, TaxSorted analysis and unknowns stay labelled
 wall: every observer needs a sourced accountability route or an explicit coverage gap
@@ -446,6 +461,14 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
     options.professionalOpportunitiesPublic === true &&
     professionalOpportunitiesReviewCurrent;
   const catalog = buildOpenDataCatalog(options);
+  const taxIdentityFramework = catalog.frameworks.find(
+    (framework) => framework.id === "uk-tax-identity-framework",
+  );
+  if (!taxIdentityFramework) {
+    throw new Error(
+      "Open-data catalog is missing uk-tax-identity-framework",
+    );
+  }
   const catalogBody = canonicalJson(catalog);
   const datasetChangeLane = evidenceLane(
     catalog,
@@ -505,6 +528,11 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         id: "uncertainty-stays-visible",
         statement:
           "Known gaps, source limits, accounting boundaries and non-comparability warnings remain visible.",
+      },
+      {
+        id: "tax-identity-is-not-one-label",
+        statement:
+          "Legal form, tax attribution, capacity, nexus, grouping, control, reporting and obligation stay separate and effective-dated; one label is never the whole tax identity.",
       },
       {
         id: "no-session-on-doorway",
@@ -581,6 +609,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
           caseCommons: caseCommonsOpenApiPath,
           professionalOpportunities:
             professionalOpportunitiesOpenApiPath,
+          taxIdentity: taxIdentityOpenApiPath,
           whyGraph: whyGraphOpenApiPath,
         },
         taskSlices: {
@@ -610,6 +639,43 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         schema: observerAccountabilitySchemaPath,
         status: "schema-only-not-admitted",
         recordsAvailable: false,
+      },
+      taxIdentity: {
+        availability: taxIdentityFramework.availability.status,
+        version: ukTaxIdentity.meta.version,
+        reviewedOn: ukTaxIdentity.meta.reviewedOn,
+        lawAsAt: ukTaxIdentity.meta.lawAsAt,
+        schema: ukTaxIdentity.schema,
+        href: taxIdentityPath,
+        graph: taxIdentityGraphPath,
+        dimensions: `${taxIdentityPath}/dimensions`,
+        archetypes: `${taxIdentityPath}/archetypes`,
+        overlaps: `${taxIdentityPath}/overlaps`,
+        timeline: `${taxIdentityPath}/timeline`,
+        examples: taxIdentityExamplesPath,
+        sources: `${taxIdentityPath}/sources`,
+        gaps: `${taxIdentityPath}/gaps`,
+        schemaHref: taxIdentitySchemaPath,
+        rights: `${taxIdentityPath}/rights`,
+        openApi: taxIdentityOpenApiPath,
+        humanGuide: `${humanOrigin}/uk/tax-identity/`,
+        model: "effective-dated-multi-dimensional-vector",
+        access: {
+          methods: ["GET", "HEAD", "OPTIONS"],
+          authentication: "none",
+          session: "none",
+          cookies: "none",
+          writes: "none",
+          cors: "*",
+        },
+        boundaries: {
+          personalFactsAccepted: false,
+          realTaxpayerDecision: false,
+          legalAdvice: false,
+          filingOrSubmission: false,
+          externalStateChange: false,
+          syntheticExamplesOnly: true,
+        },
       },
       caseCommons: {
         href: caseCommonsPath,
@@ -1018,6 +1084,14 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read how conclusions connect to reached reasoning, facts, rules, sources, institutions, consequences, challenge routes and explicit gaps.",
+      },
+      {
+        id: "inspect-tax-identity-framework",
+        method: "GET",
+        href: taxIdentityPath,
+        accepts: ["application/json"],
+        description:
+          "Read the effective-dated identity dimensions, category origins, overlap rules and synthetic worked examples without supplying taxpayer facts.",
       },
       {
         id: "inspect-why-graph-adopters",

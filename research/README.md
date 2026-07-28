@@ -24,6 +24,7 @@ research/
     ├── observer-accountability/ # Watching-the-watchers principle, contract, source doors and walls
     ├── public-funding/ # Tax pools, authority, health, education, delivery and audit
     ├── tax-industry/  # Entry routes, qualifications, gates, pay, origins and barriers
+    ├── tax-identity/  # Dated legal/tax identity dimensions, origins, overlaps and examples
     ├── tax-history/   # Historical tax rules, evidence, material rights and public learning stories
     ├── tax-expert/    # Evidence contract, honest coverage stages and deep expert paths
     └── tax-system/    # Actors, permissions, accounts, collection, enforcement and evidence
@@ -52,13 +53,14 @@ honest, and marked so — guides first, rails later.
 | `uk/law-safety/` | Research memo — authority, fair execution, data boundaries, professional duties, public law reflection, claim tests and build order |
 | `uk/tax-history/window-tax/` | Evidence and rights-reviewed media pilot — legal chronology, claim limits, reusable materials and blocked permissions |
 | `uk/tax-industry/` | Deep — roles, qualifications, exams, costs, lawful pathways, economics and barriers |
+| `uk/tax-identity/` | Deep — 8 scoped classification dimensions, 10 archetypes, 8 overlaps, 13 milestones, 7 synthetic examples, 36 sources and 13 named gaps |
 | `uk/tax-expert/` | Coverage-first expert architecture — one shared answer contract; MTD Income Tax is the first deep path |
 | `uk/charities/` | Deep sector map — conditional reliefs, registers, legal forms, funding, finance, control, duties and privacy boundaries |
 | `uk/charity-accountability/` | Candidate-only contract — evidence types, exact joins, admission conditions, safe comparison and a zero-row validator example |
 | `uk/observer-accountability/` | Observer reciprocity — institutional mandate, method, relations, words, actions, responses, challenges and zero-row admission boundary |
 | `uk/public-funding/` | Coverage-first graph — pooled tax, parliamentary authority, health and education allocations, governance, delivery and audit |
 | `uk/politics/` | Growing — Westminster directory plus finance, election, enforcement and formal-power methods |
-| `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level |
+| `uk/entities/`, remaining `uk/tax-types/`, `uk/deadlines/` | Reference-level — the old entity kinds are navigation labels, not complete tax identities |
 | `uk/competitive/`, `uk/technical/` | Scaffolds |
 | `world/` | Seeded — ontology distilled, treaty layer pending |
 

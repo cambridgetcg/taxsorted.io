@@ -7,8 +7,11 @@ purchase in England or Northern Ireland. The second is an evidence-backed MTD In
 readiness assessment and public capability registry. Both are bounded services, not a generic
 tax-advice chatbot and not a filing rail.
 
-Alongside calculations, five UK maps explain the systems around the answer. The
+Alongside calculations, six UK maps explain the systems around the answer. The
 tax-system graph covers authority, accounts, permissions, collection and challenge. The
+tax-identity framework separates eight legal, charge, capacity, nexus, grouping, control,
+reporting and obligation dimensions so a legal-form label is never mistaken for the whole tax
+answer. Status, sources and effective dates qualify every assertion. The
 tax-industry graph covers roles, qualifications, legal and market gates, lawful entry paths,
 pay evidence and barriers. The politics catalogue covers elections, public funding, formal
 office power, enforcement and evidence methods. The charity-sector graph covers official
@@ -75,6 +78,7 @@ bounded public description or one dataset slice:
 
 ```text
 GET /openapi/tax-system-uk.json
+GET /openapi/tax-identity-uk.json
 GET /openapi/tax-industry-uk.json
 GET /openapi/charities-uk.json
 GET /openapi/public-funding-uk.json
@@ -100,8 +104,8 @@ record. The human browser builds and optionally saves the Passport locally,
 then exports `taxsorted.uk.tax-position-passport/1`. See
 [`TAX-POSITION-PASSPORT.md`](TAX-POSITION-PASSPORT.md).
 
-The JSON Schema covers the bounded wire structure. Cross-field meaning is
-additionally checked by `assertTaxPositionPassportInvariants` from
+The Passport JSON Schema covers the bounded wire structure. Cross-field meaning
+is additionally checked by `assertTaxPositionPassportInvariants` from
 `@taxsorted/engine/uk/passport`; the schema lists those checks in
 `x-taxsorted-runtime-invariants`. The unsigned envelope keeps request and answer
 together but does not prove derivation; a relying consumer can replay the
@@ -110,6 +114,61 @@ generated from the canonical Zod contract before release. API startup serves
 that JSON file without converting the nested Passport contract into a second
 JSON Schema graph. Cross-field MTD request rules, including cessation
 chronology, are enforced by the Passport runtime invariant check.
+
+### UK tax identity — public framework, no taxpayer intake
+
+Tax identity is published as an effective-dated vector, not one `entity_type`:
+
+```text
+(subject, jurisdiction, tax or regime, activity or context, ruleset)
+  + status + effective-date basis or interval
+  → sourced legal and tax classifications
+```
+
+The canonical graph contains eight dimensions, ten UK archetypes, eight overlap rules,
+thirteen selected milestones, seven synthetic example profiles, 36 official or
+model-standard sources and thirteen explicit gaps:
+
+```text
+GET /v1/tax-identity/uk
+GET /v1/tax-identity/uk/graph
+GET /v1/tax-identity/uk/dimensions
+GET /v1/tax-identity/uk/archetypes
+GET /v1/tax-identity/uk/overlaps
+GET /v1/tax-identity/uk/timeline
+GET /v1/tax-identity/uk/examples
+GET /v1/tax-identity/uk/examples/{exampleId}
+GET /v1/tax-identity/uk/sources
+GET /v1/tax-identity/uk/gaps
+GET /v1/tax-identity/uk/schema
+GET /v1/tax-identity/uk/rights
+```
+
+All are static, sessionless `GET`/`HEAD` resources with exact-byte ETags. Query parameters are
+rejected. The named-example route applies the deterministic engine only to a reviewed synthetic
+profile and returns its full dimension vector, matching overlaps, unresolved dimensions, review
+reasons and source IDs. It is not a route for submitting a person's or organisation's facts.
+
+Every assertion names `subjectRef`, `jurisdiction`, `taxOrRegime`,
+`activityOrContext` and `ruleset`. It also declares one coherent
+`effectiveDateBasis`. `current-at-corpus-review` is valid only when the
+example's `asOf` date equals the corpus `lawAsAt`; an unknown result names the
+concrete classification being tested rather than using a generic “unknown
+nexus” label.
+
+Set `UK_TAX_IDENTITY_EMERGENCY_STOP=true` to stop the content routes. They
+return `503` while `/schema`, `/rights` and OpenAPI discovery remain readable.
+
+The existing private `/v1/entities` records remain unchanged and serve browser navigation. Their
+coarse `person | business | charity | trust` kind is not promoted into a legal or tax conclusion.
+See [`../research/uk/tax-identity/METHOD.md`](../research/uk/tax-identity/METHOD.md) for the
+source order, time model, states and portability boundary.
+
+The tax-identity schema and runtime checks require unique IDs, resolved source
+and archetype references, individually sourced classifications, used synthetic
+subjects, full dimension coverage and coherent effective dates. The CC BY-SA
+notice covers TaxSorted-authored curation only; linked official and third-party
+material keeps its own reuse terms.
 
 Each slice is self-contained, cacheable by exact-byte ETag, and gives every operation a stable
 `operationId` and one plain domain tag. Dataset and framework slices fail construction if a

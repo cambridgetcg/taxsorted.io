@@ -1,0 +1,4266 @@
+{
+  "schema": "taxsorted.uk.tax-identity/1",
+  "meta": {
+    "title": "UK tax identity framework",
+    "version": "2026-07-28.2",
+    "reviewedOn": "2026-07-28",
+    "lawAsAt": "2026-07-28",
+    "jurisdiction": "United Kingdom",
+    "purpose": "Explain how legal existence, tax treatment, residence, activity, control, reporting and filing identity can point to different subjects at the same time.",
+    "portability": "The dimensions are jurisdiction-portable. The classifications, examples and legal conclusions in this release are UK-first and must not be copied to another jurisdiction without local sources.",
+    "warning": "Educational public reference only. It is not legal advice, an authority determination, a filing position or a substitute for the exact law and facts for the tax, place and period in question.",
+    "contentLicence": {
+      "name": "CC BY-SA 4.0",
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "scope": "CC BY-SA 4.0 covers only TaxSorted-authored curation, summaries, schema structure and synthetic examples in this corpus. It does not relicense legislation, official guidance, model standards, linked source text, trademarks or other third-party material; each source keeps its own rights and reuse terms."
+    },
+    "editorialRules": [
+      "Never collapse legal form, taxable person, reporting person and beneficial owner into one label.",
+      "Every assertion states subjectRef, jurisdiction, taxOrRegime, activityOrContext, ruleset, status and an effective-date basis.",
+      "Treat identifiers and registrations as evidence, not as proof of the underlying classification.",
+      "Keep unknown, conditional, disputed and not-applicable distinct.",
+      "Model a branch, permanent establishment or VAT fixed establishment as a nexus overlay unless local law creates a separate legal person.",
+      "A model convention or international standard is not enacted domestic law or the text of an actual treaty.",
+      "A change creates a new effective-dated assertion; it does not rewrite the earlier one.",
+      "Every classification is individually sourced, its source IDs are included in the parent dimension source list, and every synthetic subject is used by at least one assertion."
+    ],
+    "boundaries": [
+      "No names, tax identifiers, addresses, ownership records or private taxpayer facts.",
+      "No endpoint accepts a person's or organisation's facts in this release.",
+      "No eligibility, liability, residence, employment-status, beneficial-owner or permanent-establishment decision.",
+      "No filing, payment, registration, authority contact or external state change.",
+      "No numerical confidence score; gaps and review triggers are stated in words."
+    ]
+  },
+  "sources": [
+    {
+      "id": "src-partnership-act-1890-s1",
+      "title": "Partnership Act 1890, section 1",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/Vict/53-54/39/section/1",
+      "authorityLevel": "legislation",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "The statutory partnership definition is a relationship between persons carrying on business in common with a view of profit.",
+        "The 1890 Act declared and amended an existing field of partnership law rather than inventing every partnership relationship."
+      ],
+      "limitations": [
+        "Legal personality differs within the UK and tax statutes can apply a different treatment."
+      ]
+    },
+    {
+      "id": "src-partnership-act-1890-s4",
+      "title": "Partnership Act 1890, section 4",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/Vict/53-54/39/section/4",
+      "authorityLevel": "legislation",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A Scottish firm is a legal person distinct from its partners."
+      ],
+      "limitations": [
+        "Separate Scottish legal personality does not by itself decide the treatment under a particular tax."
+      ]
+    },
+    {
+      "id": "src-companies-act-2006-s16",
+      "title": "Companies Act 2006, section 16",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/2006/46/section/16",
+      "authorityLevel": "legislation",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Registration forms a body corporate capable of exercising the functions of an incorporated company."
+      ],
+      "limitations": [
+        "Corporate existence does not settle residence, beneficial ownership, VAT grouping or foreign tax classification."
+      ]
+    },
+    {
+      "id": "src-llp-act-2000-s1",
+      "title": "Limited Liability Partnerships Act 2000, section 1",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/2000/12/section/1",
+      "authorityLevel": "legislation",
+      "jurisdiction": "Great Britain at creation; later extended to Northern Ireland",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "The Act created the Great Britain LLP form as a body corporate with legal personality separate from its members.",
+        "The current territorial position cannot be read from the original 2000 creation event alone."
+      ],
+      "limitations": [
+        "The Act's general-law personality does not make an LLP a company taxpayer for every tax.",
+        "Northern Ireland first used separate 2002 legislation; Companies Act 2006 section 1286 later extended the Great Britain enactments and ended the separate Act."
+      ]
+    },
+    {
+      "id": "src-ni-llp-act-2002-s1",
+      "title": "Limited Liability Partnerships Act (Northern Ireland) 2002, section 1",
+      "publisher": "Northern Ireland Assembly",
+      "url": "https://www.legislation.gov.uk/nia/2002/12/section/1",
+      "authorityLevel": "legislation",
+      "jurisdiction": "Northern Ireland",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Northern Ireland created its own LLP form as a body corporate with legal personality separate from its members."
+      ],
+      "limitations": [
+        "This is an origin source, not current standalone law: Companies Act 2006 section 1286 later provided that the Act ceased to have effect."
+      ]
+    },
+    {
+      "id": "src-companies-act-2006-s1286",
+      "title": "Companies Act 2006, section 1286",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/2006/46/section/1286",
+      "authorityLevel": "legislation",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "The Great Britain enactments relating to limited liability partnerships extend to Northern Ireland.",
+        "The separate Limited Liability Partnerships Act (Northern Ireland) 2002 ceased to have effect accordingly."
+      ],
+      "limitations": [
+        "Formation date, commencement and transitional provisions still matter for a point-in-time conclusion."
+      ]
+    },
+    {
+      "id": "src-hmrc-pm120100",
+      "title": "PM120100: What is a partnership?",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/partnership-manual/pm120100",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A partnership is a relationship and can include natural or artificial persons.",
+        "English, Welsh and Northern Irish partnerships lack separate legal personality while Scottish partnerships have it.",
+        "A partnership can still be a person for Taxes Acts purposes."
+      ],
+      "limitations": [
+        "HMRC manuals explain HMRC's view and are not themselves legislation."
+      ]
+    },
+    {
+      "id": "src-hmrc-pm131450",
+      "title": "PM131450: LLP taxation",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/partnership-manual/pm131450",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "An LLP carrying on business with a view to profit is normally treated as a partnership for income and gains.",
+        "Members are generally charged on their shares even though the LLP is a body corporate.",
+        "The salaried-members rules can add employment treatment for PAYE and Class 1 National Insurance purposes without changing a member's chargeable profit share."
+      ],
+      "limitations": [
+        "Partnership treatment still depends on the activity, period and exact tax provision; salaried-member treatment is a separate member-level payroll and National Insurance overlay."
+      ]
+    },
+    {
+      "id": "src-hmrc-pm136000",
+      "title": "PM136000: Taxing partnership profits",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/partnership-manual/pm136000",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Partnership business profits are computed at partnership level and attributed to partners.",
+        "The partnership can still carry PAYE and VAT responsibilities."
+      ],
+      "limitations": [
+        "Transparent and opaque are shorthand; charge-specific rules still control."
+      ]
+    },
+    {
+      "id": "src-hmrc-intm180010",
+      "title": "INTM180010: Foreign entity classification",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/international-manual/intm180010",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Transparent and opaque are informal labels for who is liable on what income or gains.",
+        "The exact UK tax provision must be considered rather than applying one entity-wide label."
+      ],
+      "limitations": [
+        "A general HMRC view can vary after examining a specific foreign entity's constitution and facts."
+      ]
+    },
+    {
+      "id": "src-hmrc-intm120040",
+      "title": "INTM120040: Company residence incorporation rule",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/international-manual/intm120040",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Subject to stated exceptions, a UK-incorporated company is UK resident for corporation tax."
+      ],
+      "limitations": [
+        "Treaty rules and the full statutory exceptions must be checked."
+      ]
+    },
+    {
+      "id": "src-hmrc-intm120180",
+      "title": "INTM120180: Reviewing company residence",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/international-manual/intm120180",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Central management and control is a factual inquiry informed by the governing law and constitution."
+      ],
+      "limitations": [
+        "Meeting location alone is not conclusive."
+      ]
+    },
+    {
+      "id": "src-hmrc-rdrm20060",
+      "title": "RDRM20060: Domicile background and the 2025 change",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/residence-domicile-and-remittance-basis/rdrm20060",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "From 6 April 2025, domicile as a relevant tax connecting factor was replaced by a residence-based system in the scope described by HMRC.",
+        "Nationality, residence and domicile are distinct concepts."
+      ],
+      "limitations": [
+        "Historical periods and taxes outside the changed regime require their own rules."
+      ]
+    },
+    {
+      "id": "src-hmrc-tsem1563",
+      "title": "TSEM1563: Bare trusts",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/trusts-settlements-and-estates-manual/tsem1563",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A bare-trust beneficiary with immediate and absolute title is strictly chargeable on the trust income and gains.",
+        "Trustees can act administratively without becoming the person strictly charged."
+      ],
+      "limitations": [
+        "Whether a trust is bare depends on its terms and facts and can require legal advice."
+      ]
+    },
+    {
+      "id": "src-hmrc-tsem10020",
+      "title": "TSEM10020: Trustees as a single person and trustee residence",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/trusts-settlements-and-estates-manual/tsem10020",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "For Income Tax and Capital Gains Tax, trustees of a settlement are treated as a single deemed person distinct from the actual trustees.",
+        "The trustee-residence rules and their effective dates must be applied to the settlement and period in question."
+      ],
+      "limitations": [
+        "The deemed-person rule is tax-specific and does not turn the trust arrangement into a general-law legal person."
+      ]
+    },
+    {
+      "id": "src-hmrc-tsem4200",
+      "title": "TSEM4200: Settlor-interested settlements",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/trusts-settlements-and-estates-manual/tsem4200",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Some settlement income can be treated as the settlor's income."
+      ],
+      "limitations": [
+        "The detailed statutory conditions and exceptions control."
+      ]
+    },
+    {
+      "id": "src-finance-act-2010-charity",
+      "title": "Finance Act 2010, Part 1",
+      "publisher": "UK Parliament",
+      "url": "https://www.legislation.gov.uk/ukpga/2010/13/part/1",
+      "authorityLevel": "legislation",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Tax law defines charity, charitable company and charitable trust for the taxes within its scope."
+      ],
+      "limitations": [
+        "Charity-law registration and tax recognition are related but not identical classifications."
+      ]
+    },
+    {
+      "id": "src-charity-tax-exemptions",
+      "title": "Tax exemptions for charities",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/charities-detailed-guidance-notes/annex-i-tax-exemptions-for-charities",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Charitable-company and charitable-trust exemptions arise under different tax provisions.",
+        "Relief is conditional, including on application of income to charitable purposes."
+      ],
+      "limitations": [
+        "Charity status is not a blanket exemption from every tax or activity."
+      ]
+    },
+    {
+      "id": "src-hmrc-vat-groups",
+      "title": "Group and divisional registration, VAT Notice 700/2",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/group-and-divisional-registration-vat-notice-7002",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Eligible persons can be treated as one taxable person for VAT.",
+        "The representative member files and pays for the group while members can remain jointly and severally liable.",
+        "Group members keep their separate legal existence."
+      ],
+      "limitations": [
+        "Eligibility, establishment, control and anti-avoidance conditions must be checked."
+      ]
+    },
+    {
+      "id": "src-hmrc-vat-partnership-person",
+      "title": "VATREG08750: Registration of partnerships",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-registration-manual/vatreg08750",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Partners acting collectively can be treated as a person for VAT even where the firm lacks separate legal personality.",
+        "A person acting alone and the same person acting with others in partnership can be different VAT persons."
+      ],
+      "limitations": [
+        "Scottish partnerships and changes in partner composition require separate treatment."
+      ]
+    },
+    {
+      "id": "src-hmrc-branch-pe",
+      "title": "INTM162060: Branches, permanent establishments and residence certificates",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/international-manual/intm162060",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A branch or permanent establishment of a non-resident is not a separate legal person resident in the UK.",
+        "The non-resident can still be taxed on income attributable to the UK presence."
+      ],
+      "limitations": [
+        "The existence and profit attribution of a permanent establishment are separate technical questions."
+      ]
+    },
+    {
+      "id": "src-oecd-model-2017",
+      "title": "OECD Model Tax Convention 2017",
+      "publisher": "OECD",
+      "url": "https://www.oecd.org/content/dam/oecd/en/publications/reports/2017/12/model-tax-convention-on-income-and-on-capital-condensed-version-2017_g1g8769b/mtc_cond-2017-en.pdf",
+      "authorityLevel": "model-standard",
+      "jurisdiction": "International",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Person, residence and permanent establishment are separate treaty concepts.",
+        "A permanent establishment is generally a fixed place through which an enterprise's business is carried on.",
+        "Treaty treatment of transparent entities depends on how income is treated under relevant domestic law."
+      ],
+      "limitations": [
+        "The applicable bilateral treaty and its current protocol control, not the model alone."
+      ]
+    },
+    {
+      "id": "src-oecd-beps-action-7-2015",
+      "title": "Preventing the Artificial Avoidance of Permanent Establishment Status, Action 7 final report",
+      "publisher": "OECD",
+      "url": "https://www.oecd.org/en/publications/preventing-the-artificial-avoidance-of-permanent-establishment-status-action-7-2015-final-report_9789264241220-en.html",
+      "authorityLevel": "model-standard",
+      "jurisdiction": "International",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "The 2015 final report proposed treaty changes addressing commissionnaire and similar arrangements, preparatory or auxiliary exceptions, fragmentation and contract splitting.",
+        "The work changed the model-standard PE lineage rather than itself creating a UK PE in a private case."
+      ],
+      "limitations": [
+        "The actual treaty, multilateral-instrument position, domestic law, effective date and facts control."
+      ]
+    },
+    {
+      "id": "src-oecd-crs-2025",
+      "title": "Consolidated text of the Common Reporting Standard 2025",
+      "publisher": "OECD",
+      "url": "https://www.oecd.org/content/dam/oecd/en/publications/reports/2025/04/consolidated-text-of-the-common-reporting-standard-2025_e478bc04/055664b1-en.pdf",
+      "authorityLevel": "model-standard",
+      "jurisdiction": "International",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "CRS Entity, Financial Institution, Active NFE, Passive NFE and Controlling Person are separate reporting classifications.",
+        "A trust's controlling-person roles include settlors, trustees, protectors, beneficiaries or classes and other persons exercising ultimate effective control."
+      ],
+      "limitations": [
+        "Domestic implementation and effective dates control reporting obligations.",
+        "The 2025 consolidation includes amendments whose first exchanges are expected later."
+      ]
+    },
+    {
+      "id": "src-fatf-legal-persons-2023",
+      "title": "Guidance on Beneficial Ownership of Legal Persons",
+      "publisher": "Financial Action Task Force",
+      "url": "https://www.fatf-gafi.org/content/dam/fatf-gafi/guidance/Guidance-Beneficial-Ownership-Legal-Persons.pdf.coredownload.pdf",
+      "authorityLevel": "model-standard",
+      "jurisdiction": "International",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Beneficial owners are natural persons who ultimately own or control a legal person.",
+        "Legal ownership and ultimate beneficial ownership can differ.",
+        "Accurate, adequate and up-to-date information needs more than one source."
+      ],
+      "limitations": [
+        "FATF standards require domestic implementation and do not decide a person's tax liability."
+      ]
+    },
+    {
+      "id": "src-fatf-legal-arrangements-2024",
+      "title": "Guidance on Beneficial Ownership and Transparency of Legal Arrangements",
+      "publisher": "Financial Action Task Force",
+      "url": "https://www.fatf-gafi.org/content/dam/fatf-gafi/recommendations/Guidance-Beneficial-Ownership-Transparency-Legal-Arrangements.pdf.coredownload.inline.pdf",
+      "authorityLevel": "model-standard",
+      "jurisdiction": "International",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A trust is a legal arrangement governing relationships between parties rather than necessarily a legal person.",
+        "Trust roles and ultimate effective control must be kept distinct."
+      ],
+      "limitations": [
+        "The governing law and domestic implementation remain decisive."
+      ]
+    },
+    {
+      "id": "src-eu-vat-directive",
+      "title": "Council Directive 2006/112/EC, Articles 9 and 10",
+      "publisher": "European Union",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:32006L0112",
+      "authorityLevel": "regulation-or-directive",
+      "jurisdiction": "European Union",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "VAT taxable-person status turns on independently carrying on economic activity.",
+        "An employee can be outside that independent capacity while having another capacity elsewhere."
+      ],
+      "limitations": [
+        "Member-state implementation and post-exit UK VAT law must be checked for the relevant period."
+      ]
+    },
+    {
+      "id": "src-eu-vat-fixed-establishment",
+      "title": "Council Implementing Regulation 282/2011, Article 11",
+      "publisher": "European Union",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:32011R0282",
+      "authorityLevel": "regulation-or-directive",
+      "jurisdiction": "European Union",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A VAT fixed establishment requires sufficient permanence and suitable human and technical resources for the rule in question.",
+        "A VAT identification number alone is insufficient."
+      ],
+      "limitations": [
+        "Different VAT provisions use the definition for different functions.",
+        "For a current UK conclusion, check UK VAT law and HMRC's current manuals; this EU instrument is retained here as lineage and comparison."
+      ]
+    },
+    {
+      "id": "src-govuk-employment-status",
+      "title": "Employment status: self-employed and contractor",
+      "publisher": "GOV.UK",
+      "url": "https://www.gov.uk/employment-status/selfemployed-contractor",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "One person can be employed and self-employed at the same time.",
+        "Employment status for tax is checked for the particular working relationship and can differ from employment-law status."
+      ],
+      "limitations": [
+        "The page is general guidance and does not determine a real engagement."
+      ]
+    },
+    {
+      "id": "src-govuk-paye-employers",
+      "title": "PAYE and payroll for employers",
+      "publisher": "GOV.UK",
+      "url": "https://www.gov.uk/paye-for-employers",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "An employer normally operates PAYE through payroll to collect Income Tax and National Insurance from employment.",
+        "The employer deducts, reports and pays under the payroll rules rather than becoming the employee's income-tax taxpayer."
+      ],
+      "limitations": [
+        "Registration thresholds, worker status, special cases and the rules for the period still need separate checks."
+      ]
+    },
+    {
+      "id": "src-hmrc-vat-guide-700",
+      "title": "VAT guide, Notice 700",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/guidance/vat-guide-notice-700",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Current UK VAT guidance keeps business and non-business activities separate.",
+        "A VAT business is a continuing activity mainly concerned with making supplies to other persons for consideration, with frequency and scale."
+      ],
+      "limitations": [
+        "General guidance does not replace the VAT Act, detailed manuals or transaction-specific rules."
+      ]
+    },
+    {
+      "id": "src-hmrc-vat-fixed-establishment",
+      "title": "VATPOSS04500: fixed establishment",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/vat-place-of-supply-services/vatposs04500",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "HMRC's current UK view looks for sufficient permanence and human and technical resources for making or receiving the supplies in question.",
+        "A registered office or identifier does not by itself settle the fixed-establishment question."
+      ],
+      "limitations": [
+        "The conclusion is provision-specific and fact-specific, and relevant case law and current legislation must also be checked."
+      ]
+    },
+    {
+      "id": "src-irs-entity-classification-2026",
+      "title": "Classification of taxpayers for US tax purposes",
+      "publisher": "Internal Revenue Service",
+      "url": "https://www.irs.gov/individuals/international-taxpayers/classification-of-taxpayers-for-us-tax-purposes",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United States",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "Eligible entities can have a federal tax classification different from their state-law form.",
+        "A single-owner eligible entity can be disregarded or elect association treatment."
+      ],
+      "limitations": [
+        "Disregarded treatment has charge-specific exceptions and does not determine UK treatment."
+      ]
+    },
+    {
+      "id": "src-us-check-box-1996",
+      "title": "Treasury Decision 8697",
+      "publisher": "US Department of the Treasury",
+      "url": "https://www.govinfo.gov/content/pkg/FR-1996-12-18/pdf/96-31997.pdf",
+      "authorityLevel": "regulation-or-directive",
+      "jurisdiction": "United States",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "The check-the-box entity-classification regulations generally became applicable in 1997."
+      ],
+      "limitations": [
+        "Later amendments and the current Code and regulations must be checked."
+      ]
+    },
+    {
+      "id": "src-hmrc-hybrid-entities",
+      "title": "Help with sharing group structure information",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://www.gov.uk/government/publications/help-with-sharing-group-structure-information-gfc17/help-with-sharing-group-structure-information",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A UK company can be a company where incorporated and disregarded for US tax.",
+        "A UK LLP can be transparent in the UK and treated as a corporation elsewhere.",
+        "Incorporation and tax residence belong on separate parts of a group map."
+      ],
+      "limitations": [
+        "Diagram notation communicates claims; it does not prove them."
+      ]
+    },
+    {
+      "id": "src-hmrc-sole-trader-2026",
+      "title": "How to set up as a sole trader",
+      "publisher": "HM Revenue & Customs",
+      "url": "https://taxconfident.campaign.gov.uk/small-businesses-and-tax/starting-out/set-up-sole-trader/",
+      "authorityLevel": "official-guidance",
+      "jurisdiction": "United Kingdom",
+      "retrievedAt": "2026-07-28",
+      "supports": [
+        "A sole trader and the business are not separate legal persons.",
+        "A trading name does not create a separate person."
+      ],
+      "limitations": [
+        "Tax obligations still depend on activities, income, registrations and period."
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "legal-existence",
+      "label": "Legal existence and form",
+      "question": "What exists under the governing private law?",
+      "meaning": "Start with the natural person, body, relationship or arrangement created by general law. This is the legal shell, not the whole tax answer.",
+      "cardinality": "one",
+      "origin": "Company, partnership, trust and association law creates or recognises these categories. Tax law can borrow, override or ignore them for a stated purpose.",
+      "classificationValues": [
+        {
+          "id": "legal:natural-person",
+          "label": "Natural person",
+          "meaning": "A human legal person.",
+          "doesNotMean": "One unchanging tax capacity or one source of income.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ]
+        },
+        {
+          "id": "legal:body-corporate",
+          "label": "Body corporate",
+          "meaning": "A separate incorporated legal person.",
+          "doesNotMean": "Opaque or company-taxed in every jurisdiction and charge.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-llp-act-2000-s1",
+            "src-ni-llp-act-2002-s1"
+          ]
+        },
+        {
+          "id": "legal:unincorporated-relationship",
+          "label": "Unincorporated relationship",
+          "meaning": "A relationship such as an English general partnership, without separate general-law personality.",
+          "doesNotMean": "Invisible to tax administration or incapable of filing.",
+          "sourceIds": [
+            "src-partnership-act-1890-s1",
+            "src-hmrc-pm120100"
+          ]
+        },
+        {
+          "id": "legal:separate-firm-person",
+          "label": "Separate firm person",
+          "meaning": "A firm with distinct legal personality, such as a Scottish partnership.",
+          "doesNotMean": "Entity-level taxation of its business profits.",
+          "sourceIds": [
+            "src-partnership-act-1890-s4",
+            "src-hmrc-pm120100"
+          ]
+        },
+        {
+          "id": "legal:legal-arrangement",
+          "label": "Legal arrangement",
+          "meaning": "A relationship governing property and roles, such as a trust.",
+          "doesNotMean": "One universal trust taxpayer.",
+          "sourceIds": [
+            "src-fatf-legal-arrangements-2024",
+            "src-hmrc-tsem10020"
+          ]
+        },
+        {
+          "id": "legal:non-separate-presence",
+          "label": "Non-separate presence",
+          "meaning": "A branch or business presence that is part of another person.",
+          "doesNotMean": "No local taxing nexus.",
+          "sourceIds": [
+            "src-hmrc-branch-pe"
+          ]
+        },
+        {
+          "id": "legal:tax-group-not-person",
+          "label": "Tax group, not a new legal person",
+          "meaning": "A grouping that a tax regime treats together.",
+          "doesNotMean": "The member entities disappear for other law or taxes.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "The subject is formed outside the jurisdiction applying the tax.",
+        "The governing documents or formation status are unavailable.",
+        "A partnership is connected with Scotland.",
+        "A label such as company, foundation, association or trust has been translated from another legal system."
+      ],
+      "sourceIds": [
+        "src-partnership-act-1890-s1",
+        "src-partnership-act-1890-s4",
+        "src-companies-act-2006-s16",
+        "src-llp-act-2000-s1",
+        "src-ni-llp-act-2002-s1",
+        "src-companies-act-2006-s1286",
+        "src-fatf-legal-arrangements-2024",
+        "src-hmrc-tsem10020",
+        "src-hmrc-sole-trader-2026",
+        "src-hmrc-branch-pe",
+        "src-hmrc-vat-groups",
+        "src-hmrc-pm120100"
+      ]
+    },
+    {
+      "id": "tax-attribution",
+      "label": "Tax attribution and charge",
+      "question": "For this tax and item, who is treated as earning, owning or disposing?",
+      "meaning": "Tax can charge the legal person, look through to members, attribute to a beneficiary or settlor, or use a representative member.",
+      "cardinality": "many",
+      "origin": "Each charging provision defines or implies its own taxpayer and attribution rule. Transparent and opaque are convenient descriptions, not universal properties.",
+      "classificationValues": [
+        {
+          "id": "attribution:subject-level",
+          "label": "Scoped subject charge",
+          "meaning": "The scoped natural person or legal entity is charged on the relevant item in its own name.",
+          "doesNotMean": "The subject has one treatment for every item, or that owners have no separate distribution, gain, payroll or reporting consequences.",
+          "sourceIds": [
+            "src-hmrc-intm180010",
+            "src-charity-tax-exemptions"
+          ]
+        },
+        {
+          "id": "attribution:member-level",
+          "label": "Member-level attribution",
+          "meaning": "Members or partners are charged on attributed shares.",
+          "doesNotMean": "The partnership has no computation, return, VAT or PAYE role.",
+          "sourceIds": [
+            "src-hmrc-pm131450",
+            "src-hmrc-pm136000"
+          ]
+        },
+        {
+          "id": "attribution:owner-level",
+          "label": "Owner-level attribution",
+          "meaning": "The stated regime looks through a separate legal form and charges its owner on the relevant item.",
+          "doesNotMean": "The legal entity disappears, another jurisdiction follows the look-through, or every tax uses the same treatment.",
+          "sourceIds": [
+            "src-irs-entity-classification-2026",
+            "src-hmrc-hybrid-entities"
+          ]
+        },
+        {
+          "id": "attribution:beneficiary-level",
+          "label": "Beneficiary-level attribution",
+          "meaning": "The beneficiary is charged on the relevant trust income or gains.",
+          "doesNotMean": "Every trust is bare or every trust item follows this rule.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ]
+        },
+        {
+          "id": "attribution:trustee-level",
+          "label": "Trustee-level charge",
+          "meaning": "Trustees are the persons charged or assessed for the stated rule.",
+          "doesNotMean": "Trustees beneficially own the property.",
+          "sourceIds": [
+            "src-hmrc-tsem10020"
+          ]
+        },
+        {
+          "id": "attribution:settlor-level",
+          "label": "Settlor attribution",
+          "meaning": "A settlement rule attributes the item to the settlor.",
+          "doesNotMean": "The settlor is always charged on trust income.",
+          "sourceIds": [
+            "src-hmrc-tsem4200"
+          ]
+        },
+        {
+          "id": "attribution:single-vat-person",
+          "label": "Single VAT taxable person",
+          "meaning": "Several members are treated together for VAT through a representative member.",
+          "doesNotMean": "One company for corporation tax or company law.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ]
+        },
+        {
+          "id": "attribution:main-entity-with-presence",
+          "label": "Main entity with attributed presence",
+          "meaning": "The main person remains the taxpayer while profits are attributed to a branch or permanent establishment.",
+          "doesNotMean": "The presence is a separate resident legal person.",
+          "sourceIds": [
+            "src-hmrc-branch-pe",
+            "src-oecd-model-2017"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "A transparent or opaque label is being reused across taxes.",
+        "An LLP is not carrying on a business with a view to profit or is winding up.",
+        "A trust type or entitlement is unclear.",
+        "Two jurisdictions classify the same body differently."
+      ],
+      "sourceIds": [
+        "src-hmrc-intm180010",
+        "src-hmrc-pm131450",
+        "src-hmrc-pm136000",
+        "src-irs-entity-classification-2026",
+        "src-hmrc-hybrid-entities",
+        "src-hmrc-tsem1563",
+        "src-hmrc-tsem10020",
+        "src-hmrc-tsem4200",
+        "src-hmrc-vat-groups",
+        "src-hmrc-branch-pe",
+        "src-oecd-model-2017",
+        "src-charity-tax-exemptions"
+      ]
+    },
+    {
+      "id": "capacity-activity",
+      "label": "Capacity and activity",
+      "question": "In what role is the subject acting for this item or engagement?",
+      "meaning": "The same person can be an employee, sole trader, landlord, partner, trustee, director, employer and investor at the same time.",
+      "cardinality": "many",
+      "origin": "Charging rules and case law classify an activity or relationship, not a whole human being for all purposes.",
+      "classificationValues": [
+        {
+          "id": "capacity:employee",
+          "label": "Employee",
+          "meaning": "Acting under an employment relationship for the stated engagement.",
+          "doesNotMean": "Unable to carry on a separate trade.",
+          "sourceIds": [
+            "src-govuk-employment-status",
+            "src-hmrc-pm131450"
+          ]
+        },
+        {
+          "id": "capacity:sole-trader",
+          "label": "Sole trader",
+          "meaning": "A natural person carrying on business on their own account.",
+          "doesNotMean": "A separate legal person called the business.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ]
+        },
+        {
+          "id": "capacity:partner-or-member",
+          "label": "Partner or LLP member",
+          "meaning": "Acting as a participant in the partnership business.",
+          "doesNotMean": "Employment or self-employment status is settled for every rule.",
+          "sourceIds": [
+            "src-hmrc-pm131450",
+            "src-hmrc-pm136000"
+          ]
+        },
+        {
+          "id": "capacity:salaried-llp-member",
+          "label": "Salaried LLP member for tax and National Insurance",
+          "meaning": "An individual LLP member meeting all salaried-member conditions is treated like an employee for the reward, PAYE and Class 1 National Insurance rules.",
+          "doesNotMean": "The member stops being a member or their chargeable share of LLP profits changes.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ]
+        },
+        {
+          "id": "capacity:company-trader",
+          "label": "Company carrying on activity",
+          "meaning": "The body corporate carries on the stated trade or business.",
+          "doesNotMean": "Every receipt belongs to the trade or every director acts personally.",
+          "sourceIds": [
+            "src-charity-tax-exemptions"
+          ]
+        },
+        {
+          "id": "capacity:charity",
+          "label": "Charitable capacity",
+          "meaning": "The subject is recognised and acts for charitable purposes within the stated rule.",
+          "doesNotMean": "All activities and income are exempt.",
+          "sourceIds": [
+            "src-finance-act-2010-charity",
+            "src-charity-tax-exemptions"
+          ]
+        },
+        {
+          "id": "capacity:trustee",
+          "label": "Trustee",
+          "meaning": "Holding or administering property under trust duties.",
+          "doesNotMean": "Beneficial ownership.",
+          "sourceIds": [
+            "src-hmrc-tsem1563",
+            "src-fatf-legal-arrangements-2024"
+          ]
+        },
+        {
+          "id": "capacity:beneficiary",
+          "label": "Beneficiary",
+          "meaning": "Holding a beneficial interest or entitlement.",
+          "doesNotMean": "Control, legal title or present tax liability in every trust.",
+          "sourceIds": [
+            "src-hmrc-tsem1563",
+            "src-fatf-legal-arrangements-2024"
+          ]
+        },
+        {
+          "id": "capacity:independent-economic-actor",
+          "label": "Independent economic actor",
+          "meaning": "Independently carrying on economic activity for the VAT rule.",
+          "doesNotMean": "Self-employed for every direct-tax or employment-law rule.",
+          "sourceIds": [
+            "src-eu-vat-directive",
+            "src-hmrc-vat-guide-700"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "One person has more than one income source or engagement.",
+        "Employment and self-employment labels are inferred from a job title.",
+        "A director's personal and company capacities are mixed.",
+        "A charity carries on trading or investment activity."
+      ],
+      "sourceIds": [
+        "src-hmrc-sole-trader-2026",
+        "src-govuk-employment-status",
+        "src-hmrc-vat-guide-700",
+        "src-eu-vat-directive",
+        "src-hmrc-pm131450",
+        "src-hmrc-pm136000",
+        "src-charity-tax-exemptions",
+        "src-finance-act-2010-charity",
+        "src-hmrc-tsem1563",
+        "src-fatf-legal-arrangements-2024"
+      ]
+    },
+    {
+      "id": "residence-nexus",
+      "label": "Residence and territorial nexus",
+      "question": "Which place claims residence, source or another taxing foothold for this regime?",
+      "meaning": "Incorporation, residence, domicile, source, permanent establishment, VAT fixed establishment and payroll presence are different connecting tests.",
+      "cardinality": "many",
+      "origin": "Domestic law first makes residence and source claims; treaties coordinate only their own application; indirect-tax and payroll rules use separate connections.",
+      "classificationValues": [
+        {
+          "id": "nexus:uk-domestic-resident",
+          "label": "UK domestic resident",
+          "meaning": "UK domestic law treats the subject as resident for the stated tax and period.",
+          "doesNotMean": "Exclusive treaty residence or residence for every reporting regime.",
+          "sourceIds": [
+            "src-hmrc-intm120040",
+            "src-hmrc-rdrm20060",
+            "src-hmrc-tsem10020"
+          ]
+        },
+        {
+          "id": "nexus:dual-domestic-residence",
+          "label": "Dual domestic residence",
+          "meaning": "More than one jurisdiction's domestic law treats the subject as resident.",
+          "doesNotMean": "The conflict has been resolved for treaty purposes.",
+          "sourceIds": [
+            "src-hmrc-intm120180",
+            "src-oecd-model-2017"
+          ]
+        },
+        {
+          "id": "nexus:treaty-coordinated",
+          "label": "Treaty-coordinated residence",
+          "meaning": "An applicable treaty coordinates residence for that treaty.",
+          "doesNotMean": "The domestic residence claims cease to exist for all law.",
+          "sourceIds": [
+            "src-oecd-model-2017"
+          ]
+        },
+        {
+          "id": "nexus:permanent-establishment",
+          "label": "Permanent establishment",
+          "meaning": "A direct-tax business presence meeting the relevant domestic or treaty test.",
+          "doesNotMean": "Subsidiary, registered branch, VAT fixed establishment or separate legal person.",
+          "sourceIds": [
+            "src-hmrc-branch-pe",
+            "src-oecd-model-2017"
+          ]
+        },
+        {
+          "id": "nexus:vat-fixed-establishment",
+          "label": "VAT fixed establishment",
+          "meaning": "A VAT presence with the required permanence and human and technical resources for the rule.",
+          "doesNotMean": "A VAT number alone or a direct-tax permanent establishment.",
+          "sourceIds": [
+            "src-hmrc-vat-fixed-establishment",
+            "src-eu-vat-fixed-establishment"
+          ]
+        },
+        {
+          "id": "nexus:no-separate-residence",
+          "label": "No separate residence",
+          "meaning": "The branch, group or arrangement has no independent residence claim in the stated context.",
+          "doesNotMean": "No local tax or reporting obligation.",
+          "sourceIds": [
+            "src-hmrc-branch-pe",
+            "src-hmrc-vat-groups"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "Management, board or controlling decisions cross borders.",
+        "A remote worker, agent, office or technical resource is in another jurisdiction.",
+        "A certificate, address or VAT number is being treated as conclusive.",
+        "The actual bilateral treaty and protocol have not been read.",
+        "The period crosses a legal change, including 6 April 2025."
+      ],
+      "sourceIds": [
+        "src-hmrc-intm120040",
+        "src-hmrc-intm120180",
+        "src-hmrc-rdrm20060",
+        "src-hmrc-tsem10020",
+        "src-hmrc-branch-pe",
+        "src-oecd-model-2017",
+        "src-hmrc-vat-fixed-establishment",
+        "src-eu-vat-fixed-establishment",
+        "src-hmrc-vat-groups"
+      ]
+    },
+    {
+      "id": "registration-grouping",
+      "label": "Registration, election and grouping",
+      "question": "Which administrative accounts, elections or tax groups apply?",
+      "meaning": "Registration and elections can create obligations or tax-specific treatment, but a number in a database is not the underlying legal conclusion.",
+      "cardinality": "many",
+      "origin": "Company, charity and revenue registries, statutory elections and grouping rules create purpose-specific administrative identities.",
+      "classificationValues": [
+        {
+          "id": "registration:companies-house",
+          "label": "Companies House registration",
+          "meaning": "The incorporated form is recorded by the company registrar.",
+          "doesNotMean": "Tax residence, activity or beneficial ownership is proved.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-llp-act-2000-s1"
+          ]
+        },
+        {
+          "id": "registration:self-assessment",
+          "label": "Self Assessment record",
+          "meaning": "A person or filing unit has a UK Self Assessment administration record.",
+          "doesNotMean": "Every recorded source is current or correctly classified.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026",
+            "src-hmrc-pm136000"
+          ]
+        },
+        {
+          "id": "registration:charity-and-tax-recognition",
+          "label": "Charity and tax recognition",
+          "meaning": "Charity-law registration or recognition and HMRC tax recognition have been addressed.",
+          "doesNotMean": "One registration necessarily supplies the other.",
+          "sourceIds": [
+            "src-finance-act-2010-charity",
+            "src-charity-tax-exemptions"
+          ]
+        },
+        {
+          "id": "registration:vat",
+          "label": "VAT registration",
+          "meaning": "The stated taxable person is registered or required to register.",
+          "doesNotMean": "Every cost is business input tax or a fixed establishment exists.",
+          "sourceIds": [
+            "src-hmrc-vat-guide-700",
+            "src-hmrc-vat-partnership-person"
+          ]
+        },
+        {
+          "id": "registration:vat-group",
+          "label": "VAT group membership",
+          "meaning": "Eligible members are treated through one representative registration.",
+          "doesNotMean": "Corporate or direct-tax consolidation.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ]
+        },
+        {
+          "id": "registration:payroll",
+          "label": "Payroll registration",
+          "meaning": "An employer or payer operates a payroll reporting account.",
+          "doesNotMean": "The same subject is the income-tax taxpayer on every profit.",
+          "sourceIds": [
+            "src-hmrc-pm136000",
+            "src-hmrc-pm131450",
+            "src-govuk-paye-employers"
+          ]
+        },
+        {
+          "id": "registration:classification-election",
+          "label": "Classification election",
+          "meaning": "An available election changes a tax classification from an effective date.",
+          "doesNotMean": "The legal form changes or another jurisdiction follows the election.",
+          "sourceIds": [
+            "src-irs-entity-classification-2026",
+            "src-us-check-box-1996"
+          ]
+        },
+        {
+          "id": "registration:none-determinative",
+          "label": "No registration is determinative",
+          "meaning": "The current evidence contains no registration that settles the classification.",
+          "doesNotMean": "No registration duty exists.",
+          "sourceIds": [
+            "src-hmrc-branch-pe",
+            "src-hmrc-vat-fixed-establishment"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "A legal conclusion is inferred from a UTR, VRN, EIN, TIN, company number or address.",
+        "An election date or acceptance is missing.",
+        "Group membership changed during the period.",
+        "The registered person differs from the person economically active."
+      ],
+      "sourceIds": [
+        "src-hmrc-vat-groups",
+        "src-hmrc-vat-partnership-person",
+        "src-hmrc-vat-guide-700",
+        "src-hmrc-vat-fixed-establishment",
+        "src-hmrc-branch-pe",
+        "src-irs-entity-classification-2026",
+        "src-us-check-box-1996",
+        "src-companies-act-2006-s16",
+        "src-llp-act-2000-s1",
+        "src-hmrc-sole-trader-2026",
+        "src-charity-tax-exemptions",
+        "src-finance-act-2010-charity",
+        "src-hmrc-pm131450",
+        "src-hmrc-pm136000",
+        "src-govuk-paye-employers"
+      ]
+    },
+    {
+      "id": "ownership-control",
+      "label": "Ownership, control and benefit",
+      "question": "Who holds legal title, benefits, exercises formal power or has ultimate effective control?",
+      "meaning": "Shareholder, member, legal owner, beneficial owner, trustee, beneficiary and controlling person are related roles, not synonyms.",
+      "cardinality": "many",
+      "origin": "Property and company law allocate title and formal power; anti-money-laundering and reporting rules look through to natural persons and other means of control.",
+      "classificationValues": [
+        {
+          "id": "control:legal-owner",
+          "label": "Legal owner",
+          "meaning": "Holds legal title to the interest or property.",
+          "doesNotMean": "Ultimate benefit or effective control.",
+          "sourceIds": [
+            "src-fatf-legal-persons-2023",
+            "src-fatf-legal-arrangements-2024"
+          ]
+        },
+        {
+          "id": "control:beneficial-owner",
+          "label": "Beneficial owner",
+          "meaning": "The natural person who ultimately owns or benefits within the stated standard.",
+          "doesNotMean": "The direct registered holder.",
+          "sourceIds": [
+            "src-fatf-legal-persons-2023"
+          ]
+        },
+        {
+          "id": "control:member",
+          "label": "Member or partner",
+          "meaning": "Participates in the body or relationship under its governing rules.",
+          "doesNotMean": "Employee, beneficial owner or controlling person in every case.",
+          "sourceIds": [
+            "src-llp-act-2000-s1",
+            "src-hmrc-pm131450"
+          ]
+        },
+        {
+          "id": "control:trustee-legal-title",
+          "label": "Trustee legal title",
+          "meaning": "Trustees hold or administer legal title under trust duties.",
+          "doesNotMean": "The trustees own for their personal benefit.",
+          "sourceIds": [
+            "src-fatf-legal-arrangements-2024",
+            "src-hmrc-tsem1563"
+          ]
+        },
+        {
+          "id": "control:beneficiary-interest",
+          "label": "Beneficiary interest",
+          "meaning": "A person or class has a beneficial interest or entitlement.",
+          "doesNotMean": "Present control or a presently taxable receipt.",
+          "sourceIds": [
+            "src-fatf-legal-arrangements-2024",
+            "src-hmrc-tsem1563"
+          ]
+        },
+        {
+          "id": "control:common-control",
+          "label": "Common control",
+          "meaning": "Members satisfy a tax regime's control connection.",
+          "doesNotMean": "All activities or liabilities merge.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ]
+        },
+        {
+          "id": "control:crs-controlling-person",
+          "label": "CRS controlling person",
+          "meaning": "A natural person falls within the reporting standard's controlling-person analysis.",
+          "doesNotMean": "They are automatically the taxpayer or guilty of wrongdoing.",
+          "sourceIds": [
+            "src-oecd-crs-2025",
+            "src-fatf-legal-persons-2023"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "Nominees, trusts, indirect chains or non-share control are present.",
+        "The registered holder is assumed to be the ultimate owner.",
+        "A senior managing official is treated as a beneficial owner without stating the fallback rule.",
+        "Private ownership information would be exposed."
+      ],
+      "sourceIds": [
+        "src-fatf-legal-persons-2023",
+        "src-fatf-legal-arrangements-2024",
+        "src-oecd-crs-2025",
+        "src-partnership-act-1890-s4",
+        "src-hmrc-vat-groups",
+        "src-llp-act-2000-s1",
+        "src-hmrc-pm131450",
+        "src-hmrc-tsem1563"
+      ]
+    },
+    {
+      "id": "reporting-classification",
+      "label": "Reporting classification",
+      "question": "How does the relevant reporting or due-diligence regime classify the subject?",
+      "meaning": "CRS, FATCA and other information regimes create their own entity and controlling-person buckets.",
+      "cardinality": "many",
+      "origin": "International reporting standards and their domestic implementation define purpose-specific classes distinct from income-tax treatment.",
+      "classificationValues": [
+        {
+          "id": "reporting:individual",
+          "label": "Individual account holder or reportable person",
+          "meaning": "The reporting regime treats the subject as an individual.",
+          "doesNotMean": "No business capacity.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ]
+        },
+        {
+          "id": "reporting:financial-institution",
+          "label": "Financial Institution",
+          "meaning": "The subject meets the reporting standard's financial-institution definition.",
+          "doesNotMean": "A bank in ordinary speech.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ]
+        },
+        {
+          "id": "reporting:active-nfe",
+          "label": "Active NFE",
+          "meaning": "The entity meets one of the reporting standard's active non-financial entity tests.",
+          "doesNotMean": "Active trading for every tax.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ]
+        },
+        {
+          "id": "reporting:passive-nfe",
+          "label": "Passive NFE",
+          "meaning": "The entity falls within the reporting standard's passive category.",
+          "doesNotMean": "Tax avoidance or illegality.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ]
+        },
+        {
+          "id": "reporting:trust-roles",
+          "label": "Trust role reporting",
+          "meaning": "Settlor, trustee, protector, beneficiary and other control roles are analysed for reporting.",
+          "doesNotMean": "Every role has the same ownership, control or tax consequence.",
+          "sourceIds": [
+            "src-oecd-crs-2025",
+            "src-fatf-legal-arrangements-2024"
+          ]
+        },
+        {
+          "id": "reporting:separate-members",
+          "label": "Members remain separately classified",
+          "meaning": "A tax group does not replace each member's reporting classification.",
+          "doesNotMean": "Group membership is irrelevant to every report.",
+          "sourceIds": [
+            "src-oecd-crs-2025",
+            "src-hmrc-vat-groups"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "Income and asset tests are missing.",
+        "A tax-transparent label is reused as a CRS classification.",
+        "A dual-resident entity has been reduced to one country without checking the amended standard and domestic implementation.",
+        "A reporting result is treated as an income-tax conclusion."
+      ],
+      "sourceIds": [
+        "src-oecd-crs-2025",
+        "src-fatf-legal-persons-2023",
+        "src-fatf-legal-arrangements-2024",
+        "src-hmrc-vat-groups"
+      ]
+    },
+    {
+      "id": "obligation-role",
+      "label": "Filing, payment and withholding role",
+      "question": "Who must calculate, return, pay, withhold or report?",
+      "meaning": "The person who files or remits can differ from the person on whom the underlying income or gain is charged.",
+      "cardinality": "many",
+      "origin": "Administrative and collection rules assign practical duties to taxpayers, partnerships, trustees, employers, agents and representative members.",
+      "classificationValues": [
+        {
+          "id": "obligation:taxpayer-and-filer",
+          "label": "Taxpayer and filer",
+          "meaning": "The same subject is charged and files for the stated obligation.",
+          "doesNotMean": "No agent, withholding or group role.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026",
+            "src-charity-tax-exemptions"
+          ]
+        },
+        {
+          "id": "obligation:filing-unit-not-chargeable",
+          "label": "Filing unit, members charged",
+          "meaning": "The relationship computes or reports while members bear the underlying charge.",
+          "doesNotMean": "The filing unit is irrelevant.",
+          "sourceIds": [
+            "src-hmrc-pm136000"
+          ]
+        },
+        {
+          "id": "obligation:representative-member",
+          "label": "Representative member",
+          "meaning": "One member accounts for the group under the tax regime.",
+          "doesNotMean": "Other members lose all liability.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ]
+        },
+        {
+          "id": "obligation:employer-withholder",
+          "label": "Employer or withholding role",
+          "meaning": "The subject deducts, reports or pays amounts connected with another person's income.",
+          "doesNotMean": "The employer is the employee's income-tax taxpayer.",
+          "sourceIds": [
+            "src-hmrc-pm136000",
+            "src-hmrc-pm131450",
+            "src-govuk-paye-employers"
+          ]
+        },
+        {
+          "id": "obligation:trustee-administrator",
+          "label": "Trustee administration",
+          "meaning": "Trustees return, account or pay in an administrative capacity for the stated rule.",
+          "doesNotMean": "Trustees are always the person strictly chargeable.",
+          "sourceIds": [
+            "src-hmrc-tsem1563",
+            "src-hmrc-tsem10020"
+          ]
+        },
+        {
+          "id": "obligation:main-entity-pe-return",
+          "label": "Main entity with PE return",
+          "meaning": "The non-resident person reports and pays on profits attributed to its local presence.",
+          "doesNotMean": "The PE is a separately resident company.",
+          "sourceIds": [
+            "src-hmrc-branch-pe"
+          ]
+        }
+      ],
+      "reviewWhen": [
+        "A filing name is treated as proof of who bears the charge.",
+        "Partners, trustees, employers or VAT-group members share or divide duties.",
+        "A branch or agent submits on behalf of a non-resident.",
+        "Joint and several liability is possible."
+      ],
+      "sourceIds": [
+        "src-hmrc-pm136000",
+        "src-hmrc-vat-groups",
+        "src-hmrc-tsem1563",
+        "src-hmrc-tsem10020",
+        "src-hmrc-branch-pe",
+        "src-hmrc-sole-trader-2026",
+        "src-hmrc-pm131450",
+        "src-charity-tax-exemptions",
+        "src-hmrc-intm180010",
+        "src-govuk-paye-employers"
+      ]
+    }
+  ],
+  "archetypes": [
+    {
+      "id": "archetype-sole-trader",
+      "label": "UK sole trader",
+      "subjectKind": "natural-person-in-business-capacity",
+      "territory": "United Kingdom",
+      "summary": "One natural person carries on a business; the trading name does not become a second legal person.",
+      "dimensionHighlights": [
+        "legal:natural-person",
+        "capacity:sole-trader",
+        "attribution:subject-level",
+        "registration:self-assessment"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Income Tax on trade profits",
+          "subject": "The natural person",
+          "role": "Taxpayer and filer",
+          "caveat": "The trade is a separate income source but not a separate legal person."
+        },
+        {
+          "taxOrRegime": "VAT",
+          "subject": "The natural person acting as taxable person",
+          "role": "Registrant if required or elected",
+          "caveat": "All business activities of that registered person normally sit under the registration; business purpose remains item-specific."
+        }
+      ],
+      "commonMisreadings": [
+        "Treating a business name as a company.",
+        "Assuming employee and sole-trader capacities cannot coexist.",
+        "Treating a UTR or VAT number as proof of employment status."
+      ],
+      "sourceIds": [
+        "src-hmrc-sole-trader-2026",
+        "src-govuk-employment-status",
+        "src-hmrc-vat-guide-700"
+      ]
+    },
+    {
+      "id": "archetype-english-general-partnership",
+      "label": "English, Welsh or Northern Irish general partnership",
+      "subjectKind": "unincorporated-business-relationship",
+      "territory": "England, Wales or Northern Ireland",
+      "summary": "The partnership relationship lacks separate general-law personality, yet tax law can treat the firm as a filing or VAT person while attributing business profits to partners.",
+      "dimensionHighlights": [
+        "legal:unincorporated-relationship",
+        "attribution:member-level",
+        "obligation:filing-unit-not-chargeable",
+        "registration:self-assessment"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Income or Corporation Tax on partnership profits",
+          "subject": "The partners",
+          "role": "Charged on allocated shares",
+          "caveat": "The partnership computes and returns the business result."
+        },
+        {
+          "taxOrRegime": "VAT",
+          "subject": "The partners acting collectively",
+          "role": "A person for VAT purposes",
+          "caveat": "A change in partners can change the VAT person."
+        }
+      ],
+      "commonMisreadings": [
+        "Calling the firm legally invisible because it files.",
+        "Calling the firm a separate company because it has a UTR or VRN.",
+        "Assuming the same partner set after a membership change."
+      ],
+      "sourceIds": [
+        "src-partnership-act-1890-s1",
+        "src-hmrc-pm120100",
+        "src-hmrc-pm136000",
+        "src-hmrc-vat-partnership-person"
+      ]
+    },
+    {
+      "id": "archetype-scottish-partnership",
+      "label": "Scottish general partnership",
+      "subjectKind": "separate-firm-with-member-attribution",
+      "territory": "Scotland",
+      "summary": "The firm has separate legal personality, while business profits can still be attributed to partners under UK tax rules.",
+      "dimensionHighlights": [
+        "legal:separate-firm-person",
+        "attribution:member-level",
+        "obligation:filing-unit-not-chargeable"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Income or Corporation Tax on partnership profits",
+          "subject": "The partners",
+          "role": "Charged on allocated shares",
+          "caveat": "Separate Scots-law personality does not force entity-level taxation."
+        }
+      ],
+      "commonMisreadings": [
+        "Applying the English legal-personality answer across the UK.",
+        "Assuming separate personality means opaque taxation."
+      ],
+      "sourceIds": [
+        "src-partnership-act-1890-s4",
+        "src-hmrc-pm120100",
+        "src-hmrc-pm136000"
+      ]
+    },
+    {
+      "id": "archetype-gb-llp",
+      "label": "Great Britain limited liability partnership",
+      "subjectKind": "body-corporate-with-conditional-member-attribution",
+      "territory": "England, Wales and Scotland",
+      "summary": "The Great Britain LLP form created by the 2000 Act is a separate body corporate in general law but is normally treated like a partnership for income and gains when it carries on business with a view to profit.",
+      "dimensionHighlights": [
+        "legal:body-corporate",
+        "attribution:member-level",
+        "capacity:partner-or-member",
+        "registration:companies-house"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Income and gains",
+          "subject": "The members",
+          "role": "Normally charged on their shares",
+          "caveat": "Business-with-a-view-to-profit and winding-up exceptions need separate checks."
+        },
+        {
+          "taxOrRegime": "PAYE and Class 1 National Insurance",
+          "subject": "An individual member meeting all salaried-member conditions",
+          "role": "Employment-treatment overlay for the member's reward",
+          "caveat": "The overlay does not change the amount of that member's chargeable share of LLP profits."
+        },
+        {
+          "taxOrRegime": "Company-law filings",
+          "subject": "The LLP",
+          "role": "Registered body filing accounts and notices",
+          "caveat": "A company-law filing role does not make it a company for the partnership tax provisions."
+        }
+      ],
+      "commonMisreadings": [
+        "Treating body corporate and company taxpayer as synonyms.",
+        "Calling LLP transparency unconditional.",
+        "Assuming every LLP member has the same employment or National Insurance status."
+      ],
+      "sourceIds": [
+        "src-llp-act-2000-s1",
+        "src-hmrc-pm131450",
+        "src-hmrc-hybrid-entities"
+      ]
+    },
+    {
+      "id": "archetype-ni-llp",
+      "label": "Northern Ireland limited liability partnership lineage",
+      "subjectKind": "body-corporate-with-territorial-lineage",
+      "territory": "Northern Ireland",
+      "summary": "Northern Ireland created a separate LLP form in 2002; Companies Act 2006 section 1286 later extended the Great Britain enactments to Northern Ireland and ended the separate Act.",
+      "dimensionHighlights": [
+        "legal:body-corporate",
+        "attribution:member-level",
+        "capacity:partner-or-member",
+        "registration:companies-house"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Legal-form history",
+          "subject": "The Northern Ireland LLP",
+          "role": "Body corporate under the legislation effective for its period",
+          "caveat": "Formation and transaction dates decide whether the separate 2002 Act or the later UK-wide framework is the relevant origin source."
+        },
+        {
+          "taxOrRegime": "Income and gains",
+          "subject": "The members",
+          "role": "Normally charged on their shares",
+          "caveat": "The same business-with-a-view-to-profit and exception checks remain necessary."
+        }
+      ],
+      "commonMisreadings": [
+        "Projecting the original Great Britain creation event backwards into Northern Ireland.",
+        "Treating the repealed 2002 Act as current standalone law.",
+        "Treating body-corporate status as entity-level taxation."
+      ],
+      "sourceIds": [
+        "src-ni-llp-act-2002-s1",
+        "src-companies-act-2006-s1286",
+        "src-hmrc-pm131450"
+      ]
+    },
+    {
+      "id": "archetype-private-company",
+      "label": "UK private limited company",
+      "subjectKind": "incorporated-company",
+      "territory": "United Kingdom",
+      "summary": "The company is a body corporate separate from shareholders and directors, with tax residence and activity tested on their own dimensions.",
+      "dimensionHighlights": [
+        "legal:body-corporate",
+        "attribution:subject-level",
+        "capacity:company-trader",
+        "registration:companies-house",
+        "nexus:uk-domestic-resident"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Corporation Tax",
+          "subject": "The company",
+          "role": "Taxpayer on its profits and gains",
+          "caveat": "Residence, source, group rules and distributions can create further classifications."
+        }
+      ],
+      "commonMisreadings": [
+        "Treating director, shareholder and company as one taxpayer.",
+        "Treating registered office as proof of actual management.",
+        "Assuming another jurisdiction follows the UK classification."
+      ],
+      "sourceIds": [
+        "src-companies-act-2006-s16",
+        "src-hmrc-intm120040",
+        "src-hmrc-intm120180"
+      ]
+    },
+    {
+      "id": "archetype-charitable-company",
+      "label": "UK charitable company",
+      "subjectKind": "company-with-charity-status",
+      "territory": "United Kingdom",
+      "summary": "One body can simultaneously be a company, a charity and an employer, with tax reliefs conditional on the income, activity and use of funds.",
+      "dimensionHighlights": [
+        "legal:body-corporate",
+        "capacity:charity",
+        "attribution:subject-level",
+        "registration:charity-and-tax-recognition"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Corporation Tax and charity exemptions",
+          "subject": "The charitable company",
+          "role": "Company taxpayer with conditional exemptions",
+          "caveat": "Trading, property, gains and application to charitable purposes must be tested under the relevant provision."
+        }
+      ],
+      "commonMisreadings": [
+        "Treating charity as a base legal form.",
+        "Treating recognition as a blanket tax exemption.",
+        "Treating members, trustees or directors as beneficial owners of charitable assets."
+      ],
+      "sourceIds": [
+        "src-companies-act-2006-s16",
+        "src-finance-act-2010-charity",
+        "src-charity-tax-exemptions"
+      ]
+    },
+    {
+      "id": "archetype-express-trust",
+      "label": "UK express trust",
+      "subjectKind": "legal-arrangement-with-multiple-actors",
+      "territory": "United Kingdom",
+      "summary": "A trust is a legal arrangement with settlor, trustee, beneficiary and possible protector roles; the person charged can change with the trust type and rule.",
+      "dimensionHighlights": [
+        "legal:legal-arrangement",
+        "capacity:trustee",
+        "capacity:beneficiary",
+        "reporting:trust-roles",
+        "control:trustee-legal-title",
+        "control:beneficiary-interest"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Bare-trust income and gains",
+          "subject": "The beneficiary",
+          "role": "Strictly chargeable where immediate and absolute entitlement exists",
+          "caveat": "Whether the trust is bare is a legal and factual question."
+        },
+        {
+          "taxOrRegime": "Other settlements",
+          "subject": "Trustees, settlor or beneficiaries depending on the rule",
+          "role": "Charge and administration divided by statute",
+          "caveat": "No generic trust-taxpayer answer is safe."
+        }
+      ],
+      "commonMisreadings": [
+        "Calling the trust itself a company-like legal person.",
+        "Treating legal title, beneficial interest and control as one role.",
+        "Assuming the person filing is the person strictly chargeable."
+      ],
+      "sourceIds": [
+        "src-hmrc-tsem1563",
+        "src-hmrc-tsem4200",
+        "src-fatf-legal-arrangements-2024",
+        "src-oecd-crs-2025"
+      ]
+    },
+    {
+      "id": "archetype-vat-group",
+      "label": "UK VAT group",
+      "subjectKind": "tax-specific-grouping",
+      "territory": "United Kingdom",
+      "summary": "Several eligible persons retain their legal identities while VAT treats the group through one representative member as a single taxable person.",
+      "dimensionHighlights": [
+        "legal:tax-group-not-person",
+        "attribution:single-vat-person",
+        "registration:vat-group",
+        "control:common-control",
+        "obligation:representative-member"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "VAT",
+          "subject": "The grouped taxable person through its representative member",
+          "role": "One return and payment account",
+          "caveat": "Members can remain jointly and severally liable."
+        },
+        {
+          "taxOrRegime": "Company law and Corporation Tax",
+          "subject": "Each member company",
+          "role": "Separate legal and direct-tax subject",
+          "caveat": "VAT grouping does not merge them for other purposes."
+        }
+      ],
+      "commonMisreadings": [
+        "Calling the VAT group a new company.",
+        "Using one VAT number as proof of one beneficial owner or one corporation-tax payer.",
+        "Forgetting effective dates when membership changes."
+      ],
+      "sourceIds": [
+        "src-hmrc-vat-groups"
+      ]
+    },
+    {
+      "id": "archetype-branch-pe",
+      "label": "Foreign company with a UK branch or permanent establishment",
+      "subjectKind": "non-separate-presence-with-local-nexus",
+      "territory": "United Kingdom and another jurisdiction",
+      "summary": "The foreign company remains the legal person, while a UK presence can create a local charge and profit-attribution exercise.",
+      "dimensionHighlights": [
+        "legal:non-separate-presence",
+        "nexus:permanent-establishment",
+        "attribution:main-entity-with-presence",
+        "obligation:main-entity-pe-return"
+      ],
+      "taxRoles": [
+        {
+          "taxOrRegime": "Corporation Tax on UK permanent-establishment profits",
+          "subject": "The non-resident company",
+          "role": "Taxpayer on attributable UK profits",
+          "caveat": "The existence of the PE and the amount attributable to it are separate questions."
+        }
+      ],
+      "commonMisreadings": [
+        "Treating branch, subsidiary, PE and VAT fixed establishment as synonyms.",
+        "Issuing residence conclusions in the branch's name.",
+        "Assuming a registered branch proves a PE or vice versa."
+      ],
+      "sourceIds": [
+        "src-hmrc-branch-pe",
+        "src-oecd-model-2017",
+        "src-hmrc-vat-fixed-establishment"
+      ]
+    }
+  ],
+  "overlaps": [
+    {
+      "id": "overlap-person-and-business-capacity",
+      "label": "One person, personal and business capacities",
+      "archetypeIds": [
+        "archetype-sole-trader"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "capacity-activity",
+        "obligation-role"
+      ],
+      "requires": [
+        {
+          "id": "legal-person",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:natural-person"
+        },
+        {
+          "id": "business-capacity",
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:sole-trader"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "legal-person",
+          "rightRequirementId": "business-capacity",
+          "field": "subjectRef",
+          "operator": "same"
+        },
+        {
+          "leftRequirementId": "legal-person",
+          "rightRequirementId": "business-capacity",
+          "field": "jurisdiction",
+          "operator": "same"
+        }
+      ],
+      "meaning": "There is one legal person, but transactions and expenses still have to be assigned to the correct personal, employment, trading or other capacity.",
+      "dangerousShortcut": "Creating a fictional second person called the business, or treating every personal item as a business item.",
+      "questions": [
+        "Which activity produced the item?",
+        "Was the person acting independently or under an employment relationship?",
+        "Which registration covers the activity?"
+      ],
+      "reviewTriggers": [
+        "Mixed employment and self-employment.",
+        "Shared personal and business assets or expenses.",
+        "More than one trade or partnership role."
+      ],
+      "sourceIds": [
+        "src-hmrc-sole-trader-2026",
+        "src-govuk-employment-status"
+      ]
+    },
+    {
+      "id": "overlap-body-corporate-and-member-taxation",
+      "label": "Separate body corporate, member-level taxation",
+      "archetypeIds": [
+        "archetype-gb-llp",
+        "archetype-ni-llp"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution",
+        "obligation-role"
+      ],
+      "requires": [
+        {
+          "id": "llp-body",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate"
+        },
+        {
+          "id": "members-charged",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:member-level"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "llp-body",
+          "rightRequirementId": "members-charged",
+          "field": "subjectRef",
+          "operator": "different"
+        }
+      ],
+      "meaning": "The LLP owns, contracts and files as a body corporate while the relevant income and gains are normally attributed to members.",
+      "dangerousShortcut": "Calling the LLP a company taxpayer because it is incorporated, or calling it legally unincorporated because it is transparent.",
+      "questions": [
+        "Is it carrying on a business with a view to profit?",
+        "Which tax and item are being classified?",
+        "Do the salaried-member or winding-up exceptions matter?"
+      ],
+      "reviewTriggers": [
+        "Non-profit activity, winding up or temporary cessation.",
+        "A member may fall within salaried-members rules.",
+        "Another jurisdiction classifies the LLP."
+      ],
+      "sourceIds": [
+        "src-llp-act-2000-s1",
+        "src-hmrc-pm131450",
+        "src-hmrc-hybrid-entities"
+      ]
+    },
+    {
+      "id": "overlap-separate-scottish-firm-and-member-taxation",
+      "label": "Separate Scottish firm, member-level taxation",
+      "archetypeIds": [
+        "archetype-scottish-partnership"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution"
+      ],
+      "requires": [
+        {
+          "id": "scottish-firm",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:separate-firm-person"
+        },
+        {
+          "id": "partners-charged",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:member-level"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "scottish-firm",
+          "rightRequirementId": "partners-charged",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "scottish-firm",
+          "rightRequirementId": "partners-charged",
+          "field": "jurisdiction",
+          "operator": "same"
+        }
+      ],
+      "meaning": "Scots law can recognise the firm as a person while UK partnership tax still looks through to partners.",
+      "dangerousShortcut": "Applying either the English legal answer or an entity-level tax answer merely because the firm is a person.",
+      "questions": [
+        "Which UK law territory governs the firm?",
+        "Which charge and filing duty are in view?"
+      ],
+      "reviewTriggers": [
+        "The place of formation or governing law is unclear.",
+        "The structure includes limited partnerships or cross-border partners."
+      ],
+      "sourceIds": [
+        "src-partnership-act-1890-s4",
+        "src-hmrc-pm136000"
+      ]
+    },
+    {
+      "id": "overlap-company-and-charity",
+      "label": "Company form and charity status",
+      "archetypeIds": [
+        "archetype-charitable-company"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "capacity-activity",
+        "registration-grouping",
+        "tax-attribution"
+      ],
+      "requires": [
+        {
+          "id": "company-body",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate"
+        },
+        {
+          "id": "charity-capacity",
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:charity"
+        },
+        {
+          "id": "company-charge",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:subject-level"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "company-body",
+          "rightRequirementId": "charity-capacity",
+          "field": "subjectRef",
+          "operator": "same"
+        },
+        {
+          "leftRequirementId": "company-body",
+          "rightRequirementId": "company-charge",
+          "field": "subjectRef",
+          "operator": "same"
+        }
+      ],
+      "meaning": "The company remains a company taxpayer while charity status can provide conditional reliefs for qualifying income and use.",
+      "dangerousShortcut": "Replacing the legal form with charity, or replacing a conditional exemption with tax-free.",
+      "questions": [
+        "Which legal form does the charity use?",
+        "Is the income from a qualifying activity?",
+        "Is the income or gain applied to charitable purposes?"
+      ],
+      "reviewTriggers": [
+        "Non-primary-purpose trading.",
+        "Mixed charitable and non-charitable expenditure.",
+        "Registration and HMRC recognition do not align."
+      ],
+      "sourceIds": [
+        "src-finance-act-2010-charity",
+        "src-charity-tax-exemptions",
+        "src-companies-act-2006-s16"
+      ]
+    },
+    {
+      "id": "overlap-separate-companies-one-vat-person",
+      "label": "Separate companies, one VAT taxable person",
+      "archetypeIds": [
+        "archetype-vat-group"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution",
+        "registration-grouping",
+        "obligation-role"
+      ],
+      "requires": [
+        {
+          "id": "member-company",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate"
+        },
+        {
+          "id": "vat-group-shell",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:tax-group-not-person"
+        },
+        {
+          "id": "vat-taxable-person",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:single-vat-person"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "member-company",
+          "rightRequirementId": "vat-group-shell",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "vat-group-shell",
+          "rightRequirementId": "vat-taxable-person",
+          "field": "subjectRef",
+          "operator": "same"
+        }
+      ],
+      "meaning": "VAT treats eligible members as one taxable person through a representative member; their company-law and other-tax identities remain separate.",
+      "dangerousShortcut": "Propagating the VAT-group identity to Corporation Tax, CRS, ownership or contracts.",
+      "questions": [
+        "Which bodies were members on the transaction date?",
+        "Who was the representative member?",
+        "Does a statutory exception stop an intra-group supply being disregarded?"
+      ],
+      "reviewTriggers": [
+        "Membership or representative member changed.",
+        "Overseas establishments or bought-in services are involved.",
+        "Joint and several liability matters."
+      ],
+      "sourceIds": [
+        "src-hmrc-vat-groups"
+      ]
+    },
+    {
+      "id": "overlap-non-separate-presence-with-tax-nexus",
+      "label": "No new legal person, but a local tax presence",
+      "archetypeIds": [
+        "archetype-branch-pe"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "residence-nexus",
+        "tax-attribution"
+      ],
+      "requires": [
+        {
+          "id": "uk-presence",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:non-separate-presence"
+        },
+        {
+          "id": "foreign-company-charge",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:main-entity-with-presence"
+        },
+        {
+          "id": "uk-pe-nexus",
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:permanent-establishment"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "uk-presence",
+          "rightRequirementId": "foreign-company-charge",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "uk-presence",
+          "rightRequirementId": "uk-pe-nexus",
+          "field": "subjectRef",
+          "operator": "same"
+        }
+      ],
+      "meaning": "The branch or PE is part of the foreign person, yet its local activity can create and measure a local charge.",
+      "dangerousShortcut": "Treating the PE as a resident subsidiary or treating non-separate as non-taxable.",
+      "questions": [
+        "Which domestic law and treaty definition applies?",
+        "What activity, place or agent creates the nexus?",
+        "What profit is attributable after the existence question is answered?"
+      ],
+      "reviewTriggers": [
+        "Remote staff or dependent agents.",
+        "A subsidiary also performs parent activity.",
+        "Direct-tax PE and VAT fixed-establishment results differ."
+      ],
+      "sourceIds": [
+        "src-hmrc-branch-pe",
+        "src-oecd-model-2017",
+        "src-hmrc-vat-fixed-establishment"
+      ]
+    },
+    {
+      "id": "overlap-trust-title-benefit-and-attribution",
+      "label": "Trust legal title, benefit, control and tax attribution",
+      "archetypeIds": [
+        "archetype-express-trust"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution",
+        "ownership-control",
+        "reporting-classification",
+        "obligation-role"
+      ],
+      "requires": [
+        {
+          "id": "trust-arrangement",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:legal-arrangement"
+        },
+        {
+          "id": "trustees-title",
+          "dimensionId": "ownership-control",
+          "classificationId": "control:trustee-legal-title"
+        },
+        {
+          "id": "beneficiary-interest",
+          "dimensionId": "ownership-control",
+          "classificationId": "control:beneficiary-interest"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "trust-arrangement",
+          "rightRequirementId": "trustees-title",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "trust-arrangement",
+          "rightRequirementId": "beneficiary-interest",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "trustees-title",
+          "rightRequirementId": "beneficiary-interest",
+          "field": "subjectRef",
+          "operator": "different"
+        }
+      ],
+      "meaning": "Trustees can hold legal title, beneficiaries can hold or expect benefit, reporting regimes can name controlling roles, and tax can attribute an item to trustees, beneficiaries or a settlor.",
+      "dangerousShortcut": "Naming one universal owner or taxpayer for the trust.",
+      "questions": [
+        "What type of trust and entitlement exists?",
+        "Which income, gain, tax and period are in view?",
+        "Which role is being asked about: title, benefit, control, charge or filing?"
+      ],
+      "reviewTriggers": [
+        "Bare-trust status is uncertain.",
+        "Settlor-interest rules may apply.",
+        "Classes of beneficiaries, protectors or cross-border residence are present."
+      ],
+      "sourceIds": [
+        "src-hmrc-tsem1563",
+        "src-hmrc-tsem4200",
+        "src-fatf-legal-arrangements-2024",
+        "src-oecd-crs-2025"
+      ]
+    },
+    {
+      "id": "overlap-cross-border-hybrid",
+      "label": "One legal form, different countries' tax classifications",
+      "archetypeIds": [
+        "archetype-gb-llp",
+        "archetype-private-company"
+      ],
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution",
+        "residence-nexus",
+        "registration-grouping"
+      ],
+      "requires": [
+        {
+          "id": "legal-entity",
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate"
+        },
+        {
+          "id": "subject-level-charge",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:subject-level"
+        },
+        {
+          "id": "owner-level-charge",
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:owner-level"
+        }
+      ],
+      "relations": [
+        {
+          "leftRequirementId": "legal-entity",
+          "rightRequirementId": "subject-level-charge",
+          "field": "subjectRef",
+          "operator": "same"
+        },
+        {
+          "leftRequirementId": "subject-level-charge",
+          "rightRequirementId": "owner-level-charge",
+          "field": "subjectRef",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "subject-level-charge",
+          "rightRequirementId": "owner-level-charge",
+          "field": "jurisdiction",
+          "operator": "different"
+        },
+        {
+          "leftRequirementId": "subject-level-charge",
+          "rightRequirementId": "owner-level-charge",
+          "field": "activityOrContext",
+          "operator": "same"
+        }
+      ],
+      "meaning": "A jurisdiction can treat a body as separate while another looks through it or follows an election. Both classifications can be correct in their own scopes.",
+      "dangerousShortcut": "Forcing one country-wide entity type or treating the mismatch as dirty data.",
+      "questions": [
+        "Which jurisdiction, charge and period does each classification cover?",
+        "Was an election made and when did it take effect?",
+        "Do anti-hybrid, treaty or reporting rules respond to the mismatch?"
+      ],
+      "reviewTriggers": [
+        "A foreign entity, election or disregarded status appears.",
+        "Payments cross between differently classified entities.",
+        "Treaty entitlement or hybrid-mismatch rules may matter."
+      ],
+      "sourceIds": [
+        "src-hmrc-intm180010",
+        "src-irs-entity-classification-2026",
+        "src-us-check-box-1996",
+        "src-hmrc-hybrid-entities"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "milestone-1890-partnership-codification",
+      "date": "1890-08-14",
+      "eventType": "codified",
+      "title": "Partnership law declared and amended",
+      "change": "The Partnership Act 1890 put the statutory relationship definition and the Scottish legal-person rule into one Act.",
+      "continuity": "Partnership was not invented in 1890, and later tax statutes still decide charge-specific treatment.",
+      "dimensionIds": [
+        "legal-existence"
+      ],
+      "archetypeIds": [
+        "archetype-english-general-partnership",
+        "archetype-scottish-partnership"
+      ],
+      "sourceIds": [
+        "src-partnership-act-1890-s1",
+        "src-partnership-act-1890-s4"
+      ]
+    },
+    {
+      "id": "milestone-1988-incorporation-residence",
+      "date": "1988-03-15",
+      "eventType": "introduced-rule",
+      "title": "UK company residence gained an incorporation rule",
+      "change": "The statutory incorporation rule joined the older central-management-and-control doctrine.",
+      "continuity": "Management facts and treaty coordination remain relevant; registered office and residence are not synonyms.",
+      "dimensionIds": [
+        "residence-nexus"
+      ],
+      "archetypeIds": [
+        "archetype-private-company",
+        "archetype-charitable-company"
+      ],
+      "sourceIds": [
+        "src-hmrc-intm120040",
+        "src-hmrc-intm120180"
+      ]
+    },
+    {
+      "id": "milestone-1994-vat-consolidation",
+      "date": "1994-07-05",
+      "eventType": "consolidated",
+      "title": "VAT Act 1994 consolidated VAT grouping rules",
+      "change": "The current statutory framework permits eligible persons to be treated together for VAT through a representative member.",
+      "continuity": "Members keep separate legal identities and can retain liability.",
+      "dimensionIds": [
+        "tax-attribution",
+        "registration-grouping",
+        "obligation-role"
+      ],
+      "archetypeIds": [
+        "archetype-vat-group"
+      ],
+      "sourceIds": [
+        "src-hmrc-vat-groups"
+      ]
+    },
+    {
+      "id": "milestone-1997-us-check-box",
+      "date": "1997-01-01",
+      "eventType": "introduced-election",
+      "title": "US check-the-box classification became applicable",
+      "change": "Eligible entities gained default and elective US federal tax classifications that can diverge from legal form.",
+      "continuity": "The election does not change the state-law entity or compel another country to follow it.",
+      "dimensionIds": [
+        "tax-attribution",
+        "registration-grouping"
+      ],
+      "archetypeIds": [
+        "archetype-private-company",
+        "archetype-gb-llp"
+      ],
+      "sourceIds": [
+        "src-us-check-box-1996",
+        "src-irs-entity-classification-2026"
+      ]
+    },
+    {
+      "id": "milestone-2000-gb-llp-created",
+      "date": "2000-07-20",
+      "eventType": "created-form",
+      "title": "Parliament created the Great Britain LLP form",
+      "change": "The LLP Act 2000 created a body corporate with personality separate from its members for England, Wales and Scotland.",
+      "continuity": "Northern Ireland initially followed a separate 2002 Act; tax legislation separately supplies normal partnership treatment when its conditions are met.",
+      "dimensionIds": [
+        "legal-existence",
+        "tax-attribution"
+      ],
+      "archetypeIds": [
+        "archetype-gb-llp"
+      ],
+      "sourceIds": [
+        "src-llp-act-2000-s1",
+        "src-hmrc-pm131450"
+      ]
+    },
+    {
+      "id": "milestone-2002-ni-llp-created",
+      "date": "2002-11-22",
+      "eventType": "created-form",
+      "title": "Northern Ireland created a separate LLP form",
+      "change": "The Northern Ireland Act created an LLP body corporate with personality separate from its members.",
+      "continuity": "This separate Act was later ended when the Great Britain LLP enactments were extended to Northern Ireland.",
+      "dimensionIds": [
+        "legal-existence"
+      ],
+      "archetypeIds": [
+        "archetype-ni-llp"
+      ],
+      "sourceIds": [
+        "src-ni-llp-act-2002-s1"
+      ]
+    },
+    {
+      "id": "milestone-2006-companies-consolidation",
+      "date": "2006-11-08",
+      "eventType": "consolidated",
+      "title": "Companies Act 2006 restated the incorporation effect",
+      "change": "The current company-law framework states that registration forms the body corporate.",
+      "continuity": "Tax, charity, reporting and control overlays remain separate questions.",
+      "dimensionIds": [
+        "legal-existence",
+        "registration-grouping"
+      ],
+      "archetypeIds": [
+        "archetype-private-company",
+        "archetype-charitable-company"
+      ],
+      "sourceIds": [
+        "src-companies-act-2006-s16"
+      ]
+    },
+    {
+      "id": "milestone-2006-llp-extension-ni",
+      "date": "2006-11-08",
+      "eventType": "consolidated",
+      "title": "Parliament provided for Great Britain LLP legislation to extend to Northern Ireland",
+      "change": "Companies Act 2006 section 1286 provided for the Great Britain LLP enactments to extend to Northern Ireland and for the separate 2002 Act to cease to have effect.",
+      "continuity": "Point-in-time work still needs formation, commencement and transitional facts.",
+      "dimensionIds": [
+        "legal-existence",
+        "registration-grouping"
+      ],
+      "archetypeIds": [
+        "archetype-gb-llp",
+        "archetype-ni-llp"
+      ],
+      "sourceIds": [
+        "src-companies-act-2006-s1286",
+        "src-ni-llp-act-2002-s1"
+      ]
+    },
+    {
+      "id": "milestone-2010-tax-charity-definition",
+      "date": "2010-04-08",
+      "eventType": "consolidated",
+      "title": "Finance Act 2010 aligned core tax charity definitions",
+      "change": "Tax legislation supplied cross-tax definitions of charity, charitable company and charitable trust.",
+      "continuity": "The legal form and the conditions of each relief still matter.",
+      "dimensionIds": [
+        "capacity-activity",
+        "registration-grouping",
+        "tax-attribution"
+      ],
+      "archetypeIds": [
+        "archetype-charitable-company",
+        "archetype-express-trust"
+      ],
+      "sourceIds": [
+        "src-finance-act-2010-charity",
+        "src-charity-tax-exemptions"
+      ]
+    },
+    {
+      "id": "milestone-2015-pe-action-7",
+      "date": "2015-10-05",
+      "eventType": "strengthened-standard",
+      "title": "BEPS Action 7 strengthened the model PE tests",
+      "change": "The OECD final report proposed changes addressing commissionnaire arrangements, preparatory or auxiliary exceptions, fragmentation and contract splitting.",
+      "continuity": "A model-standard change does not itself create a UK PE; the actual treaty, domestic law, effective date and facts remain controlling.",
+      "dimensionIds": [
+        "residence-nexus",
+        "tax-attribution"
+      ],
+      "archetypeIds": [
+        "archetype-branch-pe"
+      ],
+      "sourceIds": [
+        "src-oecd-beps-action-7-2015",
+        "src-oecd-model-2017"
+      ]
+    },
+    {
+      "id": "milestone-2022-fatf-control",
+      "date": "2022-03-04",
+      "eventType": "strengthened-standard",
+      "title": "FATF strengthened legal-person beneficial-ownership standards",
+      "change": "Revised Recommendation 24 strengthened access to adequate, accurate and up-to-date natural-person ownership and control information.",
+      "continuity": "Beneficial ownership remains distinct from legal title, tax liability and guilt.",
+      "dimensionIds": [
+        "ownership-control"
+      ],
+      "archetypeIds": [
+        "archetype-private-company",
+        "archetype-charitable-company"
+      ],
+      "sourceIds": [
+        "src-fatf-legal-persons-2023"
+      ]
+    },
+    {
+      "id": "milestone-2025-uk-residence-shift",
+      "date": "2025-04-06",
+      "eventType": "changed-connecting-factor",
+      "title": "Residence replaced domicile in the reformed personal-tax scope",
+      "change": "HMRC states that from 6 April 2025 domicile ceased to be the relevant connecting factor in the changed regime and residence-based rules apply.",
+      "continuity": "Domicile remains relevant to historical periods and must not be silently erased.",
+      "dimensionIds": [
+        "residence-nexus"
+      ],
+      "archetypeIds": [
+        "archetype-sole-trader",
+        "archetype-express-trust"
+      ],
+      "sourceIds": [
+        "src-hmrc-rdrm20060"
+      ]
+    },
+    {
+      "id": "milestone-2025-crs-consolidation",
+      "date": "2025-04",
+      "eventType": "consolidated-standard",
+      "title": "OECD consolidated the amended CRS",
+      "change": "The consolidation brings the original and amended reporting classifications and controlling-person rules together.",
+      "continuity": "Domestic adoption and later exchange dates govern actual obligations.",
+      "dimensionIds": [
+        "reporting-classification",
+        "ownership-control"
+      ],
+      "archetypeIds": [
+        "archetype-private-company",
+        "archetype-express-trust"
+      ],
+      "sourceIds": [
+        "src-oecd-crs-2025"
+      ]
+    }
+  ],
+  "exampleProfiles": [
+    {
+      "id": "example-employed-sole-trader",
+      "label": "Employee with a separate sole trade",
+      "summary": "A synthetic UK-resident individual works under an employment contract and also carries on a design trade on their own account.",
+      "jurisdiction": "United Kingdom",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-sole-trader"
+      ],
+      "subjects": [
+        {
+          "id": "sole-trader-person",
+          "label": "Synthetic individual",
+          "kind": "natural-person"
+        },
+        {
+          "id": "synthetic-employer",
+          "label": "Synthetic employer",
+          "kind": "employer"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:natural-person",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "General law",
+            "activityOrContext": "Personal, employment and sole-trade capacities",
+            "ruleset": "UK general law and HMRC sole-trader guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The person and sole trade are not separate legal persons.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:subject-level",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax",
+            "activityOrContext": "Employment income and independent design-trade profits",
+            "ruleset": "UK Income Tax rules and HMRC sole-trader guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The natural person is charged on their employment and trade income under the respective rules.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:employee",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Employment status for tax",
+            "activityOrContext": "Synthetic employment engagement",
+            "ruleset": "GOV.UK employment-status guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Synthetic assumption limited to the employment engagement.",
+          "sourceIds": [
+            "src-govuk-employment-status"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:sole-trader",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax",
+            "activityOrContext": "Independent design trade",
+            "ruleset": "HMRC sole-trader guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Synthetic assumption limited to the independent design trade.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:uk-domestic-resident",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax residence",
+            "activityOrContext": "2026-27 tax year synthetic assumption",
+            "ruleset": "UK residence-based personal-tax framework as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Synthetic example assumption, not a residence assessment.",
+          "sourceIds": [
+            "src-hmrc-rdrm20060"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:self-assessment",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Self Assessment",
+            "activityOrContext": "Independent design trade",
+            "ruleset": "HMRC sole-trader administration guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes the trade requires a Self Assessment return.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:legal-owner",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "General law",
+            "activityOrContext": "Synthetic design-trade assets",
+            "ruleset": "HMRC sole-trader guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The example contains no separate body or nominee.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:individual",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "Reporting classification remains account and regime specific.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:taxpayer-and-filer",
+          "status": "established",
+          "scope": {
+            "subjectRef": "sole-trader-person",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Self Assessment",
+            "activityOrContext": "Independent design-trade return",
+            "ruleset": "HMRC sole-trader administration guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The individual files their own assumed return; the employer separately withholds on employment pay.",
+          "sourceIds": [
+            "src-hmrc-sole-trader-2026"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:employer-withholder",
+          "status": "established",
+          "scope": {
+            "subjectRef": "synthetic-employer",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "PAYE",
+            "activityOrContext": "Synthetic employment engagement",
+            "ruleset": "GOV.UK employment-status guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic employer operates withholding for the employment engagement; it is not the taxpayer on the individual's trade profits.",
+          "sourceIds": [
+            "src-govuk-paye-employers"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Test employment status separately for each engagement.",
+        "Allocate mixed-use expenses to the capacity in which they were incurred.",
+        "Check VAT and MTD thresholds separately."
+      ],
+      "notDetermined": [
+        "Employment status from real contract facts.",
+        "Allowable expenses, VAT registration or MTD eligibility.",
+        "Any amount of tax."
+      ]
+    },
+    {
+      "id": "example-trading-llp",
+      "label": "Great Britain consulting LLP with two differently treated members",
+      "summary": "A synthetic Great Britain LLP carries on consulting for profit. Both members receive profit shares; one also meets all salaried-member conditions for the PAYE and Class 1 National Insurance overlay.",
+      "jurisdiction": "Great Britain",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-gb-llp"
+      ],
+      "subjects": [
+        {
+          "id": "gb-llp",
+          "label": "Synthetic Great Britain LLP",
+          "kind": "limited-liability-partnership"
+        },
+        {
+          "id": "llp-member-a",
+          "label": "Synthetic LLP member A",
+          "kind": "natural-person-member"
+        },
+        {
+          "id": "llp-member-b",
+          "label": "Synthetic salaried LLP member B",
+          "kind": "natural-person-member"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "Great Britain",
+            "taxOrRegime": "General law",
+            "activityOrContext": "LLP incorporation and separate personality",
+            "ruleset": "Limited Liability Partnerships Act 2000 section 1"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The LLP is incorporated under the 2000 Act.",
+          "sourceIds": [
+            "src-llp-act-2000-s1"
+          ],
+          "effectiveFrom": "2001-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:member-level",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "llp-member-a",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax on LLP profits",
+            "activityOrContext": "Member A's share of the consulting business profits",
+            "ruleset": "ITTOIA 2005 section 863 and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic facts state a business carried on with a view to profit.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:member-level",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "llp-member-b",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax on LLP profits",
+            "activityOrContext": "Member B's chargeable share of the consulting business profits",
+            "ruleset": "ITTOIA 2005 sections 863 and 863A and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The salaried-member overlay does not change the amount of member B's chargeable LLP profit share.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:partner-or-member",
+          "status": "established",
+          "scope": {
+            "subjectRef": "llp-member-a",
+            "jurisdiction": "Great Britain",
+            "taxOrRegime": "LLP membership",
+            "activityOrContext": "Member A acting in the consulting business",
+            "ruleset": "LLP Act 2000 and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example concerns registered members acting in the LLP business.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:salaried-llp-member",
+          "status": "established",
+          "scope": {
+            "subjectRef": "llp-member-b",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "PAYE and Class 1 National Insurance",
+            "activityOrContext": "Member B's reward for services as an LLP member",
+            "ruleset": "ITTOIA 2005 section 863A and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic example states that member B meets all salaried-member conditions; this is a tax and National Insurance overlay, not a change to profit attribution.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:uk-domestic-resident",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "llp-member-a",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax residence",
+            "activityOrContext": "Member A's 2026-27 tax year",
+            "ruleset": "UK domestic residence rules as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Incorporation and a UK office do not settle every member or treaty residence question.",
+          "sourceIds": [
+            "src-hmrc-rdrm20060"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": "2027-04-05"
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:companies-house",
+          "status": "established",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "Great Britain",
+            "taxOrRegime": "Companies House registration",
+            "activityOrContext": "LLP incorporation",
+            "ruleset": "Limited Liability Partnerships Act 2000"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Incorporation supplies the company-registry identity.",
+          "sourceIds": [
+            "src-llp-act-2000-s1"
+          ],
+          "effectiveFrom": "2001-04-06",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:member",
+          "status": "established",
+          "scope": {
+            "subjectRef": "llp-member-a",
+            "jurisdiction": "Great Britain",
+            "taxOrRegime": "LLP membership",
+            "activityOrContext": "Registered membership in the synthetic LLP",
+            "ruleset": "LLP Act 2000 and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic subjects are registered LLP members.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:financial-institution",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or controlling-person facts were supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:active-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or controlling-person facts were supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:passive-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or controlling-person facts were supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:filing-unit-not-chargeable",
+          "status": "established",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Partnership return",
+            "activityOrContext": "Consulting business profit computation and return",
+            "ruleset": "HMRC partnership-tax guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The LLP computes and reports partnership results while members are normally charged.",
+          "sourceIds": [
+            "src-hmrc-pm136000"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:employer-withholder",
+          "status": "established",
+          "scope": {
+            "subjectRef": "gb-llp",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "PAYE and Class 1 National Insurance",
+            "activityOrContext": "Member B's salaried-member reward",
+            "ruleset": "ITTOIA 2005 section 863A and HMRC PM131450 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The LLP operates PAYE and Class 1 National Insurance for member B's reward without changing the member-level attribution of chargeable LLP profits.",
+          "sourceIds": [
+            "src-hmrc-pm131450"
+          ],
+          "effectiveFrom": "2026-04-06",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Check whether each member falls within salaried-members rules.",
+        "Classify the LLP separately in every foreign jurisdiction involved.",
+        "Resolve VAT, PAYE and member residence independently."
+      ],
+      "notDetermined": [
+        "Member profit shares or liabilities.",
+        "Foreign, treaty, CRS, VAT or payroll treatment."
+      ]
+    },
+    {
+      "id": "example-charitable-company-trade",
+      "label": "Charitable company with trading income",
+      "summary": "A synthetic UK company limited by guarantee is registered as a charity and receives trading income.",
+      "jurisdiction": "United Kingdom",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-charitable-company"
+      ],
+      "subjects": [
+        {
+          "id": "charitable-company",
+          "label": "Synthetic charitable company",
+          "kind": "company-limited-by-guarantee"
+        },
+        {
+          "id": "charitable-company-members",
+          "label": "Synthetic guarantee members",
+          "kind": "member-class"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Company limited by guarantee",
+            "ruleset": "Companies Act 2006 section 16"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company is incorporated.",
+          "sourceIds": [
+            "src-companies-act-2006-s16"
+          ],
+          "effectiveFrom": "2024-01-10",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:subject-level",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax and charity exemptions",
+            "activityOrContext": "Synthetic trading income before relief conditions",
+            "ruleset": "Finance Act 2010 charity framework and HMRC charity guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The charitable company remains the company taxpayer before applying relief provisions.",
+          "sourceIds": [
+            "src-charity-tax-exemptions"
+          ],
+          "effectiveFrom": "2024-01-10",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:charity",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Charity tax recognition",
+            "activityOrContext": "Recognised charitable purposes",
+            "ruleset": "Finance Act 2010 Part 1"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic example assumes charity-law and HMRC recognition.",
+          "sourceIds": [
+            "src-finance-act-2010-charity"
+          ],
+          "effectiveFrom": "2024-03-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:company-trader",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax and charity exemptions",
+            "activityOrContext": "Synthetic trading activity",
+            "ruleset": "HMRC charity tax-exemption guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company receives trading income.",
+          "sourceIds": [
+            "src-charity-tax-exemptions"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:uk-domestic-resident",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax residence",
+            "activityOrContext": "UK-incorporated company",
+            "ruleset": "UK incorporation residence rule and treaty exceptions as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "UK incorporation supplies the normal domestic rule, subject to treaty exceptions.",
+          "sourceIds": [
+            "src-hmrc-intm120040"
+          ],
+          "effectiveFrom": "2024-01-10",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:charity-and-tax-recognition",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Charity-law and HMRC tax recognition",
+            "activityOrContext": "Synthetic recognised charity",
+            "ruleset": "Finance Act 2010 Part 1 and applicable charity-law recognition"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Both recognition layers are synthetic assumptions.",
+          "sourceIds": [
+            "src-finance-act-2010-charity"
+          ],
+          "effectiveFrom": "2024-03-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:member",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company-members",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Guarantee membership",
+            "ruleset": "Companies Act 2006 and synthetic articles"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company has members under its company form; the example makes no personal beneficial-ownership claim.",
+          "sourceIds": [
+            "src-companies-act-2006-s16"
+          ],
+          "effectiveFrom": "2024-01-10",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:active-nfe",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Qualifying non-profit Active NFE route for a hypothetical account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "Some qualifying non-profit entities can meet an Active NFE route, but the exact conditions and account facts must be checked.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:taxpayer-and-filer",
+          "status": "established",
+          "scope": {
+            "subjectRef": "charitable-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax",
+            "activityOrContext": "Company tax position for synthetic trading income",
+            "ruleset": "HMRC charity tax-exemption guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company claims any available exemption in its company tax position.",
+          "sourceIds": [
+            "src-charity-tax-exemptions"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Decide whether the trade is primary-purpose, beneficiary-run or within the small-trading exemption.",
+        "Trace application of income to charitable purposes.",
+        "Keep company, charity, employer and reporting roles separate."
+      ],
+      "notDetermined": [
+        "Whether the trading income is exempt.",
+        "Any Corporation Tax amount.",
+        "The real organisation's owners, controllers or CRS class."
+      ]
+    },
+    {
+      "id": "example-three-company-vat-group",
+      "label": "Three companies in one UK VAT group",
+      "summary": "Three synthetic UK companies under common control have an approved VAT group with one representative member.",
+      "jurisdiction": "United Kingdom",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-vat-group",
+        "archetype-private-company"
+      ],
+      "subjects": [
+        {
+          "id": "vat-group",
+          "label": "Synthetic VAT group",
+          "kind": "vat-group"
+        },
+        {
+          "id": "vat-representative-company",
+          "label": "Synthetic representative company",
+          "kind": "company"
+        },
+        {
+          "id": "vat-member-company-b",
+          "label": "Synthetic member company B",
+          "kind": "company"
+        },
+        {
+          "id": "vat-member-company-c",
+          "label": "Synthetic member company C",
+          "kind": "company"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:tax-group-not-person",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT",
+            "activityOrContext": "Approved VAT grouping",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The VAT grouping does not create a fourth company.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-representative-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Representative member's separate incorporation",
+            "ruleset": "Companies Act 2006 section 16"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The representative member remains a separate incorporated company.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-member-company-b",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Member B's separate incorporation",
+            "ruleset": "Companies Act 2006 section 16"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "VAT grouping does not end member B's separate company identity.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-member-company-c",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Member C's separate incorporation",
+            "ruleset": "Companies Act 2006 section 16"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "VAT grouping does not end member C's separate company identity.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:single-vat-person",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT",
+            "activityOrContext": "Supplies made while all three companies are members",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The approved group is treated through one representative member for VAT.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:independent-economic-actor",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT taxable-person rules",
+            "activityOrContext": "Grouped economic activities",
+            "ruleset": "UK VAT guidance as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes business activities within the VAT grouping rules.",
+          "sourceIds": [
+            "src-hmrc-vat-guide-700"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:no-separate-residence",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT grouping",
+            "activityOrContext": "Tax-specific group identity",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The VAT group has no separate residence from its members.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:vat-group",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT registration",
+            "activityOrContext": "Approved group membership and representative member",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes approved membership and representative member.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:common-control",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-group",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT group eligibility",
+            "activityOrContext": "Control connection among the three member companies",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic companies meet the relevant control condition.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:separate-members",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-representative-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Effect of VAT grouping on member reporting classes",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "VAT grouping does not replace each company's classification under other regimes.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:representative-member",
+          "status": "established",
+          "scope": {
+            "subjectRef": "vat-representative-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT",
+            "activityOrContext": "Single VAT return and payment account for the group",
+            "ruleset": "VAT Notice 700/2 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The representative member submits the single VAT return and handles payment or repayment.",
+          "sourceIds": [
+            "src-hmrc-vat-groups"
+          ],
+          "effectiveFrom": "2026-04-01",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Confirm membership and representative member on each transaction date.",
+        "Check intra-group supply exceptions and overseas establishments.",
+        "Assess every member separately for non-VAT regimes."
+      ],
+      "notDetermined": [
+        "Eligibility or approval of any real VAT group.",
+        "VAT due or recoverable.",
+        "Corporation Tax, CRS or beneficial ownership of any member."
+      ]
+    },
+    {
+      "id": "example-foreign-company-uk-pe",
+      "label": "Foreign company with a UK permanent establishment",
+      "summary": "A synthetic non-UK company carries on part of its business through a UK office that the example assumes meets the applicable PE test.",
+      "jurisdiction": "United Kingdom and foreign formation jurisdiction",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-branch-pe"
+      ],
+      "subjects": [
+        {
+          "id": "foreign-company",
+          "label": "Synthetic foreign company",
+          "kind": "company"
+        },
+        {
+          "id": "uk-business-presence",
+          "label": "Synthetic UK office and business presence",
+          "kind": "non-separate-presence"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:non-separate-presence",
+          "status": "established",
+          "scope": {
+            "subjectRef": "uk-business-presence",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "General law and Corporation Tax",
+            "activityOrContext": "UK office of the foreign company",
+            "ruleset": "HMRC INTM162060 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The UK branch is part of the foreign company, not a subsidiary.",
+          "sourceIds": [
+            "src-hmrc-branch-pe"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:main-entity-with-presence",
+          "status": "established",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax on PE-attributable profits",
+            "activityOrContext": "Profits attributed to the synthetic UK office",
+            "ruleset": "Applicable UK law and treaty PE attribution rules as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The foreign company remains the taxpayer on profits attributed to the UK PE.",
+          "sourceIds": [
+            "src-hmrc-branch-pe",
+            "src-oecd-model-2017"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:company-trader",
+          "status": "established",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Direct-tax business activity",
+            "activityOrContext": "Trade carried on partly through the UK office",
+            "ruleset": "Applicable UK law and bilateral treaty as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic office carries on part of the company's trade.",
+          "sourceIds": [
+            "src-oecd-model-2017"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:permanent-establishment",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "uk-business-presence",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax and bilateral treaty",
+            "activityOrContext": "Fixed UK office through which business is carried on",
+            "ruleset": "Applicable UK domestic rule and actual treaty; OECD Model 2017 is comparison only"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes the applicable domestic and treaty tests are met.",
+          "sourceIds": [
+            "src-oecd-model-2017"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:vat-fixed-establishment",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "uk-business-presence",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "VAT place of supply",
+            "activityOrContext": "Whether the UK office has suitable permanent human and technical resources",
+            "ruleset": "HMRC VATPOSS04500 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The direct-tax PE assumption does not settle the separate VAT fixed-establishment test.",
+          "sourceIds": [
+            "src-hmrc-vat-fixed-establishment"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:none-determinative",
+          "status": "established",
+          "scope": {
+            "subjectRef": "uk-business-presence",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax permanent establishment",
+            "activityOrContext": "Branch and tax registration evidence",
+            "ruleset": "HMRC INTM162060 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Registration evidence alone does not establish the PE.",
+          "sourceIds": [
+            "src-hmrc-branch-pe"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:beneficial-owner",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "Foreign formation jurisdiction and United Kingdom",
+            "taxOrRegime": "Beneficial ownership",
+            "activityOrContext": "Natural-person ownership and control graph",
+            "ruleset": "FATF legal-person guidance subject to domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The example contains no shareholder or ultimate-control facts.",
+          "sourceIds": [
+            "src-fatf-legal-persons-2023"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:financial-institution",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom and foreign residence jurisdictions",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The example supplies no account, activity or reporting facts; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:active-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom and foreign residence jurisdictions",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The example supplies no account, activity or reporting facts; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:passive-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom and foreign residence jurisdictions",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "The example supplies no account, activity or reporting facts; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:main-entity-pe-return",
+          "status": "established",
+          "scope": {
+            "subjectRef": "foreign-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax",
+            "activityOrContext": "Return of profits attributed to the UK PE",
+            "ruleset": "HMRC INTM162060 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The non-resident company reports the profits attributed to its UK presence.",
+          "sourceIds": [
+            "src-hmrc-branch-pe"
+          ],
+          "effectiveFrom": "2025-10-01",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Read the actual treaty and domestic rule.",
+        "Separate PE existence from profit attribution.",
+        "Assess VAT fixed establishment, payroll and branch registration independently."
+      ],
+      "notDetermined": [
+        "Whether a real PE exists.",
+        "Profits attributable to a PE.",
+        "VAT, payroll, residence, ownership or reporting outcomes."
+      ]
+    },
+    {
+      "id": "example-bare-trust",
+      "label": "Bare trust with an absolutely entitled adult beneficiary",
+      "summary": "A synthetic English-law bare trust has trustees holding legal title and one adult beneficiary with immediate and absolute title to capital and income.",
+      "jurisdiction": "United Kingdom",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-express-trust"
+      ],
+      "subjects": [
+        {
+          "id": "bare-trust-arrangement",
+          "label": "Synthetic bare-trust arrangement",
+          "kind": "legal-arrangement"
+        },
+        {
+          "id": "bare-trust-trustees",
+          "label": "Synthetic trustees acting together",
+          "kind": "trustee-body"
+        },
+        {
+          "id": "bare-trust-beneficiary",
+          "label": "Synthetic absolutely entitled adult beneficiary",
+          "kind": "natural-person-beneficiary"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:legal-arrangement",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-arrangement",
+            "jurisdiction": "England and Wales",
+            "taxOrRegime": "Trust law",
+            "activityOrContext": "Property held on synthetic bare-trust terms",
+            "ruleset": "English trust law and FATF legal-arrangement model as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The trust is a relationship governing property and roles.",
+          "sourceIds": [
+            "src-fatf-legal-arrangements-2024"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:beneficiary-level",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "bare-trust-beneficiary",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax and Capital Gains Tax",
+            "activityOrContext": "Income and gains from the bare-trust property",
+            "ruleset": "HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes immediate and absolute entitlement satisfying the bare-trust treatment.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:trustee",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-trustees",
+            "jurisdiction": "England and Wales",
+            "taxOrRegime": "Trust law",
+            "activityOrContext": "Holding and administering legal title",
+            "ruleset": "Synthetic trust terms and HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The trustees hold and administer the legal title.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:beneficiary",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-beneficiary",
+            "jurisdiction": "England and Wales",
+            "taxOrRegime": "Trust law",
+            "activityOrContext": "Immediate and absolute entitlement to capital and income",
+            "ruleset": "Synthetic trust terms and HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic adult has immediate and absolute beneficial entitlement.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:uk-domestic-resident",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "bare-trust-trustees",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Trustee residence for Income Tax and Capital Gains Tax",
+            "activityOrContext": "Deemed trustee body for the synthetic settlement",
+            "ruleset": "HMRC TSEM10020 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No trustee, settlor or beneficiary residence facts are supplied.",
+          "sourceIds": [
+            "src-hmrc-tsem10020"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:none-determinative",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-arrangement",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Trust administration",
+            "activityOrContext": "Effect of registration on beneficial entitlement and attribution",
+            "ruleset": "HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "Registration does not decide beneficial entitlement or the person charged.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:trustee-legal-title",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-trustees",
+            "jurisdiction": "England and Wales",
+            "taxOrRegime": "Trust ownership",
+            "activityOrContext": "Legal title to the trust property",
+            "ruleset": "Synthetic trust terms and FATF legal-arrangement guidance"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Trustees hold legal title under the synthetic arrangement.",
+          "sourceIds": [
+            "src-fatf-legal-arrangements-2024"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:beneficiary-interest",
+          "status": "established",
+          "scope": {
+            "subjectRef": "bare-trust-beneficiary",
+            "jurisdiction": "England and Wales",
+            "taxOrRegime": "Trust ownership",
+            "activityOrContext": "Immediate and absolute beneficial interest",
+            "ruleset": "Synthetic trust terms and HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The beneficiary has immediate and absolute beneficial entitlement.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:trust-roles",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "bare-trust-arrangement",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Common Reporting Standard",
+            "activityOrContext": "Trust-role analysis for a hypothetical financial account",
+            "ruleset": "OECD CRS 2025 subject to UK implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "CRS analysis names trust roles separately; actual reporting depends on the account and domestic implementation.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:trustee-administrator",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "bare-trust-trustees",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Income Tax and Capital Gains Tax administration",
+            "activityOrContext": "Administrative action for income and gains strictly chargeable on the beneficiary",
+            "ruleset": "HMRC TSEM1563 as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "Trustees may act administratively even where the beneficiary is strictly chargeable.",
+          "sourceIds": [
+            "src-hmrc-tsem1563"
+          ],
+          "effectiveFrom": "2022-06-01",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Obtain legal review if bare-trust status is uncertain.",
+        "Assess each income and gain under its charging rule.",
+        "Resolve trustee, settlor and beneficiary residence and reporting positions separately."
+      ],
+      "notDetermined": [
+        "The legal effect of a real trust instrument.",
+        "Residence or reporting obligations.",
+        "Any tax liability, return requirement or beneficial-owner record."
+      ]
+    },
+    {
+      "id": "example-uk-company-us-disregarded",
+      "label": "UK company with a different US federal tax classification",
+      "summary": "A synthetic UK-incorporated company carries on a software trade. The example assumes a valid US federal classification under which its sole owner is charged on the same trade profits while the company remains the UK Corporation Tax subject.",
+      "jurisdiction": "United Kingdom and United States",
+      "asOf": "2026-07-28",
+      "archetypeIds": [
+        "archetype-private-company"
+      ],
+      "subjects": [
+        {
+          "id": "hybrid-uk-company",
+          "label": "Synthetic UK company",
+          "kind": "private-limited-company"
+        },
+        {
+          "id": "hybrid-sole-owner",
+          "label": "Synthetic sole natural-person owner",
+          "kind": "natural-person-owner"
+        }
+      ],
+      "assertions": [
+        {
+          "dimensionId": "legal-existence",
+          "classificationId": "legal:body-corporate",
+          "status": "established",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Company law",
+            "activityOrContext": "Synthetic company incorporation",
+            "ruleset": "Companies Act 2006 section 16"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The UK company remains a body corporate separate from its sole owner.",
+          "sourceIds": [
+            "src-companies-act-2006-s16",
+            "src-hmrc-hybrid-entities"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:subject-level",
+          "status": "established",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax",
+            "activityOrContext": "Synthetic software trade profits",
+            "ruleset": "UK company-tax treatment as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The incorporated company is the UK Corporation Tax subject for the synthetic trade.",
+          "sourceIds": [
+            "src-hmrc-hybrid-entities",
+            "src-hmrc-intm180010"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "tax-attribution",
+          "classificationId": "attribution:owner-level",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "hybrid-sole-owner",
+            "jurisdiction": "United States",
+            "taxOrRegime": "US federal income tax",
+            "activityOrContext": "Synthetic software trade profits",
+            "ruleset": "US entity-classification rules and the synthetic valid classification as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes a valid owner-level US federal classification; it does not ask the UK to follow that classification.",
+          "sourceIds": [
+            "src-irs-entity-classification-2026",
+            "src-hmrc-hybrid-entities"
+          ],
+          "effectiveFrom": "2025-01-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "capacity-activity",
+          "classificationId": "capacity:company-trader",
+          "status": "established",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax",
+            "activityOrContext": "Synthetic software trade",
+            "ruleset": "UK Corporation Tax framework as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company, rather than its owner acting personally, carries on the synthetic trade under UK law.",
+          "sourceIds": [
+            "src-hmrc-hybrid-entities"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "residence-nexus",
+          "classificationId": "nexus:uk-domestic-resident",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax residence",
+            "activityOrContext": "UK-incorporated synthetic company",
+            "ruleset": "UK incorporation residence rule and treaty exceptions as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "UK incorporation supplies the normal domestic residence rule, subject to statutory and treaty exceptions.",
+          "sourceIds": [
+            "src-hmrc-intm120040"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "registration-grouping",
+          "classificationId": "registration:classification-election",
+          "status": "conditional",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United States",
+            "taxOrRegime": "US federal entity classification",
+            "activityOrContext": "Synthetic valid classification election",
+            "ruleset": "US check-the-box rules as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The example assumes an available and valid US election from the stated date; the election does not change the UK legal form.",
+          "sourceIds": [
+            "src-irs-entity-classification-2026",
+            "src-us-check-box-1996"
+          ],
+          "effectiveFrom": "2025-01-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "ownership-control",
+          "classificationId": "control:beneficial-owner",
+          "status": "established",
+          "scope": {
+            "subjectRef": "hybrid-sole-owner",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Beneficial ownership",
+            "activityOrContext": "Synthetic sole ownership and ultimate control",
+            "ruleset": "FATF legal-person guidance subject to UK implementation"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The synthetic facts state one natural-person ultimate owner; this role is separate from both countries' tax-attribution results.",
+          "sourceIds": [
+            "src-fatf-legal-persons-2023"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:financial-institution",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom and United States",
+            "taxOrRegime": "CRS and FATCA",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "Applicable reporting regime and domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or reporting-implementation facts are supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:active-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom and United States",
+            "taxOrRegime": "CRS and FATCA",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "Applicable reporting regime and domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or reporting-implementation facts are supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "reporting-classification",
+          "classificationId": "reporting:passive-nfe",
+          "status": "unknown",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom and United States",
+            "taxOrRegime": "CRS and FATCA",
+            "activityOrContext": "Hypothetical financial account",
+            "ruleset": "Applicable reporting regime and domestic implementation"
+          },
+          "effectiveDateBasis": "current-at-corpus-review",
+          "basis": "No account, income, asset or reporting-implementation facts are supplied; Financial Institution, Active NFE and Passive NFE remain the live candidates.",
+          "sourceIds": [
+            "src-oecd-crs-2025"
+          ],
+          "effectiveFrom": null,
+          "effectiveTo": null
+        },
+        {
+          "dimensionId": "obligation-role",
+          "classificationId": "obligation:taxpayer-and-filer",
+          "status": "established",
+          "scope": {
+            "subjectRef": "hybrid-uk-company",
+            "jurisdiction": "United Kingdom",
+            "taxOrRegime": "Corporation Tax",
+            "activityOrContext": "Synthetic software trade return",
+            "ruleset": "UK Corporation Tax framework as at 2026-07-28"
+          },
+          "effectiveDateBasis": "stated-interval",
+          "basis": "The company remains the UK taxpayer and filer even though the US federal attribution in this example points to its owner.",
+          "sourceIds": [
+            "src-hmrc-hybrid-entities"
+          ],
+          "effectiveFrom": "2024-02-01",
+          "effectiveTo": null
+        }
+      ],
+      "reviewTriggers": [
+        "Verify that the foreign classification or election is legally available and effective.",
+        "Read the exact UK charge, US federal rule and any hybrid-mismatch or treaty provision.",
+        "Do not infer reporting, residence or beneficial ownership from either tax classification."
+      ],
+      "notDetermined": [
+        "Whether any real company is eligible for or made a US classification election.",
+        "Any hybrid-mismatch, treaty, reporting or filing consequence.",
+        "Any amount of tax."
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-no-cross-jurisdiction-form-equivalence",
+      "title": "No universal legal-form equivalence",
+      "status": "intentionally-not-generalised",
+      "why": "The same translated label can carry different rights and tax treatment. This release does not claim that UK company, partnership or trust forms map one-to-one to foreign forms.",
+      "safeNextStep": "Read the foreign governing law, constitutional documents and the applying jurisdiction's classification rule."
+    },
+    {
+      "id": "gap-no-complete-tax-table",
+      "title": "No all-tax outcome table",
+      "status": "coverage-gap",
+      "why": "A form-by-tax table would falsely imply that the form alone determines each outcome.",
+      "safeNextStep": "Assess the exact charge, item, capacity, jurisdiction and period."
+    },
+    {
+      "id": "gap-no-treaty-substitute",
+      "title": "No bilateral-treaty result",
+      "status": "coverage-gap",
+      "why": "The OECD Model explains concepts but actual treaties and protocols differ.",
+      "safeNextStep": "Read the current treaty text and domestic implementation for both states."
+    },
+    {
+      "id": "gap-no-private-control-graph",
+      "title": "No natural-person ownership or control graph",
+      "status": "privacy-boundary",
+      "why": "Beneficial ownership can be sensitive personal data and this public corpus contains only roles and synthetic examples.",
+      "safeNextStep": "Keep verified private records in an approved matter or compliance system with access controls."
+    },
+    {
+      "id": "gap-no-personal-assessment-api",
+      "title": "No hosted personal classification",
+      "status": "effect-boundary",
+      "why": "This release is a public framework and synthetic interpreter. It accepts no private facts and makes no authority-facing decision.",
+      "safeNextStep": "Use the schema locally, retain sources and facts, and obtain qualified review for consequential cases."
+    },
+    {
+      "id": "gap-no-confidence-score",
+      "title": "No numerical legal confidence",
+      "status": "method-boundary",
+      "why": "A percentage would hide whether the gap is law, evidence, dates, jurisdiction or contested authority.",
+      "safeNextStep": "Report missing facts, competing classifications, source authority and a plain review reason."
+    },
+    {
+      "id": "gap-community-interest-companies",
+      "title": "Community interest companies not yet modelled",
+      "status": "coverage-gap",
+      "why": "A CIC combines company form with a separate community-interest and asset-lock regime; the current company and charity archetypes do not express that combination.",
+      "safeNextStep": "Add CIC legislation, regulator status, company-tax treatment, control and activity-specific examples before classifying one."
+    },
+    {
+      "id": "gap-charitable-incorporated-organisations",
+      "title": "Charitable incorporated organisations not yet modelled",
+      "status": "coverage-gap",
+      "why": "A CIO is an incorporated charity form without the same Companies Act identity as a charitable company.",
+      "safeNextStep": "Add separate England and Wales, Scotland and Northern Ireland form and tax sources rather than mapping a CIO to a company by name."
+    },
+    {
+      "id": "gap-limited-partnerships",
+      "title": "Limited partnerships not yet modelled",
+      "status": "coverage-gap",
+      "why": "General partners, limited partners, Scottish legal personality, private-fund rules and registration changes require more than the general-partnership archetypes.",
+      "safeNextStep": "Model each territorial form, partner role, charge and effective period from the Limited Partnerships Act and current tax guidance."
+    },
+    {
+      "id": "gap-mutuals",
+      "title": "Mutuals not yet modelled",
+      "status": "coverage-gap",
+      "why": "Co-operative societies, community benefit societies, friendly societies, building societies and other mutual forms have different governing and tax rules.",
+      "safeNextStep": "Split the family by statute and activity before adding legal-form, attribution, reporting and obligation classifications."
+    },
+    {
+      "id": "gap-unincorporated-associations",
+      "title": "Unincorporated associations not yet modelled",
+      "status": "coverage-gap",
+      "why": "An association can lack separate general-law personality while tax and administration still assign duties to officers, trustees or the association name.",
+      "safeNextStep": "Add governing-law, Corporation Tax, trust-property and officer-duty sources with separate synthetic subjects."
+    },
+    {
+      "id": "gap-statutory-bodies",
+      "title": "Statutory bodies not yet modelled",
+      "status": "coverage-gap",
+      "why": "Public corporations, authorities and office-holders derive identity and exemptions from their own enactments rather than one reusable company rule.",
+      "safeNextStep": "Model each statutory body's creating instrument, tax provision, public function and filing role separately."
+    },
+    {
+      "id": "gap-investment-vehicles",
+      "title": "Investment vehicles not yet modelled",
+      "status": "coverage-gap",
+      "why": "REITs, investment trusts, OEICs, unit trusts, limited-partnership funds and other vehicles combine legal form, elections, regulatory status and investor-level tax in different ways.",
+      "safeNextStep": "Add vehicle-specific legal, regulatory, tax-attribution, reporting and election sources before publishing classifications."
+    }
+  ]
+}

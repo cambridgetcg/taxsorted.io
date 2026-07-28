@@ -8,6 +8,7 @@ import {
   representationEtag,
 } from "../open-data.js";
 import { ukTaxIndustry } from "../uk-tax-industry.js";
+import { ukTaxIdentity } from "../uk-tax-identity.js";
 import { ukTaxSystem } from "../uk-tax-system.js";
 import { ukCharities } from "../uk-charities.js";
 import { ukPublicFunding } from "../uk-public-funding.js";
@@ -30,6 +31,7 @@ const correctionsUrl = "https://github.com/cambridgetcg/taxsorted.io/issues";
 export type OpenDataRouteOptions = {
   taxSystemPublic?: boolean;
   taxIndustryPublic?: boolean;
+  taxIdentityEmergencyStop?: boolean;
   charitiesPublic?: boolean;
   charitiesEmergencyStop?: boolean;
   publicFundingPublic?: boolean;
@@ -151,9 +153,82 @@ function dataset(
   };
 }
 
+function taxIdentityFramework(emergencyStopped: boolean) {
+  const root = "/v1/tax-identity/uk";
+  return {
+    id: "uk-tax-identity-framework",
+    kind: "interpretation-framework",
+    title: ukTaxIdentity.meta.title,
+    jurisdiction: ukTaxIdentity.meta.jurisdiction,
+    schema: ukTaxIdentity.schema,
+    version: ukTaxIdentity.meta.version,
+    reviewedOn: ukTaxIdentity.meta.reviewedOn,
+    lawAsAt: ukTaxIdentity.meta.lawAsAt,
+    updatePolicy: {
+      cadence:
+        "Irregular and evidence-driven: review when the cited law or guidance changes, a correction is accepted, or a maintained category or overlap needs a new effective-dated account.",
+      nextReviewDate: null,
+    },
+    access: {
+      methods: ["GET", "HEAD", "OPTIONS"],
+      authentication: "none",
+      session: "none",
+      cookies: "none",
+      writes: false,
+      personalFactsAccepted: false,
+      cors: "*",
+    },
+    availability: {
+      status: emergencyStopped ? "emergency-stopped" : "open",
+      contentAvailable: !emergencyStopped,
+      discoveryAvailable: true,
+      schemaAvailable: true,
+      rightsAvailable: true,
+      openApiAvailable: true,
+      humanGuideAvailable: true,
+      emergencyStop: emergencyStopped,
+      boundary:
+        "The stop closes overview, graph, dimension, archetype, overlap, timeline, example, source and gap content. Schema, rights, OpenAPI discovery and the human guide remain readable.",
+    },
+    licence: {
+      ...ukTaxIdentity.meta.contentLicence,
+      sourceRights:
+        "Linked legislation, guidance, standards and directives keep their publishers' rights and reuse terms.",
+    },
+    boundaries: {
+      sourceBackedOnly: true,
+      syntheticExamplesOnly: true,
+      personalFactsAccepted: false,
+      realTaxpayerDecision: false,
+      legalAdvice: false,
+      filingOrSubmission: false,
+      externalStateChange: false,
+      statements: ukTaxIdentity.meta.boundaries,
+    },
+    resources: {
+      overview: root,
+      graph: `${root}/graph`,
+      dimensions: `${root}/dimensions`,
+      archetypes: `${root}/archetypes`,
+      overlaps: `${root}/overlaps`,
+      timeline: `${root}/timeline`,
+      examples: `${root}/examples`,
+      exampleTemplate: `${root}/examples/{exampleId}`,
+      sources: `${root}/sources`,
+      gaps: `${root}/gaps`,
+      schema: `${root}/schema`,
+      rights: `${root}/rights`,
+      openApi: "/openapi/tax-identity-uk.json",
+      humanGuide: "https://taxsorted.io/uk/tax-identity/",
+    },
+  };
+}
+
 export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
   const taxSystemPublic = options.taxSystemPublic ?? false;
   const taxIndustryPublic = options.taxIndustryPublic ?? false;
+  const taxIdentityEmergencyStop =
+    options.taxIdentityEmergencyStop ?? false;
   const charitiesEmergencyStop = options.charitiesEmergencyStop ?? false;
   const charitiesPublic =
     (options.charitiesPublic ?? false) && !charitiesEmergencyStop;
@@ -188,6 +263,7 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
         charities: "/openapi/charities-uk.json",
         publicFunding: "/openapi/public-funding-uk.json",
         politics: "/openapi/politics-uk.json",
+        taxIdentity: "/openapi/tax-identity-uk.json",
       },
       agentDiscovery: "/agent.txt",
       rateLimits:
@@ -335,6 +411,7 @@ export function buildOpenDataCatalog(options: OpenDataRouteOptions = {}) {
         datasetCount: politicsOpenDatasets.length,
       },
     ],
+    frameworks: [taxIdentityFramework(taxIdentityEmergencyStop)],
   };
 }
 
@@ -355,6 +432,9 @@ export function buildOpenDataRights() {
       charities: "/v1/charities/uk/sources",
       publicFunding: "/v1/public-funding/uk/sources",
       politics: "/v1/politics/uk/datasets/rights",
+    },
+    frameworkRights: {
+      taxIdentity: "/v1/tax-identity/uk/rights",
     },
     publicIssueTracker: "https://github.com/cambridgetcg/taxsorted.io/issues",
     correctionChannel: {

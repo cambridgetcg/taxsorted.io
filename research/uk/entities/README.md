@@ -5,6 +5,19 @@
 
 ---
 
+> **Scope notice (28 July 2026):** this older directory is a practical filing
+> index. Its flat entity labels and summary tables are not complete legal or tax
+> conclusions. Use the source-backed
+> [UK tax identity framework](../tax-identity/README.md) to separate legal form,
+> attribution, capacity, residence and nexus, grouping, control, reporting,
+> and obligation, with scope, status, sources and effective dates on every
+> assertion. Thresholds and unsourced summary claims below still need
+> re-review before reliance. The reviewed framework also keeps the Great
+> Britain and Northern Ireland LLP lineages separate and names current gaps for
+> CICs, CIOs, limited partnerships, mutuals, unincorporated associations,
+> statutory bodies and investment vehicles. Do not map those forms to the
+> nearest row below.
+
 ## Taxonomy: Entity Type vs Residency Status
 
 ```

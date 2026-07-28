@@ -110,9 +110,77 @@ describe("open-data catalog", () => {
       openApiSlices: {
         taxSystem: "/openapi/tax-system-uk.json",
         charities: "/openapi/charities-uk.json",
+        taxIdentity: "/openapi/tax-identity-uk.json",
       },
     });
     expect(body.datasets).toHaveLength(5);
+    expect(body.frameworks).toHaveLength(1);
+    expect(body.frameworks[0]).toMatchObject({
+      id: "uk-tax-identity-framework",
+      kind: "interpretation-framework",
+      title: "UK tax identity framework",
+      jurisdiction: "United Kingdom",
+      schema: "taxsorted.uk.tax-identity/1",
+      version: expect.stringMatching(/^\d{4}-\d{2}-\d{2}\.\d+$/),
+      reviewedOn: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      lawAsAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      updatePolicy: {
+        cadence: expect.stringMatching(/evidence-driven/i),
+        nextReviewDate: null,
+      },
+      access: {
+        methods: ["GET", "HEAD", "OPTIONS"],
+        authentication: "none",
+        session: "none",
+        cookies: "none",
+        writes: false,
+        personalFactsAccepted: false,
+        cors: "*",
+      },
+      availability: {
+        status: "open",
+        contentAvailable: true,
+        discoveryAvailable: true,
+        schemaAvailable: true,
+        rightsAvailable: true,
+        openApiAvailable: true,
+        humanGuideAvailable: true,
+        emergencyStop: false,
+      },
+      licence: {
+        name: "CC BY-SA 4.0",
+        scope: expect.stringMatching(/TaxSorted/i),
+        sourceRights: expect.stringMatching(/publishers' rights/i),
+      },
+      boundaries: {
+        sourceBackedOnly: true,
+        syntheticExamplesOnly: true,
+        personalFactsAccepted: false,
+        realTaxpayerDecision: false,
+        legalAdvice: false,
+        filingOrSubmission: false,
+        externalStateChange: false,
+        statements: expect.any(Array),
+      },
+    });
+    expect(body.frameworks[0].resources).toEqual({
+      overview: "/v1/tax-identity/uk",
+      graph: "/v1/tax-identity/uk/graph",
+      dimensions: "/v1/tax-identity/uk/dimensions",
+      archetypes: "/v1/tax-identity/uk/archetypes",
+      overlaps: "/v1/tax-identity/uk/overlaps",
+      timeline: "/v1/tax-identity/uk/timeline",
+      examples: "/v1/tax-identity/uk/examples",
+      exampleTemplate: "/v1/tax-identity/uk/examples/{exampleId}",
+      sources: "/v1/tax-identity/uk/sources",
+      gaps: "/v1/tax-identity/uk/gaps",
+      schema: "/v1/tax-identity/uk/schema",
+      rights: "/v1/tax-identity/uk/rights",
+      openApi: "/openapi/tax-identity-uk.json",
+      humanGuide: "https://taxsorted.io/uk/tax-identity/",
+    });
+    expect(body.frameworks[0].resources).not.toHaveProperty("records");
+    expect(body.frameworks[0].resources).not.toHaveProperty("exports");
     expect(body.datasets[0].publication.fullDatasetAvailable).toBe(true);
     expect(body.datasets[1].publication.fullDatasetAvailable).toBe(false);
     expect(body.datasets[1].resources.exports).toBe(
@@ -217,6 +285,9 @@ describe("open-data catalog", () => {
     expect(body.datasetRights.publicFunding).toBe(
       "/v1/public-funding/uk/sources"
     );
+    expect(body.frameworkRights).toEqual({
+      taxIdentity: "/v1/tax-identity/uk/rights",
+    });
     expect(body.automationRule).toMatch(/not.*blanket licence/i);
     expect(body.correctionChannel).toMatchObject({
       accountRequired: true,
@@ -345,6 +416,35 @@ describe("open-data catalog", () => {
         status: "emergency-stopped",
         fullDatasetAvailable: false,
         reviewBoundary: expect.stringMatching(/source ledger, known gaps/i),
+      },
+    });
+  });
+
+  it("reports the tax-identity stop while keeping contract discovery available", async () => {
+    const app = new Hono();
+    app.route(
+      "/v1/open-data",
+      createOpenDataRoutes({ taxIdentityEmergencyStop: true }),
+    );
+
+    const body = await (await app.request("/v1/open-data")).json();
+    expect(body.datasets).toHaveLength(5);
+    expect(body.frameworks[0]).toMatchObject({
+      id: "uk-tax-identity-framework",
+      availability: {
+        status: "emergency-stopped",
+        contentAvailable: false,
+        discoveryAvailable: true,
+        schemaAvailable: true,
+        rightsAvailable: true,
+        openApiAvailable: true,
+        humanGuideAvailable: true,
+        emergencyStop: true,
+      },
+      resources: {
+        schema: "/v1/tax-identity/uk/schema",
+        rights: "/v1/tax-identity/uk/rights",
+        openApi: "/openapi/tax-identity-uk.json",
       },
     });
   });

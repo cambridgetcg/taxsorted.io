@@ -223,6 +223,7 @@ jobs:
             /openapi.json \
             /openapi-public.json \
             /openapi/tax-system-uk.json \
+            /openapi/tax-identity-uk.json \
             /openapi/tax-industry-uk.json \
             /openapi/charities-uk.json \
             /openapi/public-funding-uk.json \
@@ -234,10 +235,13 @@ jobs:
             /openapi/tax-expert-uk.json \
             /openapi/professional-tools-uk.json \
             /v1/open-data \
+            /v1/open-data/rights \
             /v1/open-data/releases \
             /v1/open-data/releases/feed.json \
             /v1/open-data/releases/feed.atom \
             /v1/tax-system/uk/records/src-parliament-tax-procedure \
+            /v1/tax-identity/uk/schema \
+            /v1/tax-identity/uk/rights \
             /v1/tax-industry/uk/records/src-industry-regulation-response \
             /v1/charities/uk/records/src-charities-act-2011 \
             /v1/charities/uk \
@@ -287,6 +291,75 @@ jobs:
             https://api.taxsorted.io/v1/wake
           case_state=$(jq --raw-output \
             '.resources.caseCommons.availability' "${case_wake}")
+          tax_identity_state=$(jq --raw-output \
+            '.resources.taxIdentity.availability' "${case_wake}")
+
+          tax_identity_index=0
+          for path in \
+            /v1/tax-identity/uk \
+            /v1/tax-identity/uk/graph \
+            /v1/tax-identity/uk/examples/example-trading-llp
+          do
+            tax_identity_index=$((tax_identity_index + 1))
+            tax_identity_body="${RUNNER_TEMP}/tax-identity-${tax_identity_index}.json"
+            tax_identity_status=$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --header 'Cache-Control: no-cache' \
+              --output "${tax_identity_body}" --write-out '%{http_code}' \
+              "https://api.taxsorted.io${path}")
+            case "${tax_identity_state}:${tax_identity_status}" in
+              open:200) ;;
+              emergency-stopped:503)
+                jq --exit-status '
+                  .error == "tax_identity_emergency_stop" and
+                  .status == 503 and
+                  .available == false and
+                  .emergencyStop == true
+                ' "${tax_identity_body}" >/dev/null
+                ;;
+              *)
+                echo "Tax-identity availability and route disagree: ${tax_identity_state}:${tax_identity_status} ${path}" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+          tax_identity_catalog="${RUNNER_TEMP}/tax-identity-catalog.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${tax_identity_catalog}" \
+            https://api.taxsorted.io/v1/open-data
+          jq --exit-status --arg state "${tax_identity_state}" '
+            (.datasets | length) == 5 and
+            (.frameworks | length) == 1 and
+            .frameworks[0].id == "uk-tax-identity-framework" and
+            .frameworks[0].kind == "interpretation-framework" and
+            .frameworks[0].availability.status == $state and
+            .frameworks[0].availability.humanGuideAvailable == true and
+            .frameworks[0].access.authentication == "none" and
+            .frameworks[0].access.session == "none" and
+            .frameworks[0].access.cookies == "none" and
+            .frameworks[0].access.writes == false and
+            .frameworks[0].access.personalFactsAccepted == false and
+            .frameworks[0].access.cors == "*" and
+            .frameworks[0].boundaries.sourceBackedOnly == true and
+            .frameworks[0].boundaries.syntheticExamplesOnly == true and
+            .frameworks[0].boundaries.personalFactsAccepted == false and
+            .frameworks[0].resources.openApi == "/openapi/tax-identity-uk.json" and
+            (.frameworks[0].resources | has("recordResolver") | not) and
+            (.frameworks[0].resources | has("exports") | not)
+          ' "${tax_identity_catalog}" >/dev/null
+
+          tax_identity_rights_catalog="${RUNNER_TEMP}/tax-identity-rights-catalog.json"
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --header 'Cache-Control: no-cache' \
+            --output "${tax_identity_rights_catalog}" \
+            https://api.taxsorted.io/v1/open-data/rights
+          jq --exit-status '
+            .frameworkRights.taxIdentity == "/v1/tax-identity/uk/rights"
+          ' "${tax_identity_rights_catalog}" >/dev/null
 
           case_index=0
           for path in \
@@ -627,6 +700,15 @@ jobs:
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'why-graph-writes: none; read-only framework with no ingestion route' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'tax-identity: GET https://api.taxsorted.io/v1/tax-identity/uk' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'tax-identity-openapi: GET https://api.taxsorted.io/openapi/tax-identity-uk.json' \
+            "${api_agent_manifest}"
+          grep --fixed-strings --line-regexp \
+            'tax-identity-effects: read-only reviewed framework and synthetic examples; no personal fact intake, identity decision, advice, filing or external state change' \
             "${api_agent_manifest}"
           grep --fixed-strings --line-regexp \
             'charity-tax-treatment-why-graph: GET https://api.taxsorted.io/v1/charities/uk/tax-treatments/{id}/why-graph' \
@@ -1240,9 +1322,18 @@ jobs:
             .resources.openApi.publicHref == "/openapi-public.json" and
             .resources.openApi.datasetSlices.charities == "/openapi/charities-uk.json" and
             .resources.openApi.frameworkSlices.accountability == "/openapi/accountability-uk.json" and
+            .resources.openApi.frameworkSlices.taxIdentity == "/openapi/tax-identity-uk.json" and
             .resources.openApi.frameworkSlices.whyGraph == "/openapi/why-graph.json" and
             .resources.openApi.taskSlices.taxExpert == "/openapi/tax-expert-uk.json" and
             .resources.openApi.taskSlices.professionalTools == "/openapi/professional-tools-uk.json" and
+            .resources.taxIdentity.href == "/v1/tax-identity/uk" and
+            .resources.taxIdentity.graph == "/v1/tax-identity/uk/graph" and
+            .resources.taxIdentity.schema == "taxsorted.uk.tax-identity/1" and
+            .resources.taxIdentity.schemaHref == "/v1/tax-identity/uk/schema" and
+            (.resources.taxIdentity.availability == "open" or
+              .resources.taxIdentity.availability == "emergency-stopped") and
+            .resources.taxIdentity.boundaries.personalFactsAccepted == false and
+            .resources.taxIdentity.boundaries.externalStateChange == false and
             .access.linkedTaskAccessDeclaredSeparately == true and
             .access.methods == ["GET", "HEAD", "OPTIONS"] and
             (.access.appliesTo | index("/v1/uk/tax-expert/mtd-income-tax/assessments") | not) and
@@ -1957,6 +2048,7 @@ jobs:
             /uk/opportunities \
             /uk/regulator-scrutiny \
             /uk/tax-expert \
+            /uk/tax-identity \
             /uk/politics/stand \
             /uk/politics/decisions \
             /learn/history/window-tax \
@@ -1970,6 +2062,17 @@ jobs:
               --retry 12 --retry-delay 5 --retry-all-errors \
               --output /dev/null "https://taxsorted.io${path}"
           done
+
+          tax_identity_page="${RUNNER_TEMP}/uk-tax-identity.html"
+          curl --fail --silent --show-error \
+            --location \
+            --connect-timeout 10 --max-time 30 --retry-max-time 120 \
+            --retry 12 --retry-delay 5 --retry-all-errors \
+            --output "${tax_identity_page}" \
+            https://taxsorted.io/uk/tax-identity
+          grep --fixed-strings \
+            'One subject can carry several tax identities at once.' \
+            "${tax_identity_page}" >/dev/null
 
           opportunities_page="${RUNNER_TEMP}/uk-professional-opportunities.html"
           scrutiny_page="${RUNNER_TEMP}/uk-regulator-scrutiny.html"

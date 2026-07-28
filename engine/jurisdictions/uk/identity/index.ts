@@ -1,0 +1,21 @@
+export { interpretTaxIdentity } from "./interpret.js";
+export {
+  TAX_IDENTITY_ASSERTION_STATUSES,
+  TAX_IDENTITY_EFFECTIVE_DATE_BASES,
+  TAX_IDENTITY_RELATION_FIELDS,
+  TAX_IDENTITY_RELATION_OPERATORS,
+  type TaxIdentityAssertion,
+  type TaxIdentityAssertionStatus,
+  type TaxIdentityDimension,
+  type TaxIdentityEffectiveDateBasis,
+  type TaxIdentityExample,
+  type TaxIdentityInterpretation,
+  type TaxIdentityMatchedAssertion,
+  type TaxIdentityOverlapRelation,
+  type TaxIdentityOverlapRequirement,
+  type TaxIdentityOverlapRule,
+  type TaxIdentityRelationField,
+  type TaxIdentityRelationOperator,
+  type TaxIdentityScope,
+  type TaxIdentitySubject,
+} from "./types.js";
