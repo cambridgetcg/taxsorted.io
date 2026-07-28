@@ -1499,7 +1499,7 @@ jobs:
             .resources.whyGraph.openApi == "/openapi/why-graph.json" and
             .resources.whyGraph.graphSchema == "taxsorted.why-graph/1" and
             .resources.whyGraph.status == "first-adopter" and
-            .resources.whyGraph.adopterCount == 2 and
+            .resources.whyGraph.adopterCount == 3 and
             .resources.whyGraph.firstAdopter.endpoint == "/v1/uk/tax-expert/mtd-income-tax/assessments" and
             .resources.whyGraph.firstAdopter.responsePath == "/reasoning/whyGraph" and
             .resources.whyGraph.firstAdopter.capabilityVersion == "2026-07-11.5" and
@@ -1509,6 +1509,16 @@ jobs:
             .resources.whyGraph.secondAdopter.subjectVersion == "2026-07-13.2" and
             .resources.whyGraph.secondAdopter.runtimeEmitted == true and
             .resources.whyGraph.secondAdopter.organisationOrCaseFacts == false and
+            .resources.whyGraph.thirdAdopter.endpointTemplate == "/v1/case-commons/uk/cases/{caseId}/why-graph" and
+            .resources.whyGraph.thirdAdopter.subjectVersion == "2026-07-24.1" and
+            .resources.whyGraph.thirdAdopter.runtimeEmitted ==
+              (.resources.caseCommons.interpretationAvailability == "exact-release-verified-on-request") and
+            .resources.whyGraph.thirdAdopter.standaloneResource == true and
+            .resources.whyGraph.thirdAdopter.publicationControlledBy == "/v1/case-commons/uk plus the exact tax-dispute derived-release approval" and
+            .resources.whyGraph.thirdAdopter.sourceScope == "approved-public-packets-plus-taxsorted-derived-labels" and
+            .resources.whyGraph.thirdAdopter.concisePublicReasonsOnly == true and
+            .resources.whyGraph.thirdAdopter.hiddenChainOfThought == false and
+            .resources.whyGraph.thirdAdopter.runtimeOrPrivateAssessmentsUsedForTraining == false and
             .resources.whyGraph.access.appliesTo == ["/v1/why-graph", "/v1/why-graph/adopters", "/v1/why-graph/schema"] and
             .resources.whyGraph.access.methods == ["GET", "HEAD", "OPTIONS"] and
             .resources.whyGraph.access.authentication == "none" and
