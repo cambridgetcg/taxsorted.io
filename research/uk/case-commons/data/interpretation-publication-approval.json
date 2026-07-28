@@ -1,12 +1,12 @@
 {
   "schema": "taxsorted.uk.tax-dispute-interpretation-publication-approval/1",
-  "status": "pending-review",
-  "decisionRecordedOn": null,
+  "status": "approved-for-publication",
+  "decisionRecordedOn": "2026-07-28",
   "frameworkVersion": "2026-07-28.2",
   "corpusVersion": "2026-07-24.1",
-  "releaseDigest": null,
+  "releaseDigest": "sha256:f99e0d2b7dec6b02065da5a70244fbd5d96b7830a428b184affbddbd3dfd7980",
   "caseIds": [
     "haworth-v-hmrc-2021"
   ],
-  "effects": "No case-specific interpretation, reasoning graph, training example or derived human-page label is approved for publication while this decision remains pending. The generic interpretation framework may remain readable."
+  "effects": "Approves publication only of the exact derived release digest, framework and corpus versions, and listed case IDs: case interpretations, reasoning graphs, training examples and derived human-page labels. It does not assert qualified legal review and does not approve hidden chain-of-thought, outcome prediction, legal advice, private uploads, intake, matching or representation."
 }

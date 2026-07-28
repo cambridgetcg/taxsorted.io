@@ -562,8 +562,10 @@ Case-specific interpretation is a second publication decision. The source
 corpus approval does not approve TaxSorted's decisiveness, challenge, graph or
 training labels. The checked-in
 `research/uk/case-commons/data/interpretation-publication-approval.json`
-therefore remains `pending-review` until a separately authorised human has
-reviewed the exact derived release.
+records the separately authorised decision for the exact current derived
+release. It does not assert qualified legal review. Any later framework,
+corpus, adapter, interpretation, graph or training-example change closes the
+derived routes until another exact decision is recorded.
 
 Prepare the deterministic release manifest with:
 
@@ -577,8 +579,8 @@ digests, adapter names, interpretation and WhyGraph digests, and each
 training-example digest. Computing it is not approval. Do not change the
 decision status, date or digest on an agent's own authority.
 
-While review is pending, verify that the generic framework and approved packet
-remain open but a derived route returns
+If review is pending after a later change, verify that the generic framework
+and approved packet remain open but a derived route returns
 `tax_dispute_interpretation_review_pending`:
 
 ```bash

@@ -22,7 +22,7 @@ describe("Haworth v HMRC deep case", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("keeps the canonical page visible while derived interpretation is pending", () => {
+  it("shows the exact approved derived interpretation", () => {
     render(<HaworthCasePage />);
 
     const caseNavigation = screen.getByRole("navigation", {
@@ -30,23 +30,25 @@ describe("Haworth v HMRC deep case", () => {
     });
     expect(
       within(caseNavigation).getByRole("link", {
-        name: "Interpretation review",
+        name: "Decisive reasoning",
       }),
-    ).toHaveAttribute("href", "#interpretation-review");
+    ).toHaveAttribute("href", "#decisive-reasoning");
+    expect(
+      within(caseNavigation).getByRole("link", {
+        name: "Major challenges",
+      }),
+    ).toHaveAttribute("href", "#major-challenges");
+    expect(
+      screen.getByRole("heading", { name: "Decisive reasons" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "The derived interpretation is not public yet.",
+        name: "The hard parts that change how this case should be read.",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/awaiting their own exact-release approval/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: "Decisive reasons" }),
-    ).not.toBeInTheDocument();
-    expect(
       screen.queryByRole("heading", {
-        name: "The hard parts that change how this case should be read.",
+        name: "The derived interpretation is not public yet.",
       }),
     ).not.toBeInTheDocument();
   });
@@ -101,13 +103,19 @@ describe("Haworth v HMRC deep case", () => {
       screen.getByText(/response checksum covers the exact delivered bytes/i),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", {
+      screen.getByRole("link", {
         name: /twelve-dimension interpretation json/i,
       }),
-    ).not.toBeInTheDocument();
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation",
+    );
     expect(
-      screen.queryByRole("link", { name: /decisive reasoning graph json/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /decisive reasoning graph json/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/cases/haworth-v-hmrc-2021/why-graph",
+    );
     expect(screen.getByRole("link", { name: /full judgment/i })).toHaveAttribute(
       "href",
       "https://supremecourt.uk/uploads/uksc_2019_0124_judgment_90ad362b5f.pdf",

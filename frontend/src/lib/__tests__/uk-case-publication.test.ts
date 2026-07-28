@@ -42,22 +42,43 @@ describe("UK case static publication approval", () => {
     ).toBe(false);
   });
 
-  it("keeps the derived interpretation closed while its release is pending", () => {
+  it("opens the derived interpretation only for the checked-in exact release", () => {
     expect(ukTaxDisputeInterpretationStaticPublication).toMatchObject({
-      status: "pending-review",
-      exactReleaseApproved: false,
-      computedReleaseDigest: null,
+      status: "approved-for-publication",
+      exactReleaseApproved: true,
+      computedReleaseDigest:
+        interpretationPublicationApprovalJson.releaseDigest,
       emergencyStop: false,
     });
     expect(
       isUkTaxDisputeInterpretationStaticallyPublished(
         "haworth-v-hmrc-2021",
       ),
-    ).toBe(false);
+    ).toBe(true);
 
     const decision = evaluateUkTaxDisputeInterpretationStaticPublication(
       caseCommonsJson,
       interpretationPublicationApprovalJson,
+      publicationApprovalJson.caseIds,
+    );
+    expect(decision).toMatchObject({
+      approved: true,
+      releaseDigest: interpretationPublicationApprovalJson.releaseDigest,
+      approvedCaseIds: ["haworth-v-hmrc-2021"],
+    });
+    expect(decision.interpretations.size).toBe(1);
+  });
+
+  it("keeps the derived interpretation closed for an explicit pending decision", () => {
+    const decision = evaluateUkTaxDisputeInterpretationStaticPublication(
+      caseCommonsJson,
+      {
+        ...interpretationPublicationApprovalJson,
+        status: "pending-review",
+        decisionRecordedOn: null,
+        releaseDigest: null,
+        effects: "Test-only pending decision.",
+      },
       publicationApprovalJson.caseIds,
     );
     expect(decision).toMatchObject({

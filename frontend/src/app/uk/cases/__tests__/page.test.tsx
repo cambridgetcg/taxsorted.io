@@ -3,7 +3,10 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { TAX_DISPUTE_FRAMEWORK } from "@taxsorted/engine/uk/disputes";
 import UkCaseCommonsPage from "../page";
-import { ukCaseStaticPublication } from "@/lib/uk-case-publication";
+import {
+  ukCaseStaticPublication,
+  ukTaxDisputeInterpretationStaticPublication,
+} from "@/lib/uk-case-publication";
 
 describe("UK case commons page", () => {
   it("opens with the public-interest method and hard marketplace boundary", () => {
@@ -76,7 +79,7 @@ describe("UK case commons page", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Framework open. Derived release under review.",
+        name: "Framework and exact derived release open.",
       }),
     ).toBeInTheDocument();
     expect(
@@ -91,11 +94,18 @@ describe("UK case commons page", () => {
       "href",
       "https://api.taxsorted.io/v1/case-commons/uk/interpretation",
     );
-    expect(screen.getByText("Awaiting exact-release approval"))
-      .toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: /download public examples/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /download public examples/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/training/examples.ndjson",
+    );
+    expect(ukTaxDisputeInterpretationStaticPublication).toMatchObject({
+      status: "approved-for-publication",
+      exactReleaseApproved: true,
+      emergencyStop: false,
+      caseIds: ["haworth-v-hmrc-2021"],
+    });
     expect(screen.getByText(/not a sufficient or representative training corpus/i))
       .toBeInTheDocument();
     expect(screen.getByText(/user data are outside this export/i))

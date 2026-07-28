@@ -449,7 +449,8 @@ user data are not part of the export and are not used for training by this servi
 Framework, schema and agent-instruction routes remain readable while publication is closed. Case
 interpretations, graphs, the training manifest and examples require both the exact source-corpus
 approval and the separate exact derived-release decision. The latter binds packet, adapter,
-interpretation, WhyGraph and training-example digests. The checked-in decision is pending.
+interpretation, WhyGraph and training-example digests. The checked-in decision approves only the
+exact current release; a later content change closes the derived routes until another decision.
 `UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP`, the case emergency stop and case-level stops all
 fail closed without taking down unrelated API routes.
 

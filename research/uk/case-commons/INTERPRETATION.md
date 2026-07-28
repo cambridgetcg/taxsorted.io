@@ -1,7 +1,7 @@
 # Tax-dispute interpretation framework
 
 **Last updated:** 2026-07-28
-**Status:** framework implemented; first case-derived release awaiting separate publication review
+**Status:** framework implemented; first exact case-derived release approved for publication
 **Scope:** decided UK tax disputes in the public case commons
 
 ## What this adds
@@ -143,10 +143,12 @@ That decision binds:
 - the exact case-ID set;
 - one digest over the complete derived-release manifest.
 
-The checked-in decision is `pending-review`. Pending, malformed, stale or
-mismatched decisions build and publish no case-specific derived artifact. The
-case-independent framework, schemas, agent guide and already-approved source
-packet remain readable. Computing a digest is not approval.
+The checked-in decision is `approved-for-publication` for the exact release
+digest it names. It does not assert qualified legal review. Pending, malformed,
+stale or mismatched decisions build and publish no case-specific derived
+artifact. The case-independent framework, schemas, agent guide and
+already-approved source packet remain readable. Computing a digest is not
+approval, and any later derived-content change requires a new decision.
 
 ## Routes
 

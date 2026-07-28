@@ -37,8 +37,9 @@ projections of those approved packets plus TaxSorted's own labels. They
 therefore have a second, exact release decision at
 [`data/interpretation-publication-approval.json`](data/interpretation-publication-approval.json).
 It binds the framework, corpus, packet, adapter, interpretation, graph,
-training-example and case-set identities. The checked-in decision is pending;
-computing its digest is not approval.
+training-example and case-set identities. The checked-in decision approves the
+current exact release. Computing a later digest is not approval, and any
+content mismatch closes the derived surface.
 
 The framework, schemas and agent instructions remain readable for correction
 work. Every case-derived representation additionally follows the packet
@@ -46,8 +47,8 @@ publication switch, both emergency stops and case-level stops. A stale or bad
 adapter closes only the derived resources and cannot prevent the API or source
 packets from starting.
 
-If approved, the current one-case export is a format and evaluation seed, not
-a sufficient or representative model-training corpus. Its contract separates
+The current one-case export is a format and evaluation seed, not a sufficient
+or representative model-training corpus. Its contract separates
 approved source packets from TaxSorted-derived labels and does not assert
 qualified legal review. Runtime requests, private assessments and user data
 are outside it and are not used for training by this service.

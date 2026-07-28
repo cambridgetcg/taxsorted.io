@@ -829,7 +829,7 @@ jobs:
             jq --exit-status '
               .schema == "taxsorted.why-graph-adopters/1" and
               .graphSchema == "taxsorted.why-graph/1" and
-              (.adopters | length) == 2 and
+              (.adopters | length) == 3 and
               (.adopters | any(
                 .id == "uk.mtd-income-tax.readiness" and
                 .adoptionOrder == 1 and
@@ -848,6 +848,14 @@ jobs:
                   .nodeId == "claim:reasoning" and
                   .jsonPointer == "/reasoning"
                 ))
+              )) and
+              (.adopters | any(
+                .id == "uk.case-commons.tax-dispute" and
+                .adoptionOrder == 3 and
+                .status == "available-when-exact-derived-release-approved" and
+                .representation == "standalone-resource" and
+                .endpoint == "/v1/case-commons/uk/cases/{caseId}/why-graph" and
+                .access == "public-sessionless"
               ))' >/dev/null
 
           curl --fail --silent --show-error \

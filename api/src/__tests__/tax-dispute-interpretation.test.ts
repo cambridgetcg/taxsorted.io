@@ -33,6 +33,18 @@ const approvedInterpretationRelease = {
   effects: "Test-only approval of the exact deterministic derived release.",
 } satisfies TaxDisputeInterpretationPublicationApproval;
 
+const pendingInterpretationRelease = {
+  schema:
+    "taxsorted.uk.tax-dispute-interpretation-publication-approval/1",
+  status: "pending-review",
+  decisionRecordedOn: null,
+  frameworkVersion: testDerivedRelease.release.frameworkVersion,
+  corpusVersion: testDerivedRelease.release.corpusVersion,
+  releaseDigest: null,
+  caseIds: testDerivedRelease.release.cases.map(({ caseId }) => caseId),
+  effects: "Test-only pending decision.",
+} satisfies TaxDisputeInterpretationPublicationApproval;
+
 function mount(
   publicDataEnabled = true,
   emergencyStop = false,
@@ -421,12 +433,44 @@ describe("tax-dispute interpretation", () => {
     }
   });
 
-  it("keeps source packets open while the independent derived release remains pending", async () => {
+  it("opens the checked-in exact derived release approval", async () => {
     const { app } = mount(
       true,
       false,
       [],
       ukTaxDisputeInterpretationPublicationApproval,
+    );
+
+    expect(
+      (
+        await app.request(
+          "/v1/case-commons/uk/cases/haworth-v-hmrc-2021",
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      (await app.request("/v1/case-commons/uk/interpretation"))
+        .status,
+    ).toBe(200);
+
+    for (const path of [
+      "/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation",
+      "/v1/case-commons/uk/cases/haworth-v-hmrc-2021/why-graph",
+      "/v1/case-commons/uk/training",
+      "/v1/case-commons/uk/training/examples",
+      "/v1/case-commons/uk/training/examples.ndjson",
+    ]) {
+      const response = await app.request(path);
+      expect(response.status, path).toBe(200);
+    }
+  });
+
+  it("keeps source packets open while an independent derived release remains pending", async () => {
+    const { app } = mount(
+      true,
+      false,
+      [],
+      pendingInterpretationRelease,
     );
 
     expect(

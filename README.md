@@ -189,10 +189,11 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   possible costs as separate facts. A twelve-dimension interpretation, major-challenge records,
   outcome-determinative public-reason branches and a shared WhyGraph give agents a source-linked
   reading path. Case-specific labels, graphs, training records and human-page sections have a
-  second exact-release decision, currently pending; the approved packet and generic framework stay
-  open. Deterministic JSON and NDJSON examples distinguish approved source packets from
-  TaxSorted-derived labels. If approved, the current one-case export is a format and evaluation
-  seed, not a sufficient training corpus, and does not assert qualified legal review. Runtime
+  second exact-release decision; the current release is approved by its exact digest, and any
+  later content change closes it until another decision is recorded. Deterministic JSON and NDJSON
+  examples distinguish approved source packets from TaxSorted-derived labels. The current one-case
+  export is a format and evaluation seed, not a sufficient training corpus, and does not assert
+  qualified legal review. Runtime
   requests and private assessments are not used for training. The blank assessment template stays
   local and accepts no upload; there are no claimant records, hidden chain-of-thought, outcome
   predictions, bids, rankings, viability scores or firm recommendations.

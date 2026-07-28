@@ -393,13 +393,14 @@ export default function UkCaseCommonsPage() {
           id="agent-training-title"
           className="mt-2 max-w-4xl text-3xl font-semibold tracking-tight"
         >
-          Framework open. Derived release under review.
+          {derivedReleasePublished
+            ? "Framework and exact derived release open."
+            : "Framework open. Derived release under review."}
         </h2>
         <p className="mt-4 max-w-4xl text-base leading-7 text-white/75">
-          The interpretation contract and agent guide are public. Case-specific
-          interpretations, reasoning graphs and training examples open only
-          after their exact derived release receives separate approval. Every
-          route is read-only.
+          {derivedReleasePublished
+            ? "The interpretation contract, agent guide, case interpretations, reasoning graph and bounded training examples are public. The approval matches this exact release. Every route is read-only."
+            : "The interpretation contract and agent guide are public. Case-specific interpretations, reasoning graphs and training examples open only after their exact derived release receives separate approval. Every route is read-only."}
         </p>
         <div className="mt-7 grid gap-4 lg:grid-cols-3">
           {[
@@ -420,7 +421,7 @@ export default function UkCaseCommonsPage() {
             {
               eyebrow: "Training projection",
               title: "Use it as a format and evaluation seed",
-              body: "Deterministic NDJSON uses approved public packets plus clearly marked TaxSorted-derived labels, and keeps source pointers. The labels need their own exact-release approval.",
+              body: "Deterministic NDJSON uses approved public packets plus clearly marked TaxSorted-derived labels, keeps source pointers, and closes again if its exact-release approval no longer matches.",
               href: derivedReleasePublished
                 ? "https://api.taxsorted.io/v1/case-commons/uk/training/examples.ndjson"
                 : null,
@@ -456,8 +457,8 @@ export default function UkCaseCommonsPage() {
         <div className="mt-6 grid gap-4 text-sm leading-6 sm:grid-cols-2">
           <p className="rounded-2xl border border-amber-300/30 bg-amber-100/10 p-4 text-amber-50">
             One admitted deep case is not a sufficient or representative
-            training corpus. If approved, these records are format examples
-            and evaluation seeds, not material for outcome prediction.
+            training corpus. These approved records are format examples and
+            evaluation seeds, not material for outcome prediction.
           </p>
           <p className="rounded-2xl border border-white/15 bg-white/5 p-4 text-white/75">
             Runtime tax-expert requests, private professional assessments and
