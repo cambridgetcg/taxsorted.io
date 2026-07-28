@@ -6,9 +6,13 @@ vi.mock("../db.js", () => ({ sql: query }));
 
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { hashApiKey } from "../api-key.js";
-import { registerDeveloperApi } from "../developer-api.js";
+import {
+  AgentWakeSchema,
+  registerDeveloperApi,
+} from "../developer-api.js";
 import { apiErrorHandler } from "../error-handler.js";
 import { requestId } from "../request-id.js";
+import { buildAgentWakePayload } from "../routes/agent-interface.js";
 
 const rawKey = `ts_test_${"b".repeat(43)}`;
 
@@ -113,6 +117,15 @@ describe("developer API boundary", () => {
       document.components.schemas.AgentWake.properties.resources.properties
         .openApi.properties.frameworkSlices.properties,
     ).toHaveProperty("whyGraph");
+    const defaultWake = buildAgentWakePayload();
+    expect(() => AgentWakeSchema.parse(defaultWake)).not.toThrow();
+    expect(defaultWake.resources.whyGraph.thirdAdopter).toMatchObject({
+      runtimeEmitted: false,
+      publicationControlledBy:
+        "/v1/case-commons/uk plus the exact tax-dispute derived-release approval",
+      sourceScope:
+        "approved-public-packets-plus-taxsorted-derived-labels",
+    });
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
         .openApi.properties.frameworkSlices.properties,
@@ -158,6 +171,27 @@ describe("developer API boundary", () => {
       schema: expect.any(Object),
       schemaHref: expect.any(Object),
     });
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .caseCommons.properties,
+    ).toMatchObject({
+      interpretation: expect.any(Object),
+      interpretationSchema: expect.any(Object),
+      agent: expect.any(Object),
+      caseInterpretationTemplate: expect.any(Object),
+      caseWhyGraphTemplate: expect.any(Object),
+      training: expect.any(Object),
+      trainingExamples: expect.any(Object),
+      trainingExamplesNdjson: expect.any(Object),
+      trainingSchema: expect.any(Object),
+      trainingBoundary: expect.any(Object),
+      outcomePrediction: { type: "boolean", enum: [false] },
+      reasoningBoundary: expect.any(Object),
+    });
+    expect(
+      document.components.schemas.AgentWake.properties.resources.properties
+        .whyGraph.properties,
+    ).toHaveProperty("thirdAdopter");
     expect(
       document.components.schemas.AgentWake.properties.resources.properties
         .publicDecisionPathways.properties,
@@ -1114,6 +1148,36 @@ describe("developer API boundary", () => {
     expect(document.paths).toHaveProperty("/openapi/charities-uk.json");
     expect(document.paths).toHaveProperty("/openapi/accountability-uk.json");
     expect(document.paths).toHaveProperty("/openapi/case-commons-uk.json");
+    for (const path of [
+      "/v1/case-commons/uk/interpretation",
+      "/v1/case-commons/uk/interpretation/schema",
+      "/v1/case-commons/uk/agent",
+      "/v1/case-commons/uk/cases/{caseId}/interpretation",
+      "/v1/case-commons/uk/cases/{caseId}/why-graph",
+      "/v1/case-commons/uk/training",
+      "/v1/case-commons/uk/training/examples",
+      "/v1/case-commons/uk/training/examples.ndjson",
+      "/v1/case-commons/uk/training/schema",
+    ]) {
+      expect(document.paths, path).toHaveProperty(path);
+      expect(document.paths[path].get.security, path).toEqual([]);
+      expect(document.paths[path], path).toHaveProperty("head");
+    }
+    expect(
+      document.paths[
+        "/v1/case-commons/uk/cases/{caseId}/interpretation"
+      ].get.responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/UkTaxDisputeInterpretation");
+    expect(
+      document.paths[
+        "/v1/case-commons/uk/cases/{caseId}/why-graph"
+      ].get.responses[200].content["application/json"].schema.$ref,
+    ).toBe("#/components/schemas/WhyGraph");
+    expect(
+      document.paths[
+        "/v1/case-commons/uk/training/examples.ndjson"
+      ].get.responses[200].content,
+    ).toHaveProperty("application/x-ndjson");
     expect(document.paths).toHaveProperty(
       "/openapi/professional-opportunities-uk.json",
     );

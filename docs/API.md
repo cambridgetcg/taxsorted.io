@@ -446,6 +446,14 @@ inventing fragment semantics in WhyGraph/1. The current corpus has guidance rath
 primary-law records, so binding provisions, case applicability and official challenge routes remain
 explicit gaps. Guidance never becomes a rule node.
 
+The candidate third adopter is a case interpretation available only after separate approval at
+`/v1/case-commons/uk/cases/{caseId}/why-graph`. Its root is the court's holding, not a TaxSorted
+prediction. Outcome-determinative issue branches, supporting public reasons, source records and
+unmapped case material stay separate. The graph has `authority: taxsorted-analysis` and
+`effect: advisory`; official judicial propositions remain source-linked. The case packet remains
+canonical. Its own publication controls and a separate exact derived-release approval both control
+the graph.
+
 TaxSorted's conclusion has `authority: taxsorted-analysis`, `effect: advisory` and
 `externalStateChange: false`. Correcting TaxSorted's explanation is not an HMRC review. An exact
 statutory review, appeal, complaint, payment-support or enforcement route needs the actual official
@@ -454,6 +462,56 @@ graph ends in `gap:official-enforcement-and-review-route`; it never invents an a
 The graph keeps the caller, relevant-person duty holder, administrator and official decision-maker
 separate. It does not invent an authorised-agent identity: who will actually perform a duty and any
 authority to act remain an explicit gap unless a future capability can prove them.
+
+## UK tax-dispute interpretations — one reading path for people and agents
+
+The case commons adds a stable interpretation contract without changing the approved source
+packets:
+
+```text
+GET /v1/case-commons/uk/interpretation
+GET /v1/case-commons/uk/interpretation/schema
+GET /v1/case-commons/uk/agent
+GET /v1/case-commons/uk/cases/{caseId}/interpretation
+GET /v1/case-commons/uk/cases/{caseId}/why-graph
+GET /v1/case-commons/uk/training
+GET /v1/case-commons/uk/training/examples
+GET /v1/case-commons/uk/training/examples.ndjson
+GET /v1/case-commons/uk/training/schema
+GET /openapi/case-commons-uk.json
+```
+
+The framework asks twelve questions: identity and tax context; procedural posture; issues; facts;
+rules; party arguments; evidence, burden and standard; decisive reasoning; supporting or rejected
+reasoning; holding; remedies and money; and later history, transfer limits and counterfactuals.
+Every dimension is `mapped`, `partial`, `not-mapped` or `not-applicable`. Major challenges record
+what made the dispute hard, its material effect, what resolved it and what evidence remains needed.
+The Haworth candidate keeps Issues 3 and 4 and the separate Senior Courts Act 1981 section 31(2A) materiality and relief
+step as named gaps rather than inferring them from the shorter canonical case record.
+
+“Decisive reasoning” means a concise public account of reasons that were outcome-determinative
+within an issue or formed an independently sufficient branch supporting the disposition. It does
+not imply that every sufficient branch was globally necessary. It does not expose or request
+hidden model chain-of-thought. The service does not predict outcomes or turn similarity to an old
+case into legal advice.
+
+Training examples are deterministic projections of approved public packets plus clearly marked
+TaxSorted-derived labels. Strict per-task schemas preserve framework and adapter identity, packet
+URLs and digests, source IDs and case JSON Pointers, keep all examples from one case in one split,
+and reject extra input or output fields. The four bounded tasks are dimension mapping,
+decisive-reason identification, separation of procedural, merits and money outcomes, and
+major-challenge identification. Fetch the named packet and verify its digest; the task output is
+not self-supporting evidence. The current one-case bundle is a format and evaluation seed only.
+It does not assert qualified legal review. Runtime tax-expert requests, private assessments and
+user data are not part of the export and are not used for training by this service.
+
+Framework, schema and agent-instruction routes remain readable while publication is closed. Case
+interpretations, graphs, the training manifest and examples require both the exact source-corpus
+approval and the separate exact derived-release decision. The latter binds packet, adapter,
+interpretation, WhyGraph and training-example digests. The checked-in decision approves only the
+exact current release; a later content change closes the derived routes until another decision.
+`UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP`, the case emergency stop and case-level stops all
+fail closed without taking down unrelated API routes.
 
 ## UK professional opportunity atlas — read-only research
 

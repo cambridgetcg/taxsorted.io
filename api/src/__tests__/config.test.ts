@@ -427,10 +427,15 @@ describe("config.caseCommons — publication gate and stop", () => {
     vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "");
     vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv(
+      "UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP",
+      "",
+    );
     vi.stubEnv("UK_CASE_COMMONS_STOPPED_CASE_IDS", "");
     let loaded = await import("../config.js");
     expect(loaded.config.caseCommons).toEqual({
       emergencyStop: false,
+      interpretationEmergencyStop: false,
       publicDataEnabled: true,
       stoppedCaseIds: [],
     });
@@ -451,6 +456,7 @@ describe("config.caseCommons — publication gate and stop", () => {
     loaded = await import("../config.js");
     expect(loaded.config.caseCommons).toEqual({
       emergencyStop: true,
+      interpretationEmergencyStop: false,
       publicDataEnabled: false,
       stoppedCaseIds: [],
     });
@@ -465,12 +471,31 @@ describe("config.caseCommons — publication gate and stop", () => {
     expect(loaded.config.caseCommons.stoppedCaseIds).toEqual([
       "haworth-v-hmrc-2021",
     ]);
+
+    vi.resetModules();
+    vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv("UK_CASE_COMMONS_STOPPED_CASE_IDS", "");
+    vi.stubEnv(
+      "UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP",
+      "true",
+    );
+    loaded = await import("../config.js");
+    expect(loaded.config.caseCommons).toEqual({
+      emergencyStop: false,
+      interpretationEmergencyStop: true,
+      publicDataEnabled: true,
+      stoppedCaseIds: [],
+    });
   });
 
   it("preserves an invalid stop value for the route to isolate safely", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("UK_CASE_COMMONS_PUBLIC_DATA_ENABLED", "true");
     vi.stubEnv("UK_CASE_COMMONS_EMERGENCY_STOP", "");
+    vi.stubEnv(
+      "UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP",
+      "",
+    );
     vi.stubEnv(
       "UK_CASE_COMMONS_STOPPED_CASE_IDS",
       "not-a-case, NOT A CASE",
@@ -480,6 +505,7 @@ describe("config.caseCommons — publication gate and stop", () => {
 
     expect(loaded.config.caseCommons).toEqual({
       emergencyStop: false,
+      interpretationEmergencyStop: false,
       publicDataEnabled: true,
       stoppedCaseIds: ["not-a-case", "NOT A CASE"],
     });

@@ -55,6 +55,8 @@ const problemTitles: Readonly<Record<string, string>> = {
   server_error: "Server error",
   source_privacy_review_needed: "Source privacy review pending",
   source_terms_confirmation_needed: "Source terms review pending",
+  tax_dispute_interpretation_review_pending:
+    "Tax-dispute interpretation review pending",
   unknown_filter: "Unknown filter",
   unknown_query_parameter: "Unknown query parameter",
   upstream_timeout: "Upstream source timeout",

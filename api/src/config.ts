@@ -54,6 +54,8 @@ const caseCommonsPublicDataEnabled =
   !caseCommonsEmergencyStop &&
   (env.NODE_ENV !== "production" ||
     env.UK_CASE_COMMONS_PUBLIC_DATA_ENABLED === "true");
+const taxDisputeInterpretationEmergencyStop =
+  env.UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP === "true";
 // Keep distinct operator values here. The case-commons route checks them
 // against the validated corpus and closes only its own surface if one is
 // malformed or stale.
@@ -184,6 +186,8 @@ export const config = {
   // case packet without affecting tax filing or a professional's local file.
   caseCommons: {
     emergencyStop: caseCommonsEmergencyStop,
+    interpretationEmergencyStop:
+      taxDisputeInterpretationEmergencyStop,
     publicDataEnabled: caseCommonsPublicDataEnabled,
     stoppedCaseIds: caseCommonsStoppedCaseIds,
   },

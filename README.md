@@ -142,10 +142,11 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   identity/session is created.
 - **Shared why graph**: sessionless `GET /v1/why-graph`, its structural schema at
   `/v1/why-graph/schema`, adopter index at `/v1/why-graph/adopters` and task-sized
-  `/openapi/why-graph.json` publish the connective contract used by the MTD expert and charity
-  tax-treatment records. The graph is a derived traversal index, not a second source of truth or
-  ingestion route. It separates who acts, who administers and who makes an official decision;
-  a TaxSorted result is not an HMRC decision and missing enforcement or appeal coverage remains a gap.
+  `/openapi/why-graph.json` publish the connective contract used by the MTD expert, charity
+  tax-treatment records and separately approved tax-dispute interpretations. The graph is a
+  derived traversal index, not a second source of truth or ingestion route. It separates who acts,
+  who administers and who makes an official decision; a TaxSorted result is not an HMRC decision
+  and missing evidence, authority, enforcement or appeal coverage remains a gap.
 - **Tax identity framework**: sessionless `GET /v1/tax-identity/uk` separates legal
   existence, tax attribution, capacity, residence and nexus, registration and grouping,
   ownership and control, reporting, and obligation. Status, sources and effective dates qualify
@@ -193,8 +194,17 @@ npm test       # the quality gate — tax math is tested as data-driven cases
   official source ledger and portable, digest-bearing case packets behind an independent
   production switch. The first deep dive is *R (Haworth) v HMRC*: the API keeps the quashed
   notices, affected demand, absence of an established damages recovery, later tax result and
-  possible costs as separate facts. Its blank assessment template stays local and accepts no
-  upload; there are no claimant records, bids, rankings, viability scores or firm recommendations.
+  possible costs as separate facts. A twelve-dimension interpretation, major-challenge records,
+  outcome-determinative public-reason branches and a shared WhyGraph give agents a source-linked
+  reading path. Case-specific labels, graphs, training records and human-page sections have a
+  second exact-release decision; the current release is approved by its exact digest, and any
+  later content change closes it until another decision is recorded. Deterministic JSON and NDJSON
+  examples distinguish approved source packets from TaxSorted-derived labels. The current one-case
+  export is a format and evaluation seed, not a sufficient training corpus, and does not assert
+  qualified legal review. Runtime
+  requests and private assessments are not used for training. The blank assessment template stays
+  local and accepts no upload; there are no claimant records, hidden chain-of-thought, outcome
+  predictions, bids, rankings, viability scores or firm recommendations.
 - **Shared machine contract**: tax-system, tax-industry, charity-sector and public-funding maps
   expose `/records/{id}`. The separate tax-identity framework exposes named synthetic examples
   but no taxpayer intake. `/v1/open-data/releases` publishes deployment-guarded dataset

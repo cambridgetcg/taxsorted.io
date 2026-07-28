@@ -294,6 +294,15 @@ export const caseCommonsLinksSchema = strictObject({
   self: text,
   cases: text,
   caseTemplate: text,
+  interpretation: text,
+  interpretationSchema: text,
+  agent: text,
+  caseInterpretationTemplate: text,
+  caseWhyGraphTemplate: text,
+  training: text,
+  trainingExamples: text,
+  trainingExamplesNdjson: text,
+  trainingSchema: text,
   schema: text,
   packetSchema: text,
   assessmentTemplate: text,
@@ -336,6 +345,8 @@ export const caseCommonsPacketSchema = strictObject({
   links: strictObject({
     self: text,
     collection: text,
+    interpretation: text,
+    whyGraph: text,
     schema: text,
     assessmentTemplate: text,
     rights: text,
@@ -1015,6 +1026,10 @@ export function makeCaseCommonsPacket(
     links: {
       self: `/v1/case-commons/uk/cases/${caseRecord.id}`,
       collection: "/v1/case-commons/uk/cases",
+      interpretation:
+        `/v1/case-commons/uk/cases/${caseRecord.id}/interpretation`,
+      whyGraph:
+        `/v1/case-commons/uk/cases/${caseRecord.id}/why-graph`,
       schema: "/v1/case-commons/uk/packet-schema",
       assessmentTemplate: "/v1/case-commons/uk/assessment-template",
       rights: "/v1/case-commons/uk/rights",

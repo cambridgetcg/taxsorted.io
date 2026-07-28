@@ -1,5 +1,8 @@
 import caseCommonsJson from "../../../research/uk/case-commons/data/uk-case-commons.json";
-import { isUkCaseStaticallyPublished } from "./uk-case-publication";
+import {
+  isUkCaseStaticallyPublished,
+  staticallyPublishedUkTaxDisputeInterpretation,
+} from "./uk-case-publication";
 
 export const ukCaseCommons = {
   ...caseCommonsJson,
@@ -13,6 +16,12 @@ export type UkCaseCommonsSource = (typeof ukCaseCommons.sources)[number];
 
 export function caseBySlug(slug: string) {
   return ukCaseCommons.cases.find((caseRecord) => caseRecord.slug === slug);
+}
+
+export function taxDisputeInterpretationBySlug(slug: string) {
+  const caseRecord = caseBySlug(slug);
+  if (!caseRecord) return undefined;
+  return staticallyPublishedUkTaxDisputeInterpretation(caseRecord.id);
 }
 
 export function formatGbp(amountPence: number) {

@@ -553,14 +553,84 @@ not itself approval.
 Until that switch is open, `/sources` contains only the general method sources;
 it does not preview sources linked to an unpublished case.
 
-Verify the corpus, method, case list, Haworth packet, source ledger, schemas, blank local
-assessment template, task-sized OpenAPI and `/v1/wake`. The Haworth amount must remain labelled
-as a demand affected by a quashed notice, never an award, refund, damages figure or promised gain.
+Verify the corpus, method, case list, Haworth packet, source ledger, schemas,
+blank local assessment template, task-sized OpenAPI and `/v1/wake`. The Haworth
+amount must remain labelled as a demand affected by a quashed notice, never an
+award, refund, damages figure or promised gain.
+
+Case-specific interpretation is a second publication decision. The source
+corpus approval does not approve TaxSorted's decisiveness, challenge, graph or
+training labels. The checked-in
+`research/uk/case-commons/data/interpretation-publication-approval.json`
+records the separately authorised decision for the exact current derived
+release. It does not assert qualified legal review. Any later framework,
+corpus, adapter, interpretation, graph or training-example change closes the
+derived routes until another exact decision is recorded.
+
+Prepare the deterministic release manifest with:
+
+```bash
+npm exec --workspace api tsx -- -e \
+  'import { makeTaxDisputeDerivedRelease } from "./src/uk-tax-dispute-interpretation.ts"; import { ukCaseCommons } from "./src/uk-case-commons.ts"; console.log(JSON.stringify(makeTaxDisputeDerivedRelease(ukCaseCommons.cases, ukCaseCommons).release, null, 2))'
+```
+
+The manifest binds the framework and corpus versions, case IDs, packet
+digests, adapter names, interpretation and WhyGraph digests, and each
+training-example digest. Computing it is not approval. Do not change the
+decision status, date or digest on an agent's own authority.
+
+If review is pending after a later change, verify that the generic framework
+and approved packet remain open but a derived route returns
+`tax_dispute_interpretation_review_pending`:
+
+```bash
+curl --fail "$API/v1/case-commons/uk/interpretation" | jq \
+  '{schema, dimensions: (.dimensions | length), reasoning}'
+curl --fail "$API/v1/case-commons/uk/cases/haworth-v-hmrc-2021" | jq \
+  '{schema, digest: .integrity.digest, case: .case.id}'
+curl --silent --show-error \
+  "$API/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation" | jq \
+  '{status, error, reason}'
+```
+
+Only after the exact derived-release decision is genuinely approved, verify
+the specialised surfaces:
+
+```bash
+curl --fail "$API/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation" | jq \
+  '{schema, packet: .packet.digest, dimensions: (.dimensions | length), decisive: .reasoning.decisiveReasonIds}'
+curl --fail "$API/v1/case-commons/uk/cases/haworth-v-hmrc-2021/why-graph" | jq \
+  '{schema, authority: .context.authority, effect: .context.effect, gaps: .coverage.gapNodeIds}'
+curl --fail "$API/v1/case-commons/uk/training" | jq \
+  '{schema, frameworkVersion, derivedRelease, labelReview, currentUse, caseCount, taskFamilies, sufficiency}'
+curl --fail "$API/v1/case-commons/uk/training/examples.ndjson" |
+  jq --slurp '{records: length, cases: ([.[].case.id] | unique)}'
+curl --fail "$API/openapi/case-commons-uk.json" | jq \
+  '.paths | with_entries(select(.key | startswith("/v1/case-commons/uk"))) | keys'
+```
+
+Expect twelve dimensions, a `taxsorted-analysis` / `advisory` WhyGraph, four
+strict training records, and one case ID. Questions and issues must remain
+partial for unmapped Haworth Issues 3 and 4; the Senior Courts Act 1981 section
+31(2A) materiality and relief step must also remain a gap. The manifest must
+call the current bundle a
+format and evaluation seed, not a sufficient training corpus. It must separate
+the approved source packet from TaxSorted-derived labels and must not assert
+qualified legal review. No record may contain a success probability, expected
+value, hidden chain-of-thought, private assessment or runtime request.
 
 If a source, accuracy, rights or publication-safety problem appears, close case publication:
 
 ```bash
 fly secrets set -a taxsorted-api UK_CASE_COMMONS_EMERGENCY_STOP=true
+```
+
+For a problem confined to TaxSorted's derived labels, leave the approved source
+packet open and close only interpretation, WhyGraph and training resources:
+
+```bash
+fly secrets set -a taxsorted-api \
+  UK_TAX_DISPUTE_INTERPRETATION_EMERGENCY_STOP=true
 ```
 
 For an issue confined to one case, stop its stable ID without closing the others:
@@ -578,23 +648,26 @@ their count; they never publish the configured IDs. After changing the setting,
 verify `/v1/case-commons/uk/cases`, `/sources`, one case-detail request and
 `/v1/health`.
 
-The global stop closes every case packet and reduces `/sources` to the general method sources.
-A valid case-level stop removes the named case and its case-specific sources while leaving other
-admitted cases readable; a malformed case-stop setting fails closed for the whole case surface.
-Both controls leave the method, schemas, rights statement and blank local template readable for
-correction work. Neither removes the
+The global stop closes every case packet and every derived case interpretation, WhyGraph,
+training manifest and training example, and reduces `/sources` to the general method sources.
+A valid case-level stop removes the named case, its derived records and its case-specific sources
+while leaving other admitted cases readable; a malformed case-stop setting fails closed for the
+whole case surface. Both controls leave the method, interpretation framework, schemas, agent
+instructions, rights statement and blank local template readable for correction work. Neither removes the
 separately deployed static pages nor recalls copies already downloaded. Roll Cloudflare Pages back
 to the last safe build when the incident affects those pages, and remove the stop only after an
 explicit human review. Never turn this route into intake, lead sale, targeted outreach or a
 platform-generated merits score without a separate legal, privacy and regulatory release.
 
-Static publication consumes the same checked-in exact-content approval, with a
-separate deployment stop at `frontend/src/lib/uk-case-publication.ts`. Admitting
-a case to the research JSON does not put it on the human site. Add its stable ID
-and new corpus digest only with the publication decision. For a frontend
-incident, set that file's stop or remove the affected ID from the approval,
-rebuild, deploy and verify the generated output; use a Cloudflare rollback when
-it is faster. This is a deployment brake, not instant revocation.
+Static packet publication consumes the corpus approval. The derived sections of
+the Haworth page independently rebuild and verify the same derived-release
+digest used by the API. While its decision is pending, the canonical case page
+stays visible and shows a review notice instead of case-specific interpretation
+labels or specialised API links. Admitting a case to the research JSON does not
+publish those labels. For a frontend incident, keep or restore the derived
+decision to pending, rebuild, deploy and verify the generated output; use a
+Cloudflare rollback when it is faster. This is a deployment brake, not instant
+revocation.
 
 ## UK professional opportunity atlas
 

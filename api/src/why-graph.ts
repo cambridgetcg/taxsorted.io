@@ -12,6 +12,7 @@ import {
   WHY_GRAPH_SUBJECT_TYPES,
 } from "@taxsorted/engine/why-graph";
 import { ukCharities } from "./uk-charities.js";
+import { ukCaseCommons } from "./uk-case-commons.js";
 import {
   UK_CHARITY_TAX_WHY_GRAPH_RELEASED_ON,
   UK_CHARITY_TAX_WHY_GRAPH_CLAIM_SELECTORS,
@@ -244,7 +245,7 @@ export const whyGraphAdopters = {
   schema: "taxsorted.why-graph-adopters/1",
   graphSchema: "taxsorted.why-graph/1",
   title: "TaxSorted why-graph adopter index",
-  updatedOn: "2026-07-13",
+  updatedOn: "2026-07-28",
   adopters: [
     {
       id: "uk.mtd-income-tax.readiness",
@@ -280,6 +281,24 @@ export const whyGraphAdopters = {
       claimSelectors: UK_CHARITY_TAX_WHY_GRAPH_CLAIM_SELECTORS,
       semanticAdmission:
         "Exact treatment, source, gap, field evidence and selected provision records are adapter-checked; evidence array positions are never identity. Guidance is not promoted to law. Provision nodes remain checked-not-decisive, while unadmitted law and case routes stay explicit gaps.",
+    },
+    {
+      id: "uk.case-commons.tax-dispute",
+      adoptionOrder: 3,
+      releasedOn: "2026-07-28",
+      status: "available-when-exact-derived-release-approved",
+      representation: "standalone-resource",
+      endpoint: "/v1/case-commons/uk/cases/{caseId}/why-graph",
+      methods: ["GET", "HEAD"],
+      responsePath: null,
+      subjectType: "dataset-record",
+      subjectVersion: ukCaseCommons.meta.version,
+      access: "public-sessionless",
+      publicationGate:
+        "The releasedOn date records introduction of this registry contract, not publication of a case-derived graph. The source packet needs its exact corpus approval, and the TaxSorted graph needs a separate approval for the exact derived-release digest. The interpretation emergency stop, case-commons emergency stop and case-level stops remain authoritative.",
+      claimSelectors: null,
+      semanticAdmission:
+        "The dispute adapter checks dimensions, major challenges and outcome-determinative issue branches against admitted public source IDs. Graph structure and labels are TaxSorted analysis with advisory effect; judicial propositions stay source-linked. It exposes concise public reasons, not hidden chain-of-thought; runtime and private assessments are not admitted and are not used for training.",
     },
   ],
   boundaries: [

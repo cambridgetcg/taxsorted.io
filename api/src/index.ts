@@ -28,7 +28,14 @@ import { createReleaseDiscoveryRoutes } from "./routes/release-discovery.js";
 import { createUkObserverAccountabilityRoutes } from "./routes/uk-observer-accountability.js";
 import { createWhyGraphRoutes } from "./routes/why-graph.js";
 import { createUkCaseCommonsRoutes } from "./routes/uk-case-commons.js";
-import { ukCaseCommonsPublicationDecision } from "./uk-case-commons.js";
+import {
+  ukCaseCommons,
+  ukCaseCommonsPublicationDecision,
+} from "./uk-case-commons.js";
+import {
+  isTaxDisputeInterpretationPublicationCurrent,
+  ukTaxDisputeInterpretationPublicationApproval,
+} from "./uk-tax-dispute-interpretation.js";
 import {
   createUkProfessionalOpportunityRoutes,
 } from "./routes/uk-professional-opportunities.js";
@@ -60,6 +67,14 @@ const openDataRouteOptions = {
     config.caseCommons.publicDataEnabled &&
     ukCaseCommonsPublicationDecision.approved,
   caseCommonsEmergencyStop: config.caseCommons.emergencyStop,
+  caseCommonsInterpretationEmergencyStop:
+    config.caseCommons.interpretationEmergencyStop,
+  caseCommonsInterpretationPublicationIsCurrent: () =>
+    isTaxDisputeInterpretationPublicationCurrent(
+      ukCaseCommons.cases,
+      ukCaseCommons,
+      ukTaxDisputeInterpretationPublicationApproval,
+    ),
   caseCommonsStoppedCaseIds: config.caseCommons.stoppedCaseIds,
   professionalOpportunitiesPublic:
     config.professionalOpportunities.publicDataEnabled &&
@@ -145,6 +160,8 @@ app.route(
   createUkCaseCommonsRoutes({
     publicDataEnabled: config.caseCommons.publicDataEnabled,
     emergencyStop: config.caseCommons.emergencyStop,
+    interpretationEmergencyStop:
+      config.caseCommons.interpretationEmergencyStop,
     stoppedCaseIds: config.caseCommons.stoppedCaseIds,
   }),
 );

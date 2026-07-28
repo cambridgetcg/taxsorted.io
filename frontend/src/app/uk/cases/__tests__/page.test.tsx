@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { TAX_DISPUTE_FRAMEWORK } from "@taxsorted/engine/uk/disputes";
 import UkCaseCommonsPage from "../page";
-import { ukCaseStaticPublication } from "@/lib/uk-case-publication";
+import {
+  ukCaseStaticPublication,
+  ukTaxDisputeInterpretationStaticPublication,
+} from "@/lib/uk-case-publication";
 
 describe("UK case commons page", () => {
   it("opens with the public-interest method and hard marketplace boundary", () => {
@@ -20,6 +24,33 @@ describe("UK case commons page", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/does not take a case, predict a win/i)).toBeInTheDocument();
     expect(screen.getByText(/£0 and a negative net scenario/i)).toBeInTheDocument();
+  });
+
+  it("shows the shared twelve-dimension interpretation framework", () => {
+    render(<UkCaseCommonsPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Twelve dimensions. Missing material stays visible.",
+      }),
+    ).toBeInTheDocument();
+    const framework = document.getElementById("interpretation-framework");
+    expect(framework).not.toBeNull();
+    expect(within(framework!).getAllByRole("listitem")).toHaveLength(12);
+    for (const dimension of TAX_DISPUTE_FRAMEWORK.dimensions) {
+      expect(
+        within(framework!).getByRole("heading", { name: dimension.title }),
+      ).toBeInTheDocument();
+    }
+    expect(within(framework!).getByText(/gap is not filled from intuition/i))
+      .toBeInTheDocument();
+    expect(within(framework!).getByText(/not hidden model reasoning/i))
+      .toBeInTheDocument();
+    expect(
+      within(framework!).getByRole("heading", {
+        name: "Decisive means outcome-determinative",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("links the admitted deep case and local professional packet", () => {
@@ -41,5 +72,43 @@ describe("UK case commons page", () => {
       emergencyStop: false,
       caseIds: ["haworth-v-hmrc-2021"],
     });
+  });
+
+  it("opens bounded agent and public training doors", () => {
+    render(<UkCaseCommonsPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Framework and exact derived release open.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /open agent guide json/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/agent",
+    );
+    expect(
+      screen.getByRole("link", { name: /open framework json/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/interpretation",
+    );
+    expect(
+      screen.getByRole("link", { name: /download public examples/i }),
+    ).toHaveAttribute(
+      "href",
+      "https://api.taxsorted.io/v1/case-commons/uk/training/examples.ndjson",
+    );
+    expect(ukTaxDisputeInterpretationStaticPublication).toMatchObject({
+      status: "approved-for-publication",
+      exactReleaseApproved: true,
+      emergencyStop: false,
+      caseIds: ["haworth-v-hmrc-2021"],
+    });
+    expect(screen.getByText(/not a sufficient or representative training corpus/i))
+      .toBeInTheDocument();
+    expect(screen.getByText(/user data are outside this export/i))
+      .toBeInTheDocument();
   });
 });
