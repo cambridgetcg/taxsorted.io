@@ -12,6 +12,7 @@ research/*
 !research/uk/
 research/uk/*
 !research/uk/tax-system/
+!research/uk/tax-identity/
 !research/uk/tax-industry/
 !research/uk/charities/
 !research/uk/public-funding/
@@ -19,6 +20,7 @@ research/uk/*
 !research/uk/case-commons/
 !research/uk/professional-opportunities/
 research/uk/tax-system/*
+research/uk/tax-identity/*
 research/uk/tax-industry/*
 research/uk/charities/*
 research/uk/public-funding/*
@@ -27,6 +29,8 @@ research/uk/case-commons/*
 research/uk/professional-opportunities/*
 !research/uk/tax-system/data/
 !research/uk/tax-system/data/**
+!research/uk/tax-identity/data/
+!research/uk/tax-identity/data/**
 !research/uk/tax-industry/data/
 !research/uk/tax-industry/data/**
 !research/uk/charities/data/
