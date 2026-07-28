@@ -14,7 +14,8 @@
     "./uk/itsa": "./jurisdictions/uk/itsa/index.ts",
     "./uk/sdlt": "./jurisdictions/uk/sdlt/index.ts",
     "./uk/expert": "./jurisdictions/uk/expert/index.ts",
-    "./uk/passport": "./jurisdictions/uk/expert/tax-position-passport.ts"
+    "./uk/passport": "./jurisdictions/uk/expert/tax-position-passport.ts",
+    "./uk/disputes": "./jurisdictions/uk/disputes/index.ts"
   },
   "scripts": {
     "test": "vitest run",

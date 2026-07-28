@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { apiCors, isPublicCivicPath } from "../cors";
 import { createWhyGraphRoutes } from "../routes/why-graph";
 import { ukCharities } from "../uk-charities";
+import { ukCaseCommons } from "../uk-case-commons";
 import {
   WhyGraphAdoptersSchema,
   WhyGraphFrameworkSchema,
@@ -29,7 +30,7 @@ describe("public why-graph framework", () => {
     expect(isPublicCivicPath("/openapi/why-graph.json/evil")).toBe(false);
   });
 
-  it("lists both adopters without changing the strict framework v1 body", async () => {
+  it("lists all three adopters without changing the strict framework v1 body", async () => {
     const response = await mount().request("/v1/why-graph/adopters");
     expect(response.status).toBe(200);
     expect(response.headers.get("x-schema-version")).toBe(
@@ -53,6 +54,12 @@ describe("public why-graph framework", () => {
         endpoint: "/v1/charities/uk/tax-treatments/{id}/why-graph",
         status: "live-when-dataset-open",
       }),
+      expect.objectContaining({
+        id: "uk.case-commons.tax-dispute",
+        adoptionOrder: 3,
+        endpoint: "/v1/case-commons/uk/cases/{caseId}/why-graph",
+        status: "available-when-exact-derived-release-approved",
+      }),
     ]);
     const charityAdopter = body.adopters[1];
     expect(charityAdopter.subjectVersion).toBe(ukCharities.meta.version);
@@ -61,14 +68,31 @@ describe("public why-graph framework", () => {
       { nodeId: "claim:reasoning", jsonPointer: "/reasoning" },
       { nodeId: "claim:reasoning-status", jsonPointer: "/reasoningStatus" },
     ]));
+    const disputeAdopter = body.adopters[2];
+    expect(disputeAdopter.subjectVersion).toBe(
+      ukCaseCommons.meta.version,
+    );
+    expect(disputeAdopter.claimSelectors).toBeNull();
+    expect(disputeAdopter.publicationGate).toMatch(
+      /separate approval.*exact derived-release digest/i,
+    );
+    expect(disputeAdopter.semanticAdmission).toMatch(
+      /concise public reasons, not hidden chain-of-thought/i,
+    );
+    expect(disputeAdopter.semanticAdmission).toMatch(
+      /TaxSorted analysis with advisory effect/i,
+    );
+    expect(disputeAdopter.semanticAdmission).toMatch(
+      /runtime and private assessments.*not used for training/i,
+    );
     expect(body.boundaries.join(" ")).toMatch(/whole records.*claimSelectors/i);
 
     const future = structuredClone(body);
     future.adopters.push({
       ...future.adopters[0],
       id: "example.future-adopter",
-      adoptionOrder: 3,
-      releasedOn: "2026-07-13",
+      adoptionOrder: 4,
+      releasedOn: "2026-07-28",
     });
     expect(() => WhyGraphAdoptersSchema.parse(future)).not.toThrow();
 

@@ -1,0 +1,12 @@
+{
+  "schema": "taxsorted.uk.tax-dispute-interpretation-publication-approval/1",
+  "status": "pending-review",
+  "decisionRecordedOn": null,
+  "frameworkVersion": "2026-07-28.2",
+  "corpusVersion": "2026-07-24.1",
+  "releaseDigest": null,
+  "caseIds": [
+    "haworth-v-hmrc-2021"
+  ],
+  "effects": "No case-specific interpretation, reasoning graph, training example or derived human-page label is approved for publication while this decision remains pending. The generic interpretation framework may remain readable."
+}

@@ -55,6 +55,14 @@ import {
   caseCommonsRightsSchema,
 } from "./uk-case-commons.js";
 import {
+  taxDisputeAgentSchema,
+  taxDisputeFrameworkSchema,
+  taxDisputeInterpretationSchema,
+  taxDisputeTrainingBundleSchema,
+  taxDisputeTrainingExampleSchema,
+  taxDisputeTrainingManifestSchema,
+} from "./uk-tax-dispute-interpretation.js";
+import {
   professionalOpportunityAssessmentTemplateSchema,
   professionalOpportunityPacketSchema,
   professionalOpportunityResponseSchema,
@@ -115,7 +123,7 @@ const openApiTags = [
   {
     name: "UK public-power case commons",
     description:
-      "Decided public-law case packets, exact remedy and money meanings, local assessment templates and a no-brokerage boundary.",
+      "Decided public-law case packets, twelve-dimension tax-dispute interpretations, public-reason graphs, bounded training projections, exact money meanings and local assessment templates.",
   },
   {
     name: "UK professional opportunities",
@@ -241,7 +249,7 @@ const openApiSliceDefinitions: readonly OpenApiSliceDefinition[] = [
     path: "/openapi/case-commons-uk.json",
     title: "TaxSorted UK Public-Power Case Commons API",
     description:
-      "Task-sized read-only contract for decided case packets, source resolution, local professional assessment and publication boundaries.",
+      "Task-sized read-only contract for decided case packets, tax-dispute interpretation, public-reason graphs, bounded training projections, source resolution, local professional assessment and publication boundaries.",
     matchesPath: (path) => hasPathPrefix(path, "/v1/case-commons/uk"),
   },
   {
@@ -1048,7 +1056,7 @@ const AgentNextAction = z
     description: z.string(),
   })
   .openapi("AgentNextAction");
-const AgentWake = z
+export const AgentWakeSchema = z
   .object({
     schema: z.literal("taxsorted.agent-wake/1"),
     service: z.object({
@@ -1151,6 +1159,31 @@ const AgentWake = z
         schema: z.string(),
         packetSchema: z.string(),
         assessmentTemplate: z.string(),
+        interpretation: z.string(),
+        interpretationSchema: z.string(),
+        agent: z.string(),
+        caseInterpretationTemplate: z.string(),
+        caseWhyGraphTemplate: z.string(),
+        training: z.string(),
+        trainingExamples: z.string(),
+        trainingExamplesNdjson: z.string(),
+        trainingSchema: z.string(),
+        trainingBoundary: z.object({
+          sourcePolicy: z.literal(
+            "approved-public-case-packets-plus-taxsorted-derived-labels",
+          ),
+          sourceBoundary: z.string(),
+          currentUse: z.literal("format-and-evaluation-seed"),
+          currentCaseCount: z.number().int().nonnegative(),
+          sufficientCorpus: z.literal(false),
+          currentCorpusSufficiency: z.string(),
+          runtimeAssessments: z.object({
+            usedForTraining: z.literal(false),
+          }),
+          privateAssessments: z.object({
+            usedForTraining: z.literal(false),
+          }),
+        }),
         openApi: z.string(),
         humanGuide: z.string().url(),
         availability: z.enum([
@@ -1159,12 +1192,19 @@ const AgentWake = z
           "emergency-stopped",
           "case-level-stops-active",
         ]),
+        interpretationAvailability: z.enum([
+          "derived-release-review",
+          "emergency-stopped",
+          "exact-release-verified-on-request",
+        ]),
         stoppedCaseCount: z.number().int().nonnegative(),
         writes: z.literal(false),
         personalIntake: z.literal(false),
         privateUploads: z.literal(false),
         professionalMarketplace: z.literal(false),
         probabilityOrExpectedValue: z.literal(false),
+        outcomePrediction: z.literal(false),
+        reasoningBoundary: z.string(),
         optionalAgentToolBridge: z.object({
           required: z.literal(false),
           sdk: z.literal("@agenttool/sdk"),
@@ -1271,6 +1311,24 @@ const AgentWake = z
             standaloneResource: z.literal(true),
             publicationControlledBy: z.literal("/v1/charities/uk"),
             organisationOrCaseFacts: z.literal(false),
+          }).optional(),
+          thirdAdopter: z.object({
+            endpointTemplate: z.literal(
+              "/v1/case-commons/uk/cases/{caseId}/why-graph",
+            ),
+            subjectVersion: z.string(),
+            runtimeEmitted: z.boolean(),
+            standaloneResource: z.literal(true),
+            publicationControlledBy: z.literal(
+              "/v1/case-commons/uk plus the exact tax-dispute derived-release approval",
+            ),
+            sourceScope: z.literal(
+              "approved-public-packets-plus-taxsorted-derived-labels",
+            ),
+            concisePublicReasonsOnly: z.literal(true),
+            hiddenChainOfThought: z.literal(false),
+            runtimeOrPrivateAssessmentsUsedForTraining:
+              z.literal(false),
           }).optional(),
           access: z.object({
             appliesTo: z.array(z.string()).optional(),
@@ -2167,7 +2225,9 @@ function registerAgentInterfaceOpenApi(app: OpenAPIHono) {
         200: {
           description: "Current stateless machine orientation.",
           headers: publicResponseHeaders,
-          content: { "application/json": { schema: AgentWake } },
+          content: {
+            "application/json": { schema: AgentWakeSchema },
+          },
         },
         304: {
           description:
@@ -4140,6 +4200,11 @@ function registerObserverAccountabilityOpenApi(app: OpenAPIHono) {
 function registerCaseCommonsOpenApi(app: OpenAPIHono) {
   const caseCommonsResponseHeaders = {
     ...publicResponseHeaders,
+    "X-Schema-Version": {
+      description:
+        "TaxSorted wire schema identifier for this representation.",
+      schema: { type: "string" as const },
+    },
     "X-Checksum-SHA256": {
       description:
         "Lowercase hexadecimal SHA-256 of the exact selected GET representation bytes.",
@@ -4228,6 +4293,76 @@ function registerCaseCommonsOpenApi(app: OpenAPIHono) {
       protected: true,
     },
     {
+      path: "/v1/case-commons/uk/interpretation",
+      operationId: "getUkTaxDisputeFramework",
+      summary: "Read the UK tax-dispute interpretation framework",
+      description:
+        "Defines twelve dimensions, major-challenge states, concise public-reason labels, explicit gaps and the training boundary without opening a case.",
+      schema: taxDisputeFrameworkSchema,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/interpretation/schema",
+      operationId: "getUkTaxDisputeInterpretationSchema",
+      summary: "Read the tax-dispute interpretation JSON Schema",
+      description:
+        "Structural contract for a packet-bound interpretation. Runtime checks also resolve every source ID and case JSON Pointer.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/agent",
+      operationId: "getUkTaxDisputeAgentGuide",
+      summary: "Read the tax-dispute agent guide",
+      description:
+        "A six-step, read-only path from framework and packet to interpretation, why-graph and official-source verification.",
+      schema: taxDisputeAgentSchema,
+      mediaType: "application/json",
+      protected: false,
+    },
+    {
+      path: "/v1/case-commons/uk/training",
+      operationId: "getUkTaxDisputeTrainingManifest",
+      summary: "Read the approved tax-dispute training manifest",
+      description:
+        "Describes four bounded task families, exact derived-release identity and the TaxSorted-label review boundary. The current one-case export is a format and evaluation seed, not a sufficient training corpus.",
+      schema: taxDisputeTrainingManifestSchema,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/case-commons/uk/training/examples",
+      operationId: "getUkTaxDisputeTrainingExamples",
+      summary: "Read deterministic tax-dispute training examples",
+      description:
+        "Returns strict task-shaped examples from approved public packets plus clearly marked TaxSorted-derived labels, with framework identity, exact release identity, packet digests, source IDs, case pointers and case-level splits.",
+      schema: taxDisputeTrainingBundleSchema,
+      mediaType: "application/json",
+      protected: true,
+    },
+    {
+      path: "/v1/case-commons/uk/training/examples.ndjson",
+      operationId: "downloadUkTaxDisputeTrainingExamples",
+      summary: "Download deterministic tax-dispute examples as NDJSON",
+      description:
+        "One complete training-example object per line. Runtime requests, private assessments, user data, hidden chain-of-thought and outcome prediction are excluded.",
+      schema: z.string(),
+      mediaType: "application/x-ndjson",
+      protected: true,
+    },
+    {
+      path: "/v1/case-commons/uk/training/schema",
+      operationId: "getUkTaxDisputeTrainingSchema",
+      summary: "Read the tax-dispute training-example JSON Schema",
+      description:
+        "Strict discriminated contract for one provenance-bearing task example. Inputs and outputs reject unrecognised fields, including hidden reasoning and private matter facts.",
+      schema: JsonSchemaDocument,
+      mediaType: "application/schema+json",
+      protected: false,
+    },
+    {
       path: "/v1/case-commons/uk/sources",
       operationId: "listUkCaseCommonsSources",
       summary: "Read the official case-commons source ledger",
@@ -4302,7 +4437,31 @@ function registerCaseCommonsOpenApi(app: OpenAPIHono) {
       responses: {
         200: {
           description: "Current reviewed static representation.",
-          headers: caseCommonsResponseHeaders,
+          headers: {
+            ...caseCommonsResponseHeaders,
+            ...(route.path ===
+              "/v1/case-commons/uk/training/examples" ||
+            route.path ===
+              "/v1/case-commons/uk/training/examples.ndjson"
+              ? {
+                  "X-Record-Count": {
+                    description:
+                      "Number of complete task records in this representation.",
+                    schema: { type: "string" as const },
+                  },
+                }
+              : {}),
+            ...(route.path ===
+            "/v1/case-commons/uk/training/examples.ndjson"
+              ? {
+                  "Content-Disposition": {
+                    description:
+                      "Versioned filename containing corpus, framework and derived-release identity.",
+                    schema: { type: "string" as const },
+                  },
+                }
+              : {}),
+          },
           content: { [route.mediaType]: { schema: route.schema } },
         },
         304: {
@@ -4335,7 +4494,31 @@ function registerCaseCommonsOpenApi(app: OpenAPIHono) {
       responses: {
         200: {
           description: "Current representation metadata.",
-          headers: caseCommonsResponseHeaders,
+          headers: {
+            ...caseCommonsResponseHeaders,
+            ...(route.path ===
+              "/v1/case-commons/uk/training/examples" ||
+            route.path ===
+              "/v1/case-commons/uk/training/examples.ndjson"
+              ? {
+                  "X-Record-Count": {
+                    description:
+                      "Number of complete task records in this representation.",
+                    schema: { type: "string" as const },
+                  },
+                }
+              : {}),
+            ...(route.path ===
+            "/v1/case-commons/uk/training/examples.ndjson"
+              ? {
+                  "Content-Disposition": {
+                    description:
+                      "Versioned filename containing corpus, framework and derived-release identity.",
+                    schema: { type: "string" as const },
+                  },
+                }
+              : {}),
+          },
         },
         304: {
           description: "The supplied ETag still identifies this representation.",
@@ -4418,6 +4601,127 @@ function registerCaseCommonsOpenApi(app: OpenAPIHono) {
       503: { description: "Case publication is closed." },
     },
   });
+
+  const interpretedCaseResources = [
+    {
+      path:
+        "/v1/case-commons/uk/cases/{caseId}/interpretation",
+      operationId: "getUkTaxDisputeInterpretation",
+      summary: "Read one packet-bound tax-dispute interpretation",
+      description:
+        "Maps the approved case across twelve dimensions, major challenges, outcome-determinative issue branches, supporting public reasons, separate outcomes and explicit gaps. It publishes only under a separate exact derived-release approval and is not legal advice or outcome prediction.",
+      schema: taxDisputeInterpretationSchema,
+      responseDescription:
+        "Interpretation bound to the exact approved case-packet digest.",
+    },
+    {
+      path: "/v1/case-commons/uk/cases/{caseId}/why-graph",
+      operationId: "getUkTaxDisputeWhyGraph",
+      summary: "Walk one case's decisive public reasons",
+      description:
+        "Projects the same public rationale into the shared WhyGraph contract as TaxSorted analysis with advisory effect, ending missing arguments, evidence and pinpoints at named gaps.",
+      schema: WhyGraphSchema,
+      responseDescription:
+        "TaxSorted analytical reasoning graph whose judicial propositions remain linked to the official decision.",
+    },
+  ] as const;
+
+  for (const resource of interpretedCaseResources) {
+    app.openAPIRegistry.registerPath({
+      method: "get",
+      path: resource.path,
+      operationId: resource.operationId,
+      summary: resource.summary,
+      description: resource.description,
+      tags: ["UK public-power case commons"],
+      request: {
+        headers: ConditionalRequestHeaders,
+        params: z.object({ caseId: z.string().min(1).max(200) }),
+      },
+      security: [],
+      responses: {
+        200: {
+          description: resource.responseDescription,
+          headers: {
+            ...caseCommonsResponseHeaders,
+            ...(resource.path.endsWith("/why-graph")
+              ? {
+                  "X-TaxSorted-Why-Graph-Adopter": {
+                    description:
+                      "Domain adapter that admitted this derived graph.",
+                    schema: {
+                      type: "string" as const,
+                      enum: ["uk.case-commons.tax-dispute"],
+                    },
+                  },
+                }
+              : {}),
+          },
+          content: {
+            "application/json": { schema: resource.schema },
+          },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: caseCommonsResponseHeaders,
+        },
+        400: {
+          description:
+            "Case-derived resources do not accept query parameters.",
+          content: problemContent,
+        },
+        404: {
+          description: "No admitted decided case has that ID or slug.",
+          content: problemContent,
+        },
+        503: {
+          description:
+            "Production publication is awaiting approval or the independent case stop is active.",
+          content: problemContent,
+        },
+      },
+    });
+    app.openAPIRegistry.registerPath({
+      method: "head",
+      path: resource.path,
+      operationId: `head${resource.operationId.slice(3)}`,
+      summary: `Check ${resource.summary.slice(5).toLowerCase()}`,
+      tags: ["UK public-power case commons"],
+      request: {
+        headers: ConditionalRequestHeaders,
+        params: z.object({ caseId: z.string().min(1).max(200) }),
+      },
+      security: [],
+      responses: {
+        200: {
+          description: "Current representation metadata.",
+          headers: {
+            ...caseCommonsResponseHeaders,
+            ...(resource.path.endsWith("/why-graph")
+              ? {
+                  "X-TaxSorted-Why-Graph-Adopter": {
+                    description:
+                      "Domain adapter that admitted this derived graph.",
+                    schema: {
+                      type: "string" as const,
+                      enum: ["uk.case-commons.tax-dispute"],
+                    },
+                  },
+                }
+              : {}),
+          },
+        },
+        304: {
+          description:
+            "The supplied ETag still identifies this representation.",
+          headers: caseCommonsResponseHeaders,
+        },
+        404: { description: "No admitted case has that ID or slug." },
+        503: { description: "Case publication is closed." },
+      },
+    });
+  }
 }
 
 function registerProfessionalOpportunitiesOpenApi(app: OpenAPIHono) {

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TAX_DISPUTE_FRAMEWORK } from "@taxsorted/engine/uk/disputes";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { ukCaseCommons } from "@/lib/uk-case-commons";
+import { ukTaxDisputeInterpretationStaticPublication } from "@/lib/uk-case-publication";
 
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "UK public-power case commons — TaxSorted",
   description:
-    "Source-backed deep dives into decided UK challenges to public bodies, with remedies, honest recovery meanings and a local-first professional review packet.",
+    "A twelve-dimension framework for reading source-backed UK tax-dispute case studies, with honest gaps, money meanings and publication boundaries.",
 };
 
 const routeAccents = [
@@ -21,6 +23,9 @@ const routeAccents = [
 
 export default function UkCaseCommonsPage() {
   const { meta, protocol, publication, cases } = ukCaseCommons;
+  const derivedReleasePublished =
+    ukTaxDisputeInterpretationStaticPublication.exactReleaseApproved &&
+    !ukTaxDisputeInterpretationStaticPublication.emergencyStop;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
@@ -53,8 +58,14 @@ export default function UkCaseCommonsPage() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <a
-              href="#deep-case"
+              href="#interpretation-framework"
               className="inline-flex min-h-11 items-center rounded-full bg-white px-5 py-2.5 text-base font-semibold text-ink hover:bg-accent-soft"
+            >
+              Use the twelve dimensions
+            </a>
+            <a
+              href="#deep-case"
+              className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-5 py-2.5 text-base font-semibold text-white hover:bg-white/10"
             >
               Read the first deep case
             </a>
@@ -90,6 +101,84 @@ export default function UkCaseCommonsPage() {
         <p className="mt-4 text-sm leading-6 text-amber-950">
           {meta.warning}
         </p>
+      </section>
+
+      <section
+        id="interpretation-framework"
+        className="mt-16 scroll-mt-6"
+        aria-labelledby="framework-title"
+      >
+        <div className="max-w-5xl">
+          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+            One framework for every admitted case
+          </p>
+          <h2
+            id="framework-title"
+            className="mt-2 text-3xl font-semibold tracking-tight text-ink"
+          >
+            Twelve dimensions. Missing material stays visible.
+          </h2>
+          <p className="mt-3 text-base leading-7 text-ink-soft">
+            {TAX_DISPUTE_FRAMEWORK.purpose}
+          </p>
+          <p className="mt-4 text-sm leading-6 text-ink-soft">
+            Each dimension is marked{" "}
+            {TAX_DISPUTE_FRAMEWORK.dimensionStates.map((state, index) => (
+              <span key={state}>
+                {index > 0
+                  ? index === TAX_DISPUTE_FRAMEWORK.dimensionStates.length - 1
+                    ? " or "
+                    : ", "
+                  : ""}
+                <strong className="font-semibold text-ink">
+                  {state.replaceAll("-", " ")}
+                </strong>
+              </span>
+            ))}
+            . A gap is not filled from intuition.
+          </p>
+        </div>
+        <ol className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {TAX_DISPUTE_FRAMEWORK.dimensions.map((dimension) => (
+            <li
+              key={dimension.id}
+              className="rounded-3xl border border-line bg-white p-6 shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent"
+                  aria-hidden="true"
+                >
+                  {dimension.order}
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold text-ink">
+                    {dimension.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-soft">
+                    {dimension.question}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <h3 className="font-semibold text-ink">
+              Decisive means outcome-determinative
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-ink-soft">
+              {TAX_DISPUTE_FRAMEWORK.reasoning.meaning}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <h3 className="font-semibold text-ink">Challenges are not scores</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-soft">
+              {TAX_DISPUTE_FRAMEWORK.majorChallenges.meaning}
+            </p>
+          </div>
+        </div>
       </section>
 
       <section id="method" className="mt-16 scroll-mt-6" aria-labelledby="method-title">
@@ -291,6 +380,91 @@ export default function UkCaseCommonsPage() {
         <p className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-950">
           {publication.activationGap}
         </p>
+      </section>
+
+      <section
+        className="mt-16 rounded-[2rem] border border-line bg-ink p-6 text-white sm:p-8 lg:p-10"
+        aria-labelledby="agent-training-title"
+      >
+        <p className="text-sm font-semibold uppercase tracking-wide text-white/65">
+          For agents and careful training work
+        </p>
+        <h2
+          id="agent-training-title"
+          className="mt-2 max-w-4xl text-3xl font-semibold tracking-tight"
+        >
+          Framework open. Derived release under review.
+        </h2>
+        <p className="mt-4 max-w-4xl text-base leading-7 text-white/75">
+          The interpretation contract and agent guide are public. Case-specific
+          interpretations, reasoning graphs and training examples open only
+          after their exact derived release receives separate approval. Every
+          route is read-only.
+        </p>
+        <div className="mt-7 grid gap-4 lg:grid-cols-3">
+          {[
+            {
+              eyebrow: "Agent reading order",
+              title: "Start with the bounded agent guide",
+              body: "The guide names the safe read order, source checks and the private-data boundary.",
+              href: "https://api.taxsorted.io/v1/case-commons/uk/agent",
+              link: "Open agent guide JSON ↗",
+            },
+            {
+              eyebrow: "Interpretation contract",
+              title: "Read the twelve dimensions",
+              body: "The framework defines dimensions, challenge states and what decisive reasoning means.",
+              href: "https://api.taxsorted.io/v1/case-commons/uk/interpretation",
+              link: "Open framework JSON ↗",
+            },
+            {
+              eyebrow: "Training projection",
+              title: "Use it as a format and evaluation seed",
+              body: "Deterministic NDJSON uses approved public packets plus clearly marked TaxSorted-derived labels, and keeps source pointers. The labels need their own exact-release approval.",
+              href: derivedReleasePublished
+                ? "https://api.taxsorted.io/v1/case-commons/uk/training/examples.ndjson"
+                : null,
+              link: derivedReleasePublished
+                ? "Download public examples ↗"
+                : "Awaiting exact-release approval",
+            },
+          ].map((door) => (
+            <article
+              key={door.eyebrow}
+              className="rounded-3xl border border-white/15 bg-white/5 p-6"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                {door.eyebrow}
+              </p>
+              <h3 className="mt-2 text-xl font-semibold">{door.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-white/70">{door.body}</p>
+              {door.href ? (
+                <a
+                  href={door.href}
+                  className="mt-5 inline-flex min-h-11 items-center font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+                >
+                  {door.link}
+                </a>
+              ) : (
+                <p className="mt-5 inline-flex min-h-11 items-center font-semibold text-amber-100">
+                  {door.link}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+        <div className="mt-6 grid gap-4 text-sm leading-6 sm:grid-cols-2">
+          <p className="rounded-2xl border border-amber-300/30 bg-amber-100/10 p-4 text-amber-50">
+            One admitted deep case is not a sufficient or representative
+            training corpus. If approved, these records are format examples
+            and evaluation seeds, not material for outcome prediction.
+          </p>
+          <p className="rounded-2xl border border-white/15 bg-white/5 p-4 text-white/75">
+            Runtime tax-expert requests, private professional assessments and
+            user data are outside this export and are not used for training by
+            this service.
+          </p>
+        </div>
       </section>
 
       <p className="mt-8 text-sm leading-6 text-ink-soft">

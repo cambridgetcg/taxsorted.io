@@ -2,6 +2,7 @@
 // it does not create a second source of truth or a browser/taxpayer session.
 
 import { Hono, type Context } from "hono";
+import { TAX_DISPUTE_FRAMEWORK } from "@taxsorted/engine/uk/disputes";
 import {
   canonicalJson,
   ifNoneMatchMatches,
@@ -20,6 +21,10 @@ import {
   professionalToolsPath,
 } from "../professional-tools-contract.js";
 import { ukCharities } from "../uk-charities.js";
+import {
+  ukCaseCommons,
+  ukCaseCommonsPublicationDecision,
+} from "../uk-case-commons.js";
 import {
   whyGraphAdoptersPath,
   whyGraphBasePath,
@@ -45,6 +50,22 @@ const caseCommonsPacketSchemaPath =
   "/v1/case-commons/uk/packet-schema";
 const caseCommonsAssessmentPath =
   "/v1/case-commons/uk/assessment-template";
+const caseCommonsInterpretationPath =
+  "/v1/case-commons/uk/interpretation";
+const caseCommonsInterpretationSchemaPath =
+  "/v1/case-commons/uk/interpretation/schema";
+const caseCommonsAgentPath = "/v1/case-commons/uk/agent";
+const caseCommonsCaseInterpretationPath =
+  "/v1/case-commons/uk/cases/{caseId}/interpretation";
+const caseCommonsCaseWhyGraphPath =
+  "/v1/case-commons/uk/cases/{caseId}/why-graph";
+const caseCommonsTrainingPath = "/v1/case-commons/uk/training";
+const caseCommonsTrainingExamplesPath =
+  "/v1/case-commons/uk/training/examples";
+const caseCommonsTrainingExamplesNdjsonPath =
+  "/v1/case-commons/uk/training/examples.ndjson";
+const caseCommonsTrainingSchemaPath =
+  "/v1/case-commons/uk/training/schema";
 const caseCommonsOpenApiPath = "/openapi/case-commons-uk.json";
 const caseCommonsAgentToolGuide =
   "https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md";
@@ -149,11 +170,27 @@ case-commons-cases: GET ${apiOrigin}${caseCommonsCasesPath}
 case-commons-schema: GET ${apiOrigin}${caseCommonsSchemaPath}
 case-commons-packet-schema: GET ${apiOrigin}${caseCommonsPacketSchemaPath}
 case-commons-assessment-template: GET ${apiOrigin}${caseCommonsAssessmentPath}
+case-commons-interpretation: GET ${apiOrigin}${caseCommonsInterpretationPath}
+case-commons-interpretation-schema: GET ${apiOrigin}${caseCommonsInterpretationSchemaPath}
+case-commons-agent: GET ${apiOrigin}${caseCommonsAgentPath}
+case-commons-case-interpretation: GET ${apiOrigin}${caseCommonsCaseInterpretationPath}
+case-commons-case-why-graph: GET ${apiOrigin}${caseCommonsCaseWhyGraphPath}
+case-commons-training: GET ${apiOrigin}${caseCommonsTrainingPath}
+case-commons-training-examples: GET ${apiOrigin}${caseCommonsTrainingExamplesPath}
+case-commons-training-examples-ndjson: GET ${apiOrigin}${caseCommonsTrainingExamplesNdjsonPath}
+case-commons-training-schema: GET ${apiOrigin}${caseCommonsTrainingSchemaPath}
 case-commons-openapi: GET ${apiOrigin}${caseCommonsOpenApiPath}
 case-commons-agenttool-local-mirror: ${caseCommonsAgentToolGuide}
 case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
-case-commons-scope: decided public records; one England-and-Wales deep case; source-resolving packets; remedies and money meanings; local assessment template
-case-commons-effects: read-only research; no personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
+case-commons-scope: curated approved public packets from decided public records; one England-and-Wales deep case; source-resolving remedies and money meanings
+case-commons-derived-gate: case interpretations, WhyGraphs and training records require a separate exact derived-release approval
+case-commons-reasoning-boundary: TaxSorted-labelled concise public reasons, not hidden chain-of-thought; official judicial propositions remain source-linked
+case-commons-training-source: approved public packets plus clearly marked TaxSorted-derived labels
+case-commons-training-qualified-legal-review-asserted: false
+case-commons-training-runtime-assessments: usedForTraining=false
+case-commons-training-private-assessments: usedForTraining=false
+case-commons-training-corpus: one current case is a format and evaluation seed, not a sufficient training corpus
+case-commons-effects: read-only research; no outcome prediction, writes, personal intake, private upload, viability score, expected value, matching, ranking, outreach, recommendation, representation or referral fee
 case-commons-private-material: stays with the prospective client or instructed professional in their approved matter system
 professional-opportunities: GET ${apiOrigin}${professionalOpportunitiesPath}
 professional-opportunities-method: GET ${apiOrigin}${professionalOpportunitiesMethodPath}
@@ -427,6 +464,8 @@ function evidenceLane(
 type AgentInterfaceOptions = OpenDataRouteOptions & {
   caseCommonsPublic?: boolean;
   caseCommonsEmergencyStop?: boolean;
+  caseCommonsInterpretationEmergencyStop?: boolean;
+  caseCommonsInterpretationPublicationIsCurrent?: () => boolean;
   caseCommonsStoppedCaseIds?: string[];
   professionalOpportunitiesPublic?: boolean;
   professionalOpportunitiesPublicationIsCurrent?: () => boolean;
@@ -445,6 +484,19 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
   const professionalOpportunitiesPublic =
     options.professionalOpportunitiesPublic === true &&
     professionalOpportunitiesReviewCurrent;
+  let caseCommonsInterpretationPublicationCurrent = false;
+  try {
+    caseCommonsInterpretationPublicationCurrent =
+      options.caseCommonsInterpretationPublicationIsCurrent?.() ??
+      false;
+  } catch {
+    caseCommonsInterpretationPublicationCurrent = false;
+  }
+  const caseCommonsInterpretationAvailable =
+    options.caseCommonsPublic === true &&
+    !options.caseCommonsEmergencyStop &&
+    !options.caseCommonsInterpretationEmergencyStop &&
+    caseCommonsInterpretationPublicationCurrent;
   const catalog = buildOpenDataCatalog(options);
   const catalogBody = canonicalJson(catalog);
   const datasetChangeLane = evidenceLane(
@@ -617,6 +669,28 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         schema: caseCommonsSchemaPath,
         packetSchema: caseCommonsPacketSchemaPath,
         assessmentTemplate: caseCommonsAssessmentPath,
+        interpretation: caseCommonsInterpretationPath,
+        interpretationSchema: caseCommonsInterpretationSchemaPath,
+        agent: caseCommonsAgentPath,
+        caseInterpretationTemplate: caseCommonsCaseInterpretationPath,
+        caseWhyGraphTemplate: caseCommonsCaseWhyGraphPath,
+        training: caseCommonsTrainingPath,
+        trainingExamples: caseCommonsTrainingExamplesPath,
+        trainingExamplesNdjson: caseCommonsTrainingExamplesNdjsonPath,
+        trainingSchema: caseCommonsTrainingSchemaPath,
+        trainingBoundary: {
+          sourcePolicy: TAX_DISPUTE_FRAMEWORK.training.sourcePolicy,
+          sourceBoundary:
+            "Approved public packets plus clearly marked TaxSorted-derived labels.",
+          currentUse: TAX_DISPUTE_FRAMEWORK.training.currentUse,
+          currentCaseCount:
+            ukCaseCommonsPublicationDecision.approvedCaseIds.length,
+          sufficientCorpus: false,
+          currentCorpusSufficiency:
+            "One current case is a format and evaluation seed, not a sufficient training corpus.",
+          runtimeAssessments: { usedForTraining: false },
+          privateAssessments: { usedForTraining: false },
+        },
         openApi: caseCommonsOpenApiPath,
         humanGuide: `${humanOrigin}/uk/cases/`,
         availability: options.caseCommonsEmergencyStop
@@ -626,6 +700,12 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
             : options.caseCommonsStoppedCaseIds?.length
               ? "case-level-stops-active"
               : "open",
+        interpretationAvailability:
+          options.caseCommonsInterpretationEmergencyStop
+            ? "emergency-stopped"
+            : !caseCommonsInterpretationAvailable
+              ? "derived-release-review"
+              : "exact-release-verified-on-request",
         stoppedCaseCount: new Set(
           options.caseCommonsStoppedCaseIds ?? [],
         ).size,
@@ -634,6 +714,9 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         privateUploads: false,
         professionalMarketplace: false,
         probabilityOrExpectedValue: false,
+        outcomePrediction: false,
+        reasoningBoundary:
+          "Interpretations expose concise, TaxSorted-labelled public reasons, not hidden chain-of-thought; case-specific labels need a separate exact-release approval.",
         optionalAgentToolBridge: {
           required: false,
           sdk: "@agenttool/sdk",
@@ -648,7 +731,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
           privateCaseFacts: false,
         },
         effects:
-          "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
+          "Read-only decided-case research and blank local assessment; no outcome prediction, matching, ranking, outreach, recommendation, representation, write or external state change.",
       },
       professionalOpportunities: {
         href: professionalOpportunitiesPath,
@@ -728,7 +811,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         openApi: whyGraphOpenApiPath,
         graphSchema: "taxsorted.why-graph/1",
         status: "first-adopter",
-        adopterCount: 2,
+        adopterCount: 3,
         legacyStatusMeaning:
           "Compatibility marker that MTD was the first adopter; use the adopter index for all current producers.",
         firstAdopter: {
@@ -746,6 +829,20 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
           standaloneResource: true,
           publicationControlledBy: "/v1/charities/uk",
           organisationOrCaseFacts: false,
+        },
+        thirdAdopter: {
+          endpointTemplate: caseCommonsCaseWhyGraphPath,
+          subjectVersion: ukCaseCommons.meta.version,
+          runtimeEmitted:
+            caseCommonsInterpretationAvailable,
+          standaloneResource: true,
+          publicationControlledBy:
+            `${caseCommonsPath} plus the exact tax-dispute derived-release approval`,
+          sourceScope:
+            "approved-public-packets-plus-taxsorted-derived-labels",
+          concisePublicReasonsOnly: true,
+          hiddenChainOfThought: false,
+          runtimeOrPrivateAssessmentsUsedForTraining: false,
         },
         access: {
           appliesTo: [
@@ -1002,6 +1099,14 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         accepts: ["application/json"],
         description:
           "Read decided public-law cases, exact remedy and money meanings, digest-bearing source packets, and the closed marketplace boundary.",
+      },
+      {
+        id: "inspect-case-dispute-agent-guide",
+        method: "GET",
+        href: caseCommonsAgentPath,
+        accepts: ["application/json"],
+        description:
+          "Read the bounded agent path through the dispute framework, approved packets, interpretations, concise public reasons, source checks and training limits.",
       },
       {
         id: "inspect-professional-opportunities",

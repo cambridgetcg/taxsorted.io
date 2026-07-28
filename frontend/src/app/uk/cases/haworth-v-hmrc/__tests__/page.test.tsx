@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import HaworthCasePage from "../page";
 
@@ -17,7 +17,38 @@ describe("Haworth v HMRC deep case", () => {
     expect(
       screen.getByText(/no damages award was identified/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/underlying tax appeal was later dismissed/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/underlying tax appeal was later dismissed/i).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps the canonical page visible while derived interpretation is pending", () => {
+    render(<HaworthCasePage />);
+
+    const caseNavigation = screen.getByRole("navigation", {
+      name: "On this case",
+    });
+    expect(
+      within(caseNavigation).getByRole("link", {
+        name: "Interpretation review",
+      }),
+    ).toHaveAttribute("href", "#interpretation-review");
+    expect(
+      screen.getByRole("heading", {
+        name: "The derived interpretation is not public yet.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/awaiting their own exact-release approval/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Decisive reasons" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", {
+        name: "The hard parts that change how this case should be read.",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the historical exposure as context rather than recovery", () => {
@@ -28,6 +59,12 @@ describe("Haworth v HMRC deep case", () => {
         name: /documented figures, what each meant and what it did not mean/i,
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", {
+        name: /documented money figures/i,
+      }),
+    ).toHaveAttribute("tabindex", "0");
+    expect(screen.getByText(/table can be scrolled sideways/i)).toBeInTheDocument();
     expect(
       screen.getByRole("columnheader", { name: "What it did not mean" }),
     ).toBeInTheDocument();
@@ -63,6 +100,14 @@ describe("Haworth v HMRC deep case", () => {
     expect(
       screen.getByText(/response checksum covers the exact delivered bytes/i),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", {
+        name: /twelve-dimension interpretation json/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /decisive reasoning graph json/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /full judgment/i })).toHaveAttribute(
       "href",
       "https://supremecourt.uk/uploads/uksc_2019_0124_judgment_90ad362b5f.pdf",

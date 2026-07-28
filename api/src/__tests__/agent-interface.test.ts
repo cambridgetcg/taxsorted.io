@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { Hono } from "hono";
+import { TAX_DISPUTE_FRAMEWORK } from "@taxsorted/engine/uk/disputes";
 import { apiCors, isPublicCivicPath } from "../cors.js";
 import { canonicalJson } from "../open-data.js";
 import { noSuchDoorProblem } from "../problem-details.js";
@@ -10,6 +11,7 @@ import {
   createAgentInterfaceRoutes,
 } from "../routes/agent-interface.js";
 import { buildOpenDataCatalog } from "../routes/open-data.js";
+import { ukCaseCommons } from "../uk-case-commons.js";
 
 const options = {
   taxSystemPublic: true,
@@ -95,6 +97,45 @@ describe("agent interface", () => {
       "charity-accountability-status: schema-only-not-admitted",
     );
     expect(body).toContain("charity-accountability-records: none");
+    expect(body).toContain(
+      "case-commons-interpretation: GET https://api.taxsorted.io/v1/case-commons/uk/interpretation",
+    );
+    expect(body).toContain(
+      "case-commons-interpretation-schema: GET https://api.taxsorted.io/v1/case-commons/uk/interpretation/schema",
+    );
+    expect(body).toContain(
+      "case-commons-agent: GET https://api.taxsorted.io/v1/case-commons/uk/agent",
+    );
+    expect(body).toContain(
+      "case-commons-case-interpretation: GET https://api.taxsorted.io/v1/case-commons/uk/cases/{caseId}/interpretation",
+    );
+    expect(body).toContain(
+      "case-commons-case-why-graph: GET https://api.taxsorted.io/v1/case-commons/uk/cases/{caseId}/why-graph",
+    );
+    expect(body).toContain(
+      "case-commons-training-examples-ndjson: GET https://api.taxsorted.io/v1/case-commons/uk/training/examples.ndjson",
+    );
+    expect(body).toContain(
+      "case-commons-reasoning-boundary: TaxSorted-labelled concise public reasons, not hidden chain-of-thought; official judicial propositions remain source-linked",
+    );
+    expect(body).toContain(
+      "case-commons-training-source: approved public packets plus clearly marked TaxSorted-derived labels",
+    );
+    expect(body).toContain(
+      "case-commons-training-qualified-legal-review-asserted: false",
+    );
+    expect(body).toContain(
+      "case-commons-training-runtime-assessments: usedForTraining=false",
+    );
+    expect(body).toContain(
+      "case-commons-training-private-assessments: usedForTraining=false",
+    );
+    expect(body).toContain(
+      "case-commons-training-corpus: one current case is a format and evaluation seed, not a sufficient training corpus",
+    );
+    expect(body).toContain(
+      "case-commons-effects: read-only research; no outcome prediction, writes",
+    );
     expect(body).toContain(
       "politics-public-office-pathways: GET https://api.taxsorted.io/v1/politics/uk/public-office-pathways",
     );
@@ -336,15 +377,44 @@ describe("agent interface", () => {
       schema: "/v1/case-commons/uk/schema",
       packetSchema: "/v1/case-commons/uk/packet-schema",
       assessmentTemplate: "/v1/case-commons/uk/assessment-template",
+      interpretation: "/v1/case-commons/uk/interpretation",
+      interpretationSchema:
+        "/v1/case-commons/uk/interpretation/schema",
+      agent: "/v1/case-commons/uk/agent",
+      caseInterpretationTemplate:
+        "/v1/case-commons/uk/cases/{caseId}/interpretation",
+      caseWhyGraphTemplate:
+        "/v1/case-commons/uk/cases/{caseId}/why-graph",
+      training: "/v1/case-commons/uk/training",
+      trainingExamples: "/v1/case-commons/uk/training/examples",
+      trainingExamplesNdjson:
+        "/v1/case-commons/uk/training/examples.ndjson",
+      trainingSchema: "/v1/case-commons/uk/training/schema",
+      trainingBoundary: {
+        sourcePolicy: TAX_DISPUTE_FRAMEWORK.training.sourcePolicy,
+        sourceBoundary:
+          "Approved public packets plus clearly marked TaxSorted-derived labels.",
+        currentUse: TAX_DISPUTE_FRAMEWORK.training.currentUse,
+        currentCaseCount: 1,
+        sufficientCorpus: false,
+        currentCorpusSufficiency:
+          "One current case is a format and evaluation seed, not a sufficient training corpus.",
+        runtimeAssessments: { usedForTraining: false },
+        privateAssessments: { usedForTraining: false },
+      },
       openApi: "/openapi/case-commons-uk.json",
       humanGuide: "https://taxsorted.io/uk/cases/",
       availability: "publication-review",
+      interpretationAvailability: "derived-release-review",
       stoppedCaseCount: 0,
       writes: false,
       personalIntake: false,
       privateUploads: false,
       professionalMarketplace: false,
       probabilityOrExpectedValue: false,
+      outcomePrediction: false,
+      reasoningBoundary:
+        "Interpretations expose concise, TaxSorted-labelled public reasons, not hidden chain-of-thought; case-specific labels need a separate exact-release approval.",
       optionalAgentToolBridge: {
         required: false,
         sdk: "@agenttool/sdk",
@@ -360,7 +430,7 @@ describe("agent interface", () => {
         privateCaseFacts: false,
       },
       effects:
-        "Read-only decided-case research and blank local assessment; no matching, ranking, outreach, recommendation, representation or external state change.",
+        "Read-only decided-case research and blank local assessment; no outcome prediction, matching, ranking, outreach, recommendation, representation, write or external state change.",
     });
     expect(body.resources.publicOfficePathways).toEqual({
       href: "/v1/politics/uk/public-office-pathways",
@@ -396,7 +466,7 @@ describe("agent interface", () => {
       openApi: "/openapi/why-graph.json",
       graphSchema: "taxsorted.why-graph/1",
       status: "first-adopter",
-      adopterCount: 2,
+      adopterCount: 3,
       legacyStatusMeaning:
         "Compatibility marker that MTD was the first adopter; use the adopter index for all current producers.",
       firstAdopter: {
@@ -414,6 +484,20 @@ describe("agent interface", () => {
         standaloneResource: true,
         publicationControlledBy: "/v1/charities/uk",
         organisationOrCaseFacts: false,
+      },
+      thirdAdopter: {
+        endpointTemplate:
+          "/v1/case-commons/uk/cases/{caseId}/why-graph",
+        subjectVersion: ukCaseCommons.meta.version,
+        runtimeEmitted: false,
+        standaloneResource: true,
+        publicationControlledBy:
+          "/v1/case-commons/uk plus the exact tax-dispute derived-release approval",
+        sourceScope:
+          "approved-public-packets-plus-taxsorted-derived-labels",
+        concisePublicReasonsOnly: true,
+        hiddenChainOfThought: false,
+        runtimeOrPrivateAssessmentsUsedForTraining: false,
       },
       access: {
         appliesTo: [
@@ -608,6 +692,11 @@ describe("agent interface", () => {
         expect.objectContaining({
           id: "inspect-observer-accountability-contract",
           href: "/v1/accountability/uk",
+        }),
+        expect.objectContaining({
+          id: "inspect-case-dispute-agent-guide",
+          method: "GET",
+          href: "/v1/case-commons/uk/agent",
         }),
         expect.objectContaining({
           id: "watch-release-checkpoints",
@@ -841,6 +930,40 @@ describe("agent interface", () => {
     expect(JSON.stringify(wake.resources.caseCommons)).not.toContain(
       "haworth-v-hmrc-2021",
     );
+  });
+
+  it("advertises the dispute graph only after exact derived-release verification", () => {
+    const current = buildAgentWakePayload({
+      ...options,
+      caseCommonsPublic: true,
+      caseCommonsInterpretationPublicationIsCurrent: () => true,
+    });
+    expect(current.resources.caseCommons.interpretationAvailability).toBe(
+      "exact-release-verified-on-request",
+    );
+    expect(
+      current.resources.whyGraph.thirdAdopter?.runtimeEmitted,
+    ).toBe(true);
+
+    for (const publicationCheck of [
+      () => false,
+      () => {
+        throw new Error("stale adapter");
+      },
+    ]) {
+      const closed = buildAgentWakePayload({
+        ...options,
+        caseCommonsPublic: true,
+        caseCommonsInterpretationPublicationIsCurrent:
+          publicationCheck,
+      });
+      expect(
+        closed.resources.caseCommons.interpretationAvailability,
+      ).toBe("derived-release-review");
+      expect(
+        closed.resources.whyGraph.thirdAdopter?.runtimeEmitted,
+      ).toBe(false);
+    }
   });
 
   it("answers public preflight without admitting near-match paths", async () => {

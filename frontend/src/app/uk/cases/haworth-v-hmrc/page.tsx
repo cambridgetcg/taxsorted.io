@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { TaxDisputeSourcePinpoint } from "@taxsorted/engine/uk/disputes";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   caseBySlug,
   formatGbp,
   sourcesById,
+  taxDisputeInterpretationBySlug,
   ukCaseCommons,
 } from "@/lib/uk-case-commons";
 
@@ -14,7 +16,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "Haworth v HMRC deep case — TaxSorted",
   description:
-    "Why HMRC's notices were quashed, what the £8.786m figure actually meant, why it was not a payout, and how a qualified professional should assess a similar case.",
+    "The approved public evidence for Haworth v HMRC, why the £8.786m figure was not a payout, and what happened in the later tax appeal.",
 };
 
 const directCaseSourceIds = [
@@ -46,8 +48,43 @@ function ExternalSource({
   );
 }
 
+function SourceReceipts({
+  sourceIds,
+  sourcePinpoints = [],
+}: {
+  sourceIds: readonly string[];
+  sourcePinpoints?: readonly TaxDisputeSourcePinpoint[];
+}) {
+  const sources = sourcesById(sourceIds);
+  if (sources.length === 0) return null;
+
+  return (
+    <ul className="mt-4 flex flex-wrap gap-2" aria-label="Source receipts">
+      {sources.map((source) => {
+        const locators = sourcePinpoints
+          .filter((pinpoint) => pinpoint.sourceId === source.id)
+          .map((pinpoint) => pinpoint.locator);
+        return (
+          <li key={source.id}>
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold leading-5 text-accent hover:border-accent hover:bg-accent-soft"
+            >
+              {source.title}
+              {locators.length > 0 ? ` · ${locators.join(", ")}` : ""} ↗
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export default function HaworthCasePage() {
   const caseRecord = caseBySlug("haworth-v-hmrc");
+  const interpretation = taxDisputeInterpretationBySlug("haworth-v-hmrc");
   if (!caseRecord) notFound();
 
   const demand = caseRecord.financialEffect.documentedAmounts.find(
@@ -60,6 +97,22 @@ export default function HaworthCasePage() {
     (amount) => amount.id === "then-potential-penalty-high",
   )!;
   const directSources = sourcesById(directCaseSourceIds);
+  const decisiveReasons = interpretation?.reasoning.steps.filter(
+    (step) => step.decisiveness === "decisive",
+  ) ?? [];
+  const supportingReasons = interpretation?.reasoning.steps.filter(
+    (step) => step.decisiveness === "supporting",
+  ) ?? [];
+  const boundaryReasons = interpretation?.reasoning.steps.filter(
+    (step) => step.decisiveness === "boundary",
+  ) ?? [];
+  const visibleDimensionGaps = interpretation?.dimensions.filter(
+    (dimension) =>
+      dimension.state === "not-mapped" || dimension.state === "partial",
+  ) ?? [];
+  const sourcePinpointBoundary = interpretation?.boundaries.find((boundary) =>
+    boundary.startsWith("Source pinpoints"),
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
@@ -96,6 +149,26 @@ export default function HaworthCasePage() {
         <p className="mt-5 max-w-4xl text-lg leading-8 text-ink-soft">
           {caseRecord.publicInterestQuestion}
         </p>
+        <nav className="mt-7 flex flex-wrap gap-2" aria-label="On this case">
+          {[
+            ...(interpretation
+              ? [
+                  ["#decisive-reasoning", "Decisive reasoning"],
+                  ["#major-challenges", "Major challenges"],
+                ]
+              : [["#interpretation-review", "Interpretation review"]]),
+            ["#money-and-remedy", "Money and remedy"],
+            ["#direct-sources", "Direct sources"],
+          ].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className="inline-flex min-h-11 items-center rounded-full border border-line bg-paper px-4 py-2 text-sm font-semibold text-accent hover:border-accent hover:bg-accent-soft"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
       </header>
 
       <section className="mt-6 grid gap-4 md:grid-cols-3" aria-label="Case outcome summary">
@@ -177,12 +250,242 @@ export default function HaworthCasePage() {
         </article>
       </section>
 
+      {interpretation ? (
+        <>
+          <section
+            id="decisive-reasoning"
+            className="mt-16 scroll-mt-6"
+            aria-labelledby="reasoning-title"
+          >
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          Decisive reasoning
+        </p>
+        <h2
+          id="reasoning-title"
+          className="mt-2 max-w-5xl text-3xl font-semibold tracking-tight text-ink"
+        >
+          What carried the holding—and what only supported or bounded it.
+        </h2>
+        <p className="mt-3 max-w-5xl text-base leading-7 text-ink-soft">
+          {interpretation.reasoning.holding}
+        </p>
+        <div className="mt-4 max-w-5xl rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+          <p>
+            This is concise, source-linked public judicial reasoning. It does not
+            expose or request hidden model chain-of-thought, and it does not
+            predict another case.
+          </p>
+          <p className="mt-2">{interpretation.review.limits}</p>
+          {sourcePinpointBoundary ? (
+            <p className="mt-2">{sourcePinpointBoundary}</p>
+          ) : null}
+        </div>
+
+        <div className="mt-7 grid gap-5 xl:grid-cols-3">
+          <article className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">
+              Outcome-determinative within an issue or sufficient branch
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              Decisive reasons
+            </h3>
+            <ul className="mt-5 space-y-4">
+              {decisiveReasons.map((reason) => (
+                <li key={reason.id} className="rounded-2xl bg-white/80 p-4">
+                  <p className="text-sm leading-6 text-ink">{reason.proposition}</p>
+                  <SourceReceipts
+                    sourceIds={reason.sourceIds}
+                    sourcePinpoints={reason.sourcePinpoints}
+                  />
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="rounded-[2rem] border border-sky-200 bg-sky-50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-sky-900">
+              Explains or strengthens the route
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              Supporting reasons
+            </h3>
+            <ul className="mt-5 space-y-4">
+              {supportingReasons.map((reason) => (
+                <li key={reason.id} className="rounded-2xl bg-white/80 p-4">
+                  <p className="text-sm leading-6 text-ink">{reason.proposition}</p>
+                  <SourceReceipts
+                    sourceIds={reason.sourceIds}
+                    sourcePinpoints={reason.sourcePinpoints}
+                  />
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+              Kept outside the holding
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              Boundary reasons
+            </h3>
+            <ul className="mt-5 space-y-4">
+              {boundaryReasons.map((reason) => (
+                <li key={reason.id} className="rounded-2xl bg-white/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+                    Boundary
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-ink">
+                    {reason.proposition}
+                  </p>
+                  <SourceReceipts
+                    sourceIds={reason.sourceIds}
+                    sourcePinpoints={reason.sourcePinpoints}
+                  />
+                </li>
+              ))}
+            </ul>
+          </article>
+        </div>
+
+        <div className="mt-5 rounded-[2rem] border border-amber-200 bg-amber-50 p-6 sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+            Coverage stays honest
+          </p>
+          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+            Partial and not-mapped dimensions stay visible.
+          </h3>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visibleDimensionGaps.map((dimension) => (
+              <article key={dimension.id} className="rounded-2xl bg-white/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+                  {dimension.state.replaceAll("-", " ")}
+                </p>
+                <h4 className="mt-2 font-semibold text-ink">{dimension.title}</h4>
+                <p className="mt-2 text-sm leading-6 text-ink-soft">
+                  {dimension.reading}
+                </p>
+                {dimension.gaps.length > 0 ? (
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-ink-soft">
+                    {dimension.gaps.map((gap) => (
+                      <li key={gap}>{gap}</li>
+                    ))}
+                  </ul>
+                ) : null}
+                <SourceReceipts sourceIds={dimension.sourceIds} />
+              </article>
+            ))}
+          </div>
+        </div>
+          </section>
+
+          <section
+            id="major-challenges"
+            className="mt-16 scroll-mt-6"
+            aria-labelledby="challenges-title"
+          >
+        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          Major interpretation challenges
+        </p>
+        <h2
+          id="challenges-title"
+          className="mt-2 max-w-5xl text-3xl font-semibold tracking-tight text-ink"
+        >
+          The hard parts that change how this case should be read.
+        </h2>
+        <p className="mt-3 max-w-5xl text-base leading-7 text-ink-soft">
+          A challenge names a material difficulty in the decided record. It is
+          not a difficulty score, a win score or a recommendation about a new
+          dispute.
+        </p>
+        <div className="mt-7 grid gap-5 lg:grid-cols-2">
+          {interpretation.majorChallenges.map((challenge) => (
+            <article
+              key={challenge.id}
+              className="rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8"
+            >
+              <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide">
+                <span className="rounded-full bg-accent-soft px-3 py-1.5 text-accent">
+                  {challenge.kind.replaceAll("-", " ")}
+                </span>
+                <span className="rounded-full bg-paper px-3 py-1.5 text-ink-soft">
+                  {challenge.materiality}
+                </span>
+                <span className="rounded-full bg-paper px-3 py-1.5 text-ink-soft">
+                  {challenge.state.replaceAll("-", " ")}
+                </span>
+              </div>
+              <h3 className="mt-4 text-xl font-semibold leading-8 text-ink">
+                {challenge.description}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">
+                <strong className="font-semibold text-ink">Why it matters: </strong>
+                {challenge.impact}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">
+                <strong className="font-semibold text-ink">
+                  How this record resolves it:{" "}
+                </strong>
+                {challenge.resolution}
+              </p>
+              {challenge.evidenceNeeded.length > 0 ? (
+                <div className="mt-4 rounded-2xl bg-paper p-4">
+                  <h4 className="font-semibold text-ink">
+                    Evidence a new case would need
+                  </h4>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-ink-soft">
+                    {challenge.evidenceNeeded.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {challenge.blockers.length > 0 ? (
+                <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <h4 className="font-semibold text-rose-950">Blockers to check</h4>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-rose-950">
+                    {challenge.blockers.map((blocker) => (
+                      <li key={blocker}>{blocker}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <SourceReceipts sourceIds={challenge.sourceIds} />
+            </article>
+          ))}
+        </div>
+          </section>
+        </>
+      ) : (
+        <section
+          id="interpretation-review"
+          className="mt-16 scroll-mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-6 sm:p-8"
+          aria-labelledby="interpretation-review-title"
+        >
+          <p className="text-sm font-semibold uppercase tracking-wide text-amber-900">
+            Separate publication review
+          </p>
+          <h2
+            id="interpretation-review-title"
+            className="mt-2 text-3xl font-semibold tracking-tight text-ink"
+          >
+            The derived interpretation is not public yet.
+          </h2>
+          <p className="mt-4 max-w-4xl text-base leading-7 text-ink-soft">
+            TaxSorted&apos;s case-specific twelve-dimension interpretation,
+            reasoning graph, challenges and mapped gaps are awaiting their own
+            exact-release approval. The approved canonical case evidence on
+            this page remains available.
+          </p>
+        </section>
+      )}
+
       <section className="mt-16" aria-labelledby="timeline-title">
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
           Follow the whole record
         </p>
         <h2 id="timeline-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Twenty-five years, six distinct procedural moments.
+          Twenty-five years, six distinct recorded moments.
         </h2>
         <ol className="mt-7 border-l-2 border-line pl-6 sm:pl-8">
           {caseRecord.timeline.map((event) => (
@@ -213,14 +516,27 @@ export default function HaworthCasePage() {
         </ol>
       </section>
 
-      <section className="mt-16 rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8 lg:p-10" aria-labelledby="gain-title">
+      <section
+        id="money-and-remedy"
+        className="mt-16 scroll-mt-6 rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-8 lg:p-10"
+        aria-labelledby="gain-title"
+      >
         <p className="text-sm font-semibold uppercase tracking-wide text-accent">
           Potential gain, stated without theatre
         </p>
         <h2 id="gain-title" className="mt-2 text-3xl font-semibold tracking-tight text-ink">
           The large numbers describe pressure—not a payday.
         </h2>
-        <div className="mt-7 overflow-x-auto rounded-2xl border border-line">
+        <p id="gain-table-help" className="mt-3 text-sm leading-6 text-ink-soft">
+          The table can be scrolled sideways on a small screen.
+        </p>
+        <div
+          role="region"
+          aria-label="Documented money figures"
+          aria-describedby="gain-table-help"
+          tabIndex={0}
+          className="mt-4 overflow-x-auto rounded-2xl border border-line focus:outline-2 focus:outline-offset-2 focus:outline-accent"
+        >
           <table className="w-full min-w-[46rem] border-collapse text-left">
             <caption className="sr-only">
               Documented figures, what each meant and what it did not mean
@@ -375,6 +691,22 @@ export default function HaworthCasePage() {
           >
             Complete case packet JSON ↗
           </a>
+          {interpretation ? (
+            <>
+              <a
+                href="https://api.taxsorted.io/v1/case-commons/uk/cases/haworth-v-hmrc-2021/interpretation"
+                className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-5 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+              >
+                Twelve-dimension interpretation JSON ↗
+              </a>
+              <a
+                href="https://api.taxsorted.io/v1/case-commons/uk/cases/haworth-v-hmrc-2021/why-graph"
+                className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-5 py-2.5 text-base font-semibold text-white hover:bg-white/10"
+              >
+                Decisive reasoning graph JSON ↗
+              </a>
+            </>
+          ) : null}
           <a
             href="https://api.taxsorted.io/v1/case-commons/uk/assessment-template"
             className="inline-flex min-h-11 items-center rounded-full border border-white/30 px-5 py-2.5 text-base font-semibold text-white hover:bg-white/10"
@@ -384,7 +716,11 @@ export default function HaworthCasePage() {
         </div>
       </section>
 
-      <section className="mt-16" aria-labelledby="sources-title">
+      <section
+        id="direct-sources"
+        className="mt-16 scroll-mt-6"
+        aria-labelledby="sources-title"
+      >
         <h2 id="sources-title" className="text-2xl font-semibold tracking-tight text-ink">
           Direct case sources
         </h2>
