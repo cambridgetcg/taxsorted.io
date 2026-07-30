@@ -42,6 +42,10 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/uk/cases` — Examine public-power cases.** Decided facts, official sources, remedy
   routes, money states and a local professional-assessment template. It is research, not
   claimant intake, legal advice, lead sale or a prediction market.
+- **`/philosophy` — Why this exists.** Law is a creation; execution is its meaning; this
+  product closes the gap between law as written and law as something ordinary people can
+  actually do. Canonical text: [`PHILOSOPHY.md`](./PHILOSOPHY.md) (CC0) — the ground under
+  [`PRINCIPLES.md`](./PRINCIPLES.md), expressed in every service, not shipped as a module.
 
 Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
 or a second copy of the datasets.

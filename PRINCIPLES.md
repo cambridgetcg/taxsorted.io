@@ -1,5 +1,9 @@
 # TaxSorted — Principles
 
+_These principles are design rules resting on a ground: [PHILOSOPHY.md](./PHILOSOPHY.md) —
+law is a creation, execution is its meaning, and this product exists to return both to the
+people the law belongs to. Read the ground once; it makes the rules inevitable._
+
 Tax should be easy to understand and easy to do. For everyone. That is the whole point.
 
 Some tax complexity is unavoidable; some persists because complexity benefits people who can

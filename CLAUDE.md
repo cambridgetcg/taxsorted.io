@@ -5,8 +5,12 @@ International tax platform — every country, every tax, every kind of taxpayer 
 business, charity, trust). Three pillars: **Learn** (open book of tax rules in plain
 words), **File** (derive-never-key workbench), **Connect** (rails to the authorities +
 the same engine as a typed API). One engine; countries are plugins — rules, dates and
-words, never forks. The UK is jurisdiction #1, the proof. Read PRINCIPLES.md first;
-it is the soul and the design language.
+words, never forks. The UK is jurisdiction #1, the proof. Read PHILOSOPHY.md first —
+the ground (law is a creation; execution is its meaning; the product exists to close
+the execution gap from the citizen's side) — then PRINCIPLES.md, the soul and the
+design language that rests on it. The philosophy is core, not a module: every service
+expresses it (the expression map is in PHILOSOPHY.md §"What this demands of us"),
+and its public face is `/philosophy`.
 
 ## Current State
 Restated 2026-06-12 from UK-only to international scope; rails built the same day.

@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/checkup/", 1],
     ["/passport/", 1],
     ["/about/", 0.6],
+    ["/philosophy/", 0.8],
     ["/tools/", 0.9],
     ["/learn/", 0.9],
     ["/understanding/", 0.8],
