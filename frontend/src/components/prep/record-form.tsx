@@ -19,6 +19,8 @@ import { SOURCES } from "@/lib/sources";
 export interface RecordFormProps {
   /** Adds one record. Rejects (e.g. an unknown category) surface as a form error. */
   onAdd: (record: Omit<LedgerRecord, "id">) => Promise<unknown>;
+  /** Preserves the activity chosen at the Books front door. */
+  initialSource?: SourceType;
 }
 
 const KINDS: { value: LedgerRecord["kind"]; label: string; title: string }[] = [
@@ -38,15 +40,19 @@ function defaultCategoryFor(source: SourceType, kind: LedgerRecord["kind"]): str
  * nothing here is submitted anywhere, `onAdd` is the only way a record
  * leaves this component.
  */
-export function RecordForm({ onAdd }: RecordFormProps) {
+export function RecordForm({
+  onAdd,
+  initialSource = "self-employment",
+}: RecordFormProps) {
   const [date, setDate] = useState(todayIsoLocal());
   const [amount, setAmount] = useState("");
   const [kind, setKind] = useState<LedgerRecord["kind"]>("income");
-  const [source, setSource] = useState<SourceType>("self-employment");
-  const [category, setCategory] = useState(() => defaultCategoryFor("self-employment", "income"));
+  const [source, setSource] = useState<SourceType>(initialSource);
+  const [category, setCategory] = useState(() => defaultCategoryFor(initialSource, "income"));
   const [description, setDescription] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const dateId = useId();
@@ -79,6 +85,7 @@ export function RecordForm({ onAdd }: RecordFormProps) {
     }
     setAmountError(null);
     setFormError(null);
+    setSuccess(null);
     setSubmitting(true);
     try {
       await onAdd({
@@ -91,6 +98,7 @@ export function RecordForm({ onAdd }: RecordFormProps) {
       });
       setAmount("");
       setDescription("");
+      setSuccess("Record added to your Money Inbox.");
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Could not add that record.");
     } finally {
@@ -199,6 +207,11 @@ export function RecordForm({ onAdd }: RecordFormProps) {
       </div>
 
       {formError ? <p className="text-base text-red-600">{formError}</p> : null}
+      {success ? (
+        <p role="status" className="text-base text-green-700">
+          {success}
+        </p>
+      ) : null}
 
       <Button type="submit" disabled={submitting}>
         Add record

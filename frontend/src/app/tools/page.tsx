@@ -11,6 +11,11 @@ export const metadata: Metadata = {
 
 const TOOLS = [
   {
+    href: "/books",
+    title: "Starter Books",
+    line: "Turn money movements into reviewed records you can explain.",
+  },
+  {
     href: "/checkup",
     title: "Tax Checkup",
     line: "Start here — find the right check for you.",
@@ -52,7 +57,8 @@ export default function ToolsPage() {
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-ink sm:text-4xl">Do my tax</h1>
       <p className="mt-3 text-base text-ink-soft">
-        Pick the job. No account — your records stay in your browser.
+        Pick the job. Your books stay in this browser; an Account does not back them up or encrypt
+        them.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

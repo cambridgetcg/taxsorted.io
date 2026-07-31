@@ -83,7 +83,7 @@ const PATHS: readonly CheckupPath[] = [
       "The income and expense records stay in this browser. Account details and any HMRC sandbox connection are separate. Prepared does not mean filed, and the site says which state you are in.",
     steps: [
       {
-        href: "/itsa/records",
+        href: "/books/workspace",
         title: "Add or import income and expenses",
         detail: "Keep the underlying records and let TaxSorted derive the figures.",
       },

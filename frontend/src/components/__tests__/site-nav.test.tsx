@@ -16,9 +16,10 @@ afterEach(() => {
 
 // SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
-  it("offers four clear doors plus the account utility", () => {
+  it("offers five clear doors plus the account utility", () => {
     render(<SiteNav />);
 
+    expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute("href", "/books");
     expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
       "href",
       "/checkup",
@@ -48,6 +49,19 @@ describe("SiteNav", () => {
       "true",
     );
     expect(screen.getByRole("link", { name: "Learn" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks the Books door across its front door and local workspace", () => {
+    navigation.pathname = "/books/workspace/";
+    render(<SiteNav />);
+
+    expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(screen.getByRole("link", { name: "Do my tax" })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
   it("keeps the Tax Position Passport inside the Do my tax door", () => {
@@ -91,6 +105,7 @@ describe("SiteNav", () => {
       "href",
       "/checkup",
     );
+    expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute("href", "/books");
     expect(screen.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
   });
 
@@ -106,8 +121,8 @@ describe("SiteNav", () => {
       "Plain guides — every figure sourced.",
     );
     // The primary pill gets its scent too — outside the pill, still described.
-    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAccessibleDescription(
-      "Find the right check for you.",
+    expect(screen.getByRole("link", { name: "Books" })).toHaveAccessibleDescription(
+      "Turn money movements into records you can explain.",
     );
   });
 

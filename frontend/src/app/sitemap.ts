@@ -11,6 +11,7 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths: Array<[string, number]> = [
     ["/", 1],
+    ["/books/", 1],
     ["/checkup/", 1],
     ["/passport/", 1],
     ["/about/", 0.6],
@@ -50,7 +51,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ["/vat/", 0.8],
     ["/itsa/", 0.8],
     ["/itsa/am-i-in/", 0.8],
-    ["/itsa/records/", 0.7],
     ["/itsa/quarter/", 0.7],
     ["/tools/mileage/", 0.7],
     ["/feedback/", 0.6],

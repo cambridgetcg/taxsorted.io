@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import ToolsPage from "../tools/page";
 import AboutPage from "../about/page";
 
-// The nav is 4 doors. These tests prove no old destination was lost:
+// The nav is 5 doors. These tests prove no old destination was lost:
 // every tool that left the nav is one click away behind /tools (the civic
 // pages live behind main's /uk hub, tested in uk/__tests__), and the
 // licence text that left the footer lives at /about#licences.
@@ -12,6 +12,10 @@ import AboutPage from "../about/page";
 describe("Do my tax hub (/tools)", () => {
   it("links every tool the old nav and orphaned routes offered", () => {
     render(<ToolsPage />);
+    expect(screen.getByRole("link", { name: /starter books/i })).toHaveAttribute(
+      "href",
+      "/books",
+    );
     expect(screen.getByRole("link", { name: /income tax/i })).toHaveAttribute("href", "/itsa");
     expect(screen.getByRole("link", { name: /^vat/i })).toHaveAttribute("href", "/vat");
     expect(screen.getByRole("link", { name: /mileage log/i })).toHaveAttribute(
@@ -33,7 +37,7 @@ describe("About page (/about)", () => {
   it("says what TaxSorted is and keeps the browser-only records promise", () => {
     render(<AboutPage />);
     expect(screen.getByRole("heading", { name: /what taxsorted is/i })).toBeInTheDocument();
-    expect(screen.getByText(/your records stay in\s+your browser/i)).toBeInTheDocument();
+    expect(screen.getByText(/starter books stays in ordinary\s+browser storage/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /one human and one ai/i })).toHaveAttribute(
       "href",
       "/from-the-builders",

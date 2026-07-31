@@ -1,24 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SiteNav } from "@/components/site-nav";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "Use the UK Tax Checkup to find the right source-backed check, prepare from your records, and follow the public rules, money and institutions around tax.",
+    "Browser-local books for UK sole traders and landlords, with every reviewed record traceable into source-backed tax preparation.",
 };
 
 // Runs before first paint (static export — no server): reads the saved
@@ -35,7 +24,7 @@ export default function RootLayout({
     // suppressHydrationWarning: the boot script above may change lang/dir
     // before React hydrates — that difference is deliberate.
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="antialiased">
         <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT_SCRIPT }} />
         <I18nProvider>
           {/* One shared shell on every page — navigation can never disappear.

@@ -23,7 +23,7 @@
     "validate:public-funding": "tsx scripts/validate-public-funding.ts",
     "validate:professional-opportunity-assessment": "tsx scripts/validate-professional-opportunity-assessment.ts",
     "review:professional-opportunities": "tsx scripts/review-professional-opportunities.ts",
-    "check:professional-opportunity-review": "tsx scripts/review-professional-opportunities.ts check --allow-pending",
+    "check:professional-opportunity-review": "node --import tsx scripts/review-professional-opportunities.ts check --allow-pending",
     "mirror:case-commons": "tsx scripts/mirror-case-commons-to-agenttool.ts",
     "create:api-key": "tsx scripts/create-api-key.ts",
     "manage:api-key": "tsx scripts/manage-api-key.ts"

@@ -19,12 +19,14 @@ export default function AboutPage() {
 
       <div className="mt-4 space-y-3 text-base text-ink-soft">
         <p>
-          TaxSorted explains tax in plain words and helps you do it. Guides, checks and
-          record tools — for people, businesses, charities and trusts.
+          TaxSorted is growing into accounting software for people and small organisations
+          without an in-house accounting team. The live books today cover one UK sole trade or
+          one UK property business; guides and bounded checks reach further.
         </p>
         <p>
-          It is free and open-source. You do not need an account — your records stay in
-          your browser, on your own device.
+          It is free and open-source. You do not need an account. Starter Books stays in ordinary
+          browser storage on your device; an Account does not back it up or encrypt it, and
+          clearing site data can erase it.
         </p>
         <p>
           It is built in the open by{" "}

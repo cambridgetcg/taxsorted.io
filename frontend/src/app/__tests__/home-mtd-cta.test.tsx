@@ -13,22 +13,22 @@ describe("homepage front door", () => {
     document.documentElement.dir = "ltr";
   });
 
-  it("makes the Tax Checkup primary and keeps MTD as a time-sensitive path", () => {
+  it("makes Books primary, keeps Checkup close, and keeps MTD time-sensitive", () => {
     render(
       <I18nProvider>
         <HomeClient />
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("link", { name: "Start my Tax Checkup" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Start with my books" })).toHaveAttribute(
+      "href",
+      "/books",
+    );
+    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
       "href",
       "/checkup",
     );
-    expect(screen.getByRole("link", { name: "See current coverage" })).toHaveAttribute(
-      "href",
-      "/uk/tax-expert#coverage-map",
-    );
-    expect(screen.getByText(/no NINO or UTR requested/i)).toBeInTheDocument();
+    expect(screen.getByText(/sole-trader and landlord books are open now/i)).toBeInTheDocument();
 
     const amIIn = screen.getByRole("link", { name: /am i in.*60.second check/i });
     expect(amIIn).toHaveAttribute("href", "/itsa/am-i-in");
@@ -81,7 +81,7 @@ describe("homepage front door", () => {
     await waitFor(() => expect(heading).toHaveAttribute("lang", "ur"));
     expect(heading).toHaveAttribute("dir", "rtl");
 
-    const intro = screen.getByText(/start with what changed/i);
+    const intro = screen.getByText(/browser-local books for UK sole traders and landlords/i);
     expect(intro).toHaveAttribute("lang", "en");
     expect(intro.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
   });

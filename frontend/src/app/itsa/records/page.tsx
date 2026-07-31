@@ -6,7 +6,9 @@ import RecordsClient from "./records-client";
 export const metadata: Metadata = {
   title: "Starter Books — beginner bookkeeping | TaxSorted",
   description:
-    "Bring in transactions, review plain-language category suggestions, and keep source-linked local books before anything reaches your tax figures.",
+    "Bring in transactions, review plain-language category suggestions, and keep source-traced local books before anything reaches your tax figures.",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/books/workspace" },
 };
 
 export default function RecordsPage() {

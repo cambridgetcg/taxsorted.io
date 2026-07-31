@@ -2,8 +2,13 @@
 
 **Tax, understood. Then sorted.**
 
-International tax, made simple for everyone — a person, a business, a charity, a trust:
-same door, same plain words, same engine. Three things in one calm place:
+Browser-local books are open now for UK sole traders and landlords: bring in money
+movements, review every suggestion, and understand how confirmed records become tax
+figures. TaxSorted is growing from that honest base into accounting software for people
+and small organisations without an in-house accounting team.
+
+The wider aim remains international tax made simple for everyone — a person, a business,
+a charity, a trust: same plain words, same engine. Three things in one calm place:
 
 - **Learn** — the open book. Every rule we cover explained in plain words: what it means,
   what you must do, what you can skip, how to optimise. Free, public, no account.
@@ -26,6 +31,8 @@ the road.
 
 The site keeps its depth, but the way in is deliberately small:
 
+- **`/books` — Start my books.** See the live UK scope, play one transaction from
+  evidence through accounting and tax, then open the browser-local Starter Books workspace.
 - **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
   narrowest current check, record tool or guide. This routing step asks for no tax identifier and
   does not calculate or file anything itself.
@@ -49,6 +56,10 @@ The site keeps its depth, but the way in is deliberately small:
 
 Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
 or a second copy of the datasets.
+
+The product model is documented in [`docs/ACCOUNTING-PRODUCT.md`](docs/ACCOUNTING-PRODUCT.md):
+evidence → event → books → accounts → tax → filing. The interface may collapse layers; it
+must never erase them.
 
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →

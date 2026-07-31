@@ -31,6 +31,7 @@ describe("public sitemap", () => {
   it("keeps the deep tax paths and ITSA tools discoverable", () => {
     const urls = sitemap().map((entry) => entry.url);
     for (const path of [
+      "/books/",
       "/checkup/",
       "/passport/",
       "/uk/",
@@ -40,7 +41,6 @@ describe("public sitemap", () => {
       "/uk/cases/haworth-v-hmrc/",
       "/uk/politics/decisions/",
       "/uk/politics/stand/",
-      "/itsa/records/",
       "/itsa/quarter/",
     ]) {
       expect(urls).toContain(`https://taxsorted.io${path}`);
@@ -58,6 +58,7 @@ describe("public sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     for (const path of [
       "/about/",
+      "/books/",
       "/tools/",
       "/understanding/",
       "/checkup/",
@@ -68,5 +69,7 @@ describe("public sitemap", () => {
     ]) {
       expect(urls).toContain(`https://taxsorted.io${path}`);
     }
+    expect(urls).not.toContain("https://taxsorted.io/books/workspace/");
+    expect(urls).not.toContain("https://taxsorted.io/itsa/records/");
   });
 });

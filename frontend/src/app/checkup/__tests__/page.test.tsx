@@ -40,7 +40,7 @@ describe("Tax Checkup front door", () => {
     fireEvent.click(screen.getByRole("radio", { name: /organise records or a quarter/i }));
 
     expect(screen.getByRole("link", { name: "Add or import income and expenses" }))
-      .toHaveAttribute("href", "/itsa/records");
+      .toHaveAttribute("href", "/books/workspace");
     expect(screen.getByRole("link", { name: "Calculate a mileage deduction" }))
       .toHaveAttribute("href", "/tools/mileage");
     expect(screen.getByText(/keep the trip evidence separately/i)).toBeInTheDocument();

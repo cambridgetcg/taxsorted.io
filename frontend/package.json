@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run check:professional-opportunity-review --workspace @taxsorted/api",
-    "build": "next build",
-    "postbuild": "tsx scripts/build-professional-opportunity-edge-guard.ts",
+    "build": "next build --webpack",
+    "postbuild": "node --import tsx scripts/build-professional-opportunity-edge-guard.ts",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

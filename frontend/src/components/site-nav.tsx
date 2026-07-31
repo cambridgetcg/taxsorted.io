@@ -18,7 +18,8 @@ import { useI18n } from "@/i18n/I18nProvider";
 // /vat and /dashboard). Trailing slashes are normalized: trailingSlash is
 // on, so usePathname() returns "/uk/".
 const DOORS = [
-  { href: "/checkup", labelKey: "nav.checkup", descKey: "nav.checkup.desc", pill: true, match: ["/checkup"] },
+  { href: "/books", labelKey: "nav.books", descKey: "nav.books.desc", pill: true, match: ["/books"] },
+  { href: "/checkup", labelKey: "nav.checkup", descKey: "nav.checkup.desc", pill: false, match: ["/checkup"] },
   { href: "/tools", labelKey: "nav.prepare", descKey: "nav.prepare.desc", pill: false, match: ["/tools", "/itsa", "/vat", "/dashboard", "/passport"] },
   { href: "/learn", labelKey: "nav.learn", descKey: "nav.learn.desc", pill: false, match: ["/learn"] },
   { href: "/uk", labelKey: "nav.publicSystem", descKey: "nav.publicSystem.desc", pill: false, match: ["/uk"] },

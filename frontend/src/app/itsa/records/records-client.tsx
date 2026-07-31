@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   quarterForDate,
@@ -33,11 +33,27 @@ import { useMounted } from "@/lib/use-mounted";
 const TAX_YEAR: TaxYear = "2026-27";
 const ELECTION = "standard" as const;
 
-export default function RecordsClient() {
+export interface RecordsClientProps {
+  /** The same local books can be entered from the accounting or MTD path. */
+  entry?: "books" | "mtd";
+}
+
+export default function RecordsClient({ entry = "mtd" }: RecordsClientProps = {}) {
   const store = useMemo<RecordsStore>(() => createRecordsStore(), []);
   const [books, setBooks] = useState<LocalBooksState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [emptyStart, setEmptyStart] = useState<"manual" | "csv" | null>(null);
+  const manualStartTitle = useRef<HTMLHeadingElement>(null);
+  const csvStartTitle = useRef<HTMLHeadingElement>(null);
   const mounted = useMounted();
+  const enteredFromBooks = entry === "books";
+  const preferredSource: SourceType =
+    enteredFromBooks &&
+    mounted &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("activity") === "uk-property"
+      ? "uk-property"
+      : "self-employment";
 
   const refresh = useCallback(async () => {
     try {
@@ -79,6 +95,11 @@ export default function RecordsClient() {
       unsubscribe();
     };
   }, [store]);
+
+  useEffect(() => {
+    if (emptyStart === "manual") manualStartTitle.current?.focus();
+    if (emptyStart === "csv") csvStartTitle.current?.focus();
+  }, [emptyStart]);
 
   const events = books?.events ?? [];
   const ledgers = books?.ledgers ?? [];
@@ -132,18 +153,32 @@ export default function RecordsClient() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs
-        items={[
-          { href: "/tools", label: "Do my tax" },
-          { href: "/itsa", label: "Income Tax" },
-        ]}
-        current="Starter Books"
+        items={
+          enteredFromBooks
+            ? [{ href: "/books", label: "Books" }]
+            : [
+                { href: "/tools", label: "Do my tax" },
+                { href: "/itsa", label: "Income Tax" },
+              ]
+        }
+        current={enteredFromBooks ? "Your books" : "Starter Books"}
       />
 
-      <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Starter Books</h1>
+      <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">
+        {enteredFromBooks ? "Your books" : "Starter Books"}
+      </h1>
       <p className="mt-3 text-base text-ink-soft">
         Bring in money movements, answer one plain question at a time, and keep books you can
         explain. Suggestions never enter your figures until you confirm them.
       </p>
+      {enteredFromBooks ? (
+        <p className="mt-3 rounded-xl border border-line bg-white p-3 text-sm text-ink-soft">
+          <strong className="text-ink">Live scope:</strong>{" "}one UK sole trade or one UK
+          property business, in GBP, with a 2026–27 UK Income Tax view. This is not yet a full
+          double-entry or limited-company accounts system. An Account does not encrypt, sync or
+          back up these local books.
+        </p>
+      ) : null}
 
       <div className="mt-6"><EducationNotice /></div>
 
@@ -161,61 +196,161 @@ export default function RecordsClient() {
         </div>
       ) : (
         <>
-          <div className="mt-8"><PracticeShop /></div>
-
-          <div className="mt-6"><CsvImport onImport={importRecords} /></div>
-
-          <div className="mt-8">
-            <MoneyInbox events={events} ledgers={ledgers} onReview={reviewEvent} />
-          </div>
-
-          <div className="mt-8">
-            <LedgerScopeCheck
-              events={events}
-              ledgers={ledgers}
-              onConfirm={confirmLedger}
-              onReopen={reopenLedger}
-            />
-          </div>
-
-          <div className="mt-8">
-            {quarter ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-base font-medium text-ink">
-                  Ready figures — Q{quarter.index} {TAX_YEAR} ({formatUkDate(quarter.periodStart)} to{" "}
-                  {formatUkDate(quarter.periodEnd)}):
-                </span>
-                {SOURCES.map((source) => (
-                  <QuarterChip
-                    key={source.value}
-                    label={source.label}
-                    records={records}
-                    source={source.value}
-                    quarterIndex={quarter.index}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-base text-ink-soft">
-                Today falls outside the {TAX_YEAR} quarterly periods. Your books are unaffected.
+          {events.length === 0 || emptyStart !== null ? (
+            <section
+              aria-labelledby="empty-start-title"
+              className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6"
+            >
+              <h2 id="empty-start-title" className="text-2xl font-bold text-ink">
+                How would you like to begin?
+              </h2>
+              <p className="mt-2 text-base text-ink-soft">
+                Add one transaction by hand, or bring in a bank CSV. Nothing joins your figures
+                until the required review and business-scope checks are complete.
               </p>
-            )}
-          </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  aria-controls="manual-start-panel"
+                  aria-expanded={emptyStart === "manual"}
+                  onClick={() => setEmptyStart("manual")}
+                >
+                  Add one transaction
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-controls="csv-start-panel"
+                  aria-expanded={emptyStart === "csv"}
+                  onClick={() => setEmptyStart("csv")}
+                >
+                  Import a CSV
+                </Button>
+              </div>
+              <div className="mt-6">
+                <section
+                  id="manual-start-panel"
+                  aria-labelledby="manual-start-title"
+                  hidden={emptyStart !== "manual"}
+                >
+                  <h3
+                    ref={manualStartTitle}
+                    id="manual-start-title"
+                    tabIndex={-1}
+                    className="mb-3 text-lg font-semibold text-ink"
+                  >
+                    Add your first transaction
+                  </h3>
+                  <RecordForm
+                    key={`manual-${preferredSource}`}
+                    onAdd={addRecord}
+                    initialSource={preferredSource}
+                  />
+                </section>
+                <section
+                  id="csv-start-panel"
+                  aria-labelledby="csv-start-title"
+                  hidden={emptyStart !== "csv"}
+                >
+                  <h3
+                    ref={csvStartTitle}
+                    id="csv-start-title"
+                    tabIndex={-1}
+                    className="mb-3 text-lg font-semibold text-ink"
+                  >
+                    Import bank movements
+                  </h3>
+                  <CsvImport
+                    key={`csv-${preferredSource}`}
+                    onImport={importRecords}
+                    expanded
+                    initialSource={preferredSource}
+                  />
+                </section>
+              </div>
+              {events.length > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-5"
+                  onClick={() => setEmptyStart(null)}
+                >
+                  Done with this first step
+                </Button>
+              ) : null}
+            </section>
+          ) : null}
 
-          <details className="mt-6 rounded-2xl border border-line p-4 sm:p-5">
-            <summary className="cursor-pointer font-semibold text-ink">Add one record manually</summary>
-            <div className="mt-4"><RecordForm onAdd={addRecord} /></div>
-          </details>
+          {events.length === 0 ? <div className="mt-6"><PracticeShop /></div> : null}
 
-          <div className="mt-8">
-            <Ledger
-              events={events}
-              ledgers={ledgers}
-              onReview={reviewEvent}
-              onExportJson={() => store.exportJson()}
-              onExportCsv={() => store.exportCsv()}
-            />
-          </div>
+          {events.length > 0 ? (
+            <>
+              {emptyStart === null ? (
+                <div className="mt-8">
+                  <CsvImport onImport={importRecords} initialSource={preferredSource} />
+                </div>
+              ) : null}
+
+              <div className="mt-8">
+                <MoneyInbox events={events} ledgers={ledgers} onReview={reviewEvent} />
+              </div>
+
+              <div className="mt-8">
+                <LedgerScopeCheck
+                  events={events}
+                  ledgers={ledgers}
+                  onConfirm={confirmLedger}
+                  onReopen={reopenLedger}
+                />
+              </div>
+
+              <div className="mt-8">
+                {quarter ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-base font-medium text-ink">
+                      {enteredFromBooks ? "UK Income Tax view from ready records" : "Ready figures"} — Q
+                      {quarter.index} {TAX_YEAR} ({formatUkDate(quarter.periodStart)} to{" "}
+                      {formatUkDate(quarter.periodEnd)}):
+                    </span>
+                    {SOURCES.map((source) => (
+                      <QuarterChip
+                        key={source.value}
+                        label={source.label}
+                        records={records}
+                        source={source.value}
+                        quarterIndex={quarter.index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-base text-ink-soft">
+                    Today falls outside the {TAX_YEAR} quarterly periods. Your books are unaffected.
+                  </p>
+                )}
+              </div>
+
+              {emptyStart === null ? (
+                <details className="mt-6 rounded-2xl border border-line p-4 sm:p-5">
+                  <summary className="min-h-11 cursor-pointer font-semibold text-ink">
+                    Add one transaction manually
+                  </summary>
+                  <div className="mt-4">
+                    <RecordForm onAdd={addRecord} initialSource={preferredSource} />
+                  </div>
+                </details>
+              ) : null}
+
+              <div className="mt-8">
+                <Ledger
+                  events={events}
+                  ledgers={ledgers}
+                  onReview={reviewEvent}
+                  onExportJson={() => store.exportJson()}
+                  onExportCsv={() => store.exportCsv()}
+                />
+              </div>
+            </>
+          ) : null}
         </>
       )}
     </div>

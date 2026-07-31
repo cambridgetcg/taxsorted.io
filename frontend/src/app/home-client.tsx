@@ -65,13 +65,13 @@ export function HomeClient() {
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
-            href="/checkup"
+            href="/books"
             className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-7 text-base font-semibold text-white transition-colors hover:bg-accent-deep"
           >
             {t("home.primary")}
           </Link>
           <Link
-            href="/uk/tax-expert#coverage-map"
+            href="/checkup"
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"
           >
             {t("home.secondary")}

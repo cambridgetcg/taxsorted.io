@@ -2,7 +2,7 @@
 
 // i18n: deferred to M2 — plain English for launch
 
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { categoryByKey, type SourceType } from "@taxsorted/engine/uk/itsa";
 import { Button } from "@/components/ui/button";
 import { SOURCES } from "@/lib/sources";
@@ -24,6 +24,10 @@ import type { ImportCandidate } from "@/lib/local-books";
 export interface CsvImportProps {
   /** Stages every eligible row in one atomic import for the Money Inbox. */
   onImport: (records: ImportCandidate[]) => Promise<ImportRecordsResult>;
+  /** Opens the file control directly when another control has already revealed this importer. */
+  expanded?: boolean;
+  /** Preserves the activity chosen at the Books front door. */
+  initialSource?: SourceType;
 }
 
 const PREVIEW_ROWS = 10;
@@ -54,18 +58,23 @@ function isHardInvalid(row: CsvImportRow): boolean {
  * call with every eligible row. Category decisions happen in Money Inbox.
  * default; the whole flow stays client-side, same as the rest of this page.
  */
-export function CsvImport({ onImport }: CsvImportProps) {
+export function CsvImport({
+  onImport,
+  expanded = false,
+  initialSource,
+}: CsvImportProps) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
   const [fileInputVersion, setFileInputVersion] = useState(0);
   const [parsed, setParsed] = useState<ParsedCsv | null>(null);
   const [mapping, setMapping] = useState<CsvMapping>(EMPTY_MAPPING);
-  const [source, setSource] = useState<SourceType | null>(null);
+  const [source, setSource] = useState<SourceType | null>(initialSource ?? null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [importing, setImporting] = useState(false);
   const [readError, setReadError] = useState<string | null>(null);
   const [warningPage, setWarningPage] = useState(0);
   const fileRequest = useRef(0);
+  const statusRef = useRef<HTMLParagraphElement>(null);
 
   const fileInputId = useId();
 
@@ -114,7 +123,7 @@ export function CsvImport({ onImport }: CsvImportProps) {
     setMapping(EMPTY_MAPPING);
     setFileName(null);
     setImportId(null);
-    setSource(null);
+    setSource(initialSource ?? null);
     setWarningPage(0);
     setFileInputVersion((value) => value + 1);
   };
@@ -135,7 +144,7 @@ export function CsvImport({ onImport }: CsvImportProps) {
     setParsed(null);
     setImportId(null);
     setMapping(EMPTY_MAPPING);
-    setSource(null);
+    setSource(initialSource ?? null);
     setWarningPage(0);
     try {
       const text = await file.text();
@@ -182,11 +191,13 @@ export function CsvImport({ onImport }: CsvImportProps) {
   const headers = parsed?.headers ?? [];
   const previewCount = Math.min(resolvedRows.length, PREVIEW_ROWS);
 
-  return (
-    <details className="rounded-2xl border border-line p-4 sm:p-5">
-      <summary className="cursor-pointer select-none text-sm font-semibold text-ink">Bring in a CSV</summary>
+  useEffect(() => {
+    if (status.kind === "success") statusRef.current?.focus();
+  }, [status]);
 
-      <div className="mt-4 space-y-4">
+  const content = (
+    <div className="mt-4 space-y-4">
+
         <p className="text-sm text-ink-soft">
           Bring in a bank or bookkeeping export. Categories are suggestions, not decisions. Valid
           rows go to your Money Inbox first and do not affect any figure until you confirm them.
@@ -420,7 +431,12 @@ export function CsvImport({ onImport }: CsvImportProps) {
         ) : null}
 
         {status.kind === "success" ? (
-          <p className="text-sm text-green-700" aria-live="polite">
+          <p
+            ref={statusRef}
+            role="status"
+            tabIndex={-1}
+            className="text-sm text-green-700"
+          >
             Added {status.count} record{status.count === 1 ? "" : "s"} to your Money Inbox.
             {status.duplicateCount > 0
               ? ` Skipped ${status.duplicateCount} exact duplicate${status.duplicateCount === 1 ? "" : "s"}.`
@@ -431,7 +447,20 @@ export function CsvImport({ onImport }: CsvImportProps) {
           </p>
         ) : null}
         {status.kind === "error" ? <p role="alert" className="text-sm text-red-600">{status.message}</p> : null}
-      </div>
+    </div>
+  );
+
+  return expanded ? (
+    <section aria-label="Bring in a CSV" className="rounded-2xl border border-line p-4 sm:p-5">
+      <h4 className="text-sm font-semibold text-ink">Bring in a CSV</h4>
+      {content}
+    </section>
+  ) : (
+    <details className="rounded-2xl border border-line p-4 sm:p-5">
+      <summary className="cursor-pointer select-none text-sm font-semibold text-ink">
+        Bring in a CSV
+      </summary>
+      {content}
     </details>
   );
 }

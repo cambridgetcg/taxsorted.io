@@ -88,4 +88,33 @@ describe("CSV import screen", () => {
 
     expect(await screen.findByText("Row 2")).toBeInTheDocument();
   });
+
+  it("moves focus to the completion message after an import", async () => {
+    const file = csvFile(
+      "one-row.csv",
+      async () => "Date,Description,Amount\n13/05/2026,ONE PAYMENT,10.00"
+    );
+    render(
+      <CsvImport
+        expanded
+        initialSource="self-employment"
+        onImport={vi.fn().mockResolvedValue({
+          added: [{}],
+          duplicateCount: 0,
+          conflicts: [],
+        })}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/CSV file/i), { target: { files: [file] } });
+    const importButton = await screen.findByRole("button", {
+      name: "Add 1 to Money Inbox",
+    });
+    importButton.focus();
+    fireEvent.click(importButton);
+
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent("Added 1 record to your Money Inbox.");
+    expect(status).toHaveFocus();
+  });
 });
