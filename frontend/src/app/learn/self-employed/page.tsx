@@ -43,11 +43,11 @@ export default function SelfEmployedGuide() {
         <ul className="mt-2 space-y-3 text-base text-ink-soft">
           <li>
             <Cited cite={config.tradingAllowance}>
-              The {gbpCompact(config.tradingAllowance.value)} trading allowance shelters small
-              trading income completely — at or below it, there&apos;s nothing to declare and no
-              tax to pay.
+              At or below the {gbpCompact(config.tradingAllowance.value)} trading allowance,
+              gross trading income can qualify for full relief.
             </Cited>{" "}
-            Above it, claim the allowance or your actual expenses, never both.
+            You may not need to tell HMRC if no exception applies, but you must still keep
+            records. Above it, claim the allowance or your actual expenses, never both.
           </li>
           <li>
             Class 4 National Insurance:{" "}
@@ -76,7 +76,8 @@ export default function SelfEmployedGuide() {
           </li>
           <li>
             <Cited cite={config.consolidatedExpensesTurnoverLimit}>
-              Digital records are required for every business item, but under{" "}
+              Once Making Tax Digital for Income Tax applies to you, digital records are required
+              for every business item; under{" "}
               {gbpCompact(config.consolidatedExpensesTurnoverLimit.value)} turnover you can
               consolidate expenses into one combined total instead of splitting them by category
             </Cited>
@@ -92,9 +93,9 @@ export default function SelfEmployedGuide() {
             If your gross trading income is at or below the {gbpCompact(config.tradingAllowance.value)}{" "}
             trading allowance
           </Cited>
-          , you don&apos;t need to tell HMRC about it at all — no return, no records for that
-          income. If you use the cash basis (the default), you also don&apos;t need to track
-          debtors, creditors or depreciation — just money in and money out.
+          , you may not need to tell HMRC if no reporting exception or exclusion applies. Keep
+          records of the income either way. If you use the cash basis (the default), you also
+          don&apos;t need to track debtors, creditors or depreciation — just money in and money out.
         </p>
       </section>
 

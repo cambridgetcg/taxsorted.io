@@ -1,14 +1,36 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest'
+import { beforeEach, describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import LearnLayout from '../layout'
 import LearnPage from '../page'
 
 describe('learn index', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
   it('still has the h1 and the existing MTD de-panic card', () => {
     render(<LearnPage />)
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/learn/i)
     const dePanic = screen.getByRole('link', { name: /don.t panic/i })
     expect(dePanic).toHaveAttribute('href', '/learn/mtd-income-tax')
+  })
+
+  it('opens with the play-to-learn portal while keeping English semantics', () => {
+    const { container } = render(
+      <LearnLayout>
+        <LearnPage />
+      </LearnLayout>,
+    )
+    expect(screen.getByRole('heading', {
+      name: /learn by playing with the numbers/i,
+    })).toBeInTheDocument()
+    expect(screen.getByRole('heading', {
+      name: /play the books.*keep the money you can prove/i,
+    })).toBeInTheDocument()
+    expect(screen.getByText(/learning earnings/i)).toBeInTheDocument()
+    expect(container.firstElementChild).toHaveAttribute('lang', 'en')
+    expect(container.firstElementChild).toHaveAttribute('dir', 'ltr')
   })
 
   it('opens the public map for how TaxSorted builds understanding', () => {

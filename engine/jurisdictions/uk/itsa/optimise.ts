@@ -31,9 +31,10 @@ const gbp = (pence: Pence): string => `£${(pence / 100).toLocaleString('en-GB')
 
 /**
  * The £1,000 trading income allowance vs actual expenses. At or below £1,000 gross, the
- * income qualifies for full relief and does not need to be reported to HMRC at all. Above
- * that, the allowance is only worth claiming if it beats actual expenses — you cannot claim
- * both, and the allowance can never be used to create a loss (it is capped at gross income).
+ * income can qualify for full relief; the person may not need to tell HMRC if no reporting
+ * exception or exclusion applies, but must still keep records. Above that, the allowance is
+ * only worth claiming if it beats actual expenses — you cannot claim both, and the allowance
+ * can never be used to create a loss (it is capped at gross income).
  */
 export function tradingAllowanceCheck(grossTradingIncome: Pence, actualExpenses: Pence, taxYear: TaxYear): Suggestion {
   const config = configFor(taxYear)
@@ -45,8 +46,8 @@ export function tradingAllowanceCheck(grossTradingIncome: Pence, actualExpenses:
       title: 'Trading income allowance — full relief',
       saving: Math.max(0, grossTradingIncome - actualExpenses),
       applies: true,
-      why: `Your gross trading income of ${gbp(grossTradingIncome)} is at or below the ${gbp(allowance)} trading allowance, so it qualifies for full relief — you don't need to tell HMRC about it or pay any tax on it at all.`,
-      trap: 'If your actual expenses were higher than this income, full relief still applies automatically to the income — but it means you cannot instead report a loss to set against other income. Talk to us first if that is your situation.',
+      why: `Your gross trading income of ${gbp(grossTradingIncome)} is at or below the ${gbp(allowance)} trading allowance, so it can qualify for full relief. You may not need to tell HMRC if no exception applies, but you must still keep records.`,
+      trap: 'Full relief means you cannot instead report a loss to set against other income. Reporting exceptions and exclusions can still apply, so check the official conditions before deciding no return is needed.',
       cite: config.tradingAllowance.source,
     }
   }

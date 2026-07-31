@@ -118,7 +118,7 @@ describe("SiteNav", () => {
     const doTax = screen.getByRole("link", { name: "Do my tax" });
     expect(doTax).toHaveAccessibleDescription("Records, quarter figures, VAT and tools.");
     expect(screen.getByRole("link", { name: "Learn" })).toHaveAccessibleDescription(
-      "Plain guides — every figure sourced.",
+      "Play through money decisions — every figure sourced.",
     );
     // The primary pill gets its scent too — outside the pill, still described.
     expect(screen.getByRole("link", { name: "Books" })).toHaveAccessibleDescription(

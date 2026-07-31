@@ -45,11 +45,12 @@ export default function ForLandlordsGuide() {
         <ul className="mt-2 space-y-3 text-base text-ink-soft">
           <li>
             <Cited cite={config.propertyAllowance}>
-              The {gbpCompact(config.propertyAllowance.value)} Property Allowance is automatic —
-              rental income at or below it is tax-free and doesn&apos;t need declaring.
+              Rental income at or below the {gbpCompact(config.propertyAllowance.value)} Property
+              Allowance can qualify for full relief.
             </Cited>{" "}
-            Above it, choose between the allowance or claiming actual expenses — whichever gives
-            the bigger deduction, never both.
+            You usually do not need to tell HMRC if no exclusion applies, but you must keep
+            records. Above it, choose between the allowance or claiming actual expenses —
+            whichever gives the bigger deduction, never both.
           </li>
           <li>
             <Cited cite={config.rentARoom}>
@@ -107,9 +108,9 @@ export default function ForLandlordsGuide() {
       <section className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">What you can safely skip</h2>
         <p className="mt-2 text-base text-ink-soft">
-          If your gross rental income is at or below the Property Allowance, or fully covered by
-          Rent-a-Room, there&apos;s nothing to declare and nothing to optimise — the relief is
-          automatic.
+          If your gross rental income is at or below the Property Allowance, you may not need to
+          tell HMRC if no exclusion applies; keep records either way. Rent-a-Room relief is
+          automatic below its limit, but other reasons to file a return can still exist.
         </p>
       </section>
 

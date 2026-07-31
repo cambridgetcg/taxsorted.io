@@ -55,6 +55,22 @@ The interface may collapse layers. It must never erase them.
 - preparation, approval, submission and receipt remain different states
 - a machine-readable form exists beside each safely exposed human answer
 
+## Learning is play
+
+The learning portal uses a finite loop: predict, calculate, inspect the money effect, open
+the source, explain the move back, then use it in Books. Every round stays open. There is no
+timer, life counter or penalty for a useful wrong answer.
+
+“Learning earnings” is a visible ledger, not a marketing total. Its lines keep their meanings:
+
+- **cost kept visible** means the books no longer hide a cost
+- **deduction found** means a worked example found an amount that can reduce taxable profit
+- **estimated tax kept** means the difference between two like-for-like bounded estimates
+- **realised saving** would require the learner's actual eligibility, evidence and result
+
+Those values are not interchangeable and are never added together. A worked-example saving
+is not accounting income, a refund or a promise about the learner's tax.
+
 ## Trust boundary
 
 - No account is needed to try the public tools.

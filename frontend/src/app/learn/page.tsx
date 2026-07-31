@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { LearningPlayground } from "@/components/learn/learning-playground";
 
 // i18n: deferred to M2 — plain English for launch
 
 export const metadata: Metadata = {
-  title: "Learn — TaxSorted",
+  title: "Learn by playing with money decisions — TaxSorted",
   description:
-    "Plain-words UK tax guides. Every figure links to the official rule it comes from. Free, open, no account.",
+    "Play through sourced UK accounting and tax decisions, see the money effect, then open the full plain-words guide. Free, open, no account.",
 };
 
 const GUIDES = [
@@ -75,14 +76,18 @@ const HISTORY_GUIDES = [
 
 export default function LearnPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs current="Learn" />
-      <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Learn</h1>
-      <p className="mt-3 text-base text-ink-soft">
-        Plain-words UK tax guides and sourced tax history. Current-law guides explain what a
-        rule means, what you must do, and what you can safely skip. Rules, figures and historical
-        materials link to their sources. Free, open, no account.
+      <h1 className="mt-4 text-3xl font-bold text-ink sm:text-5xl">
+        Learn by playing with the numbers.
+      </h1>
+      <p className="mt-3 max-w-3xl text-lg leading-8 text-ink-soft">
+        Accounting is a game of making what happened agree with what the numbers say. Play a
+        decision, see what money it changes, open the source, then take the understanding into
+        your own books. Free, open and no account required.
       </p>
+
+      <LearningPlayground />
 
       <section
         aria-labelledby="understanding-title"

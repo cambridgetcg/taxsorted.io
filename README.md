@@ -10,8 +10,8 @@ and small organisations without an in-house accounting team.
 The wider aim remains international tax made simple for everyone — a person, a business,
 a charity, a trust: same plain words, same engine. Three things in one calm place:
 
-- **Learn** — the open book. Every rule we cover explained in plain words: what it means,
-  what you must do, what you can skip, how to optimise. Free, public, no account.
+- **Learn** — the open practice table. Predict a money decision, inspect the calculation and
+  source, explain it back, then open the full guide. Free, public, no account.
 - **File** — the workbench. Every figure derived from your records (*derive, never key*),
   the answer first, nothing sent without your eyes and your consent.
 - **Connect** — the rails. A direct line to the authorities themselves (HMRC first —
@@ -41,7 +41,8 @@ The site keeps its depth, but the way in is deliberately small:
   export versioned JSON or a printable accountant handoff.
 - **`/itsa` — MTD and records.** Eligibility, local records, mileage, quarter figures and the
   visible boundary between preparation, sandbox work and production filing.
-- **`/learn` — Understand the rules.** Plain guides with official sources and scope notes.
+- **`/learn` — Play to understand.** Finite accounting and tax rounds with browser-local
+  progress, honest worked-example money effects, official sources and the full guide library.
 - **`/understanding` — See how an answer is built.** Questions, exact words, bounded
   answers, named sources, visible unknowns and safe next steps in one public map.
 - **`/uk` — Understand the system.** Personal-tax paths, public money, politics,

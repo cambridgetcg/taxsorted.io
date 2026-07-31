@@ -206,8 +206,9 @@ export default function IncomeTaxGuide() {
           <Cited cite={config.propertyAllowance}>
             {gbpCompact(config.propertyAllowance.value)} property allowance
           </Cited>{" "}
-          let small amounts of trading or rental income go completely tax-free without
-          declaring them — but you can claim the allowance or your actual expenses, never both.
+          can give full relief for small amounts of trading or rental income. You may not need to
+          tell HMRC if no exception or exclusion applies, but records must still be kept — and you
+          can claim the allowance or your actual expenses, never both.
           Pension contributions reduce your adjusted net income, which is the lever that matters
           most if you&apos;re inside the taper trap above.
         </p>

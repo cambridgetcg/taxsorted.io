@@ -32,10 +32,12 @@ describe('honest optimisers', () => {
     expect(s.trap).toMatch(/loss/i)
     expect(s.trap).toMatch(/finance cost|Section 24/i)
   })
-  it('trading full relief: under £1,000 gross needs no reporting at all', () => {
+  it('trading full relief keeps the reporting exceptions and records duty visible', () => {
     const s = tradingAllowanceCheck(80000, 0, '2026-27')
     expect(s.applies).toBe(true)
-    expect(s.why).toMatch(/don't need to tell HMRC|no need to report/i)
+    expect(s.why).toMatch(/may not need to tell HMRC/i)
+    expect(s.why).toMatch(/keep records/i)
+    expect(s.trap).toMatch(/exceptions|exclusions/i)
   })
   it('rent-a-room under the limit is automatic', () => {
     expect(rentARoomCheck(300000, 0, false, '2026-27').applies).toBe(true)

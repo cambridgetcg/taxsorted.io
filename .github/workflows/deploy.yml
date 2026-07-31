@@ -2141,6 +2141,20 @@ jobs:
             exit 1
           fi
 
+      - name: Verify the generated Books and Learn doors
+        run: |
+          set -euo pipefail
+          for page_and_marker in \
+            'frontend/out/books/index.html|Know where every number came from.' \
+            'frontend/out/books/workspace/index.html|An Account does not encrypt, sync or back up these local books.' \
+            'frontend/out/learn/index.html|Play the books. Keep the money you can prove.'
+          do
+            page=${page_and_marker%%|*}
+            marker=${page_and_marker#*|}
+            test -f "${page}"
+            grep --fixed-strings --quiet "${marker}" "${page}"
+          done
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:
@@ -2155,6 +2169,9 @@ jobs:
         run: |
           set -euo pipefail
           for path in \
+            /books \
+            /books/workspace \
+            /learn \
             /passport \
             /uk/public-funding \
             /uk/accountability \
@@ -2373,6 +2390,9 @@ jobs:
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
+            '/books|Know where every number came from.' \
+            '/books/workspace|An Account does not encrypt, sync or back up these local books.' \
+            '/learn|Play the books. Keep the money you can prove.' \
             '/passport|Understanding that travels.' \
             '/uk/charities|Check a charity, understand its tax, ask it for help.' \
             '/uk/accountability|Who checks the checkers' \
