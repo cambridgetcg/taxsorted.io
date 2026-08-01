@@ -309,7 +309,7 @@ export function PeopleDirectory() {
 
 function DirectoryGuide() {
   return (
-    <aside className="rounded-3xl border border-line bg-white p-6 shadow-sm lg:sticky lg:top-6">
+    <aside className="rounded-3xl border border-line bg-white p-6 shadow-sm lg:sticky lg:top-24">
       <p className="text-sm font-semibold uppercase tracking-wide text-accent">Open a record</p>
       <h2 className="mt-3 text-3xl font-semibold text-ink">Only what the official record shows.</h2>
       <p className="mt-4 text-ink-soft">

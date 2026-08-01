@@ -86,76 +86,95 @@ const STACK = [
 
 export default function BooksPage() {
   return (
-    <div lang="en" dir="ltr" className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="max-w-4xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-          Starter Books for UK sole traders and landlords
-        </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-          Know where every number came from.
-        </h1>
-        <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-          TaxSorted is growing into accounting software for people and small organisations
-          without an in-house accounting team. Open today: local record-keeping for one UK sole
-          trade or one UK property business. Start with money in and money out; open the deeper
-          layers only when you want them.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            href="/books/workspace"
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-7 text-base font-semibold text-white transition-colors hover:bg-accent-deep"
-          >
-            Start my books
-          </Link>
-          <Link
-            href="/books/connect"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"
-          >
-            Bring existing records
-          </Link>
-          <a
-            href="#example"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"
-          >
-            Play with one sale
-          </a>
+    <div lang="en" dir="ltr" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:gap-14">
+        <div className="max-w-4xl">
+          <p className="section-label">01 · Starter Books</p>
+          <h1 className="hero-title mt-5 max-w-4xl text-ink">
+            Know where every number came from.
+          </h1>
+          <p className="mt-7 max-w-3xl text-lg leading-8 text-ink-soft">
+            TaxSorted is growing into accounting software for people and small organisations
+            without an in-house accounting team. Open today: local record-keeping for one UK sole
+            trade or one UK property business. Start with money in and money out; open the deeper
+            layers only when you want them.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/books/workspace"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-deep"
+            >
+              Start my books
+            </Link>
+            <Link
+              href="/books/connect"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong bg-surface px-6 text-base font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft"
+            >
+              Bring existing records
+            </Link>
+            <a
+              href="#example"
+              className="inline-flex min-h-12 items-center justify-center rounded-full px-4 text-base font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+            >
+              Play with one sale →
+            </a>
+          </div>
         </div>
-        <ul className="mt-5 flex flex-wrap gap-2 text-sm text-ink-soft" aria-label="Books promises">
-          <li className="rounded-full border border-line bg-white px-3 py-1">No account to start</li>
-          <li className="rounded-full border border-line bg-white px-3 py-1">Records stay in this browser</li>
-          <li className="rounded-full border border-line bg-white px-3 py-1">Suggestions wait for your review</li>
-          <li className="rounded-full border border-line bg-white px-3 py-1">Nothing filed silently</li>
-        </ul>
-        <p className="mt-3 text-sm text-ink-soft">
-          Browser storage is not a cloud backup and is not encrypted by a TaxSorted Account.
-          Clearing site data can erase these books; export them for a portable backup.
-        </p>
+
+        <aside className="soft-shadow relative overflow-hidden rounded-[2rem] border border-line bg-surface p-6 sm:p-8">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 360 180"
+            className="pointer-events-none absolute -end-12 -top-8 w-80 text-warm opacity-[0.08]"
+          >
+            <path d="M18 158C80 18 164 22 214 88s86 48 132-42" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M42 172C98 60 160 66 205 118s91 40 143-20" fill="none" stroke="currentColor" />
+          </svg>
+          <div className="relative">
+            <p className="section-label">What stays true</p>
+            <ul className="mt-5 divide-y divide-line text-sm text-ink" aria-label="Books promises">
+              {[
+                "No account to start",
+                "Records stay in this browser",
+                "Suggestions wait for your review",
+                "Nothing filed silently",
+              ].map((promise) => (
+                <li key={promise} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                  <span aria-hidden="true" className="mt-1 text-accent">✓</span>
+                  <span>{promise}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 border-t border-line pt-5 text-sm leading-6 text-ink-soft">
+              Browser storage is not a cloud backup and is not encrypted by a TaxSorted Account.
+              Clearing site data can erase these books; export them for a portable backup.
+            </p>
+          </div>
+        </aside>
       </header>
 
-      <section aria-labelledby="who-title" className="mt-16">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-          Begin where you are
-        </p>
-        <h2 id="who-title" className="mt-2 text-3xl font-bold tracking-tight text-ink">
+      <section aria-labelledby="who-title" className="mt-24">
+        <p className="section-label">02 · Begin where you are</p>
+        <h2 id="who-title" className="section-title mt-4 text-ink">
           Built wide. Open honestly.
         </h2>
-        <p className="mt-3 max-w-3xl text-ink-soft">
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">
           The aim is accounting for every kind of person and organisation. The live UK product is
           narrower today, so each door says exactly what exists.
         </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line sm:grid-cols-2">
           {AUDIENCES.map((audience) => (
-            <article key={audience.title} className="rounded-2xl border border-line bg-white p-5 sm:p-6">
+            <article key={audience.title} className="bg-surface p-6 sm:p-7">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 className="text-xl font-semibold text-ink">{audience.title}</h3>
+                <h3 className="font-display text-2xl font-semibold text-ink">{audience.title}</h3>
                 <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-deep">
                   {audience.status}
                 </span>
               </div>
-              <p className="mt-3 text-sm text-ink-soft">{audience.body}</p>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">{audience.body}</p>
               <Link
                 href={audience.href}
-                className="mt-4 inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4 hover:text-accent-deep"
+                className="mt-4 inline-flex min-h-11 items-center font-semibold text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
               >
                 {audience.action} →
               </Link>
@@ -166,32 +185,30 @@ export default function BooksPage() {
 
       <TransactionWalkthrough />
 
-      <section id="stack" aria-labelledby="stack-title" className="mt-16 scroll-mt-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-          Beginner-friendly by going deep
-        </p>
-        <h2 id="stack-title" className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+      <section id="stack" aria-labelledby="stack-title" className="mt-24 scroll-mt-24">
+        <p className="section-label">04 · Beginner-friendly by going deep</p>
+        <h2 id="stack-title" className="section-title mt-4 text-ink">
           One calm surface. Six inspectable layers.
         </h2>
-        <p className="mt-3 max-w-3xl text-ink-soft">
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">
           Simple does not mean hiding the machinery. It means showing the right layer first and
           keeping every deeper layer close enough to inspect.
         </p>
-        <ol className="mt-6 grid gap-4 md:grid-cols-2">
+        <ol className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line md:grid-cols-2 lg:grid-cols-3">
           {STACK.map((layer) => (
-            <li key={layer.number} className="rounded-2xl border border-line bg-white p-5">
-              <div className="flex items-center gap-3">
+            <li key={layer.number} className="bg-surface p-6">
+              <div className="flex items-baseline gap-3">
                 <span
                   aria-hidden="true"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white"
+                  className="font-display text-3xl text-accent"
                 >
-                  {layer.number}
+                  0{layer.number}
                 </span>
-                <h3 className="text-xl font-semibold text-ink">{layer.name}</h3>
+                <h3 className="font-display text-2xl font-semibold text-ink">{layer.name}</h3>
               </div>
               <p className="mt-3 font-medium text-ink">{layer.plain}</p>
-              <p className="mt-1 text-sm text-ink-soft">{layer.deep}</p>
-              <p className="mt-3 rounded-xl bg-paper p-3 text-sm text-ink">
+              <p className="mt-2 text-sm leading-6 text-ink-soft">{layer.deep}</p>
+              <p className="mt-4 border-s-2 border-line-strong ps-3 text-sm leading-6 text-ink">
                 <strong>Today:</strong> {layer.now}
               </p>
             </li>
@@ -199,9 +216,9 @@ export default function BooksPage() {
         </ol>
       </section>
 
-      <section aria-labelledby="source-title" className="mt-16 rounded-3xl border border-line bg-paper p-6 sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">The UK boundary</p>
-        <h2 id="source-title" className="mt-2 text-2xl font-bold tracking-tight text-ink">
+      <section aria-labelledby="source-title" className="mt-24 rounded-[2rem] border border-line bg-surface-muted/70 p-6 sm:p-8">
+        <p className="section-label">05 · The UK boundary</p>
+        <h2 id="source-title" className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink">
           Official rules stay one click away
         </h2>
         <p className="mt-3 max-w-3xl text-ink-soft">
@@ -243,7 +260,7 @@ export default function BooksPage() {
         </ul>
       </section>
 
-      <aside className="mt-8 rounded-2xl border border-line bg-accent-soft p-5 text-sm text-ink">
+      <aside className="mt-8 rounded-2xl border border-accent/20 bg-accent-soft p-5 text-sm leading-6 text-ink">
         <strong>Honest boundary:</strong> TaxSorted is education and preparation software. The
         current books cover UK self-employment and UK property cash movements; they are not yet a
         complete general ledger or statutory-accounts product. Tax depends on your full facts.
@@ -252,13 +269,13 @@ export default function BooksPage() {
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/books/workspace"
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-7 text-base font-semibold text-white hover:bg-accent-deep"
+          className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white hover:bg-accent-deep"
         >
           Open my local books
         </Link>
         <Link
           href="/checkup"
-          className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink hover:bg-accent-soft"
+          className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong bg-surface px-6 text-base font-medium text-ink hover:border-accent hover:bg-accent-soft"
         >
           I need a tax check first
         </Link>

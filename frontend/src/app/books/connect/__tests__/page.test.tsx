@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import BooksConnectPage from "../page";
 
 describe("Books connection path", () => {
@@ -8,13 +8,13 @@ describe("Books connection path", () => {
     render(<BooksConnectPage />);
 
     expect(
-      screen.getByRole("heading", { name: /connect records\. keep each boundary clear/i }),
+      screen.getByRole("heading", { name: /start with the records you already have/i }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /import a bank csv/i })[0]).toHaveAttribute(
       "href",
       "/books/workspace?start=csv",
     );
-    expect(screen.getByRole("link", { name: /add one transaction/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /i have one transaction/i })).toHaveAttribute(
       "href",
       "/books/workspace?start=manual",
     );
@@ -50,6 +50,11 @@ describe("Books connection path", () => {
       .toBeInTheDocument();
     expect(screen.getByText(/does not expose unreconciled statement lines/i))
       .toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /capabilities, limits and official sources for xero/i,
+      }),
+    );
     expect(
       screen.getByRole("link", { name: /xero — bank-statement access limit/i }),
     ).toHaveAttribute(
@@ -92,6 +97,8 @@ describe("Books connection path", () => {
 
   it("puts current official filing guidance in the order a person needs it", () => {
     render(<BooksConnectPage />);
+
+    fireEvent.click(screen.getByText(/show 10 official guides in filing order/i));
 
     expect(
       screen.getByRole("link", { name: /check if and when you must use MTD Income Tax/i }),

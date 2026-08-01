@@ -64,21 +64,19 @@ export function TransactionWalkthrough() {
       id="example"
       aria-labelledby="example-title"
       tabIndex={-1}
-      className="mt-16 scroll-mt-8"
+      className="mt-24 scroll-mt-24"
     >
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-        One transaction, all the way down
-      </p>
-      <h2 id="example-title" className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+      <p className="section-label">03 · One transaction, all the way down</p>
+      <h2 id="example-title" className="section-title mt-4 text-ink">
         Mina sells one card
       </h2>
-      <p className="mt-3 max-w-3xl text-ink-soft">
+      <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">
         A made-up example. Change the numbers and open only the depth you want. Nothing here is
         saved, sent or mixed with your books.
       </p>
 
-      <fieldset className="mt-6 rounded-3xl border border-line bg-white p-5 sm:p-7">
-        <legend className="px-2 text-lg font-semibold text-ink">What happened?</legend>
+      <fieldset className="soft-shadow mt-8 rounded-[2rem] border border-line bg-surface p-5 sm:p-7">
+        <legend className="px-2 font-display text-xl font-semibold text-ink">What happened?</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <label htmlFor={saleId} className="space-y-1.5 text-sm font-medium text-ink">
             Buyer paid
@@ -93,7 +91,7 @@ export function TransactionWalkthrough() {
                 aria-invalid={saleInvalid}
                 aria-describedby={saleInvalid ? errorId : undefined}
                 onChange={(event) => setSale(event.target.value)}
-                className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-base text-ink"
+                className="min-h-11 w-full rounded-xl border border-line bg-surface py-2 pl-7 pr-3 text-base text-ink"
               />
             </span>
           </label>
@@ -110,7 +108,7 @@ export function TransactionWalkthrough() {
                 aria-invalid={feeInvalid}
                 aria-describedby={feeInvalid ? errorId : undefined}
                 onChange={(event) => setFee(event.target.value)}
-                className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-base text-ink"
+                className="min-h-11 w-full rounded-xl border border-line bg-surface py-2 pl-7 pr-3 text-base text-ink"
               />
             </span>
           </label>
@@ -247,7 +245,7 @@ export function TransactionWalkthrough() {
 
 function Result({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <div className="rounded-2xl bg-paper p-4">
+    <div className="rounded-2xl bg-surface-muted/70 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
       <p className="mt-1 text-2xl font-bold text-ink">{value}</p>
       <p className="mt-1 text-sm text-ink-soft">{note}</p>
@@ -267,7 +265,7 @@ function Depth({
   children: React.ReactNode;
 }) {
   return (
-    <details open={open} className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+    <details open={open} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
       <summary className="min-h-11 cursor-pointer">
         <span className="font-semibold text-ink">{title}</span>
         <span className="ml-3 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent-deep">

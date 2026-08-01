@@ -16,15 +16,19 @@ afterEach(() => {
 
 // SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
-  it("offers five clear doors plus the account utility", () => {
+  it("offers six clear doors plus the account utility", () => {
     render(<SiteNav />);
 
     expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute("href", "/books");
-    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAttribute(
+      "href",
+      "/books/connect",
+    );
+    expect(screen.getByRole("link", { name: "Tax check" })).toHaveAttribute(
       "href",
       "/checkup",
     );
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
+    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute("href", "/tools");
     expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
     expect(screen.getByRole("link", { name: "UK system" })).toHaveAttribute("href", "/uk");
     expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
@@ -40,11 +44,11 @@ describe("SiteNav", () => {
   });
 
   it("marks the door you are inside — across its whole route family", () => {
-    // /itsa belongs to the Do my tax door even though the door links /tools.
+    // /itsa belongs to Tax tools even though the door links /tools.
     navigation.pathname = "/itsa/am-i-in/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute(
       "aria-current",
       "true",
     );
@@ -59,16 +63,27 @@ describe("SiteNav", () => {
       "aria-current",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Do my tax" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Tax tools" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  it("keeps the Tax Position Passport inside the Do my tax door", () => {
+  it("gives the accounting bridge its own current state without lighting Books", () => {
+    navigation.pathname = "/books/connect/";
+    render(<SiteNav />);
+
+    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "Books" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("keeps the Tax Position Passport inside the Tax tools door", () => {
     navigation.pathname = "/passport/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute(
       "aria-current",
       "true",
     );
@@ -101,7 +116,7 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Tax check" })).toHaveAttribute(
       "href",
       "/checkup",
     );
@@ -115,14 +130,17 @@ describe("SiteNav", () => {
 
     // The names stay clean (exact matches above prove it); the scent lines
     // are wired as accessible descriptions.
-    const doTax = screen.getByRole("link", { name: "Do my tax" });
-    expect(doTax).toHaveAccessibleDescription("Records, quarter figures, VAT and tools.");
+    const taxTools = screen.getByRole("link", { name: "Tax tools" });
+    expect(taxTools).toHaveAccessibleDescription("Prepare figures and practise filing.");
+    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAccessibleDescription(
+      "Bring records from elsewhere into one review path.",
+    );
     expect(screen.getByRole("link", { name: "Learn" })).toHaveAccessibleDescription(
-      "Play through money decisions — every figure sourced.",
+      "Understand money decisions with cited sources.",
     );
     // The primary pill gets its scent too — outside the pill, still described.
     expect(screen.getByRole("link", { name: "Books" })).toHaveAccessibleDescription(
-      "Turn money movements into records you can explain.",
+      "Keep and review money records you can explain.",
     );
   });
 
@@ -157,7 +175,7 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const checkupLink = screen.getByRole("link", { name: "Check my tax" });
+    const checkupLink = screen.getByRole("link", { name: "Tax check" });
     checkupLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
     fireEvent.click(checkupLink);
 

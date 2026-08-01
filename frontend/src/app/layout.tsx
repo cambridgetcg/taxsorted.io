@@ -34,37 +34,42 @@ export default function RootLayout({
           <main id="main-content" tabIndex={-1} className="focus:outline-none">
             {children}
           </main>
-          {/* One line + three worded links. The full licence and attribution
-              text (OGL, OPL, AGPL, non-association note) lives once, at
-              /about#licences, linked from every page here. */}
-          <footer className="mt-12 border-t border-line">
-            <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-4 text-sm text-ink-soft sm:px-6 lg:px-8">
-              <p>TaxSorted is free and open-source, built in the open.</p>
-              <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-2">
+          <footer className="mt-20 border-t border-line bg-surface/60">
+            <div className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-[1fr_auto] md:items-end lg:px-8">
+              <div className="max-w-xl">
+                <p className="font-display text-2xl font-semibold tracking-tight text-ink">
+                  Tax, understood. Then sorted.
+                </p>
+                <p className="mt-2">Free and open-source, built in the open. Prepared and filed always mean different things.</p>
+              </div>
+              <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-3 gap-y-1 md:justify-end">
+                <Link
+                  href="/books/connect"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  Connect records
+                </Link>
                 <Link
                   href="/about"
-                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
                   About
                 </Link>
-                <span aria-hidden="true">·</span>
                 <Link
                   href="/tools"
-                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  All tools
+                  Tax tools
                 </Link>
-                <span aria-hidden="true">·</span>
                 <Link
                   href="/feedback"
-                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
                   Feedback
                 </Link>
-                <span aria-hidden="true">·</span>
                 <Link
                   href="/about#licences"
-                  className="inline-flex min-h-11 items-center font-medium text-accent underline hover:text-accent-deep"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
                   Licences
                 </Link>

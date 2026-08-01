@@ -49,92 +49,106 @@ export function HomeClient() {
   ];
 
   return (
-    <div lang={bodyLanguage} dir="ltr" className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-      <header className="max-w-4xl">
-        <h1
-          lang={locale}
-          dir={locale === "ur" ? "rtl" : "ltr"}
-          className="text-4xl font-bold tracking-tight text-ink sm:text-6xl"
-        >
-          {t("home.title.line1")}
-          <br />
-          {t("home.title.line2")}
-        </h1>
-        <p lang={introLanguage} className="mt-5 max-w-3xl text-lg text-ink-soft">
-          {t("home.intro")}
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            href="/books"
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-7 text-base font-semibold text-white transition-colors hover:bg-accent-deep"
+    <div lang={bodyLanguage} dir="ltr" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <header className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(21rem,0.85fr)] lg:gap-14">
+        <div className="max-w-4xl">
+          <p className="section-label">01 · TaxSorted</p>
+          <h1
+            lang={locale}
+            dir={locale === "ur" ? "rtl" : "ltr"}
+            className="hero-title mt-5 text-ink"
           >
-            {t("home.primary")}
-          </Link>
-          <Link
-            href="/checkup"
-            className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"
-          >
-            {t("home.secondary")}
-          </Link>
+            {t("home.title.line1")}
+            <br />
+            {t("home.title.line2")}
+          </h1>
+          <p lang={introLanguage} className="mt-7 max-w-3xl text-lg leading-8 text-ink-soft">
+            {t("home.intro")}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/books"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-deep"
+            >
+              {t("home.primary")}
+            </Link>
+            <Link
+              href="/checkup"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong bg-surface px-6 text-base font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft"
+            >
+              {t("home.secondary")}
+            </Link>
+          </div>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-ink-soft">
+            {t("home.start.smallprint")}
+          </p>
         </div>
-        <p className="mt-4 text-sm text-ink-soft">{t("home.start.smallprint")}</p>
+
+        <section
+          aria-labelledby="mtd-heading"
+          className="soft-shadow relative overflow-hidden rounded-[2rem] border border-line bg-surface p-6 sm:p-8"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 420 180"
+            className="pointer-events-none absolute -end-12 -top-8 w-[25rem] text-accent opacity-[0.09]"
+          >
+            <path d="M10 140C92 18 180 202 274 74S390 28 430 72" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M-10 164C86 62 168 210 262 103S366 42 438 91" fill="none" stroke="currentColor" />
+            <circle cx="274" cy="74" r="9" fill="currentColor" />
+          </svg>
+          <div className="relative">
+            <p className="section-label">{t("home.mtd.eyebrow")}</p>
+            <h2 id="mtd-heading" className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink">
+              {t("home.mtd.title")}
+            </h2>
+            <p className="mt-4 leading-7 text-ink-soft">{mtdBody}</p>
+            <div className="mt-6 grid gap-2">
+              <Link
+                href="/itsa/am-i-in"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-6 text-center text-base font-semibold text-white transition-colors hover:bg-accent-deep"
+              >
+                {t("home.mtd.check")}
+              </Link>
+              <Link
+                href="/learn/mtd-income-tax"
+                className="inline-flex min-h-11 items-center justify-center px-2 text-center text-base font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+              >
+                {t("home.mtd.truth")} →
+              </Link>
+            </div>
+            <p className="mt-4 border-t border-line pt-4 text-sm leading-6 text-ink-soft">
+              {t("home.mtd.smallprint")}
+            </p>
+          </div>
+        </section>
       </header>
 
-      <section
-        aria-labelledby="mtd-heading"
-        className="mt-12 rounded-3xl border border-accent/30 bg-accent-soft p-6 sm:p-8"
-      >
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          {t("home.mtd.eyebrow")}
-        </p>
-        <h2 id="mtd-heading" className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          {t("home.mtd.title")}
-        </h2>
-        <p className="mt-2 max-w-3xl text-ink-soft">{mtdBody}</p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link
-            href="/itsa/am-i-in"
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-7 text-base font-medium text-white transition-colors hover:bg-accent-deep"
-          >
-            {t("home.mtd.check")}
-          </Link>
-          <Link
-            href="/learn/mtd-income-tax"
-            className="inline-flex min-h-11 items-center px-2 text-base font-medium text-accent underline underline-offset-4 hover:text-accent-deep"
-          >
-            {t("home.mtd.truth")} →
-          </Link>
-        </div>
-        <p className="mt-4 text-sm text-ink-soft">{t("home.mtd.smallprint")}</p>
-      </section>
-
-      <section className="mt-16" aria-labelledby="journey-title">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-          {t("home.journey.eyebrow")}
-        </p>
-        <h2 id="journey-title" className="mt-2 text-3xl font-bold tracking-tight text-ink">
+      <section className="mt-24" aria-labelledby="journey-title">
+        <p className="section-label">02 · {t("home.journey.eyebrow")}</p>
+        <h2 id="journey-title" className="section-title mt-4 text-ink">
           {t("home.journey.title")}
         </h2>
-        <p className="mt-3 max-w-3xl text-ink-soft">{t("home.journey.body")}</p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">{t("home.journey.body")}</p>
+        <div className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line md:grid-cols-3">
           {stages.map((stage) => (
-            <article key={stage.number} className="rounded-2xl border border-line bg-white p-6">
+            <article key={stage.number} className="bg-surface p-6 sm:p-7">
               <div className="flex items-center justify-between gap-3">
                 <span
                   aria-hidden="true"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white"
+                  className="font-display text-4xl text-accent"
                 >
-                  {stage.number}
+                  0{stage.number}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                <span className="font-mono text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-ink-soft">
                   {stage.status}
                 </span>
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-ink">{stage.title}</h3>
-              <p className="mt-2 text-sm text-ink-soft">{stage.body}</p>
+              <h3 className="mt-5 font-display text-2xl font-semibold leading-tight text-ink">{stage.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">{stage.body}</p>
               <Link
                 href={stage.href}
-                className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4 hover:text-accent-deep"
+                className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
               >
                 {stage.action} →
               </Link>
@@ -143,35 +157,40 @@ export function HomeClient() {
         </div>
       </section>
 
-      <section className="mt-16 grid gap-4 md:grid-cols-2" aria-label={t("home.deeper.label")}>
+      <section className="mt-24" aria-label={t("home.deeper.label")}>
+        <p className="section-label">03 · {t("home.deeper.label")}</p>
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
         <Link
           href="/uk"
-          className="block min-h-11 rounded-3xl border border-line bg-paper p-6 transition hover:border-accent"
+          className="group block min-h-11 rounded-[2rem] border border-line bg-accent-soft p-7 transition hover:border-accent"
         >
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-accent">
             {t("home.system.eyebrow")}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-ink">{t("home.system.title")}</h2>
-          <p className="mt-3 text-sm text-ink-soft">{t("home.system.body")}</p>
+          <h2 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink">{t("home.system.title")}</h2>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-ink-soft">{t("home.system.body")}</p>
           <p className="mt-5 font-semibold text-accent">{t("home.system.action")} →</p>
         </Link>
         <a
           href="https://api.taxsorted.io/v1/uk/tax-expert"
           target="_blank"
           rel="noreferrer noopener"
-          className="block min-h-11 rounded-3xl border border-line bg-paper p-6 transition hover:border-accent"
+          className="group block min-h-11 rounded-[2rem] border border-line bg-surface p-7 transition hover:border-accent"
         >
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-accent">
             {t("home.api.eyebrow")}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-ink">{t("home.api.title")}</h2>
-          <p className="mt-3 text-sm text-ink-soft">{t("home.api.body")}</p>
+          <h2 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink">{t("home.api.title")}</h2>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-ink-soft">{t("home.api.body")}</p>
           <p className="mt-5 font-semibold text-accent">{t("home.api.action")} ↗</p>
         </a>
+        </div>
       </section>
 
-      <p className="mt-10 text-sm text-ink-soft">{t("home.honest")}</p>
-      <p className="mt-4 text-ink">{t("home.lastline")}</p>
+      <div className="mt-16 border-s-2 border-warm/50 ps-5">
+        <p className="max-w-4xl text-sm leading-6 text-ink-soft">{t("home.honest")}</p>
+        <p className="mt-3 font-display text-xl text-ink">{t("home.lastline")}</p>
+      </div>
     </div>
   );
 }
