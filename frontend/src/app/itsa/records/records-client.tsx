@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   quarterForDate,
@@ -42,11 +43,22 @@ export default function RecordsClient({ entry = "mtd" }: RecordsClientProps = {}
   const store = useMemo<RecordsStore>(() => createRecordsStore(), []);
   const [books, setBooks] = useState<LocalBooksState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [emptyStart, setEmptyStart] = useState<"manual" | "csv" | null>(null);
+  const [startChoice, setStartChoice] = useState<"manual" | "csv" | "closed" | null>(null);
   const manualStartTitle = useRef<HTMLHeadingElement>(null);
   const csvStartTitle = useRef<HTMLHeadingElement>(null);
+  const focusedStart = useRef<"manual" | "csv" | null>(null);
   const mounted = useMounted();
   const enteredFromBooks = entry === "books";
+  const requestedStart =
+    enteredFromBooks && mounted && typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("start")
+      : null;
+  const queryStart = requestedStart === "manual" || requestedStart === "csv" ? requestedStart : null;
+  const emptyStart =
+    startChoice === null ? queryStart : startChoice === "closed" ? null : startChoice;
+  const setEmptyStart = (next: "manual" | "csv" | null) => {
+    setStartChoice(next ?? "closed");
+  };
   const preferredSource: SourceType =
     enteredFromBooks &&
     mounted &&
@@ -97,9 +109,15 @@ export default function RecordsClient({ entry = "mtd" }: RecordsClientProps = {}
   }, [store]);
 
   useEffect(() => {
+    if (!emptyStart) {
+      focusedStart.current = null;
+      return;
+    }
+    if (!books || focusedStart.current === emptyStart) return;
     if (emptyStart === "manual") manualStartTitle.current?.focus();
     if (emptyStart === "csv") csvStartTitle.current?.focus();
-  }, [emptyStart]);
+    focusedStart.current = emptyStart;
+  }, [books, emptyStart]);
 
   const events = books?.events ?? [];
   const ledgers = books?.ledgers ?? [];
@@ -306,21 +324,39 @@ export default function RecordsClient({ entry = "mtd" }: RecordsClientProps = {}
 
               <div className="mt-8">
                 {quarter ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-base font-medium text-ink">
-                      {enteredFromBooks ? "UK Income Tax view from ready records" : "Ready figures"} — Q
-                      {quarter.index} {TAX_YEAR} ({formatUkDate(quarter.periodStart)} to{" "}
-                      {formatUkDate(quarter.periodEnd)}):
-                    </span>
-                    {SOURCES.map((source) => (
-                      <QuarterChip
-                        key={source.value}
-                        label={source.label}
-                        records={records}
-                        source={source.value}
-                        quarterIndex={quarter.index}
-                      />
-                    ))}
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-base font-medium text-ink">
+                        {enteredFromBooks ? "UK Income Tax view from ready records" : "Ready figures"} — Q
+                        {quarter.index} {TAX_YEAR} ({formatUkDate(quarter.periodStart)} to{" "}
+                        {formatUkDate(quarter.periodEnd)}):
+                      </span>
+                      {SOURCES.map((source) => (
+                        <QuarterChip
+                          key={source.value}
+                          label={source.label}
+                          records={records}
+                          source={source.value}
+                          quarterIndex={quarter.index}
+                        />
+                      ))}
+                    </div>
+                    {records.length > 0 ? (
+                      <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold">
+                        <Link
+                          href="/itsa/quarter"
+                          className="inline-flex min-h-11 items-center text-accent underline underline-offset-4"
+                        >
+                          Review this Income Tax quarter →
+                        </Link>
+                        <Link
+                          href="/books/connect"
+                          className="inline-flex min-h-11 items-center text-accent underline underline-offset-4"
+                        >
+                          See the full records-to-receipt path →
+                        </Link>
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <p className="text-base text-ink-soft">

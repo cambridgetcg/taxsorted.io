@@ -17,6 +17,10 @@ describe("Books front door", () => {
       "href",
       "/books/workspace?activity=uk-property",
     );
+    expect(screen.getByRole("link", { name: /bring existing records/i })).toHaveAttribute(
+      "href",
+      "/books/connect",
+    );
     expect(screen.getByText(/does not yet prepare statutory accounts/i)).toBeInTheDocument();
     expect(screen.getByText(/not yet a complete general ledger/i)).toBeInTheDocument();
   });

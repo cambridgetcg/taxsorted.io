@@ -10,6 +10,22 @@ import { databaseUrl } from "./runtime-environment.js";
 // unconfigured until they arrive.
 
 const env = process.env;
+const accountingConnectorStopValue =
+  env.ACCOUNTING_CONNECTORS_EMERGENCY_STOP ?? "";
+// Explicitly empty or exact "false" leaves a stop off. Any other non-empty
+// spelling fails closed, so a typo cannot silently leave financial sync open.
+const accountingConnectorEmergencyStop =
+  accountingConnectorStopValue !== "" &&
+  accountingConnectorStopValue !== "false";
+const accountingSyncStopValue = env.ACCOUNTING_SYNC_EMERGENCY_STOP ?? "";
+const accountingSyncEmergencyStop =
+  accountingSyncStopValue !== "" && accountingSyncStopValue !== "false";
+// The made-up provider is a local/test proof only. Even an accidentally set
+// production variable cannot mount it as a live accounting source.
+const accountingSyntheticEnabled =
+  env.NODE_ENV !== "production" &&
+  !accountingConnectorEmergencyStop &&
+  env.ACCOUNTING_SYNTHETIC_ENABLED === "true";
 const politicsPersonalDataEmergencyStop =
   env.POLITICS_PERSONAL_DATA_EMERGENCY_STOP === "true";
 const politicsPersonalDataEnabled =
@@ -106,6 +122,11 @@ export const config = {
     get configured() {
       return Boolean(this.clientId && this.clientSecret);
     },
+  },
+  accounting: {
+    syntheticEnabled: accountingSyntheticEnabled,
+    connectorEmergencyStop: accountingConnectorEmergencyStop,
+    syncEmergencyStop: accountingSyncEmergencyStop,
   },
   // Politics data is public, but production publication stays closed until
   // the method/privacy review is complete. Electoral Commission reuse is a

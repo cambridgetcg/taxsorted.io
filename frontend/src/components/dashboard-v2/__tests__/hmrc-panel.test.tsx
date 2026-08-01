@@ -348,6 +348,7 @@ describe("HmrcPanel", () => {
     render(<HmrcPanel taxYear="2026-27" />);
     fireEvent.click(await screen.findByRole("button", { name: /disconnect/i }));
 
+    expect(mockApi.disconnect).toHaveBeenCalledWith("e1", "itsa");
     // The panel re-checked the server instead of trusting its local guess…
     await waitFor(() => expect(mockApi.listEntities).toHaveBeenCalledTimes(2));
     // …the failure is said out loud (and survives the re-check)…

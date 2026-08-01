@@ -334,7 +334,7 @@ export function HmrcPanel({ taxYear }: HmrcPanelProps) {
     setDisconnecting(true);
     setDisconnectError(null);
     try {
-      await api.disconnect(entity.id);
+      await api.disconnect(entity.id, "itsa");
       setItsaStatus(null);
       setObligations(null);
       setStatus("not-connected");

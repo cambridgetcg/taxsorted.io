@@ -1,8 +1,20 @@
 // The typed client for the taxsorted api — the same surface an agent would call.
 
-import { collectFraudPreventionHeaders, headersToRecord } from "@taxsorted/engine/uk/hmrc";
+import {
+  collectFraudPreventionHeaders,
+  headersToRecord,
+  type HmrcModuleDefinition,
+  type HmrcRail,
+} from "@taxsorted/engine/uk/hmrc";
 import type { VATObligationsResponse, VATReturnData } from "@taxsorted/engine/uk/vat";
 import type { SourceType } from "@taxsorted/engine/uk/itsa";
+import type {
+  DatasetCheckpoint as AccountingDatasetCheckpoint,
+  PageAcknowledgement as AccountingPageAcknowledgement,
+  PageManifest as AccountingPageManifest,
+  SyncRun as AccountingSyncRun,
+  SyncRunKind,
+} from "@taxsorted/engine/accounting-sync";
 import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -26,8 +38,8 @@ export interface ApiEntity {
   /** National Insurance number — ITSA identifies a taxpayer by NINO, not VRN. */
   nino?: string | null;
   created_at: string;
-  /** Legacy: any rail connected. The VAT cockpit still reads this — kept
-      byte-identical for it. New readers should use `connections`. */
+  /** Legacy compatibility field: true when any HMRC rail is connected.
+      User interfaces must use `connections` for rail-specific state. */
   connected: boolean;
   /** Per-rail connection state — a VAT-only connection must never read as
       "connected" on the ITSA panel, and vice versa. */
@@ -36,7 +48,7 @@ export interface ApiEntity {
 }
 
 /** Which HMRC scope a connection asks for — additive to the VAT-only surface. */
-export type Rail = "vat" | "itsa";
+export type Rail = HmrcRail;
 
 /** SA Individual Details v2.0, passed through — HMRC's own status vocabulary. */
 export interface ItsaStatusResponse {
@@ -121,6 +133,71 @@ export interface ApiSubmission {
 export interface RailStatus {
   configured: boolean;
   env: "sandbox" | "production";
+  modules: readonly HmrcModuleDefinition[];
+}
+
+// ---- Accounting-source bridge -------------------------------------------
+// These are the API's provider-neutral control-plane shapes. Raw accounting
+// records are returned only by pullAccountingSyncPage and are committed to the
+// browser's local books before their manifest may be acknowledged.
+
+export type AccountingProviderId =
+  | "synthetic"
+  | "xero"
+  | "quickbooks"
+  | "freeagent"
+  | "sage-accounting-uk";
+export type AccountingEnvironment = "sandbox" | "production";
+
+export interface AccountingAuthorisation {
+  id: string;
+  provider: AccountingProviderId;
+  environment: AccountingEnvironment;
+  status: "active" | "reauthorisation-required" | "revoked" | "failed";
+  grantedScopes: string[];
+  createdAt: string;
+  updatedAt: string;
+  synthetic: boolean;
+}
+
+export interface AccountingOrganisation {
+  id: string;
+  name: string;
+  countryCode: string;
+  baseCurrency: string;
+  datasets: string[];
+  synthetic: boolean;
+}
+
+export interface AccountingSourceConnection {
+  id: string;
+  authorisationId: string;
+  entityId: string;
+  provider: AccountingProviderId;
+  environment: AccountingEnvironment;
+  organisation: Pick<
+    AccountingOrganisation,
+    "id" | "name" | "countryCode" | "baseCurrency"
+  >;
+  status: "active" | "paused" | "disconnected";
+  /** Database bigint encoded as decimal text. */
+  dirtyGeneration: string;
+  createdAt: string;
+}
+
+export interface AccountingReplica {
+  id: string;
+  sourceConnectionId: string;
+  /** Stable ID of the IndexedDB installation that owns this API replica. */
+  localReplicaId: string;
+  status: "active" | "retired";
+  createdAt: string;
+}
+
+export interface AccountingSyncCompletion {
+  run: AccountingSyncRun;
+  checkpoint: AccountingDatasetCheckpoint;
+  needsAnotherSync: boolean;
 }
 
 // ---- Account doors (M2) — plan's "## Endpoints", shapes verbatim ---------
@@ -273,7 +350,8 @@ async function call<T>(path: string, init?: RequestInit & { fraud?: boolean }): 
 }
 
 export const api = {
-  health: () => call<{ ok: boolean; hmrc: RailStatus }>("/v1/health"),
+  health: () =>
+    call<{ ok: boolean; hmrc: Pick<RailStatus, "configured" | "env"> }>("/v1/health"),
   railStatus: () => call<RailStatus>("/v1/hmrc/status"),
 
   listEntities: () => call<{ entities: ApiEntity[] }>("/v1/entities"),
@@ -283,6 +361,104 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+
+  /** The only live accounting provider: deterministic, made-up and sandboxed. */
+  startSyntheticAccountingAuthorisation: () =>
+    call<{ authorisation: AccountingAuthorisation }>(
+      "/v1/accounting/authorisations/synthetic/start",
+      { method: "POST", body: JSON.stringify({}) }
+    ),
+
+  listAccountingOrganisations: (authorisationId: string) =>
+    call<{
+      authorisation: AccountingAuthorisation;
+      organisations: AccountingOrganisation[];
+      persisted: false;
+    }>(
+      `/v1/accounting/authorisations/${encodeURIComponent(authorisationId)}/organisations`
+    ),
+
+  createAccountingSourceConnection: (input: {
+    authorisationId: string;
+    entityId: string;
+    organisationId: string;
+  }) =>
+    call<{ sourceConnection: AccountingSourceConnection }>("/v1/accounting/source-connections", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  accountingSourceStatus: (sourceConnectionId: string, localReplicaId: string) =>
+    call<{
+      sourceConnection: AccountingSourceConnection;
+      replicas: AccountingReplica[];
+      checkpoints: AccountingDatasetCheckpoint[];
+    }>(
+      `/v1/accounting/source-connections/${encodeURIComponent(sourceConnectionId)}/status?localReplicaId=${encodeURIComponent(localReplicaId)}`
+    ),
+
+  createAccountingReplica: (sourceConnectionId: string, input: { localReplicaId: string }) =>
+    call<{ replica: AccountingReplica }>(
+      `/v1/accounting/source-connections/${encodeURIComponent(sourceConnectionId)}/replicas`,
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+
+  startAccountingSyncRun: (
+    sourceConnectionId: string,
+    input: {
+      replicaId: string;
+      localReplicaId: string;
+      expectedCompletedRunId: string | null;
+      dataset: "bank-transactions";
+      kind: SyncRunKind;
+    }
+  ) =>
+    call<{ run: AccountingSyncRun }>(
+      `/v1/accounting/source-connections/${encodeURIComponent(sourceConnectionId)}/sync-runs`,
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+
+  renewAccountingSyncLease: (runId: string, fence: string, localReplicaId: string) =>
+    call<{ run: AccountingSyncRun }>(
+      `/v1/accounting/sync-runs/${encodeURIComponent(runId)}/lease`,
+      { method: "POST", body: JSON.stringify({ fence, localReplicaId }) }
+    ),
+
+  pullAccountingSyncPage: (
+    runId: string,
+    dataset: "bank-transactions",
+    fence: string,
+    localReplicaId: string
+  ) =>
+    call<{ manifest: AccountingPageManifest; records: unknown[] }>(
+      `/v1/accounting/sync-runs/${encodeURIComponent(runId)}/pages/${encodeURIComponent(dataset)}`,
+      { method: "POST", body: JSON.stringify({ fence, localReplicaId }) }
+    ),
+
+  acknowledgeAccountingSyncPage: (
+    runId: string,
+    input: AccountingPageAcknowledgement & { localReplicaId: string }
+  ) =>
+    call<{
+      acknowledgement: AccountingPageAcknowledgement;
+      changed: boolean;
+      nextSequence: number;
+    }>(`/v1/accounting/sync-runs/${encodeURIComponent(runId)}/acknowledgements`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  completeAccountingSyncRun: (runId: string, fence: string, localReplicaId: string) =>
+    call<AccountingSyncCompletion>(
+      `/v1/accounting/sync-runs/${encodeURIComponent(runId)}/complete`,
+      { method: "POST", body: JSON.stringify({ fence, localReplicaId }) }
+    ),
+
+  cancelAccountingSyncRun: (runId: string, fence: string, localReplicaId: string) =>
+    call<{ run: AccountingSyncRun; changed: boolean }>(
+      `/v1/accounting/sync-runs/${encodeURIComponent(runId)}/cancel`,
+      { method: "POST", body: JSON.stringify({ fence, localReplicaId }) }
+    ),
 
   setVrn: (id: string, vrn: string) =>
     call<{ entity: ApiEntity }>(`/v1/entities/${id}`, {
@@ -297,8 +473,11 @@ export const api = {
       body: JSON.stringify({ nino }),
     }),
 
-  disconnect: (id: string) =>
-    call<{ disconnected: true }>(`/v1/hmrc/connection/${id}`, { method: "DELETE" }),
+  disconnect: (id: string, rail: Rail) =>
+    call<{ disconnected: true; rail: Rail }>(
+      `/v1/hmrc/connection/${id}?rail=${encodeURIComponent(rail)}`,
+      { method: "DELETE" }
+    ),
 
   obligations: (id: string, params?: { from?: string; to?: string; status?: string }) => {
     const qs = new URLSearchParams(
@@ -368,7 +547,7 @@ export const api = {
   /**
    * Full-page redirect into the HMRC OAuth dance. Defaults to the VAT rail
    * so every existing caller is byte-identical; pass "itsa" to request
-   * read:self-assessment instead (?rail=itsa, additive query param).
+   * the registry's read and write Self Assessment scopes.
    */
   connectUrl: (id: string, rail: Rail = "vat") =>
     rail === "itsa"

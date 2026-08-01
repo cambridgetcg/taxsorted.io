@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createRecordsStore } from "../records";
-import type { ImportCandidate } from "../local-books";
+import { ACCOUNTING_SYNC_SCHEMA } from "@taxsorted/engine/accounting-sync";
+import {
+  LEGACY_LOCAL_BOOKS_SCHEMA,
+  LOCAL_BOOKS_SCHEMA,
+  type ImportCandidate,
+} from "../local-books";
+import {
+  accountingPageDigest,
+  accountingValueDigest,
+} from "../synthetic-accounting-normalizer";
 
 const INCOME = {
   date: "2026-05-01",
@@ -296,7 +305,7 @@ describe("local books store", () => {
     const store = createRecordsStore(backend);
 
     const state = await store.state();
-    expect(state.schema).toBe("taxsorted.local-books/2");
+    expect(state.schema).toBe(LOCAL_BOOKS_SCHEMA);
     expect(state.events[0]).toMatchObject({ id: "old-1", reviewState: "ready" });
     expect(state.ledgers[0].scopeState).toBe("needs-confirmation");
     expect(await store.list()).toEqual([]);
@@ -389,7 +398,526 @@ describe("local books store", () => {
     });
 
     const json = JSON.parse(await store.exportJson());
-    expect(json.schema).toBe("taxsorted.local-books/2");
+    expect(json.schema).toBe(LOCAL_BOOKS_SCHEMA);
     expect(json.events).toHaveLength(2);
+  });
+
+  it("migrates the same stored /2 key once, keeps old tabs fail-closed and makes revisions opaque", async () => {
+    const backend = new Map<string, unknown>();
+    backend.set("taxsorted-local-books-v2", {
+      schema: LEGACY_LOCAL_BOOKS_SCHEMA,
+      storeRevision: 7,
+      ledgers: [
+        {
+          id: "ledger:self-employment:primary",
+          name: "My first business",
+          activity: "self-employment",
+          scopeState: "needs-confirmation",
+        },
+      ],
+      events: [
+        {
+          id: "legacy-event",
+          ledgerId: "ledger:self-employment:primary",
+          revision: 1,
+          reviewState: "needs-review",
+          occurredOn: "2026-05-01",
+          cash: { amount: 12345, currency: "GBP", direction: "in" },
+          postings: [{ kind: "income", category: "turnover", amount: 12345, effect: "increase" }],
+          origin: {
+            kind: "bank-csv",
+            externalId: "old-row",
+            sourceRevision: 1,
+          },
+          contentDigest: "old-digest",
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ],
+      history: [],
+      imports: [],
+    });
+
+    const store = createRecordsStore(backend);
+    const first = await store.state();
+    const second = await store.state();
+
+    expect(first).toMatchObject({
+      schema: LOCAL_BOOKS_SCHEMA,
+      storeRevision: 8,
+      events: [{ origin: { sourceRevision: "1" } }],
+    });
+    expect(first.replica.id).toBeTruthy();
+    expect(second.replica.id).toBe(first.replica.id);
+    expect(backend.get("taxsorted-local-books-v2")).toMatchObject({
+      schema: LOCAL_BOOKS_SCHEMA,
+      replica: { id: first.replica.id },
+    });
+  });
+
+  it("namespaces provider source IDs by provider, environment, organisation and object type", async () => {
+    const store = createRecordsStore(new Map());
+    const providerCandidate = (organisationId: string): ImportCandidate => ({
+      ...candidate(),
+      origin: {
+        kind: "accounting-provider",
+        externalId: "same-object-id",
+        sourceRevision: "opaque-1",
+        provider: {
+          provider: "synthetic",
+          environment: "sandbox",
+          organisationId,
+          objectType: "bank-transaction",
+        },
+      },
+      contentDigest: `digest:${organisationId}`,
+    });
+
+    await store.importMany([
+      providerCandidate("organisation-a"),
+      providerCandidate("organisation-b"),
+    ]);
+    expect(await store.listEvents()).toHaveLength(2);
+  });
+
+  it("will not attach a provider source to a local ledger owned by another entity", async () => {
+    const store = createRecordsStore(new Map());
+    const localReplicaId = (await store.state()).replica.id;
+    const common = {
+      expectedLocalReplicaId: localReplicaId,
+      syncReplicaId: "sync-replica-1",
+      provider: "synthetic" as const,
+      environment: "sandbox" as const,
+      organisationId: "synthetic-uk-sole-trader",
+      organisationName: "Mina's Card Studio (made-up)",
+      activity: "self-employment" as const,
+      capabilities: [],
+      boundAt: "2026-08-01T12:00:00.000Z",
+    };
+
+    await store.bindProviderConnection({
+      ...common,
+      sourceConnectionId: "connection-1",
+      entityId: "entity-1",
+      entityName: "Mina",
+    });
+
+    await expect(
+      store.bindProviderConnection({
+        ...common,
+        sourceConnectionId: "connection-2",
+        syncReplicaId: "sync-replica-2",
+        entityId: "entity-2",
+        entityName: "Someone else",
+      })
+    ).rejects.toThrow(/already belongs to another TaxSorted entity/i);
+  });
+
+  it("commits every provider page locally before acknowledgement and promotes only a completed run", async () => {
+    const store = createRecordsStore(new Map());
+    const localReplicaId = (await store.state()).replica.id;
+    const binding = await store.bindProviderConnection({
+      expectedLocalReplicaId: localReplicaId,
+      sourceConnectionId: "connection-1",
+      entityId: "entity-1",
+      entityName: "Mina",
+      syncReplicaId: "sync-replica-1",
+      provider: "synthetic",
+      environment: "sandbox",
+      organisationId: "synthetic-uk-sole-trader",
+      organisationName: "Mina's Card Studio (made-up)",
+      activity: "self-employment",
+      capabilities: [
+        {
+          capability: "bank-transactions.read",
+          state: "available",
+          observedAt: "2026-08-01T12:00:00.000Z",
+        },
+      ],
+      boundAt: "2026-08-01T12:00:00.000Z",
+    });
+    expect((await store.state()).ledgers).toContainEqual(
+      expect.objectContaining({
+        id: binding.ledgerId,
+        ownerEntityId: "entity-1",
+        ownerEntityName: "Mina",
+      })
+    );
+    const providerImport: ImportCandidate = {
+      record: { ...INCOME, description: "Made-up receipt" },
+      origin: {
+        kind: "accounting-provider",
+        externalId: "synthetic-bank-001",
+        sourceRevision: "revision-a",
+        provider: {
+          provider: "synthetic",
+          environment: "sandbox",
+          organisationId: binding.organisationId,
+          objectType: "bank-transaction",
+        },
+      },
+      contentDigest: "normalized-digest-a",
+    };
+    const payload = { madeUp: true };
+    const digest = await accountingPageDigest([payload]);
+    const run = {
+      id: "run-1",
+      sourceConnectionId: binding.sourceConnectionId,
+      syncReplicaId: binding.syncReplicaId,
+      localReplicaId,
+      dataset: "bank-transactions",
+      kind: "initial" as const,
+      fence: "900719925474099312345",
+      startedAt: "2026-08-01T12:00:00.000Z",
+    };
+    const manifest = {
+      schema: ACCOUNTING_SYNC_SCHEMA,
+      id: "manifest-1",
+      runId: run.id,
+      sourceConnectionId: binding.sourceConnectionId,
+      replicaId: binding.syncReplicaId,
+      dataset: run.dataset,
+      sequence: 0,
+      fence: run.fence,
+      digest,
+      recordCount: 1,
+      currentCursor: null,
+      nextCursor: "1",
+      coverageMarker: null,
+      dirtyGeneration: "0",
+      final: false,
+      expiresAt: "2099-08-01T12:10:00.000Z",
+    };
+    const rawVersion = {
+      id: "raw-1",
+      identity: {
+        provider: "synthetic" as const,
+        environment: "sandbox" as const,
+        organisationId: binding.organisationId,
+        objectType: "bank-transaction",
+        objectId: "synthetic-bank-001",
+      },
+      payloadDigest: await accountingValueDigest(payload),
+      providerRevision: "revision-a",
+      observedAt: "2026-08-01T12:00:01.000Z",
+      deleted: false,
+      payload,
+    };
+    const normalizedVersion = {
+      id: "normalized-1",
+      rawVersionId: rawVersion.id,
+      mapperVersion: "mapper-1",
+      kind: "bank-observation",
+      occurredOn: INCOME.date,
+      amountPence: INCOME.amount,
+      currency: "GBP",
+      direction: "in" as const,
+      description: "Made-up receipt",
+      suggestedCategory: INCOME.category,
+      suggestedKind: INCOME.kind,
+      activity: INCOME.source,
+      candidateContentDigest: "normalized-digest-a",
+      limitations: ["Made-up data."],
+      candidateExternalId: "synthetic-bank-001",
+    };
+
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest,
+        rawVersions: [{ ...rawVersion, payload: { madeUp: false } }],
+        normalizedVersions: [normalizedVersion],
+        candidates: [providerImport],
+      })
+    ).rejects.toThrow(/API page digest/i);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest,
+        rawVersions: [{ ...rawVersion, payloadDigest: "sha256:" + "0".repeat(64) }],
+        normalizedVersions: [normalizedVersion],
+        candidates: [providerImport],
+      })
+    ).rejects.toThrow(/stored payload digest/i);
+    expect((await store.state()).syncRuns).toEqual([]);
+
+    const callerOwnedRaw = { ...rawVersion, payload: { madeUp: true } };
+    const firstWrite = store.commitProviderPage({
+      run,
+      manifest,
+      rawVersions: [callerOwnedRaw],
+      normalizedVersions: [normalizedVersion],
+      candidates: [providerImport],
+      committedAt: "2026-08-01T12:00:02.000Z",
+    });
+    callerOwnedRaw.payload.madeUp = false;
+    const first = await firstWrite;
+    const replay = await store.commitProviderPage({
+      run,
+      manifest,
+      rawVersions: [rawVersion],
+      normalizedVersions: [normalizedVersion],
+      candidates: [providerImport],
+    });
+
+    expect(first).toMatchObject({ added: 1, replayed: false });
+    expect(replay).toMatchObject({ added: 1, replayed: true });
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest,
+        rawVersions: [rawVersion],
+        normalizedVersions: [
+          { ...normalizedVersion, limitations: ["Changed after the first local commit."] },
+        ],
+        candidates: [providerImport],
+      })
+    ).rejects.toThrow(/replayed provider page does not match/i);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest,
+        rawVersions: [rawVersion],
+        normalizedVersions: [normalizedVersion],
+        candidates: [
+          {
+            ...providerImport,
+            record: { ...providerImport.record, category: "adminCosts" },
+          },
+        ],
+      })
+    ).rejects.toThrow(/does not match its normalised source outcome/i);
+    expect((await store.state()).events).toHaveLength(1);
+    expect((await store.state()).rawProviderVersions).toHaveLength(1);
+    expect((await store.state()).rawProviderVersions[0].payload).toEqual({ madeUp: true });
+    expect((await store.state()).syncRuns[0].pages[0].manifest).toEqual(manifest);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: { ...manifest, nextCursor: "changed-after-commit" },
+        rawVersions: [rawVersion],
+        normalizedVersions: [normalizedVersion],
+        candidates: [providerImport],
+      })
+    ).rejects.toThrow(/replayed provider page does not match/i);
+    const nextPayload = { madeUp: "new-page" };
+    const nextRaw = {
+      ...rawVersion,
+      id: "raw-2",
+      identity: { ...rawVersion.identity, objectId: "synthetic-bank-002" },
+      payload: nextPayload,
+      payloadDigest: await accountingValueDigest(nextPayload),
+    };
+    const nextManifest = {
+      ...manifest,
+      id: "manifest-next",
+      sequence: 1,
+      currentCursor: "1",
+      nextCursor: "2",
+      digest: await accountingPageDigest([nextPayload]),
+    };
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: nextManifest,
+        rawVersions: [nextRaw],
+        normalizedVersions: [{ ...normalizedVersion, id: "normalized-wrong-page" }],
+        candidates: [providerImport],
+      })
+    ).rejects.toThrow(/normalised source outcome/i);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: nextManifest,
+        rawVersions: [nextRaw],
+        normalizedVersions: [],
+        candidates: [],
+      })
+    ).rejects.toThrow(/exactly one normalised outcome/i);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: {
+          ...manifest,
+          id: "manifest-skipped",
+          sequence: 2,
+          currentCursor: "1",
+          },
+          rawVersions: [rawVersion],
+          normalizedVersions: [normalizedVersion],
+          candidates: [providerImport],
+      })
+    ).rejects.toThrow(/exact sequence/i);
+
+    const finalManifest = {
+      ...manifest,
+      id: "manifest-2",
+      sequence: 1,
+      recordCount: 0,
+      currentCursor: "1",
+      nextCursor: "2",
+      coverageMarker: "synthetic-v1",
+      final: true,
+      digest: await accountingPageDigest([]),
+    };
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: { ...finalManifest, currentCursor: "discontinuous" },
+        rawVersions: [],
+        normalizedVersions: [],
+        candidates: [],
+      })
+    ).rejects.toThrow(/cursor chain/i);
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest: { ...finalManifest, dirtyGeneration: "1" },
+        rawVersions: [],
+        normalizedVersions: [],
+        candidates: [],
+      })
+    ).rejects.toThrow(/cursor chain/i);
+    await store.commitProviderPage({
+      run,
+      manifest: finalManifest,
+      rawVersions: [],
+      normalizedVersions: [],
+      candidates: [],
+    });
+    await expect(
+      store.completeProviderSync({
+        localReplicaId,
+        runId: run.id,
+        checkpoint: {
+          sourceConnectionId: binding.sourceConnectionId,
+          syncReplicaId: binding.syncReplicaId,
+          dataset: run.dataset,
+          completedRunId: run.id,
+          committedCursor: "2",
+          coverageMarker: "synthetic-v1",
+          dirtyGeneration: "0",
+          pageCount: 2,
+          recordCount: 1,
+          completedAt: "2026-08-01T12:00:04.000Z",
+        },
+      })
+    ).rejects.toThrow(/before every local page is acknowledged/i);
+    expect((await store.state()).datasetCheckpoints).toEqual([]);
+
+    await store.markProviderPageAcknowledged({
+      localReplicaId,
+      runId: run.id,
+      manifestId: manifest.id,
+      digest,
+      acknowledgedAt: "2026-08-01T12:00:03.000Z",
+    });
+    await store.markProviderPageAcknowledged({
+      localReplicaId,
+      runId: run.id,
+      manifestId: finalManifest.id,
+      digest: finalManifest.digest,
+      acknowledgedAt: "2026-08-01T12:00:03.500Z",
+    });
+    await expect(
+      store.completeProviderSync({
+        localReplicaId,
+        runId: run.id,
+        checkpoint: {
+          sourceConnectionId: binding.sourceConnectionId,
+          syncReplicaId: binding.syncReplicaId,
+          dataset: run.dataset,
+          completedRunId: "another-run",
+          committedCursor: "2",
+          coverageMarker: "synthetic-v1",
+          dirtyGeneration: "0",
+          pageCount: 2,
+          recordCount: 1,
+          completedAt: "2026-08-01T12:00:04.000Z",
+        },
+      })
+    ).rejects.toThrow(/does not belong/i);
+    expect((await store.state()).datasetCheckpoints).toEqual([]);
+    await store.completeProviderSync({
+      localReplicaId,
+      runId: run.id,
+      checkpoint: {
+        sourceConnectionId: binding.sourceConnectionId,
+        syncReplicaId: binding.syncReplicaId,
+        dataset: run.dataset,
+        completedRunId: run.id,
+        committedCursor: "2",
+        coverageMarker: "synthetic-v1",
+        dirtyGeneration: "0",
+        pageCount: 2,
+        recordCount: 1,
+        completedAt: "2026-08-01T12:00:04.000Z",
+      },
+    });
+    const completed = await store.state();
+    expect(completed.syncRuns[0].status).toBe("committed");
+    expect(completed.datasetCheckpoints).toEqual([
+      expect.objectContaining({ completedRunId: run.id, recordCount: 1 }),
+    ]);
+
+    const runB = {
+      ...run,
+      id: "run-2",
+      kind: "incremental" as const,
+      fence: "900719925474099312346",
+      startedAt: "2026-08-01T12:01:00.000Z",
+    };
+    const finalB = {
+      ...finalManifest,
+      id: "manifest-3",
+      runId: runB.id,
+      sequence: 0,
+      fence: runB.fence,
+      currentCursor: "2",
+      nextCursor: "2",
+      recordCount: 0,
+      digest: await accountingPageDigest([]),
+      coverageMarker: "synthetic-v2",
+    };
+    await store.commitProviderPage({
+      run: runB,
+      manifest: finalB,
+      rawVersions: [],
+      normalizedVersions: [],
+      candidates: [],
+    });
+    await store.markProviderPageAcknowledged({
+      localReplicaId,
+      runId: runB.id,
+      manifestId: finalB.id,
+      digest: finalB.digest,
+    });
+    await store.completeProviderSync({
+      localReplicaId,
+      runId: runB.id,
+      checkpoint: {
+        sourceConnectionId: binding.sourceConnectionId,
+        syncReplicaId: binding.syncReplicaId,
+        dataset: runB.dataset,
+        completedRunId: runB.id,
+        committedCursor: "2",
+        coverageMarker: "synthetic-v2",
+        dirtyGeneration: "0",
+        pageCount: 1,
+        recordCount: 0,
+        completedAt: "2026-08-01T12:01:04.000Z",
+      },
+    });
+    await expect(
+      store.completeProviderSync({
+        localReplicaId,
+        runId: run.id,
+        checkpoint: completed.datasetCheckpoints[0],
+      })
+    ).rejects.toThrow(/older or out-of-order/i);
+    expect((await store.state()).datasetCheckpoints[0]).toMatchObject({
+      completedRunId: runB.id,
+      coverageMarker: "synthetic-v2",
+    });
   });
 });

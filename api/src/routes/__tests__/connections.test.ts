@@ -7,12 +7,14 @@
 // whole-module mock pattern already used in itsa.test.ts.
 
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { HMRC_MODULE_LIST } from "@taxsorted/engine/uk/hmrc";
 
 const KEY = "a".repeat(64);
 
 afterEach(() => {
   vi.resetModules();
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   vi.doUnmock("../../db.js");
   vi.doUnmock("../../session.js");
   vi.doUnmock("../../hmrc.js");
@@ -66,6 +68,12 @@ function fakeConnectionsDb() {
     if (text.includes("select * from hmrc_connections")) {
       const [entityId] = values as string[];
       return Promise.resolve(rows.filter((r) => r.entity_id === entityId));
+    }
+    if (text.includes("delete from hmrc_connections")) {
+      const [entityId, rail] = values as string[];
+      const index = rows.findIndex((r) => r.entity_id === entityId && r.rail === rail);
+      if (index >= 0) rows.splice(index, 1);
+      return Promise.resolve([]);
     }
     throw new Error(`fakeConnectionsDb: unrecognized query — ${text}`);
   }
@@ -155,6 +163,110 @@ describe("the VAT/ITSA collision regression", () => {
     expect(itsaConn).not.toBeNull();
     expect(decrypt(vatConn!.access_token_enc as string, KEY)).toBe("vat-code-access");
     expect(decrypt(itsaConn!.access_token_enc as string, KEY)).toBe("itsa-code-access");
+  });
+});
+
+describe("rail-scoped disconnect", () => {
+  async function connectedApp() {
+    sandboxEnv();
+    const database = fakeConnectionsDb();
+    vi.doMock("../../db.js", () => ({ sql: database.sql }));
+    vi.doMock("../../session.js", () => ({
+      ownedEntity: vi.fn(async () => ({ id: "e1", vrn: "123456789", nino: "AA123456A" })),
+    }));
+    const fetchMock = vi.fn(
+      async (_input: unknown, _init?: { body?: unknown }) =>
+        new Response(null, { status: 200 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { storeConnection, getConnection } = await import("../../hmrc.js");
+    await storeConnection("e1", "vat", {
+      access_token: "vat-access",
+      refresh_token: "vat-refresh",
+      expires_in: 3600,
+      scope: "read:vat write:vat",
+    });
+    await storeConnection("e1", "itsa", {
+      access_token: "itsa-access",
+      refresh_token: "itsa-refresh",
+      expires_in: 3600,
+      scope: "read:self-assessment write:self-assessment",
+    });
+
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono().route("/v1/hmrc", connect);
+    return { app, fetchMock, getConnection };
+  }
+
+  it("revokes and deletes only the requested Income Tax connection", async () => {
+    const { app, fetchMock, getConnection } = await connectedApp();
+
+    const response = await app.request("/v1/hmrc/connection/e1?rail=itsa", {
+      method: "DELETE",
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ disconnected: true, rail: "itsa" });
+    expect(await getConnection("e1", "vat")).not.toBeNull();
+    expect(await getConnection("e1", "itsa")).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const revokedTokens = fetchMock.mock.calls.map(([, init]) =>
+      (init?.body as URLSearchParams).get("token")
+    );
+    expect(revokedTokens).toEqual(["itsa-access", "itsa-refresh"]);
+  });
+
+  it("defaults an old no-query disconnect request safely to VAT", async () => {
+    const { app, fetchMock, getConnection } = await connectedApp();
+
+    const response = await app.request("/v1/hmrc/connection/e1", { method: "DELETE" });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ disconnected: true, rail: "vat" });
+    expect(await getConnection("e1", "vat")).toBeNull();
+    expect(await getConnection("e1", "itsa")).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const revokedTokens = fetchMock.mock.calls.map(([, init]) =>
+      (init?.body as URLSearchParams).get("token")
+    );
+    expect(revokedTokens).toEqual(["vat-access", "vat-refresh"]);
+  });
+
+  it("rejects an unknown explicit rail without revoking or deleting either module", async () => {
+    const { app, fetchMock, getConnection } = await connectedApp();
+
+    const response = await app.request("/v1/hmrc/connection/e1?rail=corporation-tax", {
+      method: "DELETE",
+    });
+
+    expect(response.status).toBe(422);
+    expect(await response.json()).toEqual({
+      error: "invalid_rail",
+      message: "rail must be 'vat' or 'itsa'.",
+    });
+    expect(await getConnection("e1", "vat")).not.toBeNull();
+    expect(await getConnection("e1", "itsa")).not.toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /v1/hmrc/status", () => {
+  it("publishes the typed HMRC module list alongside rail configuration", async () => {
+    sandboxEnv();
+    const { Hono } = await import("hono");
+    const { connect } = await import("../connect.js");
+    const app = new Hono().route("/v1/hmrc", connect);
+
+    const response = await app.request("/v1/hmrc/status");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      configured: true,
+      env: "sandbox",
+      modules: HMRC_MODULE_LIST,
+    });
   });
 });
 

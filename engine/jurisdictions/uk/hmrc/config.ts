@@ -1,6 +1,8 @@
 // HMRC API Configuration
 // MTD VAT API v1.0
 
+import { HMRC_MODULES } from "./modules";
+
 // Single source of truth for the vendor version sent in the fraud-prevention
 // Gov-Vendor-Version header — engine, api, and frontend all read this one
 // constant so the strings can never drift apart again (was: engine "1.0.0"
@@ -38,8 +40,8 @@ export const HMRC_CONFIG = {
   // OAuth Scopes
   scopes: {
     vat: {
-      read: "read:vat",
-      write: "write:vat",
+      read: HMRC_MODULES.vat.scopes[0],
+      write: HMRC_MODULES.vat.scopes[1],
     },
   },
 
@@ -105,7 +107,7 @@ export function buildAuthorizationUrl(
   clientId: string,
   redirectUri: string,
   state: string,
-  scopes: string[] = ["read:vat", "write:vat"]
+  scopes: readonly string[] = HMRC_MODULES.vat.scopes
 ): string {
   const config = getHMRCConfig();
   const params = new URLSearchParams({

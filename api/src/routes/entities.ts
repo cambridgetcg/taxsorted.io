@@ -48,8 +48,7 @@ entities.get("/", async (c) => {
     entities: rows.map(({ vat_connected, itsa_connected, ...e }) => {
       const vat = Boolean(vat_connected);
       const itsa = Boolean(itsa_connected);
-      // Legacy `connected` = any rail — the VAT cockpit reads this and stays
-      // untouched; new callers should read `connections` instead.
+      // Legacy `connected` = any rail. Rail-specific callers use `connections`.
       return { ...e, connected: vat || itsa, connections: { vat, itsa } };
     }),
   });

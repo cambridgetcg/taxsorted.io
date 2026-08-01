@@ -107,6 +107,12 @@ export default function BooksPage() {
           >
             Start my books
           </Link>
+          <Link
+            href="/books/connect"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"
+          >
+            Bring existing records
+          </Link>
           <a
             href="#example"
             className="inline-flex min-h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-base font-medium text-ink transition-colors hover:bg-accent-soft"

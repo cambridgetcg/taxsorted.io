@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { createRecordsStore } from "@/lib/records";
 import {
   LOCAL_BOOKS_SCHEMA,
+  emptyLocalBooks,
   eventFromRecord,
   type LocalBooksState,
   type LocalLedger,
@@ -49,6 +50,7 @@ describe("dashboard client", () => {
     const ledgers = [confirmed("shop-a", "Shop A"), confirmed("shop-b", "Shop B")];
     const now = "2026-07-01T00:00:00.000Z";
     const state: LocalBooksState = {
+      ...emptyLocalBooks({ replicaId: "dashboard-test", createdAt: now }),
       schema: LOCAL_BOOKS_SCHEMA,
       storeRevision: 1,
       ledgers,

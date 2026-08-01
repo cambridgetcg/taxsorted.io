@@ -1123,7 +1123,7 @@ not VRN — the entity needs one before it can connect.
 > `write:self-assessment` was added keep their old read-only grant forever —
 > a token refresh never upgrades scope — so any pre-existing sandbox ITSA
 > connection must **disconnect and reconnect** (`DELETE
-/v1/hmrc/connection/<entityId>`, then the connect dance again) before it
+/v1/hmrc/connection/<entityId>?rail=itsa`, then the connect dance again) before it
 > can submit. Until it does, submissions fail with HMRC's insufficient-scope
 > 403, passed through verbatim in the sandbox error `detail`.
 
@@ -1267,7 +1267,7 @@ a human can complete step 3.
 > **If step 7 fails with a 403 naming `INVALID_SCOPE` or similar:** the
 > entity's ITSA connection predates the `write:self-assessment` scope (see
 > "After the write-scope deploy" above) — disconnect
-> (`DELETE /v1/hmrc/connection/<entityId>`) and redo the connect dance
+> (`DELETE /v1/hmrc/connection/<entityId>?rail=itsa`) and redo the connect dance
 > (step 3) before retrying. The sandbox error's `detail` names this
 > explicitly; that's `hmrcFail`'s sandbox-only passthrough doing its job.
 
@@ -1335,8 +1335,9 @@ an error log can never carry a taxpayer-identifying fragment either.
 today, and none is planned that reads the vault directly — the honest answer
 to "can we see a user's HMRC token to debug their connection" is no; the
 debugging path is the server log (scrubbed, as above) and, if that's not
-enough, disconnecting and reconnecting the rail (`DELETE
-/v1/hmrc/connection/<entityId>`, then the connect dance again) — the same
+enough, disconnecting and reconnecting the intended rail (`DELETE
+/v1/hmrc/connection/<entityId>?rail=vat` or `?rail=itsa`, then the matching
+connect dance again) — the same
 door the person themselves has.
 
 ## Supply-chain: the passkey libraries (G7)
@@ -1374,3 +1375,87 @@ re-pin exact, run all three suites (`engine`, `api`, `frontend`) plus
 typecheck, and only then commit. If a 14.x major ever appears, that is a
 deliberate upgrade decision (breaking-change review), not a routine patch
 bump.
+
+## Synthetic accounting connector proof
+
+The first accounting-provider API is deliberately made up. It proves selected
+organisation ownership, browser-replica isolation, fenced foreground sync,
+page acknowledgement and whole-run checkpoint promotion without OAuth,
+provider credentials, network access, customer data or a production connector.
+Its only organisation is **Mina's Card Studio (made-up)** and its fixed GBP bank
+transactions are source fixtures in `api/src/accounting-synthetic.ts`.
+
+It is closed by default. For a local API process only, opt in explicitly:
+
+```bash
+ACCOUNTING_SYNTHETIC_ENABLED=true npm run dev --workspace api
+```
+
+Run the frontend separately and open the deliberately unlisted development page:
+
+```bash
+npm run dev --workspace frontend
+```
+
+Then visit `http://localhost:3000/books/connect/demo`, sign in with a passkey, choose or create one
+account-owned TaxSorted profile, choose an activity and confirm the made-up-data notice. A first
+run saves three fictional records over two pages. A refresh from the same browser uses an
+incremental run only when the API and IndexedDB checkpoints match exactly.
+
+The fictional records live under the dedicated IndexedDB prefix
+`taxsorted-synthetic-accounting-demo:`. They never enter ordinary Starter Books. Use **Clear
+made-up browser data** on the demo page to delete only that namespaced local store and unlock the
+chosen profile/activity. This does not delete the account-owned TaxSorted profile or server-side
+sync-control metadata. The next run creates a fresh local replica ID, so it cannot inherit the old
+checkpoint.
+
+`NODE_ENV=production` always disables the synthetic provider, even when that
+variable is present. Do not put `ACCOUNTING_SYNTHETIC_ENABLED` in Fly secrets or
+`api/fly.toml`; this proof is not a production feature and does not establish
+OAuth, marketplace or customer-readiness.
+
+Two independent stops remain available. Any non-empty value other than exact
+`false` fails closed, including a misspelling:
+
+```bash
+ACCOUNTING_CONNECTORS_EMERGENCY_STOP=true
+ACCOUNTING_SYNC_EMERGENCY_STOP=true
+```
+
+The connector stop blocks new synthetic authorisations, organisation selection,
+replica creation and every forward sync operation. The sync stop leaves selection
+and local status alone but prevents lease acquisition or renewal, page delivery,
+acknowledgement and checkpoint completion. Status remains readable under both
+stops so a person can still see what is linked and what last completed. Exact
+run cancellation also remains available under both stops so cleanup never
+requires re-enabling a connector. Clearing a stop is a reviewed manual act;
+never clear one on a timer.
+
+`POST /v1/accounting/sync-runs/:id/cancel` takes the run's decimal `fence` and
+browser `localReplicaId`. It still requires the same passkey session and exact
+frontend `Origin` as every mutation. The transaction checks the exact user,
+device, local replica and fence without contacting the provider. It can cancel
+an active run after its lease expires or after its connection is stopped.
+Repeating the same cancellation is safe; if completion won the database row
+lock first, the completed run is returned unchanged. Other ended states and
+wrong bindings are rejected. The response's `changed` flag is true only when
+that request changed an active run to cancelled.
+
+Every route requires a current passkey-backed `userId`; a recovery-only session
+is not enough. Every mutation also requires an exact configured frontend
+`Origin`. Replicas are bound to the current host-only `ts_device` UUID, so two
+browsers signed into the same account cannot share a fence or checkpoint. The
+browser also sends a `localReplicaId` UUID kept with its local ledger. Clearing
+IndexedDB must create a new local ID; this produces a fresh server replica and
+cannot inherit a checkpoint for local records that no longer exist. Repeating
+creation with the same source, device and local ID is idempotent, and a retired
+replica is never revived.
+
+Postgres stores only authorisation labels, the deliberately selected
+organisation, leases, page manifests and completed checkpoints. It stores no
+synthetic record body. Fences and dirty generations cross JSON as decimal
+strings so Postgres `bigint` values are never rounded by JavaScript.
+
+To stop a local proof immediately, end the API process. To exercise a configured
+stop, restart it with either emergency-stop variable above and verify that sync
+POSTs return `503` without advancing a manifest or checkpoint.

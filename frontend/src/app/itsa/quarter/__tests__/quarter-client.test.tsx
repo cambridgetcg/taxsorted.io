@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import type { ApiEntity } from "@/lib/api";
 import {
   LOCAL_BOOKS_SCHEMA,
+  emptyLocalBooks,
   type LocalBooksState,
   type LocalLedger,
 } from "@/lib/local-books";
@@ -80,6 +81,7 @@ function ledger(overrides: Partial<LocalLedger> = {}): LocalLedger {
 
 function books(localLedger: LocalLedger, storeRevision = 1): LocalBooksState {
   return {
+    ...emptyLocalBooks({ replicaId: "quarter-test", createdAt: "2026-07-01T00:00:00.000Z" }),
     schema: LOCAL_BOOKS_SCHEMA,
     storeRevision,
     ledgers: [localLedger],
@@ -131,6 +133,14 @@ describe("QuarterClient ledger links", () => {
     expect(
       screen.getAllByText(/sending is locked until this local book is explicitly linked/i).length
     ).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: /digital records and links/i })).toHaveAttribute(
+      "href",
+      "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/create-digital-records",
+    );
+    expect(screen.getByRole("link", { name: /what a quarterly update sends/i })).toHaveAttribute(
+      "href",
+      "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/send-quarterly-updates",
+    );
   });
 
   it("requires explicit entity and HMRC business choices, then keeps scope locked", async () => {

@@ -4,7 +4,9 @@ import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { config, assertBootConfig } from "./config.js";
 import { apiCors } from "./cors.js";
-import { migrate } from "./db.js";
+import { migrate, sql } from "./db.js";
+import { AccountingService, type AccountingSql } from "./accounting.js";
+import { syntheticAccountingProvider } from "./accounting-synthetic.js";
 import { registerDeveloperApi } from "./developer-api.js";
 import { apiErrorHandler } from "./error-handler.js";
 import { requestId } from "./request-id.js";
@@ -16,6 +18,7 @@ import { vat } from "./routes/vat.js";
 import { itsa } from "./routes/itsa.js";
 import { itsaSubmit } from "./routes/itsa-submit.js";
 import { account } from "./routes/account.js";
+import { createAccountingRoutes } from "./routes/accounting.js";
 import { createUkPoliticsRoutes } from "./routes/uk-politics.js";
 import { createOpenDataRoutes } from "./routes/open-data.js";
 import { createUkTaxIndustryRoutes } from "./routes/uk-tax-industry.js";
@@ -184,7 +187,13 @@ registerDeveloperApi(app, config.apiOrigin);
 // Browser identity belongs only to these existing human-facing route trees.
 // A new public or machine route therefore cannot start setting cookies merely
 // because its path happens to begin with /v1.
-for (const base of ["/v1/entities", "/v1/hmrc", "/v1/itsa", "/v1/account"]) {
+for (const base of [
+  "/v1/entities",
+  "/v1/hmrc",
+  "/v1/itsa",
+  "/v1/account",
+  "/v1/accounting",
+]) {
   app.use(base, session);
   app.use(`${base}/*`, session);
 }
@@ -194,6 +203,18 @@ app.route("/v1/hmrc", connect);
 app.route("/v1/itsa", itsa);
 app.route("/v1/itsa", itsaSubmit);
 app.route("/v1/account", account);
+app.route(
+  "/v1/accounting",
+  createAccountingRoutes({
+    service: new AccountingService(sql as unknown as AccountingSql, [
+      syntheticAccountingProvider,
+    ]),
+    allowedOrigins: config.corsOrigins,
+    syntheticEnabled: config.accounting.syntheticEnabled,
+    connectorEmergencyStop: config.accounting.connectorEmergencyStop,
+    syncEmergencyStop: config.accounting.syncEmergencyStop,
+  }),
+);
 
 app.notFound(noSuchDoorProblem);
 app.onError(apiErrorHandler);

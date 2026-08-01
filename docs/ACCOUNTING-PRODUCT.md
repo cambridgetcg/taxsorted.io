@@ -82,16 +82,53 @@ is not accounting income, a refund or a promise about the learner's tax.
 - TaxSorted does not claim to replace professional advice when the facts exceed a tool's
   stated scope.
 
+## Connections are boundaries
+
+Accounting providers supply source records. TaxSorted owns review, explanation and tax mapping.
+HMRC supplies obligations, authority responses and receipts. A connected provider is never proof
+that the books are complete or reconciled, and an HMRC connection is never permission to file
+silently.
+
+The connector foundation remains local-first. The working made-up proof stores only account-owned
+selection and sync-control metadata on the API server; each browser keeps its local-ledger binding,
+raw provider versions, normalized records and reviewed books. A real provider will also need an
+encrypted, versioned token vault before its OAuth door can open. A page becomes resumable only
+after its exact manifest is acknowledged under the current server fencing token; complete coverage
+advances only after the whole dataset run commits. Future webhooks mark every local replica as
+needing refresh; they do not silently build a second cloud ledger. Shared cloud books would be a
+later, explicit custody choice.
+
+The proof is visible at `/books/connect/demo` in local development. It requires a full passkey
+session, one explicit entity and activity choice, and an explicit acknowledgement that all provider
+records are fictional. Those records live in a separate browser demo store and never enter ordinary
+Starter Books. Its Stop button releases the exact fenced server run at a protocol boundary; a
+partial run can never become the completed checkpoint. A later incremental run is allowed only when
+the API and this browser hold exactly the same previous checkpoint. If the server completed but the
+last browser write was interrupted, TaxSorted reconstructs that local checkpoint only after
+re-hashing the fully acknowledged raw pages. A narrowly scoped clear button removes only the made-up
+browser store and creates a fresh replica identity on the next run.
+
+Accountant and practice channels wait for separate client workspaces, roles, authority records and
+per-client storage/export isolation. Permission to read a client's provider records is not HMRC
+filing authority.
+
+The provider-neutral contract, industry evidence, HMRC module split and source-to-receipt flow are
+kept in [ACCOUNTING-INTEGRATIONS.md](ACCOUNTING-INTEGRATIONS.md).
+
 ## Build order
 
 1. Make Starter Books a first-class front door.
 2. Add evidence attachments with clear local/export/storage rules.
 3. Add bank reconciliation and separate ledgers for separate businesses.
-4. Add a real chart of accounts and balanced double-entry journal.
-5. Derive profit and loss and balance sheet from that ledger.
-6. Add year-end adjustments with an explicit review trail.
-7. Add the UK limited-company accounts and Corporation Tax path.
-8. Add production filing only after recognition, deliberate approval and tested receipts.
+4. Prove the provider-neutral connection, local-page acknowledgement and sync-run history with a
+   made-up adapter and no credentials or network access. **Working in local development.**
+5. Add the privacy, token-vault, deletion, incident and reconciliation gates a real provider needs.
+6. Prove one read-only Xero adapter through the existing Money Inbox review boundary.
+7. Add a real chart of accounts and balanced double-entry journal.
+8. Derive profit and loss and balance sheet from that ledger.
+9. Add year-end adjustments with an explicit review trail.
+10. Add the UK limited-company accounts and separate Corporation Tax XML path.
+11. Add production filing only after recognition, deliberate approval and tested receipts.
 
 Each step must be useful alone and leave an off-switch. No step may claim the next one is
 already complete.

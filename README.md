@@ -33,6 +33,9 @@ The site keeps its depth, but the way in is deliberately small:
 
 - **`/books` — Start my books.** See the live UK scope, play one transaction from
   evidence through accounting and tax, then open the browser-local Starter Books workspace.
+- **`/books/connect` — Bring records to tax.** Import a CSV now, inspect the planned Xero,
+  QuickBooks, FreeAgent and Sage bridges, or follow neutral links to official software plans.
+  Accounting sources and HMRC modules remain separate boundaries.
 - **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
   narrowest current check, record tool or guide. This routing step asks for no tax identifier and
   does not calculate or file anything itself.
@@ -60,7 +63,8 @@ or a second copy of the datasets.
 
 The product model is documented in [`docs/ACCOUNTING-PRODUCT.md`](docs/ACCOUNTING-PRODUCT.md):
 evidence → event → books → accounts → tax → filing. The interface may collapse layers; it
-must never erase them.
+must never erase them. The deeper provider architecture and working made-up local proof are in
+[`docs/ACCOUNTING-INTEGRATIONS.md`](docs/ACCOUNTING-INTEGRATIONS.md).
 
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →
@@ -255,6 +259,9 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 ## Documentation
 
 - [`research/README.md`](research/README.md) — the open book's index
+- [`docs/ACCOUNTING-INTEGRATIONS.md`](docs/ACCOUNTING-INTEGRATIONS.md) — the provider-neutral
+  source → review → reconciliation → tax module → HMRC receipt architecture, current industry
+  boundaries and delivery order
 - [`research/uk/filing/README.md`](research/uk/filing/README.md) — every UK filing
   obligation: forms, deadline formulas, penalties, API specs, submission workflow
 - [`research/uk/personal-tax/README.md`](research/uk/personal-tax/README.md) — UK personal-tax optimisation playbook (玩爆英國個税), source ledger, and safe boundaries

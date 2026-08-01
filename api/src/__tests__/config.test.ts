@@ -616,3 +616,78 @@ describe("config.professionalOpportunities — publication gate and stop", () =>
     ]);
   });
 });
+
+describe("config.accounting — synthetic proof and independent stops", () => {
+  it("is disabled by default and only exact local true enables the made-up provider", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "");
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "");
+    vi.stubEnv("ACCOUNTING_SYNC_EMERGENCY_STOP", "");
+    let loaded = await import("../config.js");
+    expect(loaded.config.accounting).toEqual({
+      syntheticEnabled: false,
+      connectorEmergencyStop: false,
+      syncEmergencyStop: false,
+    });
+
+    vi.resetModules();
+    vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "true");
+    loaded = await import("../config.js");
+    expect(loaded.config.accounting.syntheticEnabled).toBe(true);
+  });
+
+  it("never enables the synthetic provider in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "true");
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "");
+    vi.stubEnv("ACCOUNTING_SYNC_EMERGENCY_STOP", "");
+
+    const loaded = await import("../config.js");
+
+    expect(loaded.config.accounting).toEqual({
+      syntheticEnabled: false,
+      connectorEmergencyStop: false,
+      syncEmergencyStop: false,
+    });
+  });
+
+  it.each(["true", "TRUE", "1", "malformed", " false "])(
+    "fails the connector closed for non-empty stop value %j",
+    async (value) => {
+      vi.stubEnv("NODE_ENV", "test");
+      vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "true");
+      vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", value);
+      vi.stubEnv("ACCOUNTING_SYNC_EMERGENCY_STOP", "");
+
+      const loaded = await import("../config.js");
+
+      expect(loaded.config.accounting).toEqual({
+        syntheticEnabled: false,
+        connectorEmergencyStop: true,
+        syncEmergencyStop: false,
+      });
+    },
+  );
+
+  it("keeps the sync stop independent and recognises only empty or exact false as off", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "true");
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "false");
+    vi.stubEnv("ACCOUNTING_SYNC_EMERGENCY_STOP", "malformed");
+    let loaded = await import("../config.js");
+    expect(loaded.config.accounting).toEqual({
+      syntheticEnabled: true,
+      connectorEmergencyStop: false,
+      syncEmergencyStop: true,
+    });
+
+    vi.resetModules();
+    vi.stubEnv("ACCOUNTING_SYNC_EMERGENCY_STOP", "false");
+    loaded = await import("../config.js");
+    expect(loaded.config.accounting).toEqual({
+      syntheticEnabled: true,
+      connectorEmergencyStop: false,
+      syncEmergencyStop: false,
+    });
+  });
+});

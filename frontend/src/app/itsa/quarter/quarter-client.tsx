@@ -226,6 +226,38 @@ export default function QuarterClient() {
               If another product will file them, use a compatible structured CSV or API transfer.
               Copying or retyping totals is not a digital link.
             </p>
+            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              <li>
+                <a
+                  href="https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/create-digital-records"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-accent underline underline-offset-4"
+                >
+                  GOV.UK — digital records and links ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/send-quarterly-updates"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-accent underline underline-offset-4"
+                >
+                  GOV.UK — what a quarterly update sends ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/submit-your-tax-return"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="font-medium text-accent underline underline-offset-4"
+                >
+                  GOV.UK — the later tax-return flow ↗
+                </a>
+              </li>
+            </ul>
           </div>
 
           <div className="mt-8 space-y-6">

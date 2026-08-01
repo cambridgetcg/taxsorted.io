@@ -8,8 +8,51 @@ import {
   type Pence,
   type SourceType,
 } from "@taxsorted/engine/uk/itsa";
+import type { PageManifest, SyncRunKind } from "@taxsorted/engine/accounting-sync";
 
-export const LOCAL_BOOKS_SCHEMA = "taxsorted.local-books/2" as const;
+export const LEGACY_LOCAL_BOOKS_SCHEMA = "taxsorted.local-books/2" as const;
+export const LOCAL_BOOKS_SCHEMA = "taxsorted.local-books/3" as const;
+
+export type AccountingProvider =
+  | "synthetic"
+  | "xero"
+  | "quickbooks"
+  | "freeagent"
+  | "sage-accounting-uk";
+
+export type ProviderEnvironment = "demo" | "sandbox" | "production";
+
+export interface ProviderRecordIdentity {
+  provider: AccountingProvider;
+  environment: ProviderEnvironment;
+  organisationId: string;
+  objectType: string;
+  objectId: string;
+}
+
+export interface ProviderOriginNamespace {
+  provider: AccountingProvider;
+  environment: ProviderEnvironment;
+  organisationId: string;
+  objectType: string;
+}
+
+export type CapabilityObservationState =
+  | "available"
+  | "partial"
+  | "unavailable"
+  | "permission-missing"
+  | "unknown"
+  | "degraded"
+  | "disabled";
+
+export interface CapabilityObservation {
+  capability: string;
+  state: CapabilityObservationState;
+  observedAt: string;
+  limitation?: string;
+  recovery?: string;
+}
 
 export type ReviewState = "needs-review" | "ready" | "excluded";
 
@@ -37,14 +80,17 @@ export interface TaxPosting {
 }
 
 export interface EventOrigin {
-  kind: "manual" | "bank-csv" | "cambridge-tcg" | "legacy";
+  kind: "manual" | "bank-csv" | "cambridge-tcg" | "legacy" | "accounting-provider";
   /** A bank account, Cambridge account or other source namespace when known. */
   accountScope?: string;
   /** Stable inside the source namespace. */
   externalId?: string;
   label?: string;
   row?: number;
-  sourceRevision?: number;
+  /** Provider revisions are opaque. Never parse a Xero timestamp or QuickBooks SyncToken as a number. */
+  sourceRevision?: string;
+  /** Required when kind is accounting-provider. The object ID remains externalId. */
+  provider?: ProviderOriginNamespace;
 }
 
 export interface EventSuggestion {
@@ -104,13 +150,133 @@ export interface ImportConflict {
   candidate: ImportCandidate;
 }
 
+export interface LocalBooksReplica {
+  /** Fresh for this browser store. A restored export must replace it. */
+  id: string;
+  createdAt: string;
+}
+
+export interface ProviderLedgerBinding {
+  sourceConnectionId: string;
+  /** The account-owned TaxSorted entity selected when the server source was created. */
+  entityId: string;
+  /** Server-created sync replica for this one source connection. */
+  syncReplicaId: string;
+  provider: AccountingProvider;
+  environment: ProviderEnvironment;
+  organisationId: string;
+  organisationName: string;
+  ledgerId: string;
+  state: "active" | "paused" | "disconnected";
+  boundAt: string;
+  capabilities: CapabilityObservation[];
+}
+
+export interface RawProviderRecordVersion {
+  id: string;
+  identity: ProviderRecordIdentity;
+  payloadDigest: string;
+  providerRevision?: string;
+  sourceUpdatedAt?: string;
+  observedAt: string;
+  deleted: boolean;
+  /** Provider truth before TaxSorted interpretation. Provider tokens never belong here. */
+  payload: unknown;
+}
+
+export interface NormalizedProviderRecordVersion {
+  id: string;
+  rawVersionId: string;
+  mapperVersion: string;
+  kind: string;
+  occurredOn?: string;
+  amountPence?: number;
+  currency?: string;
+  direction?: "in" | "out";
+  description?: string;
+  /** The tax-facing suggestion emitted beside this provider-neutral observation. */
+  suggestedCategory?: string;
+  suggestedKind?: "income" | "expense";
+  activity?: SourceType;
+  candidateContentDigest?: string;
+  limitations: string[];
+  candidateExternalId?: string;
+  mappedEventId?: string;
+}
+
+/** Shared control-plane manifest persisted beside the local page commit. */
+export type ProviderPageManifest = PageManifest;
+
+export interface LocalSyncPage {
+  /** The complete API-issued proof, kept beside the page's local effects. */
+  manifest: ProviderPageManifest;
+  committedAt: string;
+  acknowledgedAt?: string;
+  rawVersionIds: string[];
+  normalizedVersionIds: string[];
+  summary: {
+    added: number;
+    duplicates: number;
+    conflicts: number;
+  };
+}
+
+export interface LocalSyncRun {
+  id: string;
+  sourceConnectionId: string;
+  syncReplicaId: string;
+  dataset: string;
+  kind: SyncRunKind;
+  fence: string;
+  /** Checkpoint observed when the first page was committed; absent only on pre-guard local data. */
+  baseCompletedRunId?: string | null;
+  status: "fetching" | "staged" | "committed" | "failed" | "cancelled";
+  startedAt: string;
+  pages: LocalSyncPage[];
+  finishedAt?: string;
+  error?: { code: string; message: string; recovery: string };
+}
+
+export interface DatasetCheckpoint {
+  sourceConnectionId: string;
+  syncReplicaId: string;
+  dataset: string;
+  completedRunId: string;
+  committedCursor: string;
+  coverageMarker: string;
+  dirtyGeneration: string;
+  pageCount: number;
+  completedAt: string;
+  recordCount: number;
+}
+
+export interface ProviderConflictCase {
+  id: string;
+  kind: "changed-source" | "deleted-source" | "possible-duplicate" | "mapping-change";
+  status: "open" | "resolved";
+  openedAt: string;
+  sourceKey: string;
+  sourceIdentity?: ProviderRecordIdentity;
+  existingEventId?: string;
+  candidate?: ImportCandidate;
+  resolvedAt?: string;
+  resolution?: string;
+}
+
 export interface LocalBooksState {
   schema: typeof LOCAL_BOOKS_SCHEMA;
   storeRevision: number;
+  replica: LocalBooksReplica;
   ledgers: LocalLedger[];
   events: AccountingEvent[];
   history: EventRevision[];
   imports: ImportBatch[];
+  providerBindings: ProviderLedgerBinding[];
+  rawProviderVersions: RawProviderRecordVersion[];
+  normalizedProviderVersions: NormalizedProviderRecordVersion[];
+  syncRuns: LocalSyncRun[];
+  datasetCheckpoints: DatasetCheckpoint[];
+  conflictCases: ProviderConflictCase[];
 }
 
 export interface ImportCandidate {
@@ -121,15 +287,37 @@ export interface ImportCandidate {
   reviewNote?: string;
 }
 
-export function emptyLocalBooks(): LocalBooksState {
+export function emptyLocalBooks(
+  options: { replicaId?: string; createdAt?: string } = {}
+): LocalBooksState {
   return {
     schema: LOCAL_BOOKS_SCHEMA,
     storeRevision: 0,
+    replica: {
+      id: options.replicaId ?? crypto.randomUUID(),
+      createdAt: options.createdAt ?? new Date().toISOString(),
+    },
     ledgers: [],
     events: [],
     history: [],
     imports: [],
+    providerBindings: [],
+    rawProviderVersions: [],
+    normalizedProviderVersions: [],
+    syncRuns: [],
+    datasetCheckpoints: [],
+    conflictCases: [],
   };
+}
+
+export function providerRecordIdentityKey(identity: ProviderRecordIdentity): string {
+  return JSON.stringify([
+    identity.provider,
+    identity.environment,
+    identity.organisationId,
+    identity.objectType,
+    identity.objectId,
+  ]);
 }
 
 export function primaryLedgerId(activity: SourceType): string {
@@ -228,7 +416,7 @@ export function migrateLegacyRecords(
   records: LedgerRecord[],
   migratedAt: string
 ): LocalBooksState {
-  const state = emptyLocalBooks();
+  const state = emptyLocalBooks({ createdAt: migratedAt });
   state.storeRevision = 1;
 
   for (const record of records) {
@@ -251,6 +439,13 @@ export function migrateLegacyRecords(
 
 export function exactOriginKey(event: Pick<AccountingEvent, "origin">): string | null {
   if (!event.origin.externalId) return null;
+  if (event.origin.kind === "accounting-provider") {
+    if (!event.origin.provider) return null;
+    return providerRecordIdentityKey({
+      ...event.origin.provider,
+      objectId: event.origin.externalId,
+    });
+  }
   return [
     event.origin.kind,
     event.origin.accountScope ?? "",
@@ -279,6 +474,20 @@ export function validateAccountingEvent(event: AccountingEvent, ledgers: LocalLe
     throw new Error("invalid review state");
   }
   if (!event.contentDigest) throw new Error("accounting event needs a content digest");
+  if (event.origin.sourceRevision !== undefined && typeof event.origin.sourceRevision !== "string") {
+    throw new Error("source revision must be an opaque string");
+  }
+  if (event.origin.kind === "accounting-provider") {
+    if (!event.origin.externalId || !event.origin.provider) {
+      throw new Error("provider event needs a complete source identity");
+    }
+    const identity = { ...event.origin.provider, objectId: event.origin.externalId };
+    if (Object.values(identity).some((part) => typeof part !== "string" || part.length === 0)) {
+      throw new Error("provider event needs a complete source identity");
+    }
+  } else if (event.origin.provider) {
+    throw new Error("only provider events may carry a provider namespace");
+  }
   const ledger = ledgers.find((candidate) => candidate.id === event.ledgerId);
   if (!ledger) throw new Error(`unknown ledger: '${event.ledgerId}'`);
   if (event.postings.length === 0) throw new Error("accounting event needs at least one posting");
@@ -336,9 +545,17 @@ export function isLocalBooksState(value: unknown): value is LocalBooksState {
   return (
     candidate.schema === LOCAL_BOOKS_SCHEMA &&
     Number.isInteger(candidate.storeRevision) &&
+    typeof candidate.replica?.id === "string" &&
+    typeof candidate.replica?.createdAt === "string" &&
     Array.isArray(candidate.ledgers) &&
     Array.isArray(candidate.events) &&
     Array.isArray(candidate.history) &&
-    Array.isArray(candidate.imports)
+    Array.isArray(candidate.imports) &&
+    Array.isArray(candidate.providerBindings) &&
+    Array.isArray(candidate.rawProviderVersions) &&
+    Array.isArray(candidate.normalizedProviderVersions) &&
+    Array.isArray(candidate.syncRuns) &&
+    Array.isArray(candidate.datasetCheckpoints) &&
+    Array.isArray(candidate.conflictCases)
   );
 }

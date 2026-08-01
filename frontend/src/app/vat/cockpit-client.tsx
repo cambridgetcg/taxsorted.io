@@ -165,8 +165,8 @@ function EntityPicker() {
                       <span className="font-medium text-ink">{e.name}</span>{" "}
                       <span className="text-sm text-ink-soft">({e.kind})</span>
                     </span>
-                    <Badge variant={e.connected ? "success" : "outline"}>
-                      {e.connected ? "connected" : "not connected"}
+                    <Badge variant={e.connections.vat ? "success" : "outline"}>
+                      {e.connections.vat ? "VAT connected" : "VAT not connected"}
                     </Badge>
                   </Link>
                 </li>
@@ -240,7 +240,7 @@ function EntityCockpit({
   const applyEntity = useCallback(async (nextEntity: ApiEntity) => {
     setEntity(nextEntity);
     api.submissions(entityId).then((r) => setSubmissions(r.submissions)).catch(() => {});
-    if (nextEntity.connected) {
+    if (nextEntity.connections.vat) {
       setObligationsError(null);
       try {
         const data = await api.obligations(entityId);
@@ -253,6 +253,9 @@ function EntityCockpit({
             : "Could not reach HMRC just now — press Refresh in a moment."
         );
       }
+    } else {
+      setObligations(null);
+      setObligationsError(null);
     }
   }, [entityId]);
 
@@ -314,7 +317,7 @@ function EntityCockpit({
           <p className="text-base text-ink-soft">
             {entity.kind}
             {entity.vrn ? ` · VAT number ${entity.vrn}` : " · no VAT number yet"}
-            {entity.connected ? ` · connected (${entity.hmrc_env})` : ""}
+            {entity.connections.vat ? ` · VAT connected (${entity.hmrc_env})` : ""}
           </p>
         </div>
         <div className="flex gap-2">
@@ -328,7 +331,7 @@ function EntityCockpit({
         </div>
       </div>
 
-      {!entity.connected ? (
+      {!entity.connections.vat ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -408,7 +411,7 @@ function EntityCockpit({
               type="button"
               className="underline hover:text-ink"
               onClick={async () => {
-                await api.disconnect(entity.id).catch(() => {});
+                await api.disconnect(entity.id, "vat").catch(() => {});
                 await refresh();
               }}
             >

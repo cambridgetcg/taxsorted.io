@@ -52,7 +52,7 @@ describe('csv import', () => {
     expect(row.record).toEqual(expect.objectContaining({ category: 'turnover' }))
     expect(row.record).not.toHaveProperty('origin')
     expect(row.importDetails?.origin).toMatchObject({
-      kind: 'bank-csv', accountScope: 'csv:abc', externalId: 'abc:row-2', label: 'bank.csv', row: 2,
+      kind: 'bank-csv', accountScope: 'csv:abc', externalId: 'abc:row-2', label: 'bank.csv', row: 2, sourceRevision: '1',
     })
     expect(row.importDetails?.contentDigest).toContain('"date":"2026-05-13"')
     expect(row.importDetails?.contentDigest).toContain('"amount":50000')

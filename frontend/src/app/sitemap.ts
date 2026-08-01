@@ -12,6 +12,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths: Array<[string, number]> = [
     ["/", 1],
     ["/books/", 1],
+    ["/books/connect/", 0.9],
     ["/checkup/", 1],
     ["/passport/", 1],
     ["/about/", 0.6],

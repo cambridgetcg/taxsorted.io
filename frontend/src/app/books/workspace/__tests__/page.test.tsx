@@ -30,6 +30,41 @@ function emptyBooks() {
   };
 }
 
+function readyBooks() {
+  return {
+    schema: "taxsorted.local-books/2",
+    storeRevision: 3,
+    ledgers: [
+      {
+        id: "ledger:self-employment:primary",
+        name: "My first business",
+        activity: "self-employment",
+        scopeState: "confirmed",
+        scopeConfirmedAt: "2026-07-31T12:05:00.000Z",
+      },
+    ],
+    events: [
+      {
+        id: "event-ready",
+        ledgerId: "ledger:self-employment:primary",
+        revision: 1,
+        reviewState: "ready",
+        occurredOn: "2026-07-31",
+        cash: { amount: 1250, currency: "GBP", direction: "in" },
+        postings: [
+          { kind: "income", category: "turnover", amount: 1250, effect: "increase" },
+        ],
+        origin: { kind: "manual" },
+        contentDigest: "digest-ready",
+        createdAt: "2026-07-31T12:00:00.000Z",
+        updatedAt: "2026-07-31T12:00:00.000Z",
+      },
+    ],
+    history: [],
+    imports: [],
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   store.state.mockResolvedValue(emptyBooks());
@@ -96,6 +131,29 @@ describe("Books workspace entry", () => {
 
     expect(screen.getByRole("radio", { name: /UK property/i })).toBeChecked();
     expect(screen.getByRole("radio", { name: /Self-employment/i })).not.toBeChecked();
+  });
+
+  it("opens the requested real start from the connection guide", async () => {
+    window.history.replaceState({}, "", "/books/workspace?start=csv");
+    render(<BooksWorkspacePage />);
+
+    const csvHeading = await screen.findByRole("heading", { name: "Import bank movements" });
+    await waitFor(() => expect(csvHeading).toHaveFocus());
+    expect(screen.getByRole("button", { name: "Import a CSV" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    expect(screen.getByLabelText("CSV file")).toBeVisible();
+  });
+
+  it("hands reviewed and scope-confirmed books to the quarter and full filing path", async () => {
+    store.state.mockResolvedValue(readyBooks());
+    render(<BooksWorkspacePage />);
+
+    expect(await screen.findByRole("link", { name: /review this Income Tax quarter/i }))
+      .toHaveAttribute("href", "/itsa/quarter");
+    expect(screen.getByRole("link", { name: /full records-to-receipt path/i }))
+      .toHaveAttribute("href", "/books/connect");
   });
 
   it("keeps focus and a visible success message after the first record is added", async () => {

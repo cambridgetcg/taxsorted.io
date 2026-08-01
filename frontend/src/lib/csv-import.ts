@@ -392,7 +392,7 @@ export function toRecords(
                 externalId,
                 label: context.fileName,
                 row: rowNumber,
-                sourceRevision: 1,
+                sourceRevision: "1",
               },
               contentDigest,
               suggestion: { basis: suggestionBasis, limitation: suggestion.limitation },

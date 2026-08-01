@@ -5,6 +5,7 @@
   "type": "module",
   "description": "One engine; every country is rules, dates and words plugged into it.",
   "exports": {
+    "./accounting-sync": "./core/accounting-sync.ts",
     "./why-graph": "./core/index.ts",
     "./why-graph-test": "./core/testing/why-graph-adopter-contract.ts",
     "./uk/identity": "./jurisdictions/uk/identity/index.ts",

@@ -113,6 +113,18 @@ describe("api client — fraud-header piggyback (fraud: true calls)", () => {
   });
 });
 
+describe("api client — HMRC module disconnect", () => {
+  it.each(["vat", "itsa"] as const)("sends the requested %s rail explicitly", async (rail) => {
+    const fetchMock = mockFetchOnce({ disconnected: true, rail });
+
+    await api.disconnect("entity-1", rail);
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`http://localhost:8787/v1/hmrc/connection/entity-1?rail=${rail}`);
+    expect(init.method).toBe("DELETE");
+  });
+});
+
 // Task 12 — the ten typed account doors. Endpoint shapes are the plan's
 // (docs/superpowers/plans/2026-07-07-m2-accounts.md, "## Endpoints") verbatim;
 // each test pins path + method + body + credentials so a future refactor
@@ -275,6 +287,142 @@ describe("api client — account doors", () => {
     expect(init.method).toBe("POST");
     expect(init.body).toBeUndefined();
     expect(init.credentials).toBe("include");
+  });
+});
+
+describe("api client — accounting-source bridge", () => {
+  it("uses the exact provider-neutral doors, bodies and browser credentials", async () => {
+    const fetchMock = mockFetchOnce({});
+
+    await api.startSyntheticAccountingAuthorisation();
+    await api.listAccountingOrganisations("authorisation-1");
+    await api.createAccountingSourceConnection({
+      authorisationId: "authorisation-1",
+      entityId: "entity-1",
+      organisationId: "organisation-1",
+    });
+    await api.accountingSourceStatus("source-1", "local-replica-1");
+    await api.createAccountingReplica("source-1", { localReplicaId: "local-replica-1" });
+    await api.startAccountingSyncRun("source-1", {
+      replicaId: "replica-1",
+      localReplicaId: "local-replica-1",
+      expectedCompletedRunId: null,
+      dataset: "bank-transactions",
+      kind: "initial",
+    });
+    await api.renewAccountingSyncLease("run-1", "90071992547409930001", "local-replica-1");
+    await api.pullAccountingSyncPage(
+      "run-1",
+      "bank-transactions",
+      "90071992547409930001",
+      "local-replica-1"
+    );
+    await api.acknowledgeAccountingSyncPage("run-1", {
+      fence: "90071992547409930001",
+      manifestId: "manifest-1",
+      runId: "run-1",
+      replicaId: "replica-1",
+      dataset: "bank-transactions",
+      sequence: 0,
+      digest: `sha256:${"a".repeat(64)}`,
+      localReplicaId: "local-replica-1",
+    });
+    await api.completeAccountingSyncRun("run-1", "90071992547409930001", "local-replica-1");
+    await api.cancelAccountingSyncRun("run-1", "90071992547409930001", "local-replica-1");
+
+    const calls = fetchMock.mock.calls.map(([url, init]) => ({
+      url,
+      method: init.method ?? "GET",
+      body: init.body === undefined ? undefined : JSON.parse(init.body as string),
+      credentials: init.credentials,
+    }));
+    expect(calls).toEqual([
+      {
+        url: "http://localhost:8787/v1/accounting/authorisations/synthetic/start",
+        method: "POST",
+        body: {},
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/authorisations/authorisation-1/organisations",
+        method: "GET",
+        body: undefined,
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/source-connections",
+        method: "POST",
+        body: {
+          authorisationId: "authorisation-1",
+          entityId: "entity-1",
+          organisationId: "organisation-1",
+        },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/source-connections/source-1/status?localReplicaId=local-replica-1",
+        method: "GET",
+        body: undefined,
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/source-connections/source-1/replicas",
+        method: "POST",
+        body: { localReplicaId: "local-replica-1" },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/source-connections/source-1/sync-runs",
+        method: "POST",
+        body: {
+          replicaId: "replica-1",
+          localReplicaId: "local-replica-1",
+          expectedCompletedRunId: null,
+          dataset: "bank-transactions",
+          kind: "initial",
+        },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/sync-runs/run-1/lease",
+        method: "POST",
+        body: { fence: "90071992547409930001", localReplicaId: "local-replica-1" },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/sync-runs/run-1/pages/bank-transactions",
+        method: "POST",
+        body: { fence: "90071992547409930001", localReplicaId: "local-replica-1" },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/sync-runs/run-1/acknowledgements",
+        method: "POST",
+        body: {
+          fence: "90071992547409930001",
+          manifestId: "manifest-1",
+          runId: "run-1",
+          replicaId: "replica-1",
+          dataset: "bank-transactions",
+          sequence: 0,
+          digest: `sha256:${"a".repeat(64)}`,
+          localReplicaId: "local-replica-1",
+        },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/sync-runs/run-1/complete",
+        method: "POST",
+        body: { fence: "90071992547409930001", localReplicaId: "local-replica-1" },
+        credentials: "include",
+      },
+      {
+        url: "http://localhost:8787/v1/accounting/sync-runs/run-1/cancel",
+        method: "POST",
+        body: { fence: "90071992547409930001", localReplicaId: "local-replica-1" },
+        credentials: "include",
+      },
+    ]);
   });
 });
 

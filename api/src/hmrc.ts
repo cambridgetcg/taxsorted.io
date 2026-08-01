@@ -1,7 +1,11 @@
 // The HMRC rail, server side: OAuth, token vault, rate-limited requests.
 // Endpoints and contract come from the engine — one truth.
 
-import { HMRC_CONFIG } from "@taxsorted/engine/uk/hmrc";
+import {
+  HMRC_CONFIG,
+  hmrcModuleFor,
+  type HmrcRail,
+} from "@taxsorted/engine/uk/hmrc";
 import { sql } from "./db.js";
 import { config } from "./config.js";
 import { encrypt, decrypt } from "./crypto.js";
@@ -31,7 +35,7 @@ export function redirectUri(): string {
   return `${config.apiOrigin}/v1/hmrc/callback`;
 }
 
-export type Rail = "vat" | "itsa";
+export type Rail = HmrcRail;
 
 /** Additive scope selection: VAT keeps its historical two-scope grant; ITSA
     carries both self-assessment scopes now that the quarterly-update write
@@ -41,7 +45,7 @@ export type Rail = "vat" | "itsa";
     landed keep their old read-only grant — a token refresh does NOT upgrade
     scope, so those entities must disconnect and reconnect (see RUNBOOK). */
 export function scopeFor(rail: Rail): string {
-  return rail === "itsa" ? "read:self-assessment write:self-assessment" : "read:vat write:vat";
+  return hmrcModuleFor(rail).scopes.join(" ");
 }
 
 export function authorizeUrl(state: string, rail: Rail = "vat"): string {
@@ -106,24 +110,22 @@ export async function getConnection(entityId: string, rail: Rail) {
   return row ?? null;
 }
 
-/** Best-effort revocation at HMRC for every rail this entity holds; the row
-    deletion is the caller's job. Queried directly (not per-rail via
-    getConnection) so disconnecting an entity that holds both a VAT and an
-    ITSA connection revokes both tokens, not just one. */
-export async function revokeConnection(entityId: string) {
-  const conns = await sql`select * from hmrc_connections where entity_id = ${entityId}`;
-  for (const conn of conns) {
-    for (const blob of [conn.access_token_enc, conn.refresh_token_enc]) {
-      await fetch(`${base}${HMRC_CONFIG.oauth.revoke}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          token: decrypt(blob, config.tokenKey),
-          client_id: config.hmrc.clientId,
-          client_secret: config.hmrc.clientSecret,
-        }),
-      }).catch(() => {});
-    }
+/** Best-effort revocation at HMRC for one connection module. Disconnecting
+    VAT must never revoke the entity's separate Income Tax grant (or vice
+    versa); deleting the matching row remains the route's job. */
+export async function revokeConnection(entityId: string, rail: Rail) {
+  const conn = await getConnection(entityId, rail);
+  if (!conn) return;
+  for (const blob of [conn.access_token_enc, conn.refresh_token_enc]) {
+    await fetch(`${base}${HMRC_CONFIG.oauth.revoke}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        token: decrypt(blob, config.tokenKey),
+        client_id: config.hmrc.clientId,
+        client_secret: config.hmrc.clientSecret,
+      }),
+    }).catch(() => {});
   }
 }
 

@@ -1,7 +1,12 @@
 // The OAuth dance with HMRC. State is HMAC-signed and bound to the session,
 // so a callback can only ever land on the entity that started it.
 
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
+import {
+  HMRC_MODULE_LIST,
+  hmrcModuleFor,
+  isHmrcRail,
+} from "@taxsorted/engine/uk/hmrc";
 import { config } from "../config.js";
 import { sql } from "../db.js";
 import { signState, verifyState } from "../crypto.js";
@@ -32,11 +37,21 @@ connect.get("/status", (c) => {
   return c.json({
     configured: config.hmrc.configured,
     env: config.hmrc.env,
+    modules: HMRC_MODULE_LIST,
   });
 });
 
-function railFrom(c: { req: { query: (name: string) => string | undefined } }): Rail {
-  return c.req.query("rail") === "itsa" ? "itsa" : "vat";
+function railFrom(c: { req: { query: (name: string) => string | undefined } }): Rail | null {
+  const requested = c.req.query("rail");
+  if (!requested) return "vat";
+  return isHmrcRail(requested) ? requested : null;
+}
+
+function invalidRail(c: Context) {
+  return c.json(
+    { error: "invalid_rail", message: "rail must be 'vat' or 'itsa'." },
+    422
+  );
 }
 
 // Sandbox practice door: mint a pretend taxpayer to file as.
@@ -52,6 +67,7 @@ connect.post("/test-user", async (c) => {
     );
   }
   const rail = railFrom(c);
+  if (!rail) return invalidRail(c);
   try {
     const testUser = rail === "itsa" ? await createTestIndividual() : await createTestOrganisation();
     return c.json({ testUser }, 201);
@@ -72,6 +88,7 @@ connect.post("/test-user", async (c) => {
 
 connect.get("/start/:entityId", async (c) => {
   const rail = railFrom(c);
+  if (!rail) return invalidRail(c);
   // ITSA is sandbox-only until HMRC recognition (no production credentials yet).
   // Same door pattern as the test-user mint.
   if (rail === "itsa" && config.hmrc.env !== "sandbox") {
@@ -92,15 +109,15 @@ connect.get("/start/:entityId", async (c) => {
       403
     );
   }
-  if (rail === "itsa") {
-    if (!entity.nino) {
-      return c.json(
-        { error: "nino_required", message: "Add the entity's National Insurance number before connecting." },
-        422
-      );
-    }
-  } else if (!entity.vrn) {
-    return c.json({ error: "vrn_required", message: "Add the entity's VRN before connecting." }, 422);
+  const module = hmrcModuleFor(rail);
+  if (!entity[module.identifier.entityField]) {
+    return c.json(
+      {
+        error: `${module.identifier.entityField}_required`,
+        message: `Add the entity's ${module.identifier.name} before connecting.`,
+      },
+      422
+    );
   }
   const state = signState(
     { entityId: entity.id, sessionId: c.get("sessionId"), rail } satisfies ConnectState,
@@ -109,14 +126,17 @@ connect.get("/start/:entityId", async (c) => {
   return c.redirect(authorizeUrl(state, rail));
 });
 
-// Severing the link is always available: revoke at HMRC (best effort), then
-// delete the tokens. The grant can also be revoked from HMRC's side any time.
+// Severing one module's link is always available: revoke that grant at HMRC
+// (best effort), then delete only its tokens. A missing rail query means VAT
+// for callers that predate the module split.
 connect.delete("/connection/:entityId", async (c) => {
+  const rail = railFrom(c);
+  if (!rail) return invalidRail(c);
   const entity = await ownedEntity(c, c.req.param("entityId"));
   if (!entity) return c.json({ error: "not_found" }, 404);
-  await revokeConnection(entity.id);
-  await sql`delete from hmrc_connections where entity_id = ${entity.id}`;
-  return c.json({ disconnected: true });
+  await revokeConnection(entity.id, rail);
+  await sql`delete from hmrc_connections where entity_id = ${entity.id} and rail = ${rail}`;
+  return c.json({ disconnected: true, rail });
 });
 
 connect.get("/callback", async (c) => {
