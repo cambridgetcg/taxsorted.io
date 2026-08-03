@@ -71,6 +71,21 @@ timer, life counter or penalty for a useful wrong answer.
 Those values are not interchangeable and are never added together. A worked-example saving
 is not accounting income, a refund or a promise about the learner's tax.
 
+The allowance round has one deeper turn called **The Review Line**. It changes one observable
+payer fact, derives allowance eligibility, and asks how far the evidence safely carries:
+
+- `calculated` means the bounded profit-route comparison had the facts it requires;
+- `needs_review` is an equally complete outcome with no invented profit route or tax figure;
+- payer records showing employer income remove the unavailable allowance route before calculation;
+- the ordinary-method figure is explicitly total relevant income less all deductions in the case,
+  including any capital allowances; multiple trades, miscellaneous income and losses must be
+  bounded rather than collapsed into an expenses-only shortcut;
+- every reasoning receipt keeps what its source supports beside what the source does not prove.
+
+The reward is non-monetary: keeping a material unknown visible, establishing eligibility before
+comparison, or removing an unavailable route. The depth turn stores no case fact or prediction;
+the existing stable round ID remains the only saved learning progress.
+
 ## Trust boundary
 
 - No account is needed to try the public tools.

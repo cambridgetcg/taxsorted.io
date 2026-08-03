@@ -84,6 +84,13 @@ describe("learning playground", () => {
     expect(screen.getByRole("group", {
       name: /which route leaves the smaller trading profit/i,
     })).toBeInTheDocument();
+    expect(screen.getByText(/Case scope: no other trading, miscellaneous or property income/i))
+      .toBeVisible();
+    expect(screen.getByText(/Complete ordinary-method deductions: £600\.00.*capital allowances are £0/i))
+      .toBeVisible();
+    expect(screen.getByRole("radio", {
+      name: "Ordinary method → £4,400.00 trading profit",
+    })).toBeInTheDocument();
   });
 
   it("keeps the source available before an answer and names the new tab", () => {
@@ -107,15 +114,52 @@ describe("learning playground", () => {
     }));
     fireEvent.click(screen.getByRole("button", { name: "Check my move" }));
 
+    const continueButton = screen.getByRole("button", { name: "Continue to next round" });
+    const depthTurn = screen.getByText("Optional depth turn · Open The Review Line");
+    expect(continueButton.compareDocumentPosition(depthTurn) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(screen.queryByRole("heading", {
+      name: "The arithmetic was easy. Were you allowed to run it?",
+    })).not.toBeVisible();
+    fireEvent.click(depthTurn);
+
     expect(screen.getAllByText("£80.00 estimated tax kept").length).toBeGreaterThan(0);
     expect(screen.getByText(/£400 deduction difference.*£80 estimate.*not income/i))
       .toBeInTheDocument();
-    expect(screen.getByRole("link", {
+    const allowanceSourceLinks = screen.getAllByRole("link", {
       name: /GOV.UK — trading and property income allowances/i,
-    })).toHaveAttribute(
-      "href",
-      "https://www.gov.uk/guidance/tax-free-allowances-on-property-and-trading-income",
+    });
+    expect(allowanceSourceLinks).toHaveLength(2);
+    for (const link of allowanceSourceLinks) {
+      expect(link).toHaveAttribute(
+        "href",
+        "https://www.gov.uk/guidance/tax-free-allowances-on-property-and-trading-income",
+      );
+    }
+    expect(screen.getByRole("heading", {
+      name: "The arithmetic was easy. Were you allowed to run it?",
+    })).toBeInTheDocument();
+  });
+
+  it("keeps the optional Review Line available when the stable round ID was already completed", async () => {
+    window.localStorage.setItem(
+      LEARNING_PROGRESS_KEY,
+      serializeLearningProgress(["allowance-choice"]),
     );
+    render(<LearningPlayground />);
+
+    fireEvent.click(screen.getByRole("button", {
+      name: /Round 2[\s\S]*Allowance choice/,
+    }));
+    fireEvent.click(screen.getByText("Optional depth turn · Open The Review Line"));
+
+    expect(await screen.findByRole("heading", {
+      name: "The arithmetic was easy. Were you allowed to run it?",
+    })).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem(LEARNING_PROGRESS_KEY) ?? "{}")).toEqual({
+      schema: LEARNING_PROGRESS_SCHEMA,
+      completedIds: ["allowance-choice"],
+    });
   });
 
   it("restores valid progress and resets only its own storage key", async () => {

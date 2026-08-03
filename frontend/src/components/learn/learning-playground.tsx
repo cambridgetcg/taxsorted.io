@@ -21,6 +21,7 @@ import {
   writeLearningProgress,
 } from "@/lib/learning-progress";
 import { LEARNING_ROUNDS } from "@/lib/learning-scenarios";
+import { AllowanceReviewLine } from "@/components/learn/allowance-review-line";
 
 type AnswerFeedback = {
   kind: "correct" | "wrong" | "missing";
@@ -388,6 +389,15 @@ export function LearningPlayground() {
                   : "Continue to next round"}
               </Button>
             </div>
+          ) : null}
+
+          {activeRound.id === "allowance-choice" && completed ? (
+            <details className="mt-6">
+              <summary className="flex min-h-11 cursor-pointer items-center rounded-xl border border-accent bg-accent-soft px-4 py-3 font-semibold text-ink">
+                Optional depth turn · Open The Review Line
+              </summary>
+              <AllowanceReviewLine />
+            </details>
           ) : null}
         </article>
 

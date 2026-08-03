@@ -53,11 +53,20 @@ const grossSale = 18_000;
 const marketplaceFee = 1_800;
 const bankPayout = grossSale - marketplaceFee;
 
-const grossTradingIncome = 500_000;
-const actualTradingExpenses = 60_000;
+export const ALLOWANCE_CHOICE_CASE = {
+  taxYear: TAX_YEAR,
+  grossTradingIncome: 500_000,
+  ordinaryMethodDeductions: 60_000,
+  otherNonSavingsIncome: 3_000_000,
+} as const;
+
+const {
+  grossTradingIncome,
+  ordinaryMethodDeductions,
+  otherNonSavingsIncome,
+} = ALLOWANCE_CHOICE_CASE;
 const allowanceProfit = grossTradingIncome - config.tradingAllowance.value;
-const actualExpenseProfit = grossTradingIncome - actualTradingExpenses;
-const otherIncome = 3_000_000;
+const ordinaryMethodProfit = grossTradingIncome - ordinaryMethodDeductions;
 
 function estimatedLiability(tradingProfit: number, otherNonSavingsIncome = 0): number {
   return estimateLiability({
@@ -70,9 +79,9 @@ function estimatedLiability(tradingProfit: number, otherNonSavingsIncome = 0): n
   }).totalLiability;
 }
 
-const allowanceTaxKept =
-  estimatedLiability(actualExpenseProfit, otherIncome) -
-  estimatedLiability(allowanceProfit, otherIncome);
+const estimatedTaxDifference =
+  estimatedLiability(ordinaryMethodProfit, otherNonSavingsIncome) -
+  estimatedLiability(allowanceProfit, otherNonSavingsIncome);
 
 const businessMiles = 1_200;
 const mileage = mileageDeduction(businessMiles, "car-or-van", TAX_YEAR);
@@ -155,60 +164,63 @@ export const LEARNING_ROUNDS: readonly LearningRound[] = [
     title: "The £1,000 choice",
     shortTitle: "Allowance choice",
     setup:
-      "A made-up sole trader has £5,000 gross trading income, £600 verified allowable expenses and £30,000 of other non-savings income.",
+      "A made-up sole trader has £5,000 total relevant income from their only trade, £600 of complete ordinary-method deductions and £30,000 of other non-savings income.",
     facts: [
       `Trading allowance: ${gbpCompact(config.tradingAllowance.value)}.`,
-      `Actual allowable expenses: ${gbp(actualTradingExpenses)}.`,
+      "Case scope: no other trading, miscellaneous or property income, and no brought-forward losses.",
+      `Complete ordinary-method deductions: ${gbp(ordinaryMethodDeductions)}. This includes every allowable expense and any capital allowances; capital allowances are £0 in this case.`,
       "TaxSorted compares two like-for-like bounded rest-of-UK 2026–27 estimates; it never claims both deductions.",
     ],
     question: "Which route leaves the smaller trading profit in this worked example?",
     answers: [
       {
-        id: "actual-expenses",
-        label: `Actual expenses → ${gbp(actualExpenseProfit)} trading profit`,
+        id: "ordinary-method",
+        label: `Ordinary method → ${gbp(ordinaryMethodProfit)} trading profit`,
         correct: false,
         feedback:
-          "The arithmetic is real, but the £1,000 allowance is a larger deduction than £600 of actual expenses in this example.",
+          "The arithmetic is real, but the £1,000 allowance is a larger deduction than this example’s complete £600 ordinary-method deduction.",
       },
       {
         id: "trading-allowance",
         label: `Trading allowance → ${gbp(allowanceProfit)} trading profit`,
         correct: true,
         feedback:
-          `Correct. The allowance removes ${gbp(config.tradingAllowance.value - actualTradingExpenses)} more from the example's taxable trading profit.`,
+          `Correct. The allowance removes ${gbp(config.tradingAllowance.value - ordinaryMethodDeductions)} more from the example's taxable trading profit.`,
       },
       {
         id: "claim-both",
-        label: `Claim both → ${gbp(grossTradingIncome - config.tradingAllowance.value - actualTradingExpenses)} trading profit`,
+        label: `Claim both → ${gbp(grossTradingIncome - config.tradingAllowance.value - ordinaryMethodDeductions)} trading profit`,
         correct: false,
         feedback:
-          "That would count two mutually exclusive routes. Above £1,000 gross income, the allowance replaces actual expenses; it does not sit on top of them.",
+          "That would count two mutually exclusive routes. Above £1,000 gross income, the allowance replaces ordinary-method expenses and allowances; it does not sit on top of them.",
       },
     ],
     explanation:
-      `The allowance route reduces the example's trading profit by an extra ${gbp(config.tradingAllowance.value - actualTradingExpenses)}. In TaxSorted's bounded rest-of-UK estimate, that leaves ${gbp(allowanceTaxKept)} less Income Tax to pay.`,
+      `The allowance route reduces the example's trading profit by an extra ${gbp(config.tradingAllowance.value - ordinaryMethodDeductions)}. In TaxSorted's bounded rest-of-UK estimate, that leaves ${gbp(estimatedTaxDifference)} less Income Tax to pay.`,
     explainBack:
-      "Compare the two permitted deductions first. Only after choosing one route should the tax calculation run.",
+      "Bound all relevant income and ordinary-method deductions first. Then compare the two permitted routes before the tax calculation runs.",
     reward: {
       label: "Estimated value revealed in this worked example",
-      headline: `${gbp(allowanceTaxKept)} estimated tax kept`,
+      headline: `${gbp(estimatedTaxDifference)} estimated tax kept`,
       values: [
         {
           kind: "deduction-found",
           label: "Extra deduction compared",
-          amount: config.tradingAllowance.value - actualTradingExpenses,
+          amount: config.tradingAllowance.value - ordinaryMethodDeductions,
         },
         {
           kind: "estimated-tax-kept",
           label: "Estimated tax kept",
-          amount: allowanceTaxKept,
+          amount: estimatedTaxDifference,
         },
       ],
       boundary:
         "The £400 deduction difference and £80 estimate are different facts. This is not income, a refund or your result; eligibility, losses, Scotland, other income and personal facts can change the answer.",
     },
     assumptions: [
-      "The person qualifies for the trading allowance and every £600 expense is otherwise allowable.",
+      "The person qualifies for the trading allowance; the payer exclusions were checked for the fictional case.",
+      "This is the only trade, with no other trading, miscellaneous or property income and no brought-forward losses.",
+      "The complete £600 ordinary-method deduction includes every allowable expense and any capital allowances; capital allowances are £0 in this case.",
       "The estimate uses rest-of-UK non-savings rates for 2026–27 and excludes savings, dividends, pensions and Gift Aid.",
       "A person using full relief at or below £1,000 gross may still face reporting exceptions and must keep records.",
     ],
