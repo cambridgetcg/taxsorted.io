@@ -25,7 +25,7 @@ export default function VATPortalPage({ entityId }: VATPageClientProps) {
     <div className="min-h-[70vh] bg-paper">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         <Breadcrumbs
-          items={[{ href: "/tools", label: "Do my tax" }]}
+          items={[{ href: "/file", label: "File and pay" }]}
           current="VAT example"
           className="mb-4"
         />

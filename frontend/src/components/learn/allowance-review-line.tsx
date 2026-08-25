@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import {
   tradingAllowancePosition,
-  type TradingAllowanceIncomeSource,
+  type TradingAllowanceExcludedIncome,
   type TradingAllowancePosition,
   type TradingAllowanceRoute,
 } from "@taxsorted/engine/uk/itsa";
@@ -15,7 +15,7 @@ import { formatUkDate, gbp } from "@/lib/format";
 type Prediction = "needs_review" | TradingAllowanceRoute;
 
 const INCOME_SOURCE_STATES: readonly {
-  value: TradingAllowanceIncomeSource;
+  value: TradingAllowanceExcludedIncome;
   label: string;
   detail: string;
 }[] = [
@@ -25,15 +25,15 @@ const INCOME_SOURCE_STATES: readonly {
     detail: "The records do not yet identify every payer relationship.",
   },
   {
-    value: "unconnected-customers",
+    value: "none",
     label: "Unconnected customers only",
     detail:
-      "Complete payer check: no payer is Mina’s employer or her spouse’s or civil partner’s employer; a company Mina or a connected person owns or controls; or a partnership where Mina or a connected person is a partner.",
+      "Complete relevant-income payer check: no payment is made while Mina or her spouse or civil partner is employed by the payer; while Mina is a partner or connected with a partner in the paying partnership; or while Mina is a participator or an associate of a participator in the paying close company.",
   },
   {
-    value: "employer",
-    label: "Mina’s employer",
-    detail: "The invoice and bank record show Mina’s employer paid the £5,000.",
+    value: "present",
+    label: "Mina’s employer at payment time",
+    detail: "The invoice and bank record show that the payer employed Mina when it paid the £5,000.",
   },
 ] as const;
 
@@ -67,13 +67,19 @@ function routeLabel(route: TradingAllowanceRoute): string {
 }
 
 function reasoningReward(result: TradingAllowancePosition): string {
-  if (result.status === "needs_review") return "Material unknown kept visible";
+  if (result.status === "needs_review") {
+    if (result.reason.code === "source-overdue") return "Stale rules stopped before arithmetic";
+    if (result.reason.code === "source-review-not-yet-valid") {
+      return "Calculation date and source review kept honest";
+    }
+    return "Material unknown kept visible";
+  }
   if (!result.calculation.allowanceAvailable) return "Unavailable route removed before calculation";
-  return "Eligibility derived from checked payer records";
+  return "Scenario route availability derived from payer facts";
 }
 
 export function AllowanceReviewLine() {
-  const [incomeSource, setIncomeSource] = useState<TradingAllowanceIncomeSource>("unknown");
+  const [excludedIncome, setExcludedIncome] = useState<TradingAllowanceExcludedIncome>("unknown");
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [result, setResult] = useState<TradingAllowancePosition | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -81,8 +87,8 @@ export function AllowanceReviewLine() {
     "The payer records have not been checked. Place the review line.",
   );
 
-  const changeIncomeSource = (next: TradingAllowanceIncomeSource) => {
-    setIncomeSource(next);
+  const changeIncomeSource = (next: TradingAllowanceExcludedIncome) => {
+    setExcludedIncome(next);
     setPrediction(null);
     setResult(null);
     setFeedback(null);
@@ -101,25 +107,39 @@ export function AllowanceReviewLine() {
     const next = tradingAllowancePosition({
       totalRelevantIncome: ALLOWANCE_CHOICE_CASE.grossTradingIncome,
       ordinaryMethodDeductions: ALLOWANCE_CHOICE_CASE.ordinaryMethodDeductions,
-      incomeSource,
+      basisPeriodTransitionProfit: "no-amount-arises",
+      excludedIncome,
+      factPeriodState: "full-year-projection",
+      rentARoomReceipts: "none",
+      relevantIncomeBoundary: "complete-continuing-trade",
+      tradeScope: "single-trade-complete",
       taxYear: ALLOWANCE_CHOICE_CASE.taxYear,
+      evaluationDate: new Date().toISOString().slice(0, 10),
     });
     const correct = prediction === positionFor(next);
     setResult(next);
 
     if (next.status === "needs_review") {
-      setFeedback(
-        correct
-          ? "Good stop. You kept an unknown from turning into an assumed ‘no’, so no profit route or tax figure was invented."
-          : "Useful miss. The £1,000 arithmetic is real, but it is not yet available because the payer records are unresolved.",
-      );
+      if (next.reason.code === "source-overdue" || next.reason.code === "source-review-not-yet-valid") {
+        setFeedback(
+          correct
+            ? "Good stop. The source review is not valid for today, so no payer fact can reopen the calculation until the ruleset is reviewed."
+            : "Useful miss. The payer fact is established, but the source review is not valid for today. Stale rules stop before the £1,000 arithmetic.",
+        );
+      } else {
+        setFeedback(
+          correct
+            ? "Good stop. You kept an unknown from turning into an assumed ‘no’, so no profit route or tax figure was invented."
+            : "Useful miss. The £1,000 arithmetic is real, but it is not yet available because the payer records are unresolved.",
+        );
+      }
     } else if (correct && !next.calculation.allowanceAvailable) {
       setFeedback(
         "Good line. The exclusion removes the allowance route before the arithmetic can pretend it is available.",
       );
     } else if (correct) {
       setFeedback(
-        "Good line. The checked payer records establish the source fact, so the two permitted profit routes can now be compared.",
+        "Good line. The checked payer fact establishes the source assumption inside this scenario, so the two projected profit routes can now be compared.",
       );
     } else if (!next.calculation.allowanceAvailable) {
       setFeedback(
@@ -135,8 +155,14 @@ export function AllowanceReviewLine() {
   const trust = result?.trust ?? tradingAllowancePosition({
     totalRelevantIncome: ALLOWANCE_CHOICE_CASE.grossTradingIncome,
     ordinaryMethodDeductions: ALLOWANCE_CHOICE_CASE.ordinaryMethodDeductions,
-    incomeSource: "unknown",
+    basisPeriodTransitionProfit: "no-amount-arises",
+    excludedIncome: "unknown",
+    factPeriodState: "full-year-projection",
+    rentARoomReceipts: "none",
+    relevantIncomeBoundary: "complete-continuing-trade",
+    tradeScope: "single-trade-complete",
     taxYear: ALLOWANCE_CHOICE_CASE.taxYear,
+    evaluationDate: new Date().toISOString().slice(0, 10),
   }).trust;
 
   return (
@@ -166,9 +192,12 @@ export function AllowanceReviewLine() {
             Mina’s £5,000 sole trade
           </h5>
           <p className="mt-2 text-sm leading-6 text-ink-soft">
-            Case boundary: this is Mina’s only trade, with no other trading, miscellaneous or
-            property income. She has no capital allowances or brought-forward losses. The £600
-            below is her full ordinary-method deduction for the tax year.
+            Case boundary: this is a fictional full-year projection through 5 April 2027, not a
+            return figure. It is Mina’s only trade, with no other trading or miscellaneous income.
+            She has no capital allowances or brought-forward losses. The £600 below is her projected
+            full ordinary-method deduction. Her £5,000 is projected complete relevant income under
+            the applicable accounting basis: no own-use value, balancing charge, adjustment income,
+            post-cessation receipt or basis-period transition-profit amount arises.
           </p>
           <dl className="mt-4 grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-line bg-paper p-3">
@@ -186,7 +215,7 @@ export function AllowanceReviewLine() {
             <div className="rounded-xl border border-line bg-paper p-3">
               <dt className="text-sm text-ink-soft">One material fact</dt>
               <dd className="mt-1 font-semibold text-ink">
-                {INCOME_SOURCE_STATES.find((state) => state.value === incomeSource)?.label}
+                {INCOME_SOURCE_STATES.find((state) => state.value === excludedIncome)?.label}
               </dd>
             </div>
           </dl>
@@ -205,7 +234,7 @@ export function AllowanceReviewLine() {
               <label
                 key={state.value}
                 className={`flex min-h-24 cursor-pointer items-start gap-3 rounded-xl border p-3 text-left transition-colors focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 ${
-                  incomeSource === state.value
+                  excludedIncome === state.value
                     ? "border-accent bg-accent-soft text-ink"
                     : "border-line bg-white text-ink hover:border-accent"
                 }`}
@@ -214,7 +243,7 @@ export function AllowanceReviewLine() {
                   type="radio"
                   name="income-source-fact"
                   value={state.value}
-                  checked={incomeSource === state.value}
+                  checked={excludedIncome === state.value}
                   onChange={() => changeIncomeSource(state.value)}
                   aria-describedby="income-source-help"
                   className="mt-1 h-5 w-5 shrink-0 accent-[var(--accent)]"
@@ -252,8 +281,14 @@ export function AllowanceReviewLine() {
             </div>
           </div>
           <p className="mt-3 text-sm text-ink-soft">
-            Effective in this engine from {formatUkDate(trust.effectiveFrom)} · sources checked {formatUkDate(trust.reviewedOn)}
+            Ruleset {trust.rulesetVersion} · 2026–27 engine date {formatUkDate(trust.effectiveFrom)} · legal allowance from {formatUkDate(trust.legalBasisFrom)} · sources checked {formatUkDate(trust.reviewedOn)} · review due {formatUkDate(trust.reviewDueOn)}
           </p>
+          {trust.evaluatedOn < trust.reviewedOn || trust.evaluatedOn > trust.reviewDueOn ? (
+            <p role="status" className="mt-3 rounded-xl border border-yellow-300 bg-yellow-50 p-3 text-sm leading-6 text-yellow-950">
+              Source stop: this ruleset is not valid for today. The exercise can show the boundary,
+              but it will not produce profit figures until the sources are reviewed.
+            </p>
+          ) : null}
           <h5 className="mt-3 font-semibold text-ink">Official sources</h5>
           <ul className="mt-1 space-y-1">
             {trust.sources.map((source) => (
@@ -328,11 +363,11 @@ export function AllowanceReviewLine() {
                   Reasoning receipt · not a filing receipt
                 </p>
                 <h5 id="reasoning-receipt-title" className="mt-1 text-xl font-semibold text-ink">
-                  {result.status === "needs_review" ? "A clean stop" : "A bounded calculation"}
+                  {result.status === "needs_review" ? "A clean stop" : "A bounded projected calculation"}
                 </h5>
               </div>
               <Badge variant="info">
-                {result.status === "needs_review" ? "Needs review · valid boundary" : "Calculated · bounded"}
+                {result.status === "needs_review" ? "Needs review · valid boundary" : "Projected scenario · calculated"}
               </Badge>
             </div>
 
@@ -353,14 +388,14 @@ export function AllowanceReviewLine() {
                     <dt className="font-semibold text-ink">Trading allowance route</dt>
                     <dd className="mt-2 text-sm leading-6 text-ink-soft">
                       {result.calculation.allowanceAvailable && result.calculation.tradingAllowanceProfit !== null
-                        ? `${gbp(result.calculation.allowance)} deduction → ${gbp(result.calculation.tradingAllowanceProfit)} trading profit`
-                        : "Unavailable because the payer records show Mina’s employer paid the income."}
+                        ? `${gbp(result.calculation.allowanceDeduction)} deduction (up to the ${gbp(result.calculation.allowanceLimit)} limit) → ${gbp(result.calculation.tradingAllowanceProfit)} projected trading profit`
+                        : "Unavailable because the scenario payer employed Mina when it paid the income."}
                     </dd>
                   </div>
                   <div className="rounded-xl border border-line bg-white p-4">
                     <dt className="font-semibold text-ink">Ordinary-method route</dt>
                     <dd className="mt-2 text-sm leading-6 text-ink-soft">
-                      {gbp(result.calculation.ordinaryMethodDeductions)} total deductions → {gbp(result.calculation.ordinaryMethodProfit)} trading profit
+                      {gbp(result.calculation.ordinaryMethodDeductions)} total deductions → {gbp(result.calculation.ordinaryMethodProfit)} projected trading profit
                     </dd>
                   </div>
                 </dl>
@@ -368,7 +403,9 @@ export function AllowanceReviewLine() {
                   Review line: {routeLabel(result.calculation.route)}.
                 </p>
                 <p className="mt-2 text-sm leading-6 text-ink-soft">
-                  This receipt compares one fictional profit route. It does not establish final tax, filing duty, evidence quality, HMRC agreement or what a real person should choose.
+                  This receipt compares one fictional full-year projection. It does not establish
+                  completed facts, final tax, filing duty, evidence quality, HMRC agreement or what
+                  a real person should choose.
                 </p>
               </div>
             )}

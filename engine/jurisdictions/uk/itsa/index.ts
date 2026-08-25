@@ -12,5 +12,10 @@ export * from './aggregate'
 export * from './eligibility'
 export * from './simplified'
 export * from './estimate'
-export * from './optimise'
+export {
+  propertyAllowanceCheck,
+  rentARoomCheck,
+  marriageAllowanceCheck,
+  type Suggestion,
+} from './optimise'
 export * from './trading-allowance-position'

@@ -8,24 +8,23 @@ figures. TaxSorted is growing from that honest base into accounting software for
 and small organisations without an in-house accounting team.
 
 The wider aim remains international tax made simple for everyone — a person, a business,
-a charity, a trust: same plain words, same engine. Three things in one calm place:
+a charity, a trust: same plain words, same engine. The public journey returns six powers:
 
-- **Learn** — the open practice table. Predict a money decision, inspect the calculation and
-  source, explain it back, then open the full guide. Free, public, no account.
-- **File** — the workbench. Every figure derived from your records (*derive, never key*),
-  the answer first, nothing sent without your eyes and your consent.
-- **Connect** — the rails. A direct line to the authorities themselves (HMRC first —
-  being built), and the same engine as a typed API: every answer a person reads,
-  software will be able to call.
+- **Check** — know what applies, what is known and what remains uncertain.
+- **Plan** — compare lawful choices across tax, cash flow, work, risk and wider consequences.
+- **Books** — own the evidence and derive every figure from reviewed records.
+- **File** — prepare, approve, submit and keep the receipt as different states.
+- **Put it right** — correct errors, challenge decisions and reach official payment help.
+- **Understand** — follow the rule, source, public money and power, then use the lawful levers.
 
 Underneath sits one engine; every country is rules, dates and words plugged into it —
 never a fork of the product. The UK is drawn first and drawn deep: the proof, not the limit.
 
 TaxSorted's open book, public-law reference corpus and base public datasets are a **commons**:
-free and open-source, no price, no bait tier, no donations button. Optional filing support or
-derived services may charge fairly for work that saves time or money, but payment must never
-become the practical gate to those base public materials. People file their own taxes; we pave
-the road.
+free and open-source, no price, no bait tier, no donations button and no percentage of a refund
+or displayed saving. Any future funding route needs a fresh written boundary review and cannot
+become the practical gate to public law or to a person's understandable record. People file their
+own taxes; we pave the road.
 
 ## The public front doors
 
@@ -39,6 +38,17 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
   narrowest current check, record tool or guide. This routing step asks for no tax identifier and
   does not calculate or file anything itself.
+- **`/plan` — Compare my choices.** Minimise total lawful burden rather than one tax number.
+  The first live module calculates a clearly labelled full-year projection for trading allowance
+  and ordinary-deduction profit routes side by side. Year-to-date figures, transition profit,
+  unresolved eligibility and possible losses stop safely, and the whole-burden comparison remains
+  explicitly incomplete.
+- **`/file` — File and pay.** Keep preparation, approval, conclusive delivery, authority receipt,
+  acceptance or rejection, settlement and correction as different states. Production HMRC filing
+  is not live.
+- **`/put-it-right` — Correct or challenge.** Keep local correction, return amendment, appeal,
+  complaint, extra support and inability-to-pay routes separate, with official links and no
+  confidential case intake.
 - **`/passport` — Carry my tax position.** Keep explicit income-source facts, unknowns,
   user-named evidence states and a complete checked MTD request and answer in this browser, then
   export versioned JSON or a printable accountant handoff.
@@ -57,6 +67,8 @@ The site keeps its depth, but the way in is deliberately small:
   product closes the gap between law as written and law as something ordinary people can
   actually do. Canonical text: [`PHILOSOPHY.md`](./PHILOSOPHY.md) (CC0) — the ground under
   [`PRINCIPLES.md`](./PRINCIPLES.md), expressed in every service, not shipped as a module.
+- **`/trust` — Inspect the boundary.** See what stays in the browser, what an Account does not
+  protect, which permissions remain separate, what is not live and how to leave with your work.
 
 Existing deep URLs remain stable. The hubs organise them; they do not create parallel tax logic
 or a second copy of the datasets.
@@ -65,6 +77,10 @@ The product model is documented in [`docs/ACCOUNTING-PRODUCT.md`](docs/ACCOUNTIN
 evidence → event → books → accounts → tax → filing. The interface may collapse layers; it
 must never erase them. The deeper provider architecture and working made-up local proof are in
 [`docs/ACCOUNTING-INTEGRATIONS.md`](docs/ACCOUNTING-INTEGRATIONS.md).
+
+The shared doctrine is [`docs/PEOPLE-POWER-TAX-FRAMEWORK.md`](docs/PEOPLE-POWER-TAX-FRAMEWORK.md):
+total lawful burden, six powers, separate planning and compliance spines, one module contract,
+exact capability states, consent boundaries and release tests.
 
 **Now building:** Making Tax Digital for Income Tax (mandatory since 6 April 2026 for
 sole traders & landlords over £50k) — digital records → cumulative quarterly updates →

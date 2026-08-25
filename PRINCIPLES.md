@@ -20,8 +20,9 @@ heavy lifting in software.
    penalties are facts to plan around, never scare tactics.
 4. **Everyone wins, accountants included.** Less rote work, more advice, more reach. They
    become educators — and they can lobby to cut the rules that make no sense.
-5. **We make money by being fair.** We remove real friction and charge fairly for it. Not a
-   charity — fair. Free where it's just plumbing; paid where we save you money or time.
+5. **Money never steers the answer.** TaxSorted is a free commons. No paid tier, donation ramp,
+   contingent fee, provider commission or displayed saving may decide what a person sees. Any
+   future funding needs a fresh written boundary review before it touches the product.
 6. **Derive, never key.** Figures are computed from your records, not retyped. The boxes are
    a view, not a form.
 7. **Both worlds.** Every answer we safely expose to a person should have a machine-readable
@@ -35,13 +36,15 @@ heavy lifting in software.
 For the narrower draft governing public datasets, source trails and personal-data
 amplification, see the [public data design charter](docs/PUBLIC-DATA-CHARTER.md).
 
-## How we charge (fairly)
+## The money boundary
 
-- The submission itself is plumbing — free.
-- The public-law reference corpus and base public dataset bytes are free and need no account.
-- We charge for intelligence: turning messy records into correct figures, finding money
-  you're owed, naming the cheaper scheme, warning you before a deadline costs you.
-- We can take a small share of money we actually find for you. Find nothing, earn nothing.
+- The product, submission path, public-law reference corpus and base public datasets are free.
+- There is no paid tier, donation button, contingent refund fee or percentage of a displayed
+  saving inside TaxSorted.
+- No provider commission or commercial relationship may change an option's rank or prominence.
+- A future grant, institutional service or other funding route needs a written regulatory,
+  privacy and incentive review first. It cannot make payment the practical gate to public law or
+  to a person's understandable record.
 
 ## How we keep it clean
 

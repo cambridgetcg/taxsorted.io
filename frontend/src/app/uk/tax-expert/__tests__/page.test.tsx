@@ -45,11 +45,17 @@ describe("UK tax expert page shell", () => {
     expect(container.querySelectorAll("h1")).toHaveLength(1);
   });
 
+  it("provides the coverage-map handoff used by Plan and Checkup", () => {
+    const { container } = render(<UkTaxExpertPage />);
+
+    expect(container.querySelector("details#coverage-map")).toBeInTheDocument();
+  });
+
   it("leads back to its hub with a breadcrumb trail, not straight to the homepage", () => {
     render(<UkTaxExpertPage />);
 
     const trail = screen.getByRole("navigation", { name: /you are here/i });
     expect(trail).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Do my tax" })).toHaveAttribute("href", "/tools");
+    expect(screen.getByRole("link", { name: "Check" })).toHaveAttribute("href", "/checkup");
   });
 });

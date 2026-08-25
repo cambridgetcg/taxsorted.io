@@ -175,7 +175,7 @@ export default function RecordsClient({ entry = "mtd" }: RecordsClientProps = {}
           enteredFromBooks
             ? [{ href: "/books", label: "Books" }]
             : [
-                { href: "/tools", label: "Do my tax" },
+                { href: "/file", label: "File and pay" },
                 { href: "/itsa", label: "Income Tax" },
               ]
         }

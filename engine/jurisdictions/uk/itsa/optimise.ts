@@ -1,5 +1,5 @@
-// Honest optimisers: four statutory reliefs a Self Assessment taxpayer can actually choose
-// between — trading/property allowances, Rent-a-Room, and Marriage Allowance. Every
+// Honest optimisers for three statutory reliefs a Self Assessment taxpayer can actually choose
+// between — the property allowance, Rent-a-Room, and Marriage Allowance. Every
 // `Suggestion` states plainly whether the relief helps THIS taxpayer's own numbers, never a
 // generic "you could save tax" nudge, and nothing here strays beyond what the relief itself
 // is for (commons line: reliefs are education, never schemes).
@@ -28,43 +28,6 @@ export interface Suggestion {
 
 const round = (n: number): Pence => Math.round(n)
 const gbp = (pence: Pence): string => `£${(pence / 100).toLocaleString('en-GB')}`
-
-/**
- * The £1,000 trading income allowance vs actual expenses. At or below £1,000 gross, the
- * income can qualify for full relief; the person may not need to tell HMRC if no reporting
- * exception or exclusion applies, but must still keep records. Above that, the allowance is
- * only worth claiming if it beats actual expenses — you cannot claim both, and the allowance
- * can never be used to create a loss (it is capped at gross income).
- */
-export function tradingAllowanceCheck(grossTradingIncome: Pence, actualExpenses: Pence, taxYear: TaxYear): Suggestion {
-  const config = configFor(taxYear)
-  const allowance = config.tradingAllowance.value
-
-  if (grossTradingIncome <= allowance) {
-    return {
-      id: 'trading-allowance',
-      title: 'Trading income allowance — full relief',
-      saving: Math.max(0, grossTradingIncome - actualExpenses),
-      applies: true,
-      why: `Your gross trading income of ${gbp(grossTradingIncome)} is at or below the ${gbp(allowance)} trading allowance, so it can qualify for full relief. You may not need to tell HMRC if no exception applies, but you must still keep records.`,
-      trap: 'Full relief means you cannot instead report a loss to set against other income. Reporting exceptions and exclusions can still apply, so check the official conditions before deciding no return is needed.',
-      cite: config.tradingAllowance.source,
-    }
-  }
-
-  const applies = allowance > actualExpenses
-  return {
-    id: 'trading-allowance',
-    title: 'Trading income allowance',
-    saving: applies ? allowance - actualExpenses : null,
-    applies,
-    why: applies
-      ? `Claiming the ${gbp(allowance)} trading allowance instead of your ${gbp(actualExpenses)} actual expenses gives you a bigger deduction — ${gbp(allowance - actualExpenses)} more taken off your gross income of ${gbp(grossTradingIncome)}.`
-      : `Your actual expenses of ${gbp(actualExpenses)} already beat the ${gbp(allowance)} trading allowance, so claiming the allowance would give you a smaller deduction — stick with actual expenses.`,
-    trap: 'You can claim the trading allowance or your actual expenses, never both — and the allowance can never be used to create a loss.',
-    cite: config.tradingAllowance.source,
-  }
-}
 
 /**
  * The £1,000 property income allowance vs actual expenses. Same shape as the trading

@@ -10,7 +10,7 @@ describe("Tax Checkup front door", () => {
     const heading = screen.getByRole("heading", { name: /find where you stand/i });
     expect(heading).toBeInTheDocument();
     expect(heading.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
-    expect(screen.getAllByRole("radio")).toHaveLength(6);
+    expect(screen.getAllByRole("radio")).toHaveLength(8);
     expect(screen.getByText(/asks for no name, address, National Insurance number or tax reference/i))
       .toBeInTheDocument();
     expect(screen.getByText(/no tax figures or quarterly updates are sent to HMRC/i))
@@ -18,7 +18,7 @@ describe("Tax Checkup front door", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  it("orders the MTD quick check, deeper expert and preparation journey", () => {
+  it("orders the complete MTD check, plan, records and filing-state journey", () => {
     render(<CheckupPage />);
 
     fireEvent.click(screen.getByRole("radio", { name: /work for myself or rent out property/i }));
@@ -29,8 +29,15 @@ describe("Tax Checkup front door", () => {
       .toHaveAttribute("href", "/itsa/am-i-in");
     expect(screen.getByRole("link", { name: "Use the deeper MTD expert" }))
       .toHaveAttribute("href", "/uk/tax-expert#first-deep-path");
-    expect(screen.getByRole("link", { name: "See the full MTD journey" }))
-      .toHaveAttribute("href", "/itsa");
+    expect(screen.getByRole("link", { name: "If you have one sole trade: calculate two profit routes" }))
+      .toHaveAttribute("href", "/plan#first-comparison");
+    expect(screen.getByRole("link", { name: "If you rent out property: open the landlord guide" }))
+      .toHaveAttribute("href", "/learn/for-landlords");
+    expect(screen.getByText(/live property comparison is not open yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Build and review the records" }))
+      .toHaveAttribute("href", "/books/workspace");
+    expect(screen.getByRole("link", { name: "Follow the preparation and filing states" }))
+      .toHaveAttribute("href", "/file");
     expect(screen.getByText(/keeps unknown facts visible/i)).toBeInTheDocument();
   });
 
@@ -86,5 +93,17 @@ describe("Tax Checkup front door", () => {
       .toHaveAttribute("href", "/learn");
     expect(screen.getByRole("link", { name: "Follow the wider UK tax system" }))
       .toHaveAttribute("href", "/uk");
+  });
+
+  it("opens neutral planning and correction routes without claiming advice or representation", () => {
+    render(<CheckupPage />);
+
+    fireEvent.click(screen.getByRole("radio", { name: /reduce the lawful burden or compare choices/i }));
+    expect(screen.getByRole("link", { name: /open the planning map/i })).toHaveAttribute("href", "/plan");
+    expect(screen.getByText(/does not rank choices solely by tax saved/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("radio", { name: /something is wrong or i cannot pay/i }));
+    expect(screen.getByRole("link", { name: /name what needs putting right/i })).toHaveAttribute("href", "/put-it-right");
+    expect(screen.getByText(/does not accept confidential case files/i)).toBeInTheDocument();
   });
 });

@@ -13,20 +13,20 @@ describe("homepage front door", () => {
     document.documentElement.dir = "ltr";
   });
 
-  it("makes Books primary, keeps Checkup close, and keeps MTD time-sensitive", () => {
+  it("starts with position and choice, keeps the six powers close, and keeps MTD time-sensitive", () => {
     render(
       <I18nProvider>
         <HomeClient />
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("link", { name: "Start with my books" })).toHaveAttribute(
-      "href",
-      "/books",
-    );
-    expect(screen.getByRole("link", { name: "Check my tax" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check where I stand" })).toHaveAttribute(
       "href",
       "/checkup",
+    );
+    expect(screen.getByRole("link", { name: "Compare my choices" })).toHaveAttribute(
+      "href",
+      "/plan",
     );
     expect(screen.getByText(/sole-trader and landlord books are open now/i)).toBeInTheDocument();
 
@@ -46,9 +46,10 @@ describe("homepage front door", () => {
       screen.getByText(new RegExp(`first phase started ${mandatedFrom}.*${qualifyingIncomeOver}`, "i")),
     ).toBeInTheDocument();
     expect(screen.getByText(/check the other entry conditions and exemptions/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Open my Tax Passport/i }),
-    ).toHaveAttribute("href", "/passport");
+    expect(screen.getByRole("link", { name: /open plan/i })).toHaveAttribute("href", "/plan");
+    expect(screen.getByRole("link", { name: /open books/i })).toHaveAttribute("href", "/books");
+    expect(screen.getByRole("link", { name: /open file and pay/i })).toHaveAttribute("href", "/file");
+    expect(screen.getByRole("link", { name: /find the right route/i })).toHaveAttribute("href", "/put-it-right");
   });
 
   it("keeps the wider system and machine-readable understanding one step away", () => {
@@ -81,7 +82,7 @@ describe("homepage front door", () => {
     await waitFor(() => expect(heading).toHaveAttribute("lang", "ur"));
     expect(heading).toHaveAttribute("dir", "rtl");
 
-    const intro = screen.getByText(/browser-local books for UK sole traders and landlords/i);
+    const intro = screen.getByText(/pay what the law requires/i);
     expect(intro).toHaveAttribute("lang", "en");
     expect(intro.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
   });

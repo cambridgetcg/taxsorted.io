@@ -2,7 +2,6 @@ import {
   configFor,
   estimateLiability,
   mileageDeduction,
-  type TaxYear,
 } from "@taxsorted/engine/uk/itsa";
 import { gbp, gbpCompact } from "@/lib/format";
 
@@ -46,7 +45,7 @@ export interface LearningRound {
   next: { label: string; href: string };
 }
 
-const TAX_YEAR: TaxYear = "2026-27";
+const TAX_YEAR = "2026-27" as const;
 const config = configFor(TAX_YEAR);
 
 const grossSale = 18_000;

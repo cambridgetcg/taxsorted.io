@@ -6,7 +6,7 @@ describe('itsa module surface', () => {
     for (const name of ['configFor', 'SE_CATEGORIES', 'PROPERTY_CATEGORIES', 'categoriesFor', 'categoryByKey',
       'quartersFor', 'quarterForDate', 'penaltyPosition', 'cumulativeUpdate', 'checkEligibility',
       'mileageDeduction', 'wfhDeduction', 'premisesPersonalUse', 'estimateLiability',
-      'tradingAllowanceCheck', 'propertyAllowanceCheck', 'rentARoomCheck', 'marriageAllowanceCheck'])
+      'tradingAllowancePosition', 'propertyAllowanceCheck', 'rentARoomCheck', 'marriageAllowanceCheck'])
       expect(itsa, name).toHaveProperty(name)
   })
 })

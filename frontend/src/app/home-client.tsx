@@ -32,19 +32,43 @@ export function HomeClient() {
     },
     {
       number: "2",
-      status: t("home.journey.prepare.status"),
-      title: t("home.journey.prepare.title"),
-      body: t("home.journey.prepare.body"),
-      href: "/itsa",
-      action: t("home.journey.prepare.action"),
+      status: t("home.journey.plan.status"),
+      title: t("home.journey.plan.title"),
+      body: t("home.journey.plan.body"),
+      href: "/plan",
+      action: t("home.journey.plan.action"),
     },
     {
       number: "3",
-      status: t("home.journey.share.status"),
-      title: t("home.journey.share.title"),
-      body: t("home.journey.share.body"),
-      href: "/passport",
-      action: t("home.journey.share.action"),
+      status: t("home.journey.books.status"),
+      title: t("home.journey.books.title"),
+      body: t("home.journey.books.body"),
+      href: "/books",
+      action: t("home.journey.books.action"),
+    },
+    {
+      number: "4",
+      status: t("home.journey.file.status"),
+      title: t("home.journey.file.title"),
+      body: t("home.journey.file.body"),
+      href: "/file",
+      action: t("home.journey.file.action"),
+    },
+    {
+      number: "5",
+      status: t("home.journey.correct.status"),
+      title: t("home.journey.correct.title"),
+      body: t("home.journey.correct.body"),
+      href: "/put-it-right",
+      action: t("home.journey.correct.action"),
+    },
+    {
+      number: "6",
+      status: t("home.journey.understand.status"),
+      title: t("home.journey.understand.title"),
+      body: t("home.journey.understand.body"),
+      href: "/learn",
+      action: t("home.journey.understand.action"),
     },
   ];
 
@@ -67,13 +91,13 @@ export function HomeClient() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/books"
+              href="/checkup"
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-deep"
             >
               {t("home.primary")}
             </Link>
             <Link
-              href="/checkup"
+              href="/plan"
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong bg-surface px-6 text-base font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft"
             >
               {t("home.secondary")}
@@ -130,7 +154,7 @@ export function HomeClient() {
           {t("home.journey.title")}
         </h2>
         <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">{t("home.journey.body")}</p>
-        <div className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line md:grid-cols-3">
+        <div className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line sm:grid-cols-2 lg:grid-cols-3">
           {stages.map((stage) => (
             <article key={stage.number} className="bg-surface p-6 sm:p-7">
               <div className="flex items-center justify-between gap-3">

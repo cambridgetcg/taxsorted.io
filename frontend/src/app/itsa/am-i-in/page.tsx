@@ -18,10 +18,7 @@ export default function AmIInPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs
-        items={[
-          { href: "/tools", label: "Do my tax" },
-          { href: "/itsa", label: "Income Tax" },
-        ]}
+        items={[{ href: "/checkup", label: "Check" }]}
         current="Am I in?"
       />
 
