@@ -1920,6 +1920,9 @@ jobs:
             echo 'Authenticated tax-expert canary set a browser cookie.' >&2
             exit 1
           fi
+          # Fresh admitted sources produce the determined rule graph. Once their
+          # review date passes, the engine must fail closed with the exact
+          # source-review gap graph. Any other outcome still stops the release.
           jq --exit-status '
             .schema == "taxsorted.tax-answer/1" and
             .reasoning.whyGraph.schema == "taxsorted.why-graph/1" and
@@ -1932,8 +1935,26 @@ jobs:
             .reasoning.whyGraph.context.effect == "advisory" and
             .reasoning.whyGraph.context.externalStateChange == false and
             .reasoning.whyGraph.valueHandling.factValues == "case-financial-and-identity-fact-values-not-copied-into-graph" and
-            ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) > 0 and
-            ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) > 0 and
+            (
+              (
+                .status == "determined" and
+                .answer.decision == "in_scope" and
+                ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) > 0 and
+                ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) > 0
+              ) or
+              (
+                .status == "needs_professional_review" and
+                .answer.decision == "source_review_required" and
+                (.answer.reasonCodes | index("SOURCE_REVIEW_OVERDUE") != null) and
+                ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) == 0 and
+                ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) == 0 and
+                (.reasoning.whyGraph.coverage.gapNodeIds | index("gap:source_review_overdue") != null) and
+                ([.reasoning.whyGraph.edges[] | select(
+                  .from == "gap:source_review_overdue" and
+                  .relation == "supported-by"
+                )] | length) > 0
+              )
+            ) and
             (.reasoning.whyGraph.coverage.gapNodeIds | index("gap:official-enforcement-and-review-route") != null) and
             .dataUse.stored == false and
             .dataUse.usedForTraining == false
