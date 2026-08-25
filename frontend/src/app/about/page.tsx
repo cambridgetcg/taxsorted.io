@@ -26,7 +26,11 @@ export default function AboutPage() {
         <p>
           It is free and open-source. You do not need an account. Starter Books stays in ordinary
           browser storage on your device; an Account does not back it up or encrypt it, and
-          clearing site data can erase it.
+          clearing site data can erase it. The{" "}
+          <Link href="/trust" className={externalLink}>
+            trust and boundaries page
+          </Link>{" "}
+          keeps these limits and the current filing state in one place.
         </p>
         <p>
           It is built in the open by{" "}
@@ -43,13 +47,15 @@ export default function AboutPage() {
 
       <h2 className="mt-10 text-2xl font-bold text-ink">The promise</h2>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-base text-ink-soft">
+        <li>Pay what the law requires. Claim what the law allows.</li>
         <li>
           If a rule cannot be explained in plain words, the explanation needs more work —
           not you.
         </li>
         <li>No fear, no punishment. Deadlines are facts to plan around, never scare tactics.</li>
-        <li>We say what is required, what you can safely skip, and how to optimise.</li>
-        <li>Prepared means ready; filed means sent. We never blur the two.</li>
+        <li>We show each covered lawful choice and its wider cost without deciding your priorities.</li>
+        <li>Keep the evidence, receipt, correction route and right to leave.</li>
+        <li>A prepared figure, send attempt, delivery proof, authority response, acceptance, payment and correction are different states. We never blur them.</li>
       </ul>
 
       {/* The full licence and attribution text lives here, once, linked from the

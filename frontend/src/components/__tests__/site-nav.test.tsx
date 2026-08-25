@@ -16,21 +16,15 @@ afterEach(() => {
 
 // SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
-  it("offers six clear doors plus the account utility", () => {
+  it("offers six people-power doors plus the account utility", () => {
     render(<SiteNav />);
 
+    expect(screen.getByRole("link", { name: "Check" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "Plan" })).toHaveAttribute("href", "/plan");
     expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute("href", "/books");
-    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAttribute(
-      "href",
-      "/books/connect",
-    );
-    expect(screen.getByRole("link", { name: "Tax check" })).toHaveAttribute(
-      "href",
-      "/checkup",
-    );
-    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute("href", "/tools");
-    expect(screen.getByRole("link", { name: "Learn" })).toHaveAttribute("href", "/learn");
-    expect(screen.getByRole("link", { name: "UK system" })).toHaveAttribute("href", "/uk");
+    expect(screen.getByRole("link", { name: "File" })).toHaveAttribute("href", "/file");
+    expect(screen.getByRole("link", { name: "Put it right" })).toHaveAttribute("href", "/put-it-right");
+    expect(screen.getByRole("link", { name: "Understand" })).toHaveAttribute("href", "/learn");
     expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
   });
 
@@ -44,15 +38,15 @@ describe("SiteNav", () => {
   });
 
   it("marks the door you are inside — across its whole route family", () => {
-    // /itsa belongs to Tax tools even though the door links /tools.
+    // The MTD entry check belongs to Check even though most ITSA pages live under File.
     navigation.pathname = "/itsa/am-i-in/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check" })).toHaveAttribute(
       "aria-current",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Learn" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "File" })).not.toHaveAttribute("aria-current");
   });
 
   it("marks the Books door across its front door and local workspace", () => {
@@ -63,36 +57,46 @@ describe("SiteNav", () => {
       "aria-current",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Tax tools" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "File" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  it("gives the accounting bridge its own current state without lighting Books", () => {
+  it("keeps the accounting bridge inside Books", () => {
     navigation.pathname = "/books/connect/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(screen.getByRole("link", { name: "Books" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Books" })).toHaveAttribute("aria-current", "true");
   });
 
-  it("keeps the Tax Position Passport inside the Tax tools door", () => {
+  it("keeps the Tax Position Passport inside Check", () => {
     navigation.pathname = "/passport/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "Tax tools" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check" })).toHaveAttribute(
       "aria-current",
       "true",
     );
   });
 
-  it("distinguishes standing on a hub from standing inside its section", () => {
-    navigation.pathname = "/uk/"; // trailing slash: trailingSlash is on
+  it.each([
+    ["/uk/tax-expert/", "Check", "Understand"],
+    ["/uk/personal-tax/", "Plan", "Understand"],
+    ["/tools/mileage/", "Plan", "File"],
+    ["/itsa/quarter/", "File", "Check"],
+    ["/uk/politics/decisions/", "Understand", "Plan"],
+  ])("gives %s to one door only", (path, active, inactive) => {
+    navigation.pathname = path;
     render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "UK system" })).toHaveAttribute(
+
+    expect(screen.getByRole("link", { name: active })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("link", { name: inactive })).not.toHaveAttribute("aria-current");
+  });
+
+  it("distinguishes standing on a hub from standing inside its section", () => {
+    navigation.pathname = "/learn/"; // trailing slash: trailingSlash is on
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Understand" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -101,7 +105,16 @@ describe("SiteNav", () => {
   it("never lights a door from a lookalike prefix", () => {
     navigation.pathname = "/uk-not-really/";
     render(<SiteNav />);
-    expect(screen.getByRole("link", { name: "UK system" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Understand" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("keeps the cross-job legacy tools hub neutral", () => {
+    navigation.pathname = "/tools/";
+    render(<SiteNav />);
+
+    for (const name of ["Check", "Plan", "Books", "File", "Put it right", "Understand"]) {
+      expect(screen.getByRole("link", { name })).not.toHaveAttribute("aria-current");
+    }
   });
 
   it("exposes an accessible mobile disclosure without dropping doors or language", () => {
@@ -116,7 +129,7 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: "Tax check" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Check" })).toHaveAttribute(
       "href",
       "/checkup",
     );
@@ -130,13 +143,13 @@ describe("SiteNav", () => {
 
     // The names stay clean (exact matches above prove it); the scent lines
     // are wired as accessible descriptions.
-    const taxTools = screen.getByRole("link", { name: "Tax tools" });
-    expect(taxTools).toHaveAccessibleDescription("Prepare figures and practise filing.");
-    expect(screen.getByRole("link", { name: "Connect records" })).toHaveAccessibleDescription(
-      "Bring records from elsewhere into one review path.",
+    const plan = screen.getByRole("link", { name: "Plan" });
+    expect(plan).toHaveAccessibleDescription("Compare lawful choices without being steered.");
+    expect(screen.getByRole("link", { name: "Put it right" })).toHaveAccessibleDescription(
+      "Correct errors, challenge decisions or get payment help.",
     );
-    expect(screen.getByRole("link", { name: "Learn" })).toHaveAccessibleDescription(
-      "Understand money decisions with cited sources.",
+    expect(screen.getByRole("link", { name: "Understand" })).toHaveAccessibleDescription(
+      "Learn the rules, sources, public money and power.",
     );
     // The primary pill gets its scent too — outside the pill, still described.
     expect(screen.getByRole("link", { name: "Books" })).toHaveAccessibleDescription(
@@ -175,7 +188,7 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const checkupLink = screen.getByRole("link", { name: "Tax check" });
+    const checkupLink = screen.getByRole("link", { name: "Check" });
     checkupLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
     fireEvent.click(checkupLink);
 

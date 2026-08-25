@@ -21,7 +21,7 @@ export default function UkTaxExpertPage() {
   const rest = UK_TAX_EXPERT_MANIFEST.capabilities.filter((item) => item.status !== "available");
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Check my tax position" />
+      <Breadcrumbs items={[{ href: "/checkup", label: "Check" }]} current="Check my tax position" />
 
       <section className="mt-6 overflow-hidden rounded-[2rem] border border-line bg-white p-6 shadow-sm sm:p-10">
         <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-ink sm:text-5xl">Check which tax rules apply to you</h1>
@@ -61,7 +61,7 @@ export default function UkTaxExpertPage() {
         </div>
       </section>
 
-      <details className="mt-16 rounded-3xl border border-line bg-white p-6 sm:p-8">
+      <details id="coverage-map" className="mt-16 scroll-mt-24 rounded-3xl border border-line bg-white p-6 sm:p-8">
         <summary className="cursor-pointer text-xl font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
           What this site can and cannot do — the full list
         </summary>

@@ -133,7 +133,7 @@ export default function DashboardClient({ today, store: injectedStore }: Dashboa
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Dashboard" />
+      <Breadcrumbs items={[{ href: "/file", label: "File and pay" }]} current="Dashboard" />
       <div>
         <h1 className="text-2xl font-bold text-ink sm:text-3xl">Your Income Tax home</h1>
         <p className="mt-1 text-base text-ink-soft">

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function VatCockpitPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="VAT" />
+      <Breadcrumbs items={[{ href: "/file", label: "File and pay" }]} current="VAT" />
 
       <h1 className="mt-4 text-2xl font-bold text-ink sm:text-3xl">
         VAT — your records, your return

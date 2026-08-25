@@ -9,6 +9,8 @@ type PathId =
   | "records"
   | "passport"
   | "vat"
+  | "plan"
+  | "correction"
   | "understand";
 
 interface CheckupPath {
@@ -46,9 +48,24 @@ const PATHS: readonly CheckupPath[] = [
         detail: "For return history, residence, exemptions or facts you are unsure about.",
       },
       {
-        href: "/itsa",
-        title: "See the full MTD journey",
-        detail: "Understand the dates, keep records and prepare each quarter.",
+        href: "/plan#first-comparison",
+        title: "If you have one sole trade: calculate two profit routes",
+        detail: "This does not accept property, partnership or combined-trade figures, and it does not pretend the whole burden was compared.",
+      },
+      {
+        href: "/learn/for-landlords",
+        title: "If you rent out property: open the landlord guide",
+        detail: "Property allowances, finance costs and records follow a different path; a live property comparison is not open yet.",
+      },
+      {
+        href: "/books/workspace",
+        title: "Build and review the records",
+        detail: "Keep the evidence that makes the actual route reproducible.",
+      },
+      {
+        href: "/file",
+        title: "Follow the preparation and filing states",
+        detail: "Prepared, approved, submitted and received stay separate; production filing is not live.",
       },
     ],
   },
@@ -141,6 +158,53 @@ const PATHS: readonly CheckupPath[] = [
         href: "/vat",
         title: "Open the VAT workbench",
         detail: "Create or open a business, review records and build a return.",
+      },
+    ],
+  },
+  {
+    id: "plan",
+    label: "I want to reduce the lawful burden or compare choices",
+    hint: "Compare tax, cash flow, work, uncertainty, evidence and wider consequences.",
+    title: "Keep the planning choice yours",
+    status: "First sole-trader projection open",
+    boundary:
+      "TaxSorted compares consequences under the facts you control. It does not rank choices solely by tax saved or recommend a pension, investment, provider, legal structure or other suitability-dependent action.",
+    steps: [
+      {
+        href: "/plan",
+        title: "Open the planning map",
+        detail: "See the whole-burden framework and every planning area’s current capability.",
+      },
+      {
+        href: "/plan#first-comparison",
+        title: "Build a full-year trading-allowance projection",
+        detail: "Run the first bounded projected calculation using the engine’s current 2026–27 rules; year-to-date facts stop and the whole-burden comparison remains incomplete.",
+      },
+      {
+        href: "/uk/personal-tax#threshold-check",
+        title: "Check personal income thresholds",
+        detail: "Keep adjusted-net-income facts, partner facts and unknowns separate.",
+      },
+    ],
+  },
+  {
+    id: "correction",
+    label: "Something is wrong or I cannot pay",
+    hint: "Correct a record or return, challenge a decision, complain or find payment help.",
+    title: "Choose the right correction or challenge route",
+    status: "Public and official routes open",
+    boundary:
+      "TaxSorted does not accept confidential case files, decide whether an appeal will succeed or act for you before HMRC or a tribunal. Real notices and deadlines must be checked directly.",
+    steps: [
+      {
+        href: "/put-it-right",
+        title: "Name what needs putting right",
+        detail: "Keep record correction, return amendment, appeal, complaint and payment support separate.",
+      },
+      {
+        href: "/passport",
+        title: "Build a portable handoff",
+        detail: "Carry stated facts, unknowns, evidence states and bounded answers without claiming professional review.",
       },
     ],
   },

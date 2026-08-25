@@ -4,7 +4,7 @@ import Link from "next/link";
 // i18n: deferred to M2 — plain English for launch (same as the other hub pages)
 
 export const metadata: Metadata = {
-  title: "Do my tax — TaxSorted",
+  title: "Tax tools — TaxSorted",
   description:
     "Check if you're in, keep records, and build your returns — Income Tax, VAT and mileage.",
 };
@@ -55,10 +55,12 @@ const TOOLS = [
 export default function ToolsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-ink sm:text-4xl">Do my tax</h1>
+      <h1 className="text-3xl font-bold text-ink sm:text-4xl">Tax tools</h1>
       <p className="mt-3 text-base text-ink-soft">
-        Pick the job. Your books stay in this browser; an Account does not back them up or encrypt
-        them.
+        Pick the job, or use the new ordered doors: <Link href="/checkup" className="font-medium text-accent underline underline-offset-4">Check</Link>{" "}
+        your position, <Link href="/plan" className="font-medium text-accent underline underline-offset-4">Plan</Link>{" "}
+        a choice, or follow <Link href="/file" className="font-medium text-accent underline underline-offset-4">File and pay</Link>.
+        Your books stay in this browser; an Account does not back them up or encrypt them.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

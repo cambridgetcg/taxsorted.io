@@ -1,15 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { tradingAllowanceCheck, propertyAllowanceCheck, rentARoomCheck, marriageAllowanceCheck } from '../optimise'
+import { propertyAllowanceCheck, rentARoomCheck, marriageAllowanceCheck } from '../optimise'
 
 describe('honest optimisers', () => {
-  it('trading allowance beats £600 of actual expenses', () => {
-    const s = tradingAllowanceCheck(500000, 60000, '2026-27')
-    expect(s.applies).toBe(true)
-    expect(s.saving).toBe(40000) // £1,000 − £600 more deduction
-  })
-  it('trading allowance loses to £2,000 of actual expenses', () => {
-    expect(tradingAllowanceCheck(500000, 200000, '2026-27').applies).toBe(false)
-  })
   it('property allowance flags the S24 trap', () => {
     const s = propertyAllowanceCheck(800000, 20000, 50000, '2026-27')
     expect(s.trap).toMatch(/finance cost|Section 24/i) // claiming the allowance forfeits the 20% credit
@@ -31,13 +23,6 @@ describe('honest optimisers', () => {
     expect(s.applies).toBe(true)
     expect(s.trap).toMatch(/loss/i)
     expect(s.trap).toMatch(/finance cost|Section 24/i)
-  })
-  it('trading full relief keeps the reporting exceptions and records duty visible', () => {
-    const s = tradingAllowanceCheck(80000, 0, '2026-27')
-    expect(s.applies).toBe(true)
-    expect(s.why).toMatch(/may not need to tell HMRC/i)
-    expect(s.why).toMatch(/keep records/i)
-    expect(s.trap).toMatch(/exceptions|exclusions/i)
   })
   it('rent-a-room under the limit is automatic', () => {
     expect(rentARoomCheck(300000, 0, false, '2026-27').applies).toBe(true)

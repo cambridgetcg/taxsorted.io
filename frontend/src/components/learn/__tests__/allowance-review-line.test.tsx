@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { AllowanceReviewLine } from "../allowance-review-line";
 
@@ -8,6 +8,15 @@ function choose(name: string) {
   fireEvent.click(screen.getByRole("radio", { name }));
   fireEvent.click(screen.getByRole("button", { name: "Open the reasoning receipt" }));
 }
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-08-25T12:00:00Z"));
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("Allowance Review Line", () => {
   it("starts with one explicit unknown and keeps the source available before prediction", () => {
@@ -17,7 +26,7 @@ describe("Allowance Review Line", () => {
       name: "The arithmetic was easy. Were you allowed to run it?",
     })).toBeInTheDocument();
     expect(screen.getByText(/payer records have not been checked/i)).toBeInTheDocument();
-    expect(screen.getByText(/no other trading, miscellaneous or property income/i))
+    expect(screen.getByText(/no other trading or miscellaneous income/i))
       .toBeInTheDocument();
     expect(screen.getByText(/no capital allowances/i)).toBeInTheDocument();
     const incomeSourceGroup = screen.getByRole("group", {
@@ -27,10 +36,10 @@ describe("Allowance Review Line", () => {
     expect(within(incomeSourceGroup).getByRole("radio", {
       name: /Payer records not checked/i,
     })).toBeChecked();
-    const completePayerCheck = within(incomeSourceGroup).getByText(/Complete payer check/i);
-    expect(completePayerCheck).toHaveTextContent(/spouse’s or civil partner’s employer/i);
-    expect(completePayerCheck).toHaveTextContent(/company Mina or a connected person owns or controls/i);
-    expect(completePayerCheck).toHaveTextContent(/partnership where Mina or a connected person is a partner/i);
+    const completePayerCheck = within(incomeSourceGroup).getByText(/Complete relevant-income payer check/i);
+    expect(completePayerCheck).toHaveTextContent(/spouse or civil partner is employed by the payer/i);
+    expect(completePayerCheck).toHaveTextContent(/participator or an associate of a participator/i);
+    expect(completePayerCheck).toHaveTextContent(/partner or connected with a partner/i);
     expect(screen.getByRole("link", {
       name: /GOV.UK — trading and property income allowances.*opens in a new tab/i,
     })).toHaveAttribute(
@@ -70,22 +79,22 @@ describe("Allowance Review Line", () => {
     fireEvent.click(screen.getByRole("radio", { name: /Unconnected customers only/i }));
     choose("Compare — the trading allowance route leaves lower profit");
 
-    expect(screen.getByText("A bounded calculation")).toBeInTheDocument();
-    expect(screen.getByText(/£1,000\.00 deduction → £4,000\.00 trading profit/))
+    expect(screen.getByText("A bounded projected calculation")).toBeInTheDocument();
+    expect(screen.getByText(/£1,000\.00 deduction \(up to the £1,000\.00 limit\) → £4,000\.00 projected trading profit/))
       .toBeInTheDocument();
-    expect(screen.getByText(/£600\.00 total deductions → £4,400\.00 trading profit/))
+    expect(screen.getByText(/£600\.00 total deductions → £4,400\.00 projected trading profit/))
       .toBeInTheDocument();
-    expect(screen.getByText("Eligibility derived from checked payer records"))
+    expect(screen.getByText("Scenario route availability derived from payer facts"))
       .toBeInTheDocument();
-    expect(screen.getByText(/does not establish final tax/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not establish completed facts, final tax/i)).toBeInTheDocument();
   });
 
   it("removes the allowance route when an exclusion is known", () => {
     render(<AllowanceReviewLine />);
-    fireEvent.click(screen.getByRole("radio", { name: /^Mina’s employer\b/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Mina’s employer at payment time\b/i }));
     choose("Use the ordinary method — it is the available or lower-profit route");
 
-    expect(screen.getByText(/Unavailable because the payer records show Mina’s employer/i))
+    expect(screen.getByText(/Unavailable because the scenario payer employed Mina when it paid the income/i))
       .toBeInTheDocument();
     expect(screen.getByText("Unavailable route removed before calculation"))
       .toBeInTheDocument();
@@ -112,7 +121,7 @@ describe("Allowance Review Line", () => {
     expect(screen.getByRole("radio", {
       name: "Stop — one material fact is still missing",
     })).not.toBeChecked();
-    expect(screen.getByText(/Unconnected customers only: Complete payer check/i))
+    expect(screen.getByText(/Unconnected customers only: Complete relevant-income payer check/i))
       .toBeInTheDocument();
   });
 
@@ -122,5 +131,20 @@ describe("Allowance Review Line", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent(/choose where the review line belongs/i);
     expect(screen.queryByText("A clean stop")).not.toBeInTheDocument();
+  });
+
+  it("changes the lesson to a source stop after the review deadline", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-26T12:00:00Z"));
+    render(<AllowanceReviewLine />);
+
+    expect(screen.getByText(/Source stop: this ruleset is not valid for today/i))
+      .toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: /Unconnected customers only/i }));
+    choose("Stop — one material fact is still missing");
+
+    expect(screen.getByText(/source review is not valid for today/i)).toBeInTheDocument();
+    expect(screen.getByText("Stale rules stopped before arithmetic")).toBeInTheDocument();
+    expect(screen.queryByText(/£4,000\.00 trading profit/i)).not.toBeInTheDocument();
   });
 });

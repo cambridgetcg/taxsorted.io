@@ -1,9 +1,11 @@
 name: Test, build and deploy
 
-# Every push to main: run the tests, build the static site, and deploy it to the
-# Cloudflare Pages project that owns taxsorted.io. Fully automatic.
+# Pull requests run the complete quality gate. A push or manual run on main
+# continues through the production preflight and both deployments.
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -19,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: taxsorted-production-release
+  group: taxsorted-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -33,6 +35,35 @@ jobs:
         run: |
           if [ "${GITHUB_REF}" != 'refs/heads/main' ]; then
             echo 'Manual production releases must run from main.' >&2
+            exit 1
+          fi
+
+      - name: Require every production credential before release work begins
+        if: github.ref == 'refs/heads/main'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          TAX_EXPERT_CANARY_API_KEY: ${{ secrets.TAX_EXPERT_CANARY_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          HMRC_CLIENT_ID: ${{ secrets.HMRC_CLIENT_ID }}
+          HMRC_CLIENT_SECRET: ${{ secrets.HMRC_CLIENT_SECRET }}
+          GOV_VENDOR_PUBLIC_IP: ${{ secrets.GOV_VENDOR_PUBLIC_IP }}
+        run: |
+          set -euo pipefail
+          missing=false
+          for name in \
+            FLY_API_TOKEN \
+            TAX_EXPERT_CANARY_API_KEY \
+            CLOUDFLARE_API_TOKEN \
+            HMRC_CLIENT_ID \
+            HMRC_CLIENT_SECRET \
+            GOV_VENDOR_PUBLIC_IP
+          do
+            if [ -z "${!name}" ]; then
+              echo "${name} is required for a main-branch release." >&2
+              missing=true
+            fi
+          done
+          if [ "${missing}" = true ]; then
             exit 1
           fi
 
@@ -66,7 +97,7 @@ jobs:
   deploy-api:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: test-build
+    needs: [test-build, validate-headers]
     outputs:
       professional_opportunities_state: ${{ steps.smoke_public_contracts.outputs.professional_opportunities_state }}
     steps:
@@ -89,6 +120,81 @@ jobs:
           fi
 
       - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
+
+      - name: Record production rollback points before deployment
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: cf4198e651bf3009877d49f688c9d88e
+          CLOUDFLARE_PAGES_PROJECT: taxsorted
+        run: |
+          set -euo pipefail
+          : "${FLY_API_TOKEN:?FLY_API_TOKEN is required.}"
+          : "${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required.}"
+
+          fly_status="${RUNNER_TEMP}/fly-status-before.json"
+          pages_project="${RUNNER_TEMP}/pages-project-before.json"
+
+          flyctl status --app taxsorted-api --json >"${fly_status}"
+          fly_target=$(
+            jq --compact-output --exit-status '
+              [
+                .Machines[]
+                | {
+                    release_version: .config.metadata.fly_release_version,
+                    release_id: .config.metadata.fly_release_id,
+                    image: .config.image
+                  }
+              ]
+              | unique
+              | if length == 1 then .[0]
+                else error("Fly Machines do not share one release and image")
+                end
+              | select(
+                  [.release_version, .release_id, .image]
+                  | all(type == "string" and length > 0)
+                )
+            ' "${fly_status}"
+          )
+
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --retry 4 --retry-delay 2 --retry-all-errors \
+            --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            --output "${pages_project}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PAGES_PROJECT}"
+
+          pages_target=$(
+            jq --compact-output --exit-status '
+              select(.success == true)
+              | .result.canonical_deployment
+              | select(
+                  .environment == "production"
+                  and .latest_stage.status == "success"
+                  and ((.id | type) == "string")
+                  and ((.id | length) > 0)
+                  and ((.url | type) == "string")
+                  and (.url | startswith("https://"))
+                )
+              | {id, url, created_on}
+            ' "${pages_project}"
+          )
+
+          fly_version=$(jq --raw-output '.release_version' <<<"${fly_target}")
+          fly_release_id=$(jq --raw-output '.release_id' <<<"${fly_target}")
+          fly_image=$(jq --raw-output '.image' <<<"${fly_target}")
+          pages_id=$(jq --raw-output '.id' <<<"${pages_target}")
+          pages_url=$(jq --raw-output '.url' <<<"${pages_target}")
+
+          {
+            printf '### Production rollback points captured before deployment\n\n'
+            printf '| Service | Release or deployment | Rollback target |\n'
+            printf '| --- | --- | --- |\n'
+            printf '| Fly.io API | `v%s` (`%s`) | `%s` |\n' \
+              "${fly_version}" "${fly_release_id}" "${fly_image}"
+            printf '| Cloudflare Pages | `%s` | [%s](%s) |\n' \
+              "${pages_id}" "${pages_url}" "${pages_url}"
+          } >>"${GITHUB_STEP_SUMMARY}"
 
       - name: Capture the published public-funding change prefix
         run: |
@@ -2059,6 +2165,7 @@ jobs:
           esac
 
   deploy-frontend:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: deploy-api
     steps:
@@ -2178,12 +2285,18 @@ jobs:
             exit 1
           fi
 
-      - name: Verify the generated Books and Learn doors
+      - name: Verify the generated people-power doors
         run: |
           set -euo pipefail
           for page_and_marker in \
+            'frontend/out/index.html|Pay what the law requires. Claim what the law allows.' \
             'frontend/out/books/index.html|Know where every number came from.' \
             'frontend/out/books/workspace/index.html|An Account does not encrypt, sync or back up these local books.' \
+            'frontend/out/checkup/index.html|Find where you stand. Then take the next honest step.' \
+            'frontend/out/plan/index.html|See covered lawful choices. Keep the decision yours.' \
+            'frontend/out/file/index.html|Nothing moves without your eyes and consent.' \
+            'frontend/out/put-it-right/index.html|A mistake is not the end of the road.' \
+            'frontend/out/trust/index.html|The boundary should be as visible as the feature.' \
             'frontend/out/learn/index.html|Play the books. Keep the money you can prove.'
           do
             page=${page_and_marker%%|*}
@@ -2206,8 +2319,14 @@ jobs:
         run: |
           set -euo pipefail
           for path in \
+            / \
             /books \
             /books/workspace \
+            /checkup \
+            /plan \
+            /file \
+            /put-it-right \
+            /trust \
             /learn \
             /passport \
             /uk/public-funding \
@@ -2222,6 +2341,8 @@ jobs:
             /uk/politics/decisions \
             /learn/history/window-tax \
             /media/window-tax/manifest.json \
+            /sitemap.xml \
+            /robots.txt \
             /agent.txt \
             /.well-known/agent.txt
           do
@@ -2366,6 +2487,36 @@ jobs:
               ;;
           esac
 
+          for discovery_asset in sitemap.xml robots.txt
+          do
+            expected_discovery_asset="frontend/out/${discovery_asset}"
+            deployed_discovery_asset="${RUNNER_TEMP}/${discovery_asset}"
+            discovery_ready=false
+            for _ in $(seq 1 12)
+            do
+              if curl --fail --silent --show-error --location \
+                --connect-timeout 5 --max-time 10 \
+                --output "${deployed_discovery_asset}" \
+                "https://taxsorted.io/${discovery_asset}" && \
+                cmp --silent \
+                  "${expected_discovery_asset}" \
+                  "${deployed_discovery_asset}"
+              then
+                discovery_ready=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "${discovery_ready}" != true ]; then
+              echo "The deployed ${discovery_asset} did not match the released bytes." >&2
+              sha256sum "${expected_discovery_asset}" >&2
+              if [ -f "${deployed_discovery_asset}" ]; then
+                sha256sum "${deployed_discovery_asset}" >&2
+              fi
+              exit 1
+            fi
+          done
+
           deployed_window_tax_manifest="${RUNNER_TEMP}/window-tax-manifest.json"
           expected_window_tax_manifest="frontend/public/media/window-tax/manifest.json"
           window_tax_manifest_ready=false
@@ -2427,8 +2578,14 @@ jobs:
           body=$(mktemp)
           trap 'rm -f "$body"' EXIT
           for page_and_marker in \
+            '/|Pay what the law requires. Claim what the law allows.' \
             '/books|Know where every number came from.' \
             '/books/workspace|An Account does not encrypt, sync or back up these local books.' \
+            '/checkup|Find where you stand. Then take the next honest step.' \
+            '/plan|See covered lawful choices. Keep the decision yours.' \
+            '/file|Nothing moves without your eyes and consent.' \
+            '/put-it-right|A mistake is not the end of the road.' \
+            '/trust|The boundary should be as visible as the feature.' \
             '/learn|Play the books. Keep the money you can prove.' \
             '/passport|Understanding that travels.' \
             '/uk/charities|Check a charity, understand its tax, ask it for help.' \
@@ -2461,13 +2618,12 @@ jobs:
             fi
           done
   # HMRC's own Test Fraud Prevention Headers API, sandbox only, checking the
-  # exact header-assembly code path production uses (api/src/fraud.ts's
-  # assembleFraudHeaders via api/scripts/validate-fraud-headers.ts). Runs
-  # only when the HMRC credentials exist — same presence-gate pattern as the
-  # deploy jobs, keeps CI green until they're added to this environment.
+  # exact header-assembly code path production uses before either production
+  # system changes.
   validate-headers:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: deploy-api
+    needs: test-build
     steps:
       - uses: actions/checkout@v5
 
@@ -2479,12 +2635,18 @@ jobs:
 
       - run: npm ci
 
-      - name: Check for HMRC credentials
-        id: hmrc
-        run: echo "present=${{ secrets.HMRC_CLIENT_ID != '' && secrets.HMRC_CLIENT_SECRET != '' }}" >> "$GITHUB_OUTPUT"
+      - name: Require HMRC validation credentials
+        env:
+          HMRC_CLIENT_ID: ${{ secrets.HMRC_CLIENT_ID }}
+          HMRC_CLIENT_SECRET: ${{ secrets.HMRC_CLIENT_SECRET }}
+          GOV_VENDOR_PUBLIC_IP: ${{ secrets.GOV_VENDOR_PUBLIC_IP }}
+        run: |
+          set -euo pipefail
+          test -n "${HMRC_CLIENT_ID}"
+          test -n "${HMRC_CLIENT_SECRET}"
+          test -n "${GOV_VENDOR_PUBLIC_IP}"
 
       - name: Validate fraud-prevention headers against HMRC's Test API
-        if: steps.hmrc.outputs.present == 'true'
         working-directory: api
         run: npm run validate:fraud-headers
         env:

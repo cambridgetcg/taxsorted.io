@@ -7,7 +7,7 @@ import { SiteNav } from "@/components/site-nav";
 export const metadata: Metadata = {
   title: "TaxSorted — Tax, understood. Then sorted.",
   description:
-    "Browser-local books for UK sole traders and landlords, with every reviewed record traceable into source-backed tax preparation.",
+    "Check your UK tax position, compare lawful choices, keep browser-local books, prepare filings with consent, and find the right correction or challenge route.",
 };
 
 // Runs before first paint (static export — no server): reads the saved
@@ -35,7 +35,7 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="mt-20 border-t border-line bg-surface/60">
-            <div className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-[1fr_auto] md:items-end lg:px-8">
+            <div lang="en" dir="ltr" className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-[1fr_auto] md:items-end lg:px-8">
               <div className="max-w-xl">
                 <p className="font-display text-2xl font-semibold tracking-tight text-ink">
                   Tax, understood. Then sorted.
@@ -44,28 +44,40 @@ export default function RootLayout({
               </div>
               <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-3 gap-y-1 md:justify-end">
                 <Link
-                  href="/books/connect"
+                  href="/plan"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  Connect records
+                  Plan
                 </Link>
                 <Link
-                  href="/about"
+                  href="/put-it-right"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  About
+                  Put it right
                 </Link>
                 <Link
-                  href="/tools"
+                  href="/uk"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  Tax tools
+                  UK system
+                </Link>
+                <Link
+                  href="/trust"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  Trust and boundaries
                 </Link>
                 <Link
                   href="/feedback"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
                   Feedback
+                </Link>
+                <Link
+                  href="/about"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  About
                 </Link>
                 <Link
                   href="/about#licences"

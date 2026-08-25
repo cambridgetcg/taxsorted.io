@@ -9,20 +9,22 @@ import { useI18n } from "@/i18n/I18nProvider";
 
 // One level deep, forever. The doors are plain links and the hub pages are
 // the menus — no dropdown can explain a destination better than the hub it
-// hides. The bridge into existing accounting software deserves its own door;
-// utilities remain visually separate. Every target is at least 44px.
+// hides. The doors follow the person's work: see the position, compare
+// choices, keep the evidence, carry out the action, put mistakes right, then
+// understand and change the system. Utilities remain visually separate.
+// Every target is at least 44px.
 //
 // `match` lists every route family that belongs to a door, because the URL
-// tree is older than the door tree (Tax tools → /tools also owns /itsa,
-// /vat and /dashboard). Trailing slashes are normalized: trailingSlash is
-// on, so usePathname() returns "/uk/".
+// tree is older than the door tree. `exclude` resolves the few paths whose
+// URL parent belongs to another human job. Trailing slashes are normalized:
+// trailingSlash is on, so usePathname() returns "/uk/".
 const DOORS = [
-  { href: "/books", labelKey: "nav.books", descKey: "nav.books.desc", match: ["/books"], exclude: ["/books/connect"] },
-  { href: "/books/connect", labelKey: "nav.connect", descKey: "nav.connect.desc", match: ["/books/connect"] },
-  { href: "/checkup", labelKey: "nav.checkup", descKey: "nav.checkup.desc", match: ["/checkup"] },
-  { href: "/tools", labelKey: "nav.prepare", descKey: "nav.prepare.desc", match: ["/tools", "/itsa", "/vat", "/dashboard", "/passport"] },
-  { href: "/learn", labelKey: "nav.learn", descKey: "nav.learn.desc", match: ["/learn"] },
-  { href: "/uk", labelKey: "nav.publicSystem", descKey: "nav.publicSystem.desc", match: ["/uk"] },
+  { href: "/checkup", labelKey: "nav.check", descKey: "nav.check.desc", match: ["/checkup", "/itsa/am-i-in", "/uk/tax-expert", "/passport"] },
+  { href: "/plan", labelKey: "nav.plan", descKey: "nav.plan.desc", match: ["/plan", "/uk/personal-tax", "/tools/mileage"] },
+  { href: "/books", labelKey: "nav.books", descKey: "nav.books.desc", match: ["/books"] },
+  { href: "/file", labelKey: "nav.file", descKey: "nav.file.desc", match: ["/file", "/itsa", "/vat", "/dashboard"], exclude: ["/itsa/am-i-in"] },
+  { href: "/put-it-right", labelKey: "nav.putRight", descKey: "nav.putRight.desc", match: ["/put-it-right"] },
+  { href: "/learn", labelKey: "nav.understand", descKey: "nav.understand.desc", match: ["/learn", "/understanding", "/uk"], exclude: ["/uk/tax-expert", "/uk/personal-tax"] },
 ] as const;
 
 function doorState(

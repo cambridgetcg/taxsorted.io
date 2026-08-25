@@ -140,10 +140,11 @@ export default function PhilosophyPage() {
         </ul>
         <p>
           And one discipline across all of it: we never weaponise the gap. No fear, no
-          penalty-as-marketing, no complexity theatre to sell the cure. We charge for
-          genuinely saving time or money, never for access to the law&apos;s meaning —
-          selling someone their own foundation back is the exact capture this page
-          exists to end.
+          penalty-as-marketing, no complexity theatre to sell the cure. TaxSorted is a
+          free commons: no paid tier, donation ramp, contingent refund fee or provider
+          commission steers what a person sees. Any future funding needs a fresh written
+          boundary review — selling someone their own foundation back is the exact capture
+          this page exists to end.
         </p>
       </div>
 

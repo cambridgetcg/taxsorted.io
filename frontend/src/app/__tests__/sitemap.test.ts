@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sitemap from "../sitemap";
+import robots from "../robots";
 import { ukProfessionalOpportunityCorpus } from "@/lib/uk-professional-opportunities";
 
 describe("public sitemap", () => {
@@ -33,7 +34,11 @@ describe("public sitemap", () => {
     for (const path of [
       "/books/",
       "/checkup/",
+      "/plan/",
+      "/file/",
+      "/put-it-right/",
       "/passport/",
+      "/trust/",
       "/uk/",
       "/uk/personal-tax/",
       "/uk/tax-expert/",
@@ -63,14 +68,31 @@ describe("public sitemap", () => {
       "/tools/",
       "/understanding/",
       "/checkup/",
+      "/plan/",
+      "/file/",
+      "/put-it-right/",
       "/passport/",
+      "/trust/",
       "/vat/",
-      "/uk/politics/people/",
-      "/uk/politics/funding/",
     ]) {
       expect(urls).toContain(`https://taxsorted.io${path}`);
     }
     expect(urls).not.toContain("https://taxsorted.io/books/workspace/");
     expect(urls).not.toContain("https://taxsorted.io/itsa/records/");
+  });
+
+  it("never advertises a robots-disallowed route in the sitemap", () => {
+    const urls = sitemap().map((entry) => new URL(entry.url).pathname);
+    const rules = robots().rules;
+    const rule = Array.isArray(rules) ? rules[0] : rules;
+    const disallowed: string[] = Array.isArray(rule.disallow)
+      ? rule.disallow
+      : rule.disallow
+        ? [rule.disallow]
+        : [];
+
+    for (const path of disallowed) {
+      expect(urls.some((url) => url === path || url.startsWith(`${path}/`))).toBe(false);
+    }
   });
 });

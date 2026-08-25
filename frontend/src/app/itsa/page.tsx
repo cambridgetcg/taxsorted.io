@@ -65,7 +65,7 @@ const CARDS = [
 export default function ItsaHubPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Income Tax" />
+      <Breadcrumbs items={[{ href: "/file", label: "File and pay" }]} current="Income Tax" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Income Tax (MTD)</h1>
       <p className="mt-3 text-base text-ink-soft">

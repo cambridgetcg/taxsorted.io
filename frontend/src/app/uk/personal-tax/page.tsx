@@ -44,7 +44,7 @@ export default function UkPersonalTaxPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="The £60,000 and £100,000 lines" />
+      <Breadcrumbs items={[{ href: "/plan", label: "Plan" }]} current="The £60,000 and £100,000 lines" />
 
       <section className="mt-8 rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">

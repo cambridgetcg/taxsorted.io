@@ -71,7 +71,7 @@ export default function MileageClient() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/tools", label: "Do my tax" }]} current="Mileage" />
+      <Breadcrumbs items={[{ href: "/plan", label: "Plan" }]} current="Mileage" />
 
       <h1 className="mt-4 text-3xl font-bold text-ink sm:text-4xl">Mileage</h1>
       <p className="mt-3 text-base text-ink-soft">

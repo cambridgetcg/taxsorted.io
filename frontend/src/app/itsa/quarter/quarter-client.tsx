@@ -171,7 +171,7 @@ export default function QuarterClient() {
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Breadcrumbs
         items={[
-          { href: "/tools", label: "Do my tax" },
+          { href: "/file", label: "File and pay" },
           { href: "/itsa", label: "Income Tax" },
         ]}
         current="Quarterly figures"

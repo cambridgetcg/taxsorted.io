@@ -108,9 +108,11 @@ product. Every service is this philosophy, executed:
 
 And one discipline across all of it: **we never weaponise the gap.** No
 fear, no penalty-as-marketing, no complexity theatre to sell the cure. The
-business model is the philosophy: we charge for genuinely saving time or
-money, never for access to the law's meaning — because selling someone
-their own foundation back is the exact capture this document exists to end.
+money boundary is the philosophy: TaxSorted is a free commons, with no paid
+tier, donation ramp, contingent refund fee or provider commission steering
+what a person sees. Any future funding needs a fresh written boundary review
+before it touches the product — because selling someone their own foundation
+back is the exact capture this document exists to end.
 
 ## The principles, grounded
 
@@ -119,8 +121,9 @@ as design rules. *Understandable by everyone* and *educate, don't gatekeep*
 are the meaning restored; *derive, never key* and *both worlds* are the
 execution restored; *no fear, no punishment* is the refusal to weaponise
 the gap; *everyone wins, accountants included* moves specialists from
-gatekeepers of meaning to teachers of it; *we make money by being fair* is
-the anti-capture business model; *clean helps honesty* keeps execution
+gatekeepers of meaning to teachers of it; *money never steers the answer*
+is the anti-capture funding boundary;
+*clean helps honesty* keeps execution
 inspectable; *tax is local; clarity isn't* says the meaning of law deserves
 restoring everywhere, not only where we started.
 

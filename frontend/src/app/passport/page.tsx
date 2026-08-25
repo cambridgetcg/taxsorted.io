@@ -17,10 +17,7 @@ export default function PassportPage() {
     >
       <div className="print:hidden">
         <Breadcrumbs
-          items={[
-            { href: "/tools", label: "Do my tax" },
-            { href: "/checkup", label: "Tax Checkup" },
-          ]}
+          items={[{ href: "/checkup", label: "Check" }]}
           current="Tax Position Passport"
         />
 
