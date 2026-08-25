@@ -11,20 +11,46 @@ export const sql = postgres(databaseUrl, {
 
 const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "migrations");
 
-export async function migrate() {
-  await sql`create table if not exists _migrations (
-    name text primary key,
-    applied_at timestamptz not null default now()
-  )`;
+export interface MigrationTransaction {
+  (
+    strings: TemplateStringsArray,
+    ...values: unknown[]
+  ): Promise<readonly Record<string, unknown>[]>;
+  unsafe(query: string): Promise<unknown>;
+}
+
+export interface MigrationSql {
+  begin<T>(callback: (tx: MigrationTransaction) => Promise<T>): Promise<T>;
+}
+
+export async function migrate(
+  database: MigrationSql = sql as unknown as MigrationSql,
+) {
   const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith(".sql")).sort();
-  for (const file of files) {
-    const [done] = await sql`select 1 from _migrations where name = ${file}`;
-    if (done) continue;
-    const body = await readFile(join(MIGRATIONS_DIR, file), "utf8");
-    await sql.begin(async (tx) => {
+  const migrations = await Promise.all(files.map(async (file) => ({
+    file,
+    body: await readFile(join(MIGRATIONS_DIR, file), "utf8"),
+  })));
+
+  const appliedFiles = await database.begin(async (tx) => {
+    await tx`select pg_advisory_xact_lock(hashtextextended('taxsorted-api-migrations', 0))`;
+    await tx`create table if not exists _migrations (
+      name text primary key,
+      applied_at timestamptz not null default now()
+    )`;
+
+    const applied: string[] = [];
+    for (const { file, body } of migrations) {
+      const [done] = await tx`select 1 from _migrations where name = ${file}`;
+      if (done) continue;
       await tx.unsafe(body);
       await tx`insert into _migrations (name) values (${file})`;
-    });
+      applied.push(file);
+    }
+    return applied;
+  });
+
+  for (const file of appliedFiles) {
     console.log(`migrated: ${file}`);
   }
 }

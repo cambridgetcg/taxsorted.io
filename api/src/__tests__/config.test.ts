@@ -2,8 +2,62 @@
 // fresh module instance: stub env vars, dynamically import, then reset. No
 // Postgres, no network — pure env-in/shape-out.
 
-import { describe, it, expect, afterEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { politicsDatasetAdmissionDigest } from "../uk-politics-datasets.js";
+
+const PILOT_USER_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const OTHER_PILOT_USER_ID = "22222222-2222-4222-8222-222222222222";
+const NON_DEMO_TENANT_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
+function stubClosedXero() {
+  vi.stubEnv("ACCOUNTING_XERO_ENABLED", "");
+  vi.stubEnv("ACCOUNTING_XERO_EMERGENCY_STOP", "");
+  vi.stubEnv("XERO_CLIENT_ID", "");
+  vi.stubEnv("XERO_CLIENT_SECRET", "");
+  vi.stubEnv("ACCOUNTING_XERO_PILOT_USER_IDS", "");
+  vi.stubEnv("ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS", "");
+  vi.stubEnv("ACCOUNTING_TOKEN_KEYS", "");
+  vi.stubEnv("ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION", "");
+  vi.stubEnv("API_ORIGIN", "");
+}
+
+function closedXeroConfig() {
+  return {
+    requestedEnabled: false,
+    configured: false,
+    enabled: false,
+    emergencyStop: true,
+    clientId: "",
+    clientSecret: "",
+    callbackUri:
+      "https://api.taxsorted.io/v1/accounting/oauth/xero/callback",
+    pilotUserIds: new Set<string>(),
+    allowedNonDemoTenantIds: new Set<string>(),
+    tokenKeys: new Map<number, string>(),
+    tokenActiveKeyVersion: null,
+  };
+}
+
+function stubCompleteXero() {
+  vi.stubEnv("ACCOUNTING_XERO_ENABLED", "true");
+  vi.stubEnv("ACCOUNTING_XERO_EMERGENCY_STOP", "false");
+  vi.stubEnv("XERO_CLIENT_ID", "xero-client");
+  vi.stubEnv("XERO_CLIENT_SECRET", "xero-secret");
+  vi.stubEnv(
+    "ACCOUNTING_XERO_PILOT_USER_IDS",
+    `${PILOT_USER_ID.toUpperCase()}, ${OTHER_PILOT_USER_ID}, ${PILOT_USER_ID}`,
+  );
+  vi.stubEnv(
+    "ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS",
+    NON_DEMO_TENANT_ID,
+  );
+  vi.stubEnv(
+    "ACCOUNTING_TOKEN_KEYS",
+    `1:${"a".repeat(64)}, 2:${"B".repeat(64)}`,
+  );
+  vi.stubEnv("ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION", "2");
+  vi.stubEnv("API_ORIGIN", "https://api.example.test/");
+}
 
 function stubBulkApproval() {
   vi.stubEnv("POLITICS_BULK_APPROVED_BY", "Yu");
@@ -618,6 +672,10 @@ describe("config.professionalOpportunities — publication gate and stop", () =>
 });
 
 describe("config.accounting — synthetic proof and independent stops", () => {
+  beforeEach(() => {
+    stubClosedXero();
+  });
+
   it("is disabled by default and only exact local true enables the made-up provider", async () => {
     vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("ACCOUNTING_SYNTHETIC_ENABLED", "");
@@ -628,6 +686,7 @@ describe("config.accounting — synthetic proof and independent stops", () => {
       syntheticEnabled: false,
       connectorEmergencyStop: false,
       syncEmergencyStop: false,
+      xero: closedXeroConfig(),
     });
 
     vi.resetModules();
@@ -648,6 +707,7 @@ describe("config.accounting — synthetic proof and independent stops", () => {
       syntheticEnabled: false,
       connectorEmergencyStop: false,
       syncEmergencyStop: false,
+      xero: closedXeroConfig(),
     });
   });
 
@@ -665,6 +725,7 @@ describe("config.accounting — synthetic proof and independent stops", () => {
         syntheticEnabled: false,
         connectorEmergencyStop: true,
         syncEmergencyStop: false,
+        xero: closedXeroConfig(),
       });
     },
   );
@@ -679,6 +740,7 @@ describe("config.accounting — synthetic proof and independent stops", () => {
       syntheticEnabled: true,
       connectorEmergencyStop: false,
       syncEmergencyStop: true,
+      xero: closedXeroConfig(),
     });
 
     vi.resetModules();
@@ -688,6 +750,137 @@ describe("config.accounting — synthetic proof and independent stops", () => {
       syntheticEnabled: true,
       connectorEmergencyStop: false,
       syncEmergencyStop: false,
+      xero: closedXeroConfig(),
     });
+  });
+
+  it("keeps Xero closed by default in every environment", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const { config } = await import("../config.js");
+
+    expect(config.accounting.xero).toEqual(closedXeroConfig());
+  });
+
+  it("opens only with exact flags and complete, valid pilot configuration", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "false");
+    stubCompleteXero();
+
+    const { config } = await import("../config.js");
+
+    expect(config.accounting.xero).toEqual({
+      requestedEnabled: true,
+      configured: true,
+      enabled: true,
+      emergencyStop: false,
+      clientId: "xero-client",
+      clientSecret: "xero-secret",
+      callbackUri:
+        "https://api.example.test/v1/accounting/oauth/xero/callback",
+      pilotUserIds: new Set([PILOT_USER_ID, OTHER_PILOT_USER_ID]),
+      allowedNonDemoTenantIds: new Set([NON_DEMO_TENANT_ID]),
+      tokenKeys: new Map([
+        [1, "a".repeat(64)],
+        [2, "b".repeat(64)],
+      ]),
+      tokenActiveKeyVersion: 2,
+    });
+  });
+
+  it("keeps cleanup mounted when the valid pilot allowlist is empty", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DATABASE_URL", "postgres://x");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "false");
+    stubCompleteXero();
+    vi.stubEnv("ACCOUNTING_XERO_PILOT_USER_IDS", "");
+
+    const { assertBootConfig, config } = await import("../config.js");
+
+    expect(config.accounting.xero.configured).toBe(true);
+    expect(config.accounting.xero.enabled).toBe(true);
+    expect(config.accounting.xero.pilotUserIds).toEqual(new Set());
+    expect(() => assertBootConfig()).not.toThrow();
+  });
+
+  it.each(["", "true", "TRUE", "1", "malformed", " false "])(
+    "keeps the Xero stop on for value %j",
+    async (value) => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "false");
+      stubCompleteXero();
+      vi.stubEnv("ACCOUNTING_XERO_EMERGENCY_STOP", value);
+
+      const { config } = await import("../config.js");
+
+      expect(config.accounting.xero.configured).toBe(true);
+      expect(config.accounting.xero.emergencyStop).toBe(true);
+      expect(config.accounting.xero.enabled).toBe(false);
+    },
+  );
+
+  it("lets the global connector stop override a complete Xero configuration", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ACCOUNTING_CONNECTORS_EMERGENCY_STOP", "operator-stop");
+    stubCompleteXero();
+
+    const { config } = await import("../config.js");
+
+    expect(config.accounting.xero.configured).toBe(true);
+    expect(config.accounting.xero.emergencyStop).toBe(false);
+    expect(config.accounting.xero.enabled).toBe(false);
+  });
+
+  it("treats malformed UUID lists and key rings as wholly unconfigured", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    stubCompleteXero();
+    vi.stubEnv(
+      "ACCOUNTING_XERO_PILOT_USER_IDS",
+      `${PILOT_USER_ID}, not-a-uuid`,
+    );
+    vi.stubEnv(
+      "ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS",
+      "also-not-a-uuid",
+    );
+    vi.stubEnv(
+      "ACCOUNTING_TOKEN_KEYS",
+      `1:${"a".repeat(64)},1:${"b".repeat(64)}`,
+    );
+    vi.stubEnv("ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION", "1");
+
+    const { config } = await import("../config.js");
+
+    expect(config.accounting.xero.configured).toBe(false);
+    expect(config.accounting.xero.enabled).toBe(false);
+    expect(config.accounting.xero.pilotUserIds).toEqual(new Set());
+    expect(config.accounting.xero.allowedNonDemoTenantIds).toEqual(new Set());
+    expect(config.accounting.xero.tokenKeys).toEqual(new Map());
+    expect(config.accounting.xero.tokenActiveKeyVersion).toBeNull();
+  });
+
+  it("does not make optional Xero secrets a boot requirement while disabled", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://x");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    vi.stubEnv("ACCOUNTING_XERO_ENABLED", "TRUE");
+
+    const { assertBootConfig, config } = await import("../config.js");
+
+    expect(config.accounting.xero.requestedEnabled).toBe(false);
+    expect(() => assertBootConfig()).not.toThrow();
+  });
+
+  it("requires provider credentials and the token key ring when Xero is requested", async () => {
+    vi.stubEnv("DATABASE_URL", "postgres://x");
+    vi.stubEnv("TOKEN_KEY", "a".repeat(64));
+    vi.stubEnv("ACCOUNTING_XERO_ENABLED", "true");
+
+    const { assertBootConfig } = await import("../config.js");
+
+    expect(() => assertBootConfig()).toThrow(/XERO_CLIENT_ID/u);
+    expect(() => assertBootConfig()).toThrow(/XERO_CLIENT_SECRET/u);
+    expect(() => assertBootConfig()).not.toThrow(
+      /ACCOUNTING_XERO_PILOT_USER_IDS/u,
+    );
+    expect(() => assertBootConfig()).toThrow(/ACCOUNTING_TOKEN_KEYS/u);
   });
 });

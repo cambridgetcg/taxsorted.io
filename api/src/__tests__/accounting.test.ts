@@ -8,6 +8,7 @@ import {
 import {
   AccountingError,
   AccountingService,
+  type AccountingOrganisationDirectory,
   type AccountingSql,
   type AccountingTransaction,
 } from "../accounting.js";
@@ -20,6 +21,7 @@ const OTHER_DEVICE = "44444444-4444-4444-8444-444444444444";
 const AUTH = "55555555-5555-4555-8555-555555555555";
 const SOURCE = "66666666-6666-4666-8666-666666666666";
 const ENTITY = "66666666-6666-4666-9666-666666666666";
+const REBOUND_ENTITY = "66666666-6666-4666-a666-666666666666";
 const REPLICA = "77777777-7777-4777-8777-777777777777";
 const OTHER_REPLICA = "77777777-7777-4777-9777-777777777777";
 const LOCAL_REPLICA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -27,6 +29,8 @@ const OTHER_LOCAL_REPLICA = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const RUN = "88888888-8888-4888-8888-888888888888";
 const OTHER_RUN = "88888888-8888-4888-9888-888888888888";
 const MANIFEST = "99999999-9999-4999-8999-999999999999";
+const XERO_TENANT = "12345678-1234-4234-8234-123456789abc";
+const XERO_CONNECTION = "abcdefab-cdef-4abc-8def-abcdefabcdef";
 const FENCE = "9007199254740993";
 const NOW = new Date("2026-08-01T12:00:00.000Z");
 const FUTURE = new Date("2026-08-01T12:02:00.000Z");
@@ -110,6 +114,9 @@ function sourceRow(overrides: Record<string, unknown> = {}) {
     base_currency: "GBP",
     status: "active",
     dirty_generation: "0",
+    provider: "synthetic",
+    provider_environment: "sandbox",
+    provider_connection_id: null,
     created_at: NOW,
     ...overrides,
   };
@@ -184,6 +191,36 @@ function service(database: AccountingSql) {
   return new AccountingService(database, [syntheticAccountingProvider]);
 }
 
+const xeroOrganisation = {
+  id: XERO_TENANT,
+  name: "Demo Company (UK)",
+  countryCode: "GB",
+  baseCurrency: "GBP",
+  datasets: [],
+  synthetic: false,
+} as const;
+
+const xeroDirectory: AccountingOrganisationDirectory = {
+  id: "xero",
+  environment: "production",
+  async listOrganisations() {
+    return [xeroOrganisation];
+  },
+  async resolveOrganisation(_authorisationId, organisationId) {
+    return organisationId === XERO_TENANT
+      ? { organisation: xeroOrganisation, providerConnectionId: XERO_CONNECTION }
+      : null;
+  },
+};
+
+function serviceWithXeroDirectory(database: AccountingSql) {
+  return new AccountingService(
+    database,
+    [syntheticAccountingProvider],
+    [syntheticAccountingProvider, xeroDirectory],
+  );
+}
+
 describe("accounting sync service", () => {
   it("refuses to bind a provider organisation to an entity the account does not own", async () => {
     const db = fakeSql([
@@ -242,8 +279,246 @@ describe("accounting sync service", () => {
     expect(insert?.values).toContain("Mina's Card Studio (made-up)");
   });
 
+  it("persists Xero's server-resolved connection ID, never a browser value", async () => {
+    const xeroAuthorisation = authorisationRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_subject_id: "xero-user",
+      granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+    });
+    const db = fakeSql([
+      [xeroAuthorisation],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [sourceRow({
+        provider: "xero",
+        provider_environment: "production",
+        provider_organisation_id: XERO_TENANT,
+        provider_connection_id: XERO_CONNECTION,
+        organisation_name: "Demo Company (UK)",
+      })],
+    ]);
+
+    const result = await serviceWithXeroDirectory(db.sql).createSourceConnection(
+      USER,
+      {
+        authorisationId: AUTH,
+        entityId: ENTITY,
+        organisationId: XERO_TENANT,
+      },
+    );
+
+    expect(result).toMatchObject({
+      sourceConnection: {
+        provider: "xero",
+        organisation: { id: XERO_TENANT, name: "Demo Company (UK)" },
+      },
+    });
+    const insert = db.queries.find((query) =>
+      query.text.startsWith("insert into accounting_source_connections"),
+    );
+    expect(insert?.values).toContain(XERO_CONNECTION);
+    expect(insert?.text).toContain("provider_connection_id");
+  });
+
+  it("rebinds a paused Xero source using the current server-resolved connection", async () => {
+    const xeroAuthorisation = authorisationRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_subject_id: "xero-user",
+      granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+    });
+    const paused = sourceRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_organisation_id: XERO_TENANT,
+      provider_connection_id: "11111111-2222-4333-8444-555555555555",
+      organisation_name: "Old Demo Company",
+      status: "paused",
+      dirty_generation: "3",
+    });
+    const db = fakeSql([
+      [xeroAuthorisation],
+      [{ ...xeroAuthorisation, entity_id: REBOUND_ENTITY }],
+      [],
+      [paused],
+      [{ ...xeroAuthorisation, entity_id: REBOUND_ENTITY }],
+      [{
+        ...paused,
+        entity_id: REBOUND_ENTITY,
+        organisation_name: "Demo Company (UK)",
+        provider_connection_id: XERO_CONNECTION,
+        status: "active",
+        dirty_generation: "4",
+      }],
+    ]);
+
+    const result = await serviceWithXeroDirectory(db.sql).createSourceConnection(
+      USER,
+      {
+        authorisationId: AUTH,
+        entityId: REBOUND_ENTITY,
+        organisationId: XERO_TENANT,
+      },
+    );
+
+    expect(result.sourceConnection).toMatchObject({
+      entityId: REBOUND_ENTITY,
+      status: "active",
+      dirtyGeneration: "4",
+      organisation: { id: XERO_TENANT, name: "Demo Company (UK)" },
+    });
+    const update = db.queries.find((query) =>
+      query.text.startsWith("update accounting_source_connections"),
+    );
+    expect(update?.values).toContain(XERO_CONNECTION);
+    expect(update?.text).toContain("dirty_generation = dirty_generation + 1");
+    expect(update?.text).toContain("and dirty_generation = ?");
+    expect(update?.text).toContain("provider_connection_id is not distinct from ?");
+    expect(update?.text).toContain("provider_disconnected_at = null");
+    expect(update?.text).toContain("provider_disconnect_lock_id is null");
+  });
+
+  it("does not rebind a locally disconnected Xero source before provider cleanup is confirmed", async () => {
+    const xeroAuthorisation = authorisationRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_subject_id: "xero-user",
+      granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+    });
+    const db = fakeSql([
+      [xeroAuthorisation],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [],
+      [sourceRow({
+        provider: "xero",
+        provider_environment: "production",
+        provider_organisation_id: XERO_TENANT,
+        provider_connection_id: XERO_CONNECTION,
+        status: "disconnected",
+        disconnected_at: NOW,
+        provider_disconnected_at: null,
+      })],
+    ]);
+
+    await expect(
+      serviceWithXeroDirectory(db.sql).createSourceConnection(USER, {
+        authorisationId: AUTH,
+        entityId: ENTITY,
+        organisationId: XERO_TENANT,
+      }),
+    ).rejects.toMatchObject({
+      code: "organisation_already_linked",
+      status: 409,
+    });
+    expect(
+      db.queries.some((query) =>
+        query.text.startsWith("update accounting_source_connections"),
+      ),
+    ).toBe(false);
+  });
+
+  it("rebinds a disconnected Xero source after provider cleanup is confirmed", async () => {
+    const xeroAuthorisation = authorisationRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_subject_id: "xero-user",
+      granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+    });
+    const disconnected = sourceRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_organisation_id: XERO_TENANT,
+      provider_connection_id: XERO_CONNECTION,
+      status: "disconnected",
+      dirty_generation: "8",
+      disconnected_at: NOW,
+      provider_disconnected_at: NOW,
+    });
+    const db = fakeSql([
+      [xeroAuthorisation],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [],
+      [disconnected],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [{
+        ...disconnected,
+        status: "active",
+        dirty_generation: "9",
+        disconnected_at: null,
+        provider_disconnected_at: null,
+      }],
+    ]);
+
+    const result = await serviceWithXeroDirectory(db.sql).createSourceConnection(
+      USER,
+      {
+        authorisationId: AUTH,
+        entityId: ENTITY,
+        organisationId: XERO_TENANT,
+      },
+    );
+
+    expect(result.sourceConnection).toMatchObject({
+      status: "active",
+      dirtyGeneration: "9",
+      provider: "xero",
+    });
+    expect(
+      db.queries.some((query) =>
+        query.text.startsWith("update accounting_source_connections"),
+      ),
+    ).toBe(true);
+  });
+
+  it("refuses a Xero rebind when the source lifecycle advances during revalidation", async () => {
+    const xeroAuthorisation = authorisationRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_subject_id: "xero-user",
+      granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+    });
+    const disconnected = sourceRow({
+      provider: "xero",
+      provider_environment: "production",
+      provider_organisation_id: XERO_TENANT,
+      provider_connection_id: XERO_CONNECTION,
+      status: "disconnected",
+      dirty_generation: "12",
+      disconnected_at: NOW,
+      provider_disconnected_at: NOW,
+    });
+    const db = fakeSql([
+      [xeroAuthorisation],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [],
+      [disconnected],
+      [{ ...xeroAuthorisation, entity_id: ENTITY }],
+      [],
+    ]);
+
+    await expect(
+      serviceWithXeroDirectory(db.sql).createSourceConnection(USER, {
+        authorisationId: AUTH,
+        entityId: ENTITY,
+        organisationId: XERO_TENANT,
+      }),
+    ).rejects.toMatchObject({
+      code: "source_connection_conflict",
+      status: 409,
+    });
+    const fencedUpdate = db.queries.at(-1)!;
+    expect(fencedUpdate.text).toContain("and dirty_generation = ?");
+    expect(fencedUpdate.text).toContain(
+      "provider_disconnected_at is not distinct from ?",
+    );
+    expect(fencedUpdate.text).toContain("provider_disconnect_lock_id is null");
+    expect(fencedUpdate.values).toContain("12");
+  });
+
   it("creates one idempotent server replica for an exact local-ledger identity", async () => {
     const db = fakeSql([
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
       [],
       [replicaRow()],
     ]);
@@ -261,15 +536,20 @@ describe("accounting sync service", () => {
         createdAt: NOW.toISOString(),
       },
     });
-    expect(db.queries[0]?.text).toContain(
+    expect(db.queries[2]?.text).toContain(
       "on conflict (source_connection_id, device_id, local_replica_id) do nothing",
     );
-    expect(db.queries[1]?.text).toContain("rp.local_replica_id = ?");
+    expect(db.queries[3]?.text).toContain("rp.local_replica_id = ?");
+    expect(db.queries[1]?.text).toContain("for update of sc");
   });
 
   it("gives a newly-created local ledger a fresh server replica", async () => {
     const db = fakeSql([
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
       [replicaRow()],
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
       [replicaRow({
         id: OTHER_REPLICA,
         local_replica_id: OTHER_LOCAL_REPLICA,
@@ -290,12 +570,14 @@ describe("accounting sync service", () => {
         localReplicaId: OTHER_LOCAL_REPLICA,
       },
     });
-    expect(db.queries[0]?.values).toContain(LOCAL_REPLICA);
-    expect(db.queries[1]?.values).toContain(OTHER_LOCAL_REPLICA);
+    expect(db.queries[2]?.values).toContain(LOCAL_REPLICA);
+    expect(db.queries[5]?.values).toContain(OTHER_LOCAL_REPLICA);
   });
 
   it("does not revive a retired local replica", async () => {
     const db = fakeSql([
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
       [],
       [replicaRow({ status: "retired" })],
     ]);
@@ -307,8 +589,92 @@ describe("accounting sync service", () => {
     ).rejects.toMatchObject({ code: "replica_retired" });
   });
 
+  it("revalidates and locks the source before inserting a replica", async () => {
+    const db = fakeSql([
+      [{ provider: "synthetic", provider_environment: "sandbox" }],
+      [],
+    ]);
+
+    await expect(
+      service(db.sql).createReplica(USER, DEVICE, SOURCE, {
+        localReplicaId: LOCAL_REPLICA,
+      }),
+    ).rejects.toMatchObject({
+      code: "source_connection_not_active",
+      status: 409,
+    });
+    expect(db.queries[1]?.text).toContain("for update of sc");
+    expect(
+      db.queries.some((query) =>
+        query.text.startsWith("insert into accounting_sync_replicas"),
+      ),
+    ).toBe(false);
+  });
+
+  it("discovers Xero organisations without registering a financial page reader", async () => {
+    const db = fakeSql([
+      [authorisationRow({
+        provider: "xero",
+        provider_environment: "production",
+        provider_subject_id: "xero-user",
+        granted_scopes: ["openid", "offline_access", "accounting.settings.read"],
+      })],
+    ]);
+
+    const result = await serviceWithXeroDirectory(db.sql).listOrganisations(USER, AUTH);
+
+    expect(result).toMatchObject({
+      authorisation: { provider: "xero", environment: "production" },
+      organisations: [{
+        id: "12345678-1234-4234-8234-123456789abc",
+        name: "Demo Company (UK)",
+        datasets: [],
+      }],
+      persisted: false,
+    });
+  });
+
+  it("rejects a Xero replica before connector state can be mutated", async () => {
+    const db = fakeSql([
+      [{ provider: "xero", provider_environment: "production" }],
+    ]);
+
+    await expect(
+      serviceWithXeroDirectory(db.sql).createReplica(USER, DEVICE, SOURCE, {
+        localReplicaId: LOCAL_REPLICA,
+      }),
+    ).rejects.toMatchObject({ code: "dataset_unavailable", status: 422 });
+    expect(db.queries).toHaveLength(1);
+    expect(db.queries.some((query) => /^(?:insert|update|delete) /u.test(query.text)))
+      .toBe(false);
+  });
+
+  it("rejects a Xero sync run before a fence or run can be created", async () => {
+    const db = fakeSql([
+      [replicaRow({
+        provider: "xero",
+        provider_environment: "production",
+        provider_organisation_id: "12345678-1234-4234-8234-123456789abc",
+      })],
+    ]);
+
+    await expect(
+      serviceWithXeroDirectory(db.sql).startRun(USER, DEVICE, SOURCE, {
+        replicaId: REPLICA,
+        localReplicaId: LOCAL_REPLICA,
+        expectedCompletedRunId: null,
+        dataset: "bank-transactions",
+        kind: "initial",
+      }),
+    ).rejects.toMatchObject({ code: "dataset_unavailable", status: 422 });
+    expect(db.queries).toHaveLength(1);
+    expect(db.queries.some((query) => /^(?:insert|update|delete) /u.test(query.text)))
+      .toBe(false);
+  });
+
   it("acquires a DB-clock lease under the device-bound replica lock and returns bigint fence as text", async () => {
     const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
       [replicaRow()],
       [{ database_now: NOW }],
       [],
@@ -336,8 +702,9 @@ describe("accounting sync service", () => {
       },
     });
     expect(typeof (result.run as { lease: { fence: unknown } }).lease.fence).toBe("string");
-    expect(db.queries[0]?.text).toContain("rp.device_id = ?");
-    expect(db.queries[0]?.values).toContain(DEVICE);
+    expect(db.queries[0]?.text).toContain("for update of sc");
+    expect(db.queries[1]?.text).toContain("rp.device_id = ?");
+    expect(db.queries[1]?.values).toContain(DEVICE);
     expect(db.queries.some((query) => query.text.includes("for update of rp"))).toBe(true);
     expect(db.queries.some((query) => query.text.includes("clock_timestamp()"))).toBe(true);
     expect(db.remaining).toHaveLength(0);
@@ -391,7 +758,10 @@ describe("accounting sync service", () => {
   });
 
   it("cannot acquire another device's replica", async () => {
-    const db = fakeSql([[]]);
+    const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
+      [],
+    ]);
 
     await expect(
       service(db.sql).startRun(USER, OTHER_DEVICE, SOURCE, {
@@ -405,7 +775,7 @@ describe("accounting sync service", () => {
       name: "AccountingError",
       code: "replica_not_found",
     });
-    expect(db.queries[0]?.values).toContain(OTHER_DEVICE);
+    expect(db.queries[1]?.values).toContain(OTHER_DEVICE);
   });
 
   it("cannot mutate a sync run through a different local browser replica", async () => {
@@ -448,6 +818,7 @@ describe("accounting sync service", () => {
 
   it("rejects an initial run when that replica already has a checkpoint", async () => {
     const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
       [replicaRow()],
       [{ database_now: NOW }],
       [],
@@ -469,6 +840,7 @@ describe("accounting sync service", () => {
 
   it("rejects an incremental run when that replica has no checkpoint", async () => {
     const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
       [replicaRow()],
       [{ database_now: NOW }],
       [],
@@ -490,6 +862,7 @@ describe("accounting sync service", () => {
 
   it("rejects a run when the completed checkpoint changed after status was read", async () => {
     const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
       [replicaRow()],
       [{ database_now: NOW }],
       [],
@@ -511,6 +884,7 @@ describe("accounting sync service", () => {
 
   it("does not take over an unexpired active run", async () => {
     const db = fakeSql([
+      [sourceRow({ authorisation_status: "active" })],
       [replicaRow()],
       [{ database_now: NOW }],
       [runRow()],

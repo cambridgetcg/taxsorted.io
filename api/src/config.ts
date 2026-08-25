@@ -20,6 +20,84 @@ const accountingConnectorEmergencyStop =
 const accountingSyncStopValue = env.ACCOUNTING_SYNC_EMERGENCY_STOP ?? "";
 const accountingSyncEmergencyStop =
   accountingSyncStopValue !== "" && accountingSyncStopValue !== "false";
+
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const ACCOUNTING_KEY = /^([1-9]\d{0,8}):([0-9a-f]{64})$/iu;
+
+function exactUuidSet(value: string): {
+  values: ReadonlySet<string>;
+  valid: boolean;
+} {
+  const candidates = value
+    .split(",")
+    .map((candidate) => candidate.trim().toLowerCase())
+    .filter(Boolean);
+  if (candidates.some((candidate) => !UUID.test(candidate))) {
+    return { values: new Set(), valid: false };
+  }
+  return { values: new Set(candidates), valid: true };
+}
+
+function accountingTokenKeyRing(
+  encodedKeys: string,
+  encodedActiveVersion: string,
+): {
+  keys: ReadonlyMap<number, string>;
+  activeVersion: number | null;
+  valid: boolean;
+} {
+  const candidates = encodedKeys
+    .split(",")
+    .map((candidate) => candidate.trim())
+    .filter(Boolean);
+  if (candidates.length < 1 || !/^[1-9]\d{0,8}$/u.test(encodedActiveVersion)) {
+    return { keys: new Map(), activeVersion: null, valid: false };
+  }
+
+  const keys = new Map<number, string>();
+  for (const candidate of candidates) {
+    const matched = ACCOUNTING_KEY.exec(candidate);
+    if (!matched) {
+      return { keys: new Map(), activeVersion: null, valid: false };
+    }
+    const version = Number(matched[1]);
+    if (!Number.isSafeInteger(version) || keys.has(version)) {
+      return { keys: new Map(), activeVersion: null, valid: false };
+    }
+    keys.set(version, matched[2].toLowerCase());
+  }
+
+  const activeVersion = Number(encodedActiveVersion);
+  if (!Number.isSafeInteger(activeVersion) || !keys.has(activeVersion)) {
+    return { keys: new Map(), activeVersion: null, valid: false };
+  }
+  return { keys, activeVersion, valid: true };
+}
+
+const accountingXeroRequestedEnabled =
+  env.ACCOUNTING_XERO_ENABLED === "true";
+// Xero begins stopped. Only exact "false" opens this independent brake;
+// missing, empty and misspelled values all remain safely closed.
+const accountingXeroEmergencyStop =
+  env.ACCOUNTING_XERO_EMERGENCY_STOP !== "false";
+const accountingXeroClientId = env.XERO_CLIENT_ID || "";
+const accountingXeroClientSecret = env.XERO_CLIENT_SECRET || "";
+const accountingXeroPilotUserIds = exactUuidSet(
+  env.ACCOUNTING_XERO_PILOT_USER_IDS || "",
+);
+const accountingXeroAllowedNonDemoTenantIds = exactUuidSet(
+  env.ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS || "",
+);
+const accountingXeroTokenKeyRing = accountingTokenKeyRing(
+  env.ACCOUNTING_TOKEN_KEYS || "",
+  env.ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION || "",
+);
+const accountingXeroConfigured =
+  Boolean(accountingXeroClientId && accountingXeroClientSecret) &&
+  accountingXeroPilotUserIds.valid &&
+  accountingXeroAllowedNonDemoTenantIds.valid &&
+  accountingXeroTokenKeyRing.valid;
 // The made-up provider is a local/test proof only. Even an accidentally set
 // production variable cannot mount it as a live accounting source.
 const accountingSyntheticEnabled =
@@ -104,6 +182,7 @@ const professionalOpportunitiesStoppedIds = [
       .filter(Boolean),
   ),
 ];
+const apiOrigin = env.API_ORIGIN || "https://api.taxsorted.io";
 
 export const config = {
   port: Number(env.PORT || 8787),
@@ -111,7 +190,7 @@ export const config = {
   // 64 hex chars = 32 bytes. Encrypts tokens at rest, signs OAuth state.
   tokenKey: env.TOKEN_KEY || "",
   appOrigin: env.APP_ORIGIN || "https://taxsorted.io",
-  apiOrigin: env.API_ORIGIN || "https://api.taxsorted.io",
+  apiOrigin,
   isProd: env.NODE_ENV === "production",
   hmrc: {
     env: (env.HMRC_ENV === "production" ? "production" : "sandbox") as
@@ -127,6 +206,24 @@ export const config = {
     syntheticEnabled: accountingSyntheticEnabled,
     connectorEmergencyStop: accountingConnectorEmergencyStop,
     syncEmergencyStop: accountingSyncEmergencyStop,
+    xero: {
+      requestedEnabled: accountingXeroRequestedEnabled,
+      configured: accountingXeroConfigured,
+      enabled:
+        accountingXeroRequestedEnabled &&
+        accountingXeroConfigured &&
+        !accountingConnectorEmergencyStop &&
+        !accountingXeroEmergencyStop,
+      emergencyStop: accountingXeroEmergencyStop,
+      clientId: accountingXeroClientId,
+      clientSecret: accountingXeroClientSecret,
+      callbackUri: `${apiOrigin.replace(/\/+$/u, "")}/v1/accounting/oauth/xero/callback`,
+      pilotUserIds: accountingXeroPilotUserIds.values,
+      allowedNonDemoTenantIds:
+        accountingXeroAllowedNonDemoTenantIds.values,
+      tokenKeys: accountingXeroTokenKeyRing.keys,
+      tokenActiveKeyVersion: accountingXeroTokenKeyRing.activeVersion,
+    },
   },
   // Politics data is public, but production publication stays closed until
   // the method/privacy review is complete. Electoral Commission reuse is a
@@ -246,6 +343,23 @@ export function assertBootConfig() {
   const missing: string[] = [];
   if (!config.databaseUrl) missing.push("DATABASE_URL");
   if (!/^[0-9a-f]{64}$/i.test(config.tokenKey)) missing.push("TOKEN_KEY (64 hex chars)");
+  if (config.accounting.xero.requestedEnabled) {
+    if (!config.accounting.xero.clientId) missing.push("XERO_CLIENT_ID");
+    if (!config.accounting.xero.clientSecret) missing.push("XERO_CLIENT_SECRET");
+    if (!accountingXeroPilotUserIds.valid) {
+      missing.push("ACCOUNTING_XERO_PILOT_USER_IDS (UUID list)");
+    }
+    if (!accountingXeroAllowedNonDemoTenantIds.valid) {
+      missing.push(
+        "ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS (UUID list)",
+      );
+    }
+    if (!accountingXeroTokenKeyRing.valid) {
+      missing.push(
+        "ACCOUNTING_TOKEN_KEYS and ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION",
+      );
+    }
+  }
   if (missing.length) {
     throw new Error(`Missing required environment: ${missing.join(", ")}`);
   }

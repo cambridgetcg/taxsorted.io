@@ -4,9 +4,13 @@ import {
   AccountingError,
   type AccountingServiceContract,
 } from "../../accounting.js";
-import { createAccountingRoutes } from "../accounting.js";
+import {
+  createAccountingRoutes,
+  type XeroFoundationContract,
+} from "../accounting.js";
 
 const USER = "11111111-1111-4111-8111-111111111111";
+const SESSION = "11111111-1111-4111-9111-111111111111";
 const DEVICE = "22222222-2222-4222-8222-222222222222";
 const SOURCE = "33333333-3333-4333-8333-333333333333";
 const REPLICA = "44444444-4444-4444-8444-444444444444";
@@ -36,6 +40,19 @@ function fakeService(): AccountingServiceContract {
   };
 }
 
+function fakeXeroService(): XeroFoundationContract {
+  return {
+    startAuthorisation: vi.fn(async () => ({
+      authorizationUrl: "https://login.xero.example/authorize",
+    })),
+    completeAuthorisation: vi.fn(async () => ({
+      authorisation: { id: "77777777-7777-4777-8777-777777777777" },
+    })),
+    disconnectSourceConnection: vi.fn(async () => ({ disconnected: true })),
+    revokeAuthorisation: vi.fn(async () => ({ revoked: true })),
+  };
+}
+
 function mounted(input: {
   service?: AccountingServiceContract;
   userId?: string;
@@ -43,11 +60,19 @@ function mounted(input: {
   syntheticEnabled?: boolean;
   connectorEmergencyStop?: boolean;
   syncEmergencyStop?: boolean;
+  xero?: {
+    service?: XeroFoundationContract;
+    enabled?: boolean;
+    emergencyStop?: boolean;
+    pilotUserIds?: ReadonlySet<string>;
+  };
 } = {}) {
   const service = input.service ?? fakeService();
+  const xeroService = input.xero?.service ?? fakeXeroService();
   const app = new Hono();
   app.use("*", async (c, next) => {
     c.set("requestId", "route-test");
+    c.set("sessionId", SESSION);
     c.set("deviceId", DEVICE);
     if (input.userId) c.set("userId", input.userId);
     if (input.accountId) c.set("accountId", input.accountId);
@@ -61,9 +86,16 @@ function mounted(input: {
       syntheticEnabled: input.syntheticEnabled ?? true,
       connectorEmergencyStop: input.connectorEmergencyStop ?? false,
       syncEmergencyStop: input.syncEmergencyStop ?? false,
+      xero: input.xero ? {
+        service: xeroService,
+        enabled: input.xero.enabled ?? true,
+        emergencyStop: input.xero.emergencyStop ?? false,
+        pilotUserIds: input.xero.pilotUserIds ?? new Set([USER]),
+        appOrigin: ORIGIN,
+      } : undefined,
     }),
   );
-  return { app, service };
+  return { app, service, xeroService };
 }
 
 function post(body: unknown, origin = ORIGIN): RequestInit {
@@ -72,6 +104,10 @@ function post(body: unknown, origin = ORIGIN): RequestInit {
     headers: { "Content-Type": "application/json", Origin: origin },
     body: JSON.stringify(body),
   };
+}
+
+function remove(origin = ORIGIN): RequestInit {
+  return { method: "DELETE", headers: { Origin: origin } };
 }
 
 describe("accounting connector routes", () => {
@@ -116,6 +152,169 @@ describe("accounting connector routes", () => {
       error: "synthetic_provider_disabled",
     });
     expect(service.startAuthorisation).not.toHaveBeenCalled();
+  });
+
+  it("keeps the Xero door absent unless its independent pilot is mounted", async () => {
+    const { app, xeroService } = mounted({ userId: USER });
+    const response = await app.request(
+      "/v1/accounting/authorisations/xero/start",
+      post({}),
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({ error: "provider_unavailable" });
+    expect(xeroService.startAuthorisation).not.toHaveBeenCalled();
+  });
+
+  it("keeps Xero's stop and pilot allowlist closed independently", async () => {
+    const stopped = mounted({
+      userId: USER,
+      xero: { enabled: false, emergencyStop: true },
+    });
+    const stoppedResponse = await stopped.app.request(
+      "/v1/accounting/authorisations/xero/start",
+      post({}),
+    );
+    expect(stoppedResponse.status).toBe(503);
+    expect(await stoppedResponse.json()).toMatchObject({ error: "xero_emergency_stop" });
+
+    const outsidePilot = mounted({
+      userId: USER,
+      xero: { pilotUserIds: new Set() },
+    });
+    const hiddenResponse = await outsidePilot.app.request(
+      "/v1/accounting/authorisations/xero/start",
+      post({}),
+    );
+    expect(hiddenResponse.status).toBe(404);
+    expect(await hiddenResponse.json()).toMatchObject({ error: "provider_unavailable" });
+    expect(outsidePilot.xeroService.startAuthorisation).not.toHaveBeenCalled();
+  });
+
+  it("starts the allowlisted Xero flow bound to the passkey user and browser session", async () => {
+    const { app, xeroService } = mounted({ userId: USER, xero: {} });
+    const response = await app.request(
+      "/v1/accounting/authorisations/xero/start",
+      post({}),
+    );
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({
+      authorizationUrl: "https://login.xero.example/authorize",
+    });
+    expect(xeroService.startAuthorisation).toHaveBeenCalledWith(USER, SESSION);
+
+    const loose = await app.request(
+      "/v1/accounting/authorisations/xero/start",
+      post({ extra: true }),
+    );
+    expect(loose.status).toBe(422);
+  });
+
+  it("completes Xero through fixed redirects without reflecting provider values", async () => {
+    const { app, xeroService } = mounted({ userId: USER, xero: {} });
+    const response = await app.request(
+      "/v1/accounting/oauth/xero/callback?code=private-code&state=private-state",
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe(
+      "https://taxsorted.io/books/connect/?xero=connected",
+    );
+    expect(response.headers.get("Location")).not.toMatch(/private-code|private-state/u);
+    expect(xeroService.completeAuthorisation).toHaveBeenCalledWith(
+      USER,
+      SESSION,
+      "?code=private-code&state=private-state",
+    );
+
+    vi.mocked(xeroService.completeAuthorisation).mockRejectedValueOnce(
+      new Error("provider included private-code"),
+    );
+    const failed = await app.request(
+      "/v1/accounting/oauth/xero/callback?error=access_denied&state=private-state",
+    );
+    expect(failed.status).toBe(303);
+    expect(failed.headers.get("Location")).toBe(
+      "https://taxsorted.io/books/connect/?xero=try-again",
+    );
+  });
+
+  it("uses a fixed sign-in redirect when the Xero callback has no full passkey", async () => {
+    const { app, xeroService } = mounted({ xero: {} });
+    const response = await app.request(
+      "/v1/accounting/oauth/xero/callback?code=private-code&state=private-state",
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe(
+      "https://taxsorted.io/books/connect/?xero=sign-in",
+    );
+    expect(xeroService.completeAuthorisation).not.toHaveBeenCalled();
+  });
+
+  it("disconnects Xero locally through exact owned identifiers and Origin", async () => {
+    const authorisationId = "77777777-7777-4777-8777-777777777777";
+    const { app, xeroService } = mounted({ userId: USER, xero: {} });
+
+    const source = await app.request(
+      `/v1/accounting/source-connections/${SOURCE}`,
+      remove(),
+    );
+    expect(source.status).toBe(200);
+    expect(xeroService.disconnectSourceConnection).toHaveBeenCalledWith(USER, SOURCE);
+
+    const authorisation = await app.request(
+      `/v1/accounting/authorisations/${authorisationId}`,
+      remove(),
+    );
+    expect(authorisation.status).toBe(200);
+    expect(xeroService.revokeAuthorisation).toHaveBeenCalledWith(USER, authorisationId);
+
+    const badOrigin = await app.request(
+      `/v1/accounting/source-connections/${SOURCE}`,
+      remove(`${ORIGIN}.attacker.example`),
+    );
+    expect(badOrigin.status).toBe(403);
+  });
+
+  it("keeps local Xero cleanup reachable under stops and after pilot removal", async () => {
+    const authorisationId = "77777777-7777-4777-8777-777777777777";
+    const { app, xeroService } = mounted({
+      userId: USER,
+      connectorEmergencyStop: true,
+      xero: {
+        enabled: false,
+        emergencyStop: true,
+        pilotUserIds: new Set(),
+      },
+    });
+
+    const source = await app.request(
+      `/v1/accounting/source-connections/${SOURCE}`,
+      remove(),
+    );
+    const authorisation = await app.request(
+      `/v1/accounting/authorisations/${authorisationId}`,
+      remove(),
+    );
+
+    expect(source.status).toBe(200);
+    expect(authorisation.status).toBe(200);
+    expect(xeroService.disconnectSourceConnection).toHaveBeenCalledWith(USER, SOURCE);
+    expect(xeroService.revokeAuthorisation).toHaveBeenCalledWith(USER, authorisationId);
+  });
+
+  it("does not let the synthetic flag hide another provider's organisation directory", async () => {
+    const { app, service } = mounted({ userId: USER, syntheticEnabled: false });
+    const authorisationId = "77777777-7777-4777-8777-777777777777";
+
+    const response = await app.request(
+      `/v1/accounting/authorisations/${authorisationId}/organisations`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(service.listOrganisations).toHaveBeenCalledWith(USER, authorisationId);
   });
 
   it("passes the account and device binding into sync operations", async () => {

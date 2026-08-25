@@ -9,6 +9,9 @@ primary_region = "lhr"
 [build]
   dockerfile = "Dockerfile"
 
+[deploy]
+  release_command = "npm run migrate --workspace api"
+
 [env]
   PORT = "8080"
   NODE_ENV = "production"
