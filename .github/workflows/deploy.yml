@@ -1,11 +1,9 @@
 name: Test, build and deploy
 
-# Pull requests run the complete test/build gate. Every push to main also
-# deploys the API and the Cloudflare Pages project that owns taxsorted.io.
+# Every push to main: run the tests, build the static site, and deploy it to the
+# Cloudflare Pages project that owns taxsorted.io. Fully automatic.
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -21,8 +19,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('taxsorted-pr-{0}', github.event.pull_request.number) || 'taxsorted-production-release' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: taxsorted-production-release
+  cancel-in-progress: false
 
 jobs:
   test-build:
