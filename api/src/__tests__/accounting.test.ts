@@ -343,6 +343,53 @@ describe("accounting sync service", () => {
     expect(db.remaining).toHaveLength(0);
   });
 
+  it("renews the exact active fence under the database clock", async () => {
+    const renewedExpiry = new Date("2026-08-01T12:03:00.000Z");
+    const db = fakeSql([
+      [runRow()],
+      [{ database_now: NOW }],
+      [runRow({ lease_expires_at: renewedExpiry })],
+      [],
+    ]);
+
+    const result = await service(db.sql).renewLease(
+      USER,
+      DEVICE,
+      RUN,
+      FENCE,
+      LOCAL_REPLICA,
+    );
+
+    expect(result).toMatchObject({
+      run: {
+        schema: ACCOUNTING_SYNC_SCHEMA,
+        id: RUN,
+        state: "active",
+        lease: { fence: FENCE, expiresAt: renewedExpiry.toISOString() },
+        nextSequence: 0,
+        acknowledgedPages: [],
+      },
+    });
+    expect(db.queries[0]?.values).toContain(DEVICE);
+    expect(db.queries[0]?.values).toContain(LOCAL_REPLICA);
+    expect(db.queries[2]?.text).toContain("lease_expires_at = clock_timestamp()");
+    expect(db.queries[2]?.values).toContain(120);
+    expect(db.remaining).toHaveLength(0);
+  });
+
+  it("does not renew an expired fence", async () => {
+    const db = fakeSql([
+      [runRow({ lease_expires_at: NOW })],
+      [{ database_now: NOW }],
+    ]);
+
+    await expect(
+      service(db.sql).renewLease(USER, DEVICE, RUN, FENCE, LOCAL_REPLICA),
+    ).rejects.toMatchObject({ code: "stale_sync_fence", status: 409 });
+    expect(db.queries.some((query) => query.text.startsWith("update accounting_sync_runs")))
+      .toBe(false);
+  });
+
   it("cannot acquire another device's replica", async () => {
     const db = fakeSql([[]]);
 

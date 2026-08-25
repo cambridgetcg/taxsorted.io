@@ -165,15 +165,71 @@ export interface RecordsBackend {
   delete(key: string): unknown;
 }
 
+function assertProviderCandidateMapping(input: CommitProviderPageInput): void {
+  const normalizedByCandidate = new Map<string, NormalizedProviderRecordVersion[]>();
+  for (const version of input.normalizedVersions) {
+    const externalId = version.candidateExternalId;
+    const digest = version.candidateContentDigest;
+    if ((externalId === undefined) !== (digest === undefined)) {
+      throw new Error("A normalised provider candidate needs both its source ID and content digest.");
+    }
+    if (externalId === undefined || digest === undefined) continue;
+    if (
+      typeof externalId !== "string" ||
+      !externalId.trim() ||
+      typeof digest !== "string" ||
+      !digest.trim()
+    ) {
+      throw new Error("A normalised provider candidate needs a stable source ID and content digest.");
+    }
+    const key = JSON.stringify([externalId, digest]);
+    const matches = normalizedByCandidate.get(key) ?? [];
+    matches.push(version);
+    normalizedByCandidate.set(key, matches);
+  }
+
+  const candidateKeys = new Set<string>();
+  const candidateExternalIds = new Set<string>();
+  for (const candidate of input.candidates) {
+    if (
+      typeof candidate.origin.externalId !== "string" ||
+      !candidate.origin.externalId.trim() ||
+      typeof candidate.contentDigest !== "string" ||
+      !candidate.contentDigest.trim()
+    ) {
+      throw new Error("A provider review candidate needs a stable source ID and content digest.");
+    }
+    const key = JSON.stringify([candidate.origin.externalId, candidate.contentDigest]);
+    if (
+      candidateExternalIds.has(candidate.origin.externalId) ||
+      candidateKeys.has(key) ||
+      normalizedByCandidate.get(key)?.length !== 1
+    ) {
+      throw new Error("Each provider review candidate must link to one normalised outcome.");
+    }
+    candidateExternalIds.add(candidate.origin.externalId);
+    candidateKeys.add(key);
+  }
+  for (const [key, versions] of normalizedByCandidate) {
+    if (versions.length !== 1 || !candidateKeys.has(key)) {
+      throw new Error("Each normalised provider candidate must link to one review candidate.");
+    }
+  }
+}
+
 function assertSyntheticPageMapping(input: CommitProviderPageInput): void {
   if (input.normalizedVersions.some((version) => version.mappedEventId !== undefined)) {
     throw new Error("Only the local store may link a normalised outcome to a review event.");
+  }
+  if (input.normalizedVersions.length !== input.rawVersions.length) {
+    throw new Error("Each raw provider record needs exactly one normalised outcome on this adapter.");
   }
   if (input.candidates.length !== input.normalizedVersions.length) {
     throw new Error("Each made-up normalised outcome needs exactly one review candidate.");
   }
   const rawById = new Map(input.rawVersions.map((version) => [version.id, version]));
   const candidateIds = new Set<string>();
+  const normalizedRawIds = new Set<string>();
   for (const version of input.normalizedVersions) {
     const raw = rawById.get(version.rawVersionId);
     const candidate = input.candidates.find(
@@ -181,6 +237,7 @@ function assertSyntheticPageMapping(input: CommitProviderPageInput): void {
     );
     if (
       !raw ||
+      normalizedRawIds.has(version.rawVersionId) ||
       !version.candidateExternalId ||
       candidateIds.has(version.candidateExternalId) ||
       !candidate ||
@@ -195,6 +252,7 @@ function assertSyntheticPageMapping(input: CommitProviderPageInput): void {
     ) {
       throw new Error("A made-up review candidate does not match its normalised source outcome.");
     }
+    normalizedRawIds.add(version.rawVersionId);
     candidateIds.add(version.candidateExternalId);
   }
 }
@@ -445,7 +503,6 @@ function validateState(state: LocalBooksState): void {
             page.rawVersionIds.length !== page.manifest.recordCount ||
             page.rawVersionIds.some((id) => !rawIdSet.has(id)) ||
             page.normalizedVersionIds.some((id) => !normalizedIds.includes(id)) ||
-            page.rawVersionIds.length !== page.normalizedVersionIds.length ||
             pageRawIds.size !== page.rawVersionIds.length ||
             new Set(page.normalizedVersionIds).size !== page.normalizedVersionIds.length ||
             pageNormalized.some(
@@ -921,12 +978,10 @@ export function createRecordsStore(
         if (manifest.recordCount !== input.rawVersions.length) {
           throw new Error("Provider sync page count does not match its manifest.");
         }
-        if (input.normalizedVersions.length !== input.rawVersions.length) {
-          throw new Error("Each raw provider record needs exactly one normalised outcome on this adapter.");
-        }
         if (input.normalizedVersions.some((version) => version.mappedEventId !== undefined)) {
           throw new Error("Only the local store may link a normalised outcome to a review event.");
         }
+        assertProviderCandidateMapping(input);
         if (binding.provider === "synthetic") assertSyntheticPageMapping(input);
 
         let run = state.syncRuns.find((candidate) => candidate.id === input.run.id);
@@ -1035,16 +1090,14 @@ export function createRecordsStore(
         }
 
         const pageRawIds = new Set(rawVersionIds);
-        const normalizedRawIds = new Set<string>();
         const normalizedVersionIds: string[] = [];
         for (const version of input.normalizedVersions) {
           if (!pageRawIds.has(version.rawVersionId)) {
             throw new Error("A normalised provider version must refer to a raw record on this page.");
           }
-          if (normalizedRawIds.has(version.rawVersionId)) {
-            throw new Error("Each raw provider record may have only one normalised outcome on this adapter.");
+          if (normalizedVersionIds.includes(version.id)) {
+            throw new Error("A provider page cannot repeat a normalised version ID.");
           }
-          normalizedRawIds.add(version.rawVersionId);
           const existing = state.normalizedProviderVersions.find(
             (candidate) => candidate.id === version.id
           );
@@ -1059,9 +1112,6 @@ export function createRecordsStore(
             state.normalizedProviderVersions.push(structuredClone(version));
           }
           normalizedVersionIds.push(version.id);
-        }
-        if (normalizedRawIds.size !== pageRawIds.size) {
-          throw new Error("Every raw provider record needs a normalised outcome on this adapter.");
         }
 
         for (const candidate of input.candidates) {
@@ -1083,17 +1133,24 @@ export function createRecordsStore(
           source: "accounting-provider",
         });
         for (const version of state.normalizedProviderVersions) {
-          if (!normalizedVersionIds.includes(version.id) || !version.candidateExternalId) continue;
+          if (
+            !normalizedVersionIds.includes(version.id) ||
+            !version.candidateExternalId ||
+            !version.candidateContentDigest
+          ) {
+            continue;
+          }
+          const candidate = input.candidates.find(
+            (item) =>
+              item.origin.externalId === version.candidateExternalId &&
+              item.contentDigest === version.candidateContentDigest
+          );
+          if (!candidate) continue;
+          const candidateOriginKey = exactOriginKey({ origin: candidate.origin });
           version.mappedEventId = state.events.find(
             (event) =>
-              event.origin.kind === "accounting-provider" &&
-              event.origin.externalId === version.candidateExternalId &&
-              exactOriginKey(event) ===
-                exactOriginKey({
-                  origin: input.candidates.find(
-                    (candidate) => candidate.origin.externalId === version.candidateExternalId
-                  )?.origin ?? event.origin,
-                })
+              event.contentDigest === candidate.contentDigest &&
+              exactOriginKey(event) === candidateOriginKey
           )?.id;
         }
 

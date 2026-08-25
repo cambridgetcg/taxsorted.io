@@ -1,6 +1,6 @@
 # Accounting integrations: records to receipt
 
-Last reviewed: 2026-08-01
+Last reviewed: 2026-08-25
 
 Status: **target design, not a claim of live provider access.** CSV/manual local books and the
 labelled HMRC sandbox paths exist. A made-up, local-development provider proves the account-owned
@@ -19,8 +19,9 @@ provider-neutral path end to end:
 3. bind the server source to a separate made-up IndexedDB store and one local activity ledger;
 4. fetch two deterministic pages containing three fictional bank transactions;
 5. check each raw-page digest and complete manifest before one atomic local write;
-6. acknowledge only that saved page under the current fenced lease; and
-7. promote matching API and local checkpoints only after the complete run.
+6. renew and verify the same fenced lease before each page, acknowledgement and completion;
+7. refuse cursor loops or browser safety budgets before saving the unsafe page; and
+8. promote matching API and local checkpoints only after the complete run.
 
 The browser and API must hold the same completed checkpoint before a later incremental cursor is
 reused. The made-up records never enter ordinary Starter Books. Its scoped clear button deletes
@@ -29,6 +30,13 @@ inherit records or coverage that the browser no longer holds. The page has a hum
 that releases the exact fenced server run; the API also has separate connector and sync emergency
 stops. This proof has no provider OAuth, token, callback, webhook or provider network call and is
 hard-disabled in production.
+
+The browser guard currently allows at most 1,000 pages, 1,000 raw records on one page and 100,000
+raw records in one run; an adapter may choose smaller limits. These are defensive client bounds,
+not a substitute for provider-specific server policy. A browser crash during an active partial run
+currently cancels or waits for the short lease to expire, then restarts from the last whole
+checkpoint. Discovering and resuming that exact active run needs a separate server contract and is
+not part of the working proof yet.
 
 ## The boundary
 
@@ -274,6 +282,10 @@ Normalized records stay typed: bank observation, explanation, invoice, bill, cre
 payment, journal, account, tax code, attachment reference and provider return state. One provider
 record may produce zero, one or several review candidates. Do not flatten an invoice, its payment
 and its bank observation into one GBP cash event.
+
+When one raw record produces several review candidates, each candidate needs its own stable child
+source ID (for example an invoice-line discriminator). A changed content digest is a revision, not
+a new identity; it opens a conflict and must not be linked to the older reviewed event.
 
 Every normalized version keeps its raw references, normalizer and mapping versions, original
 currency, provider tax code and status, fields that were absent or unavailable, and a plain
@@ -863,7 +875,9 @@ the separate HMRC modules.
    foundation before a real customer organisation connects.
 6. Prove page/commit/manifest acknowledgement and repair with a made-up adapter and the shared
    conformance suite before any provider credential enters the system. **The deterministic
-   foreground proof is working locally; webhook repair remains future work.**
+   foreground proof now renews its lease, preserves provider-neutral 0:n normalisation, rejects
+   unsafe page/record budgets before local commit and promotes only whole-run checkpoints. Active
+   partial-run resume, authoritative server budgets and webhook repair remain future work.**
 7. Run a five-connection Xero technical pilot with read-only granular scopes, foreground sync and
    synthetic, demo or developer-owned data. No App Store or filing-readiness claim.
 8. Add Xero webhook hints, incremental polling, missed-event repair, filing-time refresh, rate and

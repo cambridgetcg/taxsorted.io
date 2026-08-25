@@ -367,6 +367,25 @@ describe("accounting connector routes", () => {
     );
   });
 
+  it("renews the exact text fence for the owned local replica", async () => {
+    const { app, service } = mounted({ userId: USER });
+    const response = await app.request(
+      `/v1/accounting/sync-runs/${RUN}/lease`,
+      post({ fence: "9007199254740993", localReplicaId: LOCAL_REPLICA }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ run: { id: RUN } });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(service.renewLease).toHaveBeenCalledWith(
+      USER,
+      DEVICE,
+      RUN,
+      "9007199254740993",
+      LOCAL_REPLICA,
+    );
+  });
+
   it("returns private no-store responses and rejects numeric fences", async () => {
     const { app, service } = mounted({ userId: USER });
     const response = await app.request(
