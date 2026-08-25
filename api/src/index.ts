@@ -5,8 +5,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { config, assertBootConfig } from "./config.js";
 import { apiCors } from "./cors.js";
 import { migrate, sql } from "./db.js";
-import { AccountingService, type AccountingSql } from "./accounting.js";
-import { syntheticAccountingProvider } from "./accounting-synthetic.js";
+import type { AccountingSql } from "./accounting.js";
+import { createAccountingRuntime } from "./accounting-runtime.js";
 import { registerDeveloperApi } from "./developer-api.js";
 import { apiErrorHandler } from "./error-handler.js";
 import { requestId } from "./request-id.js";
@@ -51,6 +51,11 @@ import {
 } from "./uk-professional-opportunities.js";
 
 const app = new OpenAPIHono();
+
+const accountingRuntime = createAccountingRuntime(
+  sql as unknown as AccountingSql,
+  config.accounting,
+);
 
 app.use("*", requestId);
 app.use("*", apiCors);
@@ -206,13 +211,22 @@ app.route("/v1/account", account);
 app.route(
   "/v1/accounting",
   createAccountingRoutes({
-    service: new AccountingService(sql as unknown as AccountingSql, [
-      syntheticAccountingProvider,
-    ]),
+    service: accountingRuntime.service,
     allowedOrigins: config.corsOrigins,
     syntheticEnabled: config.accounting.syntheticEnabled,
     connectorEmergencyStop: config.accounting.connectorEmergencyStop,
     syncEmergencyStop: config.accounting.syncEmergencyStop,
+    ...(accountingRuntime.xero
+      ? {
+          xero: {
+            service: accountingRuntime.xero,
+            enabled: config.accounting.xero.enabled,
+            emergencyStop: config.accounting.xero.emergencyStop,
+            pilotUserIds: config.accounting.xero.pilotUserIds,
+            appOrigin: config.appOrigin,
+          },
+        }
+      : {}),
   }),
 );
 

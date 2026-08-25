@@ -45,6 +45,13 @@ export interface ProviderOrganisation {
   synthetic: boolean;
 }
 
+export interface ProviderOrganisationBinding {
+  organisation: ProviderOrganisation;
+  // This identifier is returned by the provider directory and never accepted
+  // from the browser. It is null for adapters without a separate connection.
+  providerConnectionId: string | null;
+}
+
 export interface RawProviderPage {
   records: readonly Readonly<Record<string, unknown>>[];
   currentCursor: string | null;
@@ -64,6 +71,19 @@ export interface AccountingProvider {
     dataset: string;
     cursor: string | null;
   }): Promise<RawProviderPage>;
+}
+
+// Organisation discovery is intentionally separate from financial page
+// reading. An OAuth pilot can offer and bind an organisation without gaining a
+// path into the local-ledger sync protocol.
+export interface AccountingOrganisationDirectory {
+  readonly id: AccountingProviderId;
+  readonly environment: AccountingEnvironment;
+  listOrganisations(authorisationId: string): Promise<readonly ProviderOrganisation[]>;
+  resolveOrganisation?(
+    authorisationId: string,
+    organisationId: string,
+  ): Promise<ProviderOrganisationBinding | null>;
 }
 
 export interface AccountingTransaction {
@@ -117,6 +137,10 @@ interface SourceRow {
   dirty_generation: number | string;
   provider: AccountingProviderId;
   provider_environment: AccountingEnvironment;
+  provider_connection_id?: string | null;
+  disconnected_at?: Date | string | null;
+  provider_disconnected_at?: Date | string | null;
+  provider_disconnect_lock_id?: string | null;
   created_at: Date | string;
 }
 
@@ -572,16 +596,27 @@ export interface AccountingServiceContract {
 
 export class AccountingService implements AccountingServiceContract {
   private readonly providers = new Map<AccountingProviderId, AccountingProvider>();
+  private readonly directories = new Map<
+    AccountingProviderId,
+    AccountingOrganisationDirectory
+  >();
 
   constructor(
     private readonly database: AccountingSql,
     providers: readonly AccountingProvider[],
+    directories: readonly AccountingOrganisationDirectory[] = providers,
   ) {
     for (const provider of providers) {
       if (this.providers.has(provider.id)) {
         throw new Error(`duplicate accounting provider: ${provider.id}`);
       }
       this.providers.set(provider.id, provider);
+    }
+    for (const directory of directories) {
+      if (this.directories.has(directory.id)) {
+        throw new Error(`duplicate accounting organisation directory: ${directory.id}`);
+      }
+      this.directories.set(directory.id, directory);
     }
   }
 
@@ -592,6 +627,33 @@ export class AccountingService implements AccountingServiceContract {
         "provider_unavailable",
         "That accounting provider is not available in this build.",
         404,
+      );
+    }
+    return provider;
+  }
+
+  private directory(
+    id: AccountingProviderId,
+    environment: AccountingEnvironment,
+  ): AccountingOrganisationDirectory {
+    const directory = this.directories.get(id);
+    if (!directory || directory.environment !== environment) {
+      throw new AccountingError(
+        "organisation_directory_unavailable",
+        "That provider's organisation directory is not available in this build.",
+        404,
+      );
+    }
+    return directory;
+  }
+
+  private pageProvider(id: AccountingProviderId): AccountingProvider {
+    const provider = this.providers.get(id);
+    if (!provider) {
+      throw new AccountingError(
+        "dataset_unavailable",
+        "Financial record sync is not available for that provider.",
+        422,
       );
     }
     return provider;
@@ -649,8 +711,11 @@ export class AccountingService implements AccountingServiceContract {
 
   async listOrganisations(userId: string, authorisationId: string) {
     const authorisation = await this.authorisation(userId, authorisationId);
-    const provider = this.provider(authorisation.provider);
-    const organisations = await provider.listOrganisations(authorisation.id);
+    const directory = this.directory(
+      authorisation.provider,
+      authorisation.provider_environment,
+    );
+    const organisations = await directory.listOrganisations(authorisation.id);
     return {
       authorisation: authorisationView(authorisation),
       organisations: organisations.map((organisation) => ({ ...organisation })),
@@ -663,20 +728,54 @@ export class AccountingService implements AccountingServiceContract {
     input: { authorisationId: string; entityId: string; organisationId: string },
   ) {
     const authorisation = await this.authorisation(userId, input.authorisationId);
-    const provider = this.provider(authorisation.provider);
-    const organisations = await provider.listOrganisations(authorisation.id);
-    const selected = organisations.find(
-      (organisation) => organisation.id === input.organisationId,
+    const directory = this.directory(
+      authorisation.provider,
+      authorisation.provider_environment,
     );
-    if (!selected) {
-      throw new AccountingError(
-        "organisation_not_offered",
-        "Select an organisation offered by this authorisation.",
-        422,
-      );
-    }
+    const resolveCurrent = async (): Promise<ProviderOrganisationBinding> => {
+      let resolved: ProviderOrganisationBinding | null;
+      if (directory.resolveOrganisation) {
+        resolved = await directory.resolveOrganisation(
+          authorisation.id,
+          input.organisationId,
+        );
+      } else {
+        const organisations = await directory.listOrganisations(authorisation.id);
+        const organisation = organisations.find(
+          (offered) => offered.id === input.organisationId,
+        );
+        resolved = organisation
+          ? { organisation, providerConnectionId: null }
+          : null;
+      }
+      if (!resolved) {
+        throw new AccountingError(
+          "organisation_not_offered",
+          "Select an organisation offered by this authorisation.",
+          422,
+        );
+      }
+      if (
+        authorisation.provider === "xero" &&
+        (!resolved.providerConnectionId ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu
+            .test(resolved.providerConnectionId))
+      ) {
+        throw new AccountingError(
+          "invalid_provider_binding",
+          "The provider did not return a safe organisation connection binding.",
+          503,
+        );
+      }
+      return resolved;
+    };
+    const resolved = await resolveCurrent();
+    const selected = resolved.organisation;
 
-    const row = await this.database.begin(async (transaction) => {
+    const outcome: { kind: "ready"; row: SourceRow } | {
+      kind: "rebind";
+      row: SourceRow;
+    } = await this.database.begin(async (transaction) => {
       const eligible = await transaction<AuthorisationRow & { entity_id: string }>`
         select a.id, a.user_id, a.provider, a.provider_environment,
                a.provider_subject_id, a.status, a.granted_scopes,
@@ -698,29 +797,31 @@ export class AccountingService implements AccountingServiceContract {
       const inserted = await transaction<SourceRow>`
         insert into accounting_source_connections (
           user_id, authorisation_id, entity_id, provider_organisation_id,
-          organisation_name, country_code, base_currency, status
+          organisation_name, country_code, base_currency, status,
+          provider, provider_environment, provider_connection_id
         ) values (
           ${userId}, ${input.authorisationId}, ${input.entityId}, ${selected.id},
-          ${selected.name}, ${selected.countryCode}, ${selected.baseCurrency}, 'active'
+          ${selected.name}, ${selected.countryCode}, ${selected.baseCurrency}, 'active',
+          ${authorisation.provider}, ${authorisation.provider_environment},
+          ${resolved.providerConnectionId}
         )
         on conflict (authorisation_id, provider_organisation_id) do nothing
         returning id, user_id, authorisation_id, entity_id,
                   provider_organisation_id, organisation_name, country_code,
-                  base_currency, status, dirty_generation, created_at
+                  base_currency, status, dirty_generation, provider,
+                  provider_environment, provider_connection_id, created_at
       `;
       if (inserted.length === 1) {
-        return {
-          ...inserted[0]!,
-          provider: authorisation.provider,
-          provider_environment: authorisation.provider_environment,
-        };
+        return { kind: "ready" as const, row: inserted[0]! };
       }
 
       const existing = await transaction<SourceRow>`
         select sc.id, sc.user_id, sc.authorisation_id, sc.entity_id,
                sc.provider_organisation_id, sc.organisation_name,
                sc.country_code, sc.base_currency, sc.status,
-               sc.dirty_generation, sc.created_at,
+               sc.dirty_generation, sc.provider_connection_id,
+               sc.disconnected_at, sc.provider_disconnected_at,
+               sc.provider_disconnect_lock_id, sc.created_at,
                a.provider, a.provider_environment
         from accounting_source_connections sc
         join accounting_authorisations a on a.id = sc.authorisation_id
@@ -735,16 +836,101 @@ export class AccountingService implements AccountingServiceContract {
         "That provider organisation could not be linked safely.",
         409,
       );
-      if (found.entity_id !== input.entityId || found.status !== "active") {
+      const xeroCanRebind =
+        found.provider === "xero" &&
+        found.provider_disconnect_lock_id == null &&
+        (found.status === "paused" ||
+          (found.status === "disconnected" &&
+            found.provider_disconnected_at != null));
+      if (xeroCanRebind) {
+        // The provider lookup happened before this lifecycle row was locked.
+        // Re-resolve after releasing the lock, then bind with an exact CAS.
+        return { kind: "rebind" as const, row: found };
+      }
+      if (
+        found.entity_id !== input.entityId ||
+        found.status !== "active" ||
+        found.provider_connection_id !== resolved.providerConnectionId
+      ) {
         throw new AccountingError(
           "organisation_already_linked",
           "That provider organisation already has a different or inactive TaxSorted link.",
           409,
         );
       }
-      return found;
+      return { kind: "ready" as const, row: found };
     });
 
+    if (outcome.kind === "ready") {
+      return { sourceConnection: sourceView(outcome.row) };
+    }
+
+    const current = await resolveCurrent();
+    const selectedCurrent = current.organisation;
+    const found = outcome.row;
+    const row = await this.database.begin(async (transaction) => {
+      const eligible = await transaction<AuthorisationRow & { entity_id: string }>`
+        select a.id, a.user_id, a.provider, a.provider_environment,
+               a.provider_subject_id, a.status, a.granted_scopes,
+               a.created_at, a.updated_at, e.id as entity_id
+        from accounting_authorisations a
+        join entities e on e.id = ${input.entityId} and e.user_id = ${userId}
+        where a.id = ${input.authorisationId}
+          and a.user_id = ${userId}
+          and a.status = 'active'
+        for update of a, e
+      `;
+      exactlyOne(
+        eligible,
+        "connection_owner_mismatch",
+        "Use an account-owned entity and an active authorisation from the same passkey account.",
+        403,
+      );
+      const rebound = await transaction<SourceRow>`
+        update accounting_source_connections
+        set entity_id = ${input.entityId},
+            organisation_name = ${selectedCurrent.name},
+            country_code = ${selectedCurrent.countryCode},
+            base_currency = ${selectedCurrent.baseCurrency},
+            provider_connection_id = ${current.providerConnectionId},
+            status = 'active',
+            disconnected_at = null,
+            provider_disconnected_at = null,
+            dirty_generation = dirty_generation + 1,
+            updated_at = clock_timestamp()
+        where id = ${found.id}
+          and user_id = ${userId}
+          and authorisation_id = ${input.authorisationId}
+          and provider = 'xero'
+          and provider_environment = ${authorisation.provider_environment}
+          and provider_organisation_id = ${selectedCurrent.id}
+          and status = ${found.status}
+          and dirty_generation = ${decimalString(
+            found.dirty_generation,
+            "dirty generation",
+          )}
+          and provider_connection_id is not distinct from ${found.provider_connection_id}
+          and provider_disconnected_at is not distinct from ${found.provider_disconnected_at}
+          and provider_disconnect_lock_id is null
+          and (
+            status = 'paused'
+            or (
+              status = 'disconnected'
+              and provider_disconnected_at is not null
+            )
+          )
+        returning id, user_id, authorisation_id, entity_id,
+                  provider_organisation_id, organisation_name, country_code,
+                  base_currency, status, dirty_generation, provider,
+                  provider_environment, provider_connection_id, created_at
+      `;
+      return exactlyOne(
+        rebound,
+        "source_connection_conflict",
+        "That Xero organisation changed while it was being rebound. Try again.",
+        409,
+      );
+    });
     return { sourceConnection: sourceView(row) };
   }
 
@@ -807,7 +993,47 @@ export class AccountingService implements AccountingServiceContract {
     sourceConnectionId: string,
     input: { localReplicaId: string },
   ) {
+    const sourceProviders = await this.database<{
+      provider: AccountingProviderId;
+      provider_environment: AccountingEnvironment;
+    }>`
+      select a.provider, a.provider_environment
+      from accounting_source_connections sc
+      join accounting_authorisations a on a.id = sc.authorisation_id
+      where sc.id = ${sourceConnectionId}
+        and sc.user_id = ${userId}
+        and sc.status = 'active'
+        and a.status = 'active'
+    `;
+    const sourceProvider = exactlyOne(
+      sourceProviders,
+      "source_connection_not_active",
+      "An active owned source connection is required before creating a browser replica.",
+      409,
+    );
+    this.pageProvider(sourceProvider.provider);
+
     const replica = await this.database.begin(async (transaction) => {
+      const lockedSources = await transaction<{
+        provider: AccountingProviderId;
+        provider_environment: AccountingEnvironment;
+      }>`
+        select a.provider, a.provider_environment
+        from accounting_source_connections sc
+        join accounting_authorisations a on a.id = sc.authorisation_id
+        where sc.id = ${sourceConnectionId}
+          and sc.user_id = ${userId}
+          and sc.status = 'active'
+          and a.status = 'active'
+        for update of sc
+      `;
+      const lockedSource = exactlyOne(
+        lockedSources,
+        "source_connection_not_active",
+        "An active owned source connection is required before creating a browser replica.",
+        409,
+      );
+      this.pageProvider(lockedSource.provider);
       const inserted = await transaction<ReplicaRow>`
         insert into accounting_sync_replicas (
           user_id, source_connection_id, device_id, local_replica_id
@@ -877,6 +1103,34 @@ export class AccountingService implements AccountingServiceContract {
       );
     }
     const run = await this.database.begin(async (transaction) => {
+      const sourceRows = await transaction<SourceRow & {
+        authorisation_status: string;
+      }>`
+        select sc.id, sc.user_id, sc.authorisation_id, sc.entity_id,
+               sc.provider_organisation_id, sc.organisation_name,
+               sc.country_code, sc.base_currency, sc.status,
+               sc.dirty_generation, sc.created_at,
+               a.provider, a.provider_environment,
+               a.status as authorisation_status
+        from accounting_source_connections sc
+        join accounting_authorisations a on a.id = sc.authorisation_id
+        where sc.id = ${sourceConnectionId}
+          and sc.user_id = ${userId}
+        for update of sc
+      `;
+      const source = exactlyOne(
+        sourceRows,
+        "source_connection_not_found",
+        "That accounting source connection was not found.",
+      );
+      if (source.status !== "active" || source.authorisation_status !== "active") {
+        throw new AccountingError(
+          "connection_not_active",
+          "The authorisation, source connection and browser replica must all be active.",
+          409,
+        );
+      }
+      this.pageProvider(source.provider);
       const replicaRows = await transaction<ReplicaRow>`
         select rp.id, rp.user_id, rp.source_connection_id, rp.device_id,
                rp.local_replica_id, rp.status,
@@ -910,6 +1164,7 @@ export class AccountingService implements AccountingServiceContract {
           409,
         );
       }
+      this.pageProvider(replica.provider!);
       // This first mounted adapter has one route-validated dataset. Keep future
       // provider/network discovery outside the replica lock and transaction.
       if (input.dataset !== "bank-transactions") {
@@ -1206,7 +1461,7 @@ export class AccountingService implements AccountingServiceContract {
       );
     }
 
-    const provider = this.provider(initial.provider!);
+    const provider = this.pageProvider(initial.provider!);
     let page: RawProviderPage;
     try {
       page = await provider.pullPage({

@@ -1376,6 +1376,358 @@ typecheck, and only then commit. If a 14.x major ever appears, that is a
 deliberate upgrade decision (breaking-change review), not a routine patch
 bump.
 
+## Private Xero authorisation pilot
+
+This release lays only the first Xero rail: a passkey-backed person can grant
+TaxSorted permission, see Xero organisations, and deliberately bind one
+organisation to one TaxSorted profile. It cannot read invoices, bank
+transactions, payments or any other accounting records. Xero is deliberately
+absent from the financial page-reader registry, and every offered organisation
+has an empty `datasets` list.
+
+Production starts closed. With the normal production environment there is no
+Xero client, token vault or discovery request in the running process, the
+private routes return the ordinary unavailable response to a signed-in caller,
+and the public connect page continues to say Xero is not live. Do not change
+that page for an operator-only pilot.
+
+### Xero app and least privilege
+
+Create one Xero web app in Xero's developer portal. Its only redirect URI is:
+
+```text
+https://api.taxsorted.io/v1/accounting/oauth/xero/callback
+```
+
+The implementation requests exactly:
+
+```text
+openid offline_access accounting.settings.read
+```
+
+`offline_access` is needed for rotating refresh tokens;
+`accounting.settings.read` permits the single Organisation settings read used
+to label and verify a tenant. Do not add transaction, invoice, payment, payroll,
+file or write scopes to this pilot. Xero has no separate accounting API sandbox:
+use Xero's Demo Company for the first pilot. A non-demo organisation is hidden
+unless its exact Xero tenant UUID is also in the reviewed allowlist. See Xero's
+[scope guide](https://developer.xero.com/documentation/guides/oauth2/scopes/),
+[authorisation flow](https://developer.xero.com/documentation/guides/oauth2/auth-flow/)
+and [connections guide](https://developer.xero.com/documentation/guides/oauth2/tenants/).
+
+`openid-client` is exact-pinned at `6.8.7`. Its discovery, Client Secret Basic,
+PKCE, state, nonce, ID-token and issuer/audience checks are the protocol
+boundary. A version change needs its own reviewed PR and the complete Xero
+boundary test suite.
+
+### Token key and pilot configuration
+
+Generate a separate 32-byte accounting-token root. It is not `TOKEN_KEY` and
+does not share HMRC's ciphertext format:
+
+```bash
+openssl rand -hex 32
+```
+
+Record it only as a Fly secret in the versioned form `1:<64 hex characters>`.
+Choose the passkey account UUIDs that may enter the pilot. Then apply every
+value in one reviewed update:
+
+```bash
+fly secrets set -a taxsorted-api \
+  ACCOUNTING_XERO_ENABLED=true \
+  ACCOUNTING_XERO_EMERGENCY_STOP=false \
+  ACCOUNTING_XERO_PILOT_USER_IDS='<user UUID>[,<user UUID>]' \
+  ACCOUNTING_TOKEN_KEYS='1:<64 hex characters>' \
+  ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION=1 \
+  XERO_CLIENT_ID='<Xero app client ID>' \
+  XERO_CLIENT_SECRET='<Xero app client secret>'
+```
+
+Demo companies need no tenant allowlist. To admit a real organisation, first
+review the exact tenant with its owner, then add only that UUID:
+
+```bash
+fly secrets set -a taxsorted-api \
+  ACCOUNTING_XERO_ALLOWED_NON_DEMO_TENANT_IDS='<tenant UUID>[,<tenant UUID>]'
+```
+
+A malformed pilot UUID, tenant UUID, key ring or active version fails closed.
+Enabling without a client ID, client secret or valid active key prevents the
+API from booting. An empty pilot list is valid: it closes every new connection
+and organisation-directory door while retaining exact-owner cleanup for former
+pilots. Missing, empty or misspelled `ACCOUNTING_XERO_EMERGENCY_STOP` remains
+stopped; only exact `false` opens it.
+
+For rotation, append a new version and make it active in the same secrets
+update, retaining every old version needed to decrypt a stored row:
+
+```text
+ACCOUNTING_TOKEN_KEYS=1:<old hex>,2:<new hex>
+ACCOUNTING_TOKEN_ACTIVE_KEY_VERSION=2
+```
+
+New attempts, reconnects and successful refreshes use version 2. There is no
+bulk re-encryption command in this pilot, so never remove version 1 merely
+because time passed. First prove no OAuth attempt or provider-token row still
+names it, or add and review a bounded re-encryption tool.
+
+### Custody, binding and cleanup
+
+OAuth state is stored as a hash for one-time lookup and separately encrypted
+for the independent library equality check. State, nonce and PKCE verifier are
+bound to the initiating user and exact passkey session, expire after ten
+minutes and are consumed atomically before code exchange. Access and refresh
+tokens are AES-256-GCM ciphertext with provider, environment, record, field and
+key version as authenticated context. Tokens, provider response bodies, OAuth
+codes and callback values never enter the fixed post-callback redirect or a
+log. State and nonce necessarily travel in the one outbound Xero authorisation
+URL; TaxSorted does not reflect them afterward or store them as plaintext.
+Only one pending or exchanging Xero attempt may exist for a passkey account.
+Only a `pending` browser attempt expires after ten minutes. Once a callback has
+become `exchanging`, that row is the provider-operation owner until the worker
+finishes; TaxSorted never takes it over because a late token grant could reorder
+a newer grant. A second start, refresh or revoke returns `409` while it exists.
+Wait for the owner to finish. If it does not, use the incident procedure below;
+never work around the fence with a second browser session or elapsed time.
+Because Xero's OpenID subject is unknown until exchange completes, the private
+pilot also has one durable app-wide mutation owner. Code exchange, refresh,
+authorisation revoke and connection DELETE acquire it in the same transaction
+as their exact local lock. A start request refuses while it is held. The owner
+survives browser-session deletion and is released only in the same transaction
+as a conclusive local save/confirmation, or after a conclusive pre-provider
+outcome. An ambiguous owner blocks mutation for every pilot user; its deadline
+is telemetry and never permits takeover.
+
+Organisation discovery uses only `GET /connections` and `GET Organisation`.
+The browser supplies a tenant UUID; TaxSorted resolves and stores Xero's
+separate connection UUID from the server-side response. Refresh uses an exact
+database ownership lock plus generation compare-and-swap so two machines cannot
+silently overwrite a rotated refresh token. OAuth exchange, refresh and
+revocation exclude one another for the passkey account. A non-null lock is
+never stolen because its deadline passed; its deadline is telemetry for an
+incident. A rebind re-resolves Xero after observing the closed local lifecycle,
+then uses the exact source generation, previous connection UUID and provider
+cleanup marker as a compare-and-swap fence. Provider disconnect confirmation
+is bound to that same connection UUID and generation, so a delayed deletion
+cannot confirm a newer rebind. Xero `invalid_grant` marks the authorisation
+`reauthorisation-required` and pauses its local sources. See Xero's
+[token guidance](https://developer.xero.com/documentation/best-practices/data-integrity/managing-tokens)
+and [connection cleanup guidance](https://developer.xero.com/documentation/best-practices/managing-connections/designing-and-implementing-connection-cleanup-routine/).
+
+One Xero OpenID subject has one permanent TaxSorted passkey owner. TaxSorted
+does not begin a new Xero attempt while that passkey account has an `active` or
+`failed` Xero authorisation. If any issued callback token cannot be durably
+saved, an independent transaction marks that exact subject `failed`, pauses its
+sources and advances its lifecycle before provider cleanup is attempted. If a
+compensating transaction cannot commit, the `exchanging` attempt remains open
+as the incident fence instead of being expired or silently cleared, and no
+token revoke is attempted because the subject's other local owner may not have
+been closed. Provider-side cleanup then belongs to the incident procedure. If a
+second passkey account presents the same subject, this also quarantines the
+existing owner. Because the new token might have rotated the Xero user's
+app-wide token family, `failed` is permanent in this pilot: ordinary DELETE and
+reconnect both return `409`. They must never turn it into `revoked` or `active`,
+even when cleanup of the older stored token succeeds.
+
+There is no passkey-account deletion door today. If one is added later, it must
+finish or explicitly reconcile fenced Xero cleanup before deleting `users`.
+The current foreign keys would otherwise cascade away the encrypted token and
+subject custody while a provider grant could remain; the app-wide operation
+fence deliberately survives that cascade, but it cannot recreate lost custody.
+
+Removing a user from `ACCOUNTING_XERO_PILOT_USER_IDS` immediately closes the
+non-cleanup directory boundary: organisation listing, selection and source
+binding return `404` before contacting Xero. It deliberately does not remove
+the retained cleanup runtime. That former pilot can still disconnect an exact
+source and revoke its authorisation, subject to the emergency stop and the
+operation fences above.
+
+When no callback or token refresh owns a provider-operation lock, disconnect
+and revoke are local-first: TaxSorted cancels live runs, retires replicas and
+marks the local source or authorisation closed before contacting Xero. A live
+lock returns `409` before changing local state; retry only after its owner has
+completed. A provider outage therefore cannot restore local access. Provider
+confirmation is recorded separately, revocation itself has an exact
+generation-bound ownership lock, and an encrypted refresh token is retained
+when cleanup needs explicit operator reconciliation. Xero connection deletion always uses the
+server-returned connection UUID, never the browser's tenant value. It also owns
+an exact source-disconnect lock across the provider call. A success or `404`
+confirms and clears that exact lock; any other outcome retains it and blocks
+both another DELETE and source rebind. This matters because Xero may reuse a
+connection UUID after reconnect, so a delayed older DELETE must never reach a
+rebound connection. A local disconnect made while the emergency stop is active
+makes no provider call and acquires no such lock, so it can be deliberately
+retried after the stop is safely opened.
+
+An occupied app-wide mutation owner, an `exchanging` attempt, or a non-null
+refresh, revocation or source-disconnect lock whose telemetry deadline has
+passed is an incident, not an expired lease.
+An ambiguous callback error retains `exchanging`; an ambiguous refresh marks
+the authorisation `failed` and retains its refresh lock; an ambiguous revoke or
+connection DELETE retains its cleanup lock. Only explicit authorisation denial,
+Xero `invalid_grant`, successful cleanup, or a cleanup `404` is conclusive
+enough for the corresponding automatic transition. Recovery is bounded:
+
+1. Set `ACCOUNTING_XERO_EMERGENCY_STOP=true`, replace or stop every API machine,
+   and verify every machine that could own the old request has terminated. A
+   restart timer or the lock timestamp is not proof that a provider call ended.
+2. Record the app-wide operation ID and kind, exact user, attempt,
+   authorisation, token/source generations and local lock UUIDs. Do not clear
+   the singleton owner, clear a local lock or change `failed` in place.
+3. Have the named pilot remove TaxSorted's app connection in Xero and verify in
+   Xero that it is no longer connected. This provider-side disconnect is
+   required when an issued or rotated token may be untracked; an old local token
+   or a failed revoke response does not establish provider state.
+4. Prepare a reviewed, one-use repair for only those recorded identifiers. In
+   one transaction it must lock the user then authorisation/token/source rows,
+   close the exact attempt or lock, pause or disconnect local sources and runs,
+   advance both user and authorisation lifecycle generations, and record
+   provider cleanup confirmation, then clear the matching singleton operation
+   ID last. Abort if any recorded generation, operation ID or lock UUID changed.
+   For a cross-account `failed` quarantine, there is no routine repair
+   in this pilot; keep it quarantined unless a separately reviewed release adds
+   recovery after steps 1-3.
+5. Deploy the reviewed state/code change while the stop remains active, verify
+   the closed accounting door, then deliberately begin a brand-new attempt.
+
+Provider confirmation must never be inferred from local expiry metadata.
+After any Xero token has existed, do not use
+`ACCOUNTING_XERO_ENABLED=false`, remove the client credentials, or remove an
+encryption key as the incident off-switch. Those changes remove the cleanup
+runtime or its ability to open the retained token, so cleanup routes can become
+unavailable. Keep the feature configured and use
+`ACCOUNTING_CONNECTORS_EMERGENCY_STOP=true` or
+`ACCOUNTING_XERO_EMERGENCY_STOP=true`;
+these preserve the local cleanup rail while provider network work is stopped.
+
+### Rollout, checks and stops
+
+Fly's release command runs every numbered migration under one transaction and
+one Postgres advisory lock before a new machine serves traffic. Migration 008
+is not backward-write-compatible: the older image does not supply the new
+non-null provider columns on a source insert. The initial production-default-off
+release can use the previous image only while the accounting connector stop is
+confirmed and no production provider can write a source (the old production
+image mounts neither synthetic nor Xero). Once a Xero pilot has opened, treat
+the schema as roll-forward-only: set the stop, deploy a corrected image, and do
+not roll back to pre-008 code. Do not hand-edit the migration ledger or drop the
+schema during an incident.
+
+Before opening a pilot, run the full repository quality gate and a production
+dependency audit. After the rollout, confirm health and the closed public door,
+then use a named pilot account and Demo Company for one complete connect,
+organisation-list, bind, disconnect and revoke exercise. Confirm that the
+organisation response has `datasets: []`, every Xero sync/replica attempt ends
+with `dataset_unavailable`, and no token or provider detail appears in a browser
+response, application log or database plaintext column.
+
+There is intentionally no public Xero button yet. Use the signed-in pilot's
+browser on `https://taxsorted.io` so the existing API session cookie and browser-
+set `Origin` are genuine. In that page's developer console, start the flow:
+
+```js
+const started = await fetch(
+  "https://api.taxsorted.io/v1/accounting/authorisations/xero/start",
+  {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  },
+).then((response) => response.json());
+location.assign(started.authorizationUrl);
+```
+
+After Xero returns to the fixed callback and TaxSorted redirects back, obtain
+only the new local metadata IDs through the operator's normal read-only database
+door (never select the token ciphertext columns):
+
+```sql
+select id
+from accounting_authorisations
+where user_id = '<pilot user UUID>'
+  and provider = 'xero'
+  and provider_environment = 'production'
+  and status = 'active';
+
+select id
+from entities
+where user_id = '<pilot user UUID>'
+order by created_at
+limit 1;
+```
+
+Back in the same browser console, list, bind, prove sync is absent, then clean
+up. Substitute the returned IDs; `crypto.randomUUID()` is only a throwaway
+local-replica proof:
+
+```js
+const api = "https://api.taxsorted.io/v1/accounting";
+const authId = "<authorisation UUID>";
+const entityId = "<owned entity UUID>";
+const organisations = await fetch(
+  `${api}/authorisations/${authId}/organisations`,
+  { credentials: "include" },
+).then((response) => response.json());
+const organisationId = organisations.organisations[0].id;
+const linked = await fetch(`${api}/source-connections`, {
+  method: "POST",
+  credentials: "include",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ authorisationId: authId, entityId, organisationId }),
+}).then((response) => response.json());
+const sourceId = linked.sourceConnection.id;
+const replicaProof = await fetch(
+  `${api}/source-connections/${sourceId}/replicas`,
+  {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ localReplicaId: crypto.randomUUID() }),
+  },
+);
+console.assert(replicaProof.status === 422);
+console.assert((await replicaProof.json()).error === "dataset_unavailable");
+await fetch(`${api}/source-connections/${sourceId}`, {
+  method: "DELETE",
+  credentials: "include",
+});
+await fetch(`${api}/authorisations/${authId}`, {
+  method: "DELETE",
+  credentials: "include",
+});
+```
+
+Stop if the organisation list is empty or contains anything other than the
+intended Demo Company. Do not add a real tenant merely to make the exercise
+continue.
+
+The Xero stop is independent of the synthetic proof and HMRC:
+
+```bash
+fly secrets set -a taxsorted-api ACCOUNTING_XERO_EMERGENCY_STOP=true
+```
+
+For a wider accounting incident, stop every accounting connector as well:
+
+```bash
+fly secrets set -a taxsorted-api ACCOUNTING_CONNECTORS_EMERGENCY_STOP=true
+```
+
+Wait for `fly secrets set` and its Machine rollout to finish, then verify a
+signed pilot's start request returns the expected `503` before relying on the
+stop. A provider call begun on an older Machine before the rollout may still
+finish. DELETE cleanup remains reachable and changes local state under either
+stop, but deliberately makes no Xero call; its `providerDisconnected` or
+`providerRevoked` result remains false until cleanup is retried after the stop.
+Do not clear either stop on a timer. Review the event, reconcile local and Xero
+connection state, deploy the correction, then manually set the needed stop to
+exact `false`. Only cleanup first requested while the stop was active, and thus
+holding no provider-operation owner or local provider lock, may then be retried
+through the ordinary endpoint. An occupied owner or lock uses the incident
+procedure above, never an ordinary retry. Repeat the pilot checks afterward.
+
 ## Synthetic accounting connector proof
 
 The first accounting-provider API is deliberately made up. It proves selected

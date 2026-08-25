@@ -1,6 +1,6 @@
-// Browser routes for the first provider-neutral accounting connector proof.
-// The only mounted provider is deterministic and synthetic. Every door needs
-// a full passkey session; every mutation also needs an exact allowlisted Origin.
+// Browser routes for the provider-neutral accounting connector boundary.
+// Every door needs a full passkey session; every mutation also needs an exact
+// allowlisted Origin. Provider-specific gates remain independent.
 
 import { Hono, type Context } from "hono";
 import { z } from "zod";
@@ -9,6 +9,9 @@ import {
   type AccountingServiceContract,
   type SyncKind,
 } from "../accounting.js";
+import type { XeroFoundationContract } from "../accounting-xero.js";
+
+export type { XeroFoundationContract } from "../accounting-xero.js";
 
 type Flag = boolean | (() => boolean);
 
@@ -18,6 +21,13 @@ export interface AccountingRouteOptions {
   syntheticEnabled: Flag;
   connectorEmergencyStop: Flag;
   syncEmergencyStop: Flag;
+  xero?: {
+    service: XeroFoundationContract;
+    enabled: Flag;
+    emergencyStop: Flag;
+    pilotUserIds: ReadonlySet<string>;
+    appOrigin: string;
+  };
 }
 
 const Uuid = z.string().uuid();
@@ -112,6 +122,12 @@ function connectorGate(c: Context, options: AccountingRouteOptions) {
       503,
     );
   }
+  return null;
+}
+
+function syntheticGate(c: Context, options: AccountingRouteOptions) {
+  const connector = connectorGate(c, options);
+  if (connector) return connector;
   if (!enabled(options.syntheticEnabled)) {
     return c.json(
       errorBody(
@@ -123,6 +139,55 @@ function connectorGate(c: Context, options: AccountingRouteOptions) {
     );
   }
   return null;
+}
+
+function xeroGate(c: Context, options: AccountingRouteOptions, userId: string) {
+  const connector = connectorGate(c, options);
+  if (connector) return connector;
+  if (!options.xero) {
+    return c.json(
+      errorBody(c, "provider_unavailable", "That accounting provider is not available."),
+      404,
+    );
+  }
+  if (enabled(options.xero.emergencyStop)) {
+    return c.json(
+      errorBody(c, "xero_emergency_stop", "The Xero connection stop is active."),
+      503,
+    );
+  }
+  if (!enabled(options.xero.enabled)) {
+    return c.json(
+      errorBody(c, "provider_unavailable", "That accounting provider is not available."),
+      404,
+    );
+  }
+  if (!options.xero.pilotUserIds.has(userId)) {
+    return c.json(
+      errorBody(c, "provider_unavailable", "That accounting provider is not available."),
+      404,
+    );
+  }
+  return null;
+}
+
+function xeroCleanupGate(c: Context, options: AccountingRouteOptions) {
+  if (!options.xero) {
+    return c.json(
+      errorBody(c, "provider_unavailable", "That accounting provider is not available."),
+      404,
+    );
+  }
+  // Cleanup is local-first and remains reachable under either accounting
+  // stop or after pilot removal. The service itself suppresses provider
+  // traffic while the provider network gate is closed.
+  return null;
+}
+
+function xeroRedirect(options: AccountingRouteOptions, result: string): string {
+  const destination = new URL("/books/connect/", options.xero?.appOrigin ?? "https://taxsorted.io");
+  destination.searchParams.set("xero", result);
+  return destination.href;
 }
 
 function syncGate(c: Context, options: AccountingRouteOptions) {
@@ -151,6 +216,9 @@ export function createAccountingRoutes(options: AccountingRouteOptions) {
 
     const userId = c.get("userId");
     if (!userId) {
+      if (c.req.method === "GET" && c.req.path.endsWith("/oauth/xero/callback")) {
+        return c.redirect(xeroRedirect(options, "sign-in"), 303);
+      }
       return c.json(
         errorBody(
           c,
@@ -177,8 +245,40 @@ export function createAccountingRoutes(options: AccountingRouteOptions) {
     await next();
   });
 
+  routes.post("/authorisations/xero/start", async (c) => {
+    const gate = xeroGate(c, options, c.get("userId")!);
+    if (gate) return gate;
+    const parsed = EmptyBody.safeParse(await jsonBody(c));
+    if (!parsed.success) return invalidBody(c, parsed.error.issues);
+    return answer(
+      c,
+      () => options.xero!.service.startAuthorisation(
+        c.get("userId")!,
+        c.get("sessionId"),
+      ),
+      201,
+    );
+  });
+
+  routes.get("/oauth/xero/callback", async (c) => {
+    const gate = xeroGate(c, options, c.get("userId")!);
+    if (gate) return c.redirect(xeroRedirect(options, "try-again"), 303);
+    try {
+      await options.xero!.service.completeAuthorisation(
+        c.get("userId")!,
+        c.get("sessionId"),
+        new URL(c.req.url).search,
+      );
+      return c.redirect(xeroRedirect(options, "connected"), 303);
+    } catch {
+      // Provider errors, codes and state values never cross this fixed browser
+      // redirect. The server log can correlate through the request ID.
+      return c.redirect(xeroRedirect(options, "try-again"), 303);
+    }
+  });
+
   routes.post("/authorisations/:provider/start", async (c) => {
-    const gate = connectorGate(c, options);
+    const gate = syntheticGate(c, options);
     if (gate) return gate;
     if (c.req.param("provider") !== "synthetic") {
       return c.json(
@@ -214,6 +314,26 @@ export function createAccountingRoutes(options: AccountingRouteOptions) {
       c,
       () => options.service.createSourceConnection(c.get("userId")!, parsed.data),
       201,
+    );
+  });
+
+  routes.delete("/source-connections/:id", async (c) => {
+    const gate = xeroCleanupGate(c, options);
+    if (gate) return gate;
+    const id = Uuid.safeParse(c.req.param("id"));
+    if (!id.success) return invalidBody(c, id.error.issues);
+    return answer(c, () =>
+      options.xero!.service.disconnectSourceConnection(c.get("userId")!, id.data),
+    );
+  });
+
+  routes.delete("/authorisations/:id", async (c) => {
+    const gate = xeroCleanupGate(c, options);
+    if (gate) return gate;
+    const id = Uuid.safeParse(c.req.param("id"));
+    if (!id.success) return invalidBody(c, id.error.issues);
+    return answer(c, () =>
+      options.xero!.service.revokeAuthorisation(c.get("userId")!, id.data),
     );
   });
 
