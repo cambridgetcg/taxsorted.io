@@ -1924,6 +1924,7 @@ jobs:
           # review date passes, the engine must fail closed with the exact
           # source-review gap graph. Any other outcome still stops the release.
           jq --exit-status '
+            .applicability.evaluatedOn as $evaluatedOn |
             .schema == "taxsorted.tax-answer/1" and
             .reasoning.whyGraph.schema == "taxsorted.why-graph/1" and
             .reasoning.whyGraph.rootNodeId == "conclusion:mtd-income-tax-readiness" and
@@ -1939,20 +1940,35 @@ jobs:
               (
                 .status == "determined" and
                 .answer.decision == "in_scope" and
+                .applicability.covered == true and
+                ([.evidence.sources[] | select(.reviewDueOn < $evaluatedOn)] | length) == 0 and
                 ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) > 0 and
                 ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) > 0
               ) or
               (
                 .status == "needs_professional_review" and
                 .answer.decision == "source_review_required" and
-                (.answer.reasonCodes | index("SOURCE_REVIEW_OVERDUE") != null) and
+                .answer.reasonCodes == ["SOURCE_REVIEW_OVERDUE"] and
+                .applicability.covered == false and
+                ([.evidence.sources[] | select(.reviewDueOn < $evaluatedOn)] | length) > 0 and
+                .escalation.required == true and
+                .escalation.reasonCodes == ["SOURCE_REVIEW_OVERDUE"] and
+                (.escalation.nextActions | length) == 1 and
+                .escalation.nextActions[0].id == "refresh-sources" and
+                .escalation.nextActions[0].responsibleParty == "TaxSorted" and
                 ([.reasoning.whyGraph.nodes[] | select(.kind == "rule")] | length) == 0 and
                 ([.reasoning.whyGraph.edges[] | select(.relation == "legal-authority-from")] | length) == 0 and
                 (.reasoning.whyGraph.coverage.gapNodeIds | index("gap:source_review_overdue") != null) and
                 ([.reasoning.whyGraph.edges[] | select(
+                  .from == "conclusion:mtd-income-tax-readiness" and
+                  .relation == "blocked-by" and
+                  .to == "gap:source_review_overdue"
+                )] | length) == 1 and
+                ([.reasoning.whyGraph.edges[] | select(
                   .from == "gap:source_review_overdue" and
                   .relation == "supported-by"
-                )] | length) > 0
+                )] | length) ==
+                  ([.evidence.sources[] | select(.reviewDueOn < $evaluatedOn)] | length)
               )
             ) and
             (.reasoning.whyGraph.coverage.gapNodeIds | index("gap:official-enforcement-and-review-route") != null) and
