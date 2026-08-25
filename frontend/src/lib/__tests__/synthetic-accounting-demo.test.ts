@@ -259,6 +259,7 @@ function clientFor(options: { replicas?: typeof REPLICA[]; checkpoints?: Dataset
     }),
     createAccountingReplica: vi.fn().mockResolvedValue({ replica: REPLICA }),
     startAccountingSyncRun: vi.fn().mockResolvedValue({ run: RUN }),
+    renewAccountingSyncLease: vi.fn().mockResolvedValue({ run: RUN }),
     pullAccountingSyncPage: vi.fn(),
     acknowledgeAccountingSyncPage: vi.fn(),
     completeAccountingSyncRun: vi.fn(),

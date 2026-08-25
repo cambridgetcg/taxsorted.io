@@ -40,6 +40,7 @@ type SyntheticDemoClient = Pick<
   | "accountingSourceStatus"
   | "createAccountingReplica"
   | "startAccountingSyncRun"
+  | "renewAccountingSyncLease"
   | "pullAccountingSyncPage"
   | "acknowledgeAccountingSyncPage"
   | "completeAccountingSyncRun"

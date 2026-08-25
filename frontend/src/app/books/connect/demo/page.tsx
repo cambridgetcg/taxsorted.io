@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Made-up accounting connector proof | TaxSorted",
   description:
     "A local-development proof of TaxSorted's provider-neutral accounting connection and safe sync boundary.",
+  robots: { index: false, follow: false },
 };
 
 export default function SyntheticAccountingDemoPage() {

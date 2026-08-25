@@ -49,6 +49,30 @@ async function manifest(
   };
 }
 
+function activeRunWithPages(pages: readonly PageManifest[]): SyncRun {
+  const last = pages.at(-1);
+  return {
+    ...RUN,
+    nextSequence: pages.length,
+    stagedCursor: last?.nextCursor ?? RUN.stagedCursor,
+    stagedCoverageMarker: last?.coverageMarker ?? RUN.stagedCoverageMarker,
+    acknowledgedRecordCount: pages.reduce((total, page) => total + page.recordCount, 0),
+    acknowledgedPages: pages.map((page) => ({
+      manifestId: page.id,
+      digest: page.digest,
+      sequence: page.sequence,
+      recordCount: page.recordCount,
+      currentCursor: page.currentCursor,
+      nextCursor: page.nextCursor,
+      coverageMarker: page.coverageMarker,
+      fence: page.fence,
+      dirtyGeneration: page.dirtyGeneration,
+      acknowledgedAt: "2026-08-01T12:00:08.000Z",
+      final: page.final,
+    })),
+  };
+}
+
 const emptyNormalization = async () => ({
   rawVersions: [],
   normalizedVersions: [],
@@ -62,6 +86,11 @@ describe("synthetic accounting sync orchestration", () => {
     const first = await manifest("manifest-1", 0, null, "2", firstRecords, false);
     const second = await manifest("manifest-2", 1, "2", "3", secondRecords, true);
     const order: string[] = [];
+    const serverPages: PageManifest[] = [];
+    const renewAccountingSyncLease = vi.fn(async () => {
+      order.push("renew-lease");
+      return { run: activeRunWithPages(serverPages) };
+    });
     const pullAccountingSyncPage = vi
       .fn()
       .mockImplementationOnce(async () => {
@@ -74,31 +103,15 @@ describe("synthetic accounting sync orchestration", () => {
       });
     const acknowledgeAccountingSyncPage = vi.fn(async (_runId, acknowledgement) => {
       order.push(`api-ack-${acknowledgement.sequence + 1}`);
+      serverPages.push([first, second][acknowledgement.sequence]!);
       return { acknowledgement, changed: true, nextSequence: acknowledgement.sequence + 1 };
     });
     const completeAccountingSyncRun = vi.fn(async () => {
       order.push("api-complete");
       return {
         run: {
-          ...RUN,
+          ...activeRunWithPages([first, second]),
           state: "completed" as const,
-          nextSequence: 2,
-          stagedCursor: "3",
-          stagedCoverageMarker: "complete-v1",
-          acknowledgedRecordCount: 3,
-          acknowledgedPages: [first, second].map((page) => ({
-            manifestId: page.id,
-            digest: page.digest,
-            sequence: page.sequence,
-            recordCount: page.recordCount,
-            currentCursor: page.currentCursor,
-            nextCursor: page.nextCursor,
-            coverageMarker: page.coverageMarker,
-            fence: page.fence,
-            dirtyGeneration: page.dirtyGeneration,
-            acknowledgedAt: "2026-08-01T12:00:08.000Z",
-            final: page.final,
-          })),
         },
         checkpoint: {
           schema: ACCOUNTING_SYNC_SCHEMA,
@@ -145,6 +158,7 @@ describe("synthetic accounting sync orchestration", () => {
       },
       {
         client: {
+          renewAccountingSyncLease,
           pullAccountingSyncPage,
           acknowledgeAccountingSyncPage,
           completeAccountingSyncRun,
@@ -158,17 +172,367 @@ describe("synthetic accounting sync orchestration", () => {
     expect(result).toMatchObject({ pageCount: 2, added: 3, needsAnotherSync: false });
     expect(pullAccountingSyncPage).toHaveBeenCalledTimes(2);
     expect(order).toEqual([
+      "renew-lease",
       "pull-1",
       "local-commit-1",
+      "renew-lease",
       "api-ack-1",
       "local-ack-1",
+      "renew-lease",
       "pull-2",
       "local-commit-2",
+      "renew-lease",
       "api-ack-2",
       "local-ack-2",
+      "renew-lease",
       "api-complete",
       "local-checkpoint",
     ]);
+  });
+
+  it("rejects a lease response for a different run before reading provider data", async () => {
+    const pullAccountingSyncPage = vi.fn();
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: RUN,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+        },
+        {
+          client: {
+            renewAccountingSyncLease: vi.fn(async () => ({
+              run: { ...RUN, id: "another-run" },
+            })),
+            pullAccountingSyncPage,
+            acknowledgeAccountingSyncPage: vi.fn(),
+            completeAccountingSyncRun: vi.fn(),
+          },
+          store: {
+            commitProviderPage: vi.fn(),
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+        }
+      )
+    ).rejects.toThrow(/renewed a different sync run/i);
+    expect(pullAccountingSyncPage).not.toHaveBeenCalled();
+  });
+
+  it("can finish an eleven-page source without the old ten-page ceiling", async () => {
+    const pageRecords = Array.from({ length: 11 }, (_, sequence) =>
+      sequence === 10 ? [] : [{ id: `record-${sequence + 1}` }]
+    );
+    const pages = await Promise.all(
+      Array.from({ length: 11 }, (_, sequence) =>
+        manifest(
+          `manifest-${sequence + 1}`,
+          sequence,
+          sequence === 0 ? null : String(sequence),
+          String(sequence + 1),
+          pageRecords[sequence]!,
+          sequence === 10
+        )
+      )
+    );
+    let pageIndex = 0;
+    const pullAccountingSyncPage = vi.fn(async () => {
+      const index = pageIndex++;
+      return { manifest: pages[index]!, records: pageRecords[index]! };
+    });
+    const serverPages: PageManifest[] = [];
+    const acknowledgeAccountingSyncPage = vi.fn(async (_runId, acknowledgement) => {
+      serverPages.push(pages[acknowledgement.sequence]!);
+      return {
+        acknowledgement,
+        changed: true,
+        nextSequence: acknowledgement.sequence + 1,
+      };
+    });
+    const completedAt = "2026-08-01T12:00:09.000Z";
+    const completeAccountingSyncRun = vi.fn(async () => ({
+      run: {
+        ...activeRunWithPages(pages),
+        state: "completed" as const,
+      },
+      checkpoint: {
+        schema: ACCOUNTING_SYNC_SCHEMA,
+        sourceConnectionId: RUN.sourceConnectionId,
+        replicaId: RUN.replicaId,
+        dataset: RUN.dataset,
+        completedRunId: RUN.id,
+        committedCursor: "11",
+        coverageMarker: "complete-v1",
+        committedDirtyGeneration: RUN.startedDirtyGeneration,
+        pageCount: pages.length,
+        recordCount: 10,
+        completedAt,
+      },
+      needsAnotherSync: false,
+    }));
+    const renewAccountingSyncLease = vi.fn(async () => ({
+      run: activeRunWithPages(serverPages),
+    }));
+
+    const result = await runSyntheticAccountingSync(
+      {
+        run: RUN,
+        localReplicaId: "local-replica-1",
+        organisationId: "synthetic-uk-sole-trader",
+        organisationName: "Mina's Card Studio (made-up)",
+        activity: "self-employment",
+      },
+      {
+        client: {
+          renewAccountingSyncLease,
+          pullAccountingSyncPage,
+          acknowledgeAccountingSyncPage,
+          completeAccountingSyncRun,
+        },
+        store: {
+          commitProviderPage: vi.fn(async ({ manifest: page }) => ({
+            manifestId: page.id,
+            digest: page.digest,
+            added: 0,
+            duplicates: 0,
+            conflicts: 0,
+            replayed: false,
+          })),
+          markProviderPageAcknowledged: vi.fn(),
+          completeProviderSync: vi.fn(async ({ checkpoint }) => checkpoint),
+        },
+        normalize: emptyNormalization,
+        now: () => "2026-08-01T12:00:00.000Z",
+      }
+    );
+
+    expect(result).toMatchObject({ pageCount: 11, added: 0 });
+    expect(pullAccountingSyncPage).toHaveBeenCalledTimes(11);
+    expect(renewAccountingSyncLease).toHaveBeenCalledTimes(23);
+  });
+
+  it("stops before saving or acknowledging a non-final page at the configured ceiling", async () => {
+    const records = [{ id: "one" }];
+    const page = await manifest("manifest-1", 0, null, "1", records, false);
+    const commitProviderPage = vi.fn();
+    const acknowledgeAccountingSyncPage = vi.fn();
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: RUN,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+          maxPages: 1,
+        },
+        {
+          client: {
+            renewAccountingSyncLease: vi.fn(async () => ({ run: RUN })),
+            pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
+            acknowledgeAccountingSyncPage,
+            completeAccountingSyncRun: vi.fn(),
+          },
+          store: {
+            commitProviderPage,
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+          normalize: emptyNormalization,
+        }
+      )
+    ).rejects.toThrow(/page safety limit before the provider finished/i);
+    expect(commitProviderPage).not.toHaveBeenCalled();
+    expect(acknowledgeAccountingSyncPage).not.toHaveBeenCalled();
+  });
+
+  it("rejects a repeating continuation cursor before saving provider data", async () => {
+    const records = [{ id: "one" }];
+    const repeatingRun = {
+      ...RUN,
+      kind: "incremental" as const,
+      stagedCursor: "cursor-0",
+    };
+    const page = await manifest(
+      "manifest-1",
+      0,
+      "cursor-0",
+      "cursor-0",
+      records,
+      false
+    );
+    const commitProviderPage = vi.fn();
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: repeatingRun,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+        },
+        {
+          client: {
+            renewAccountingSyncLease: vi.fn(async () => ({ run: repeatingRun })),
+            pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
+            acknowledgeAccountingSyncPage: vi.fn(),
+            completeAccountingSyncRun: vi.fn(),
+          },
+          store: {
+            commitProviderPage,
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+          normalize: emptyNormalization,
+        }
+      )
+    ).rejects.toThrow(/repeating page cursor/i);
+    expect(commitProviderPage).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized raw-record total before hashing or saving the page", async () => {
+    const records = [{ id: "one" }, { id: "two" }];
+    const page = await manifest("manifest-1", 0, null, "2", records, true);
+    const digest = vi.fn();
+    const commitProviderPage = vi.fn();
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: RUN,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+          maxRecords: 1,
+        },
+        {
+          client: {
+            renewAccountingSyncLease: vi.fn(async () => ({ run: RUN })),
+            pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
+            acknowledgeAccountingSyncPage: vi.fn(),
+            completeAccountingSyncRun: vi.fn(),
+          },
+          store: {
+            commitProviderPage,
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+          digest,
+          normalize: emptyNormalization,
+        }
+      )
+    ).rejects.toThrow(/total record safety limit/i);
+    expect(digest).not.toHaveBeenCalled();
+    expect(commitProviderPage).not.toHaveBeenCalled();
+  });
+
+  it("does not acknowledge when a renewal reports unexpected server progress", async () => {
+    const records = [{ id: "one" }];
+    const page = await manifest("manifest-1", 0, null, "1", records, true);
+    const acknowledgeAccountingSyncPage = vi.fn();
+    const commitProviderPage = vi.fn(async () => ({
+      manifestId: page.id,
+      digest: page.digest,
+      added: 0,
+      duplicates: 0,
+      conflicts: 0,
+      replayed: false,
+    }));
+    const renewAccountingSyncLease = vi
+      .fn()
+      .mockResolvedValueOnce({ run: RUN })
+      .mockResolvedValueOnce({ run: activeRunWithPages([page]) });
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: RUN,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+        },
+        {
+          client: {
+            renewAccountingSyncLease,
+            pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
+            acknowledgeAccountingSyncPage,
+            completeAccountingSyncRun: vi.fn(),
+          },
+          store: {
+            commitProviderPage,
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+          normalize: emptyNormalization,
+        }
+      )
+    ).rejects.toThrow(/renewed a different sync run/i);
+    expect(commitProviderPage).toHaveBeenCalledTimes(1);
+    expect(acknowledgeAccountingSyncPage).not.toHaveBeenCalled();
+  });
+
+  it("does not complete when renewed progress names a different acknowledged manifest", async () => {
+    const records = [{ id: "one" }];
+    const page = await manifest("manifest-1", 0, null, "1", records, true);
+    const acknowledgedRun = activeRunWithPages([page]);
+    const crossedRun = {
+      ...acknowledgedRun,
+      acknowledgedPages: acknowledgedRun.acknowledgedPages.map((acknowledged) => ({
+        ...acknowledged,
+        manifestId: "crossed-manifest",
+      })),
+    };
+    const renewAccountingSyncLease = vi
+      .fn()
+      .mockResolvedValueOnce({ run: RUN })
+      .mockResolvedValueOnce({ run: RUN })
+      .mockResolvedValueOnce({ run: crossedRun });
+    const completeAccountingSyncRun = vi.fn();
+
+    await expect(
+      runSyntheticAccountingSync(
+        {
+          run: RUN,
+          localReplicaId: "local-replica-1",
+          organisationId: "synthetic-uk-sole-trader",
+          organisationName: "Mina's Card Studio (made-up)",
+          activity: "self-employment",
+        },
+        {
+          client: {
+            renewAccountingSyncLease,
+            pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
+            acknowledgeAccountingSyncPage: vi.fn(async (_runId, acknowledgement) => ({
+              acknowledgement,
+              changed: true,
+              nextSequence: 1,
+            })),
+            completeAccountingSyncRun,
+          },
+          store: {
+            commitProviderPage: vi.fn(async () => ({
+              manifestId: page.id,
+              digest: page.digest,
+              added: 0,
+              duplicates: 0,
+              conflicts: 0,
+              replayed: false,
+            })),
+            markProviderPageAcknowledged: vi.fn(),
+            completeProviderSync: vi.fn(),
+          },
+          normalize: emptyNormalization,
+        }
+      )
+    ).rejects.toThrow(/renewed a different sync run/i);
+    expect(completeAccountingSyncRun).not.toHaveBeenCalled();
   });
 
   it("does not write or acknowledge a page whose exact raw-record digest differs", async () => {
@@ -188,6 +552,7 @@ describe("synthetic accounting sync orchestration", () => {
         },
         {
           client: {
+            renewAccountingSyncLease: vi.fn(async () => ({ run: RUN })),
             pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
             acknowledgeAccountingSyncPage,
             completeAccountingSyncRun: vi.fn(),
@@ -221,6 +586,7 @@ describe("synthetic accounting sync orchestration", () => {
         },
         {
           client: {
+            renewAccountingSyncLease: vi.fn(async () => ({ run: RUN })),
             pullAccountingSyncPage: vi.fn(async () => ({ manifest: page, records })),
             acknowledgeAccountingSyncPage,
             completeAccountingSyncRun: vi.fn(),
@@ -303,8 +669,12 @@ describe("synthetic accounting sync orchestration", () => {
       .fn()
       .mockResolvedValueOnce({ manifest: first, records: firstRecords })
       .mockResolvedValueOnce({ manifest: second, records: secondRecords });
+    const serverPages: PageManifest[] = [];
     let lostFirstAcknowledgement = true;
     const acknowledgeAccountingSyncPage = vi.fn(async (_runId, acknowledgement) => {
+      if (!serverPages[acknowledgement.sequence]) {
+        serverPages.push([first, second][acknowledgement.sequence]!);
+      }
       if (lostFirstAcknowledgement) {
         lostFirstAcknowledgement = false;
         throw new TypeError("response lost after acknowledgement");
@@ -325,25 +695,8 @@ describe("synthetic accounting sync orchestration", () => {
       completedAt: "2026-08-01T12:00:09.000Z",
     } as const;
     const completedRun = {
-      ...RUN,
+      ...activeRunWithPages([first, second]),
       state: "completed" as const,
-      nextSequence: 2,
-      stagedCursor: "3",
-      stagedCoverageMarker: "complete-v1",
-      acknowledgedRecordCount: 3,
-      acknowledgedPages: [first, second].map((page) => ({
-        manifestId: page.id,
-        digest: page.digest,
-        sequence: page.sequence,
-        recordCount: page.recordCount,
-        currentCursor: page.currentCursor,
-        nextCursor: page.nextCursor,
-        coverageMarker: page.coverageMarker,
-        fence: page.fence,
-        dirtyGeneration: page.dirtyGeneration,
-        acknowledgedAt: "2026-08-01T12:00:08.000Z",
-        final: page.final,
-      })),
     };
     const completeAccountingSyncRun = vi
       .fn()
@@ -364,6 +717,9 @@ describe("synthetic accounting sync orchestration", () => {
       },
       {
         client: {
+          renewAccountingSyncLease: vi.fn(async () => ({
+            run: activeRunWithPages(serverPages),
+          })),
           pullAccountingSyncPage,
           acknowledgeAccountingSyncPage,
           completeAccountingSyncRun,

@@ -513,6 +513,243 @@ describe("local books store", () => {
     ).rejects.toThrow(/already belongs to another TaxSorted entity/i);
   });
 
+  it("keeps provider-neutral pages when one raw record has no outcome and another has several", async () => {
+    const store = createRecordsStore(new Map());
+    const localReplicaId = (await store.state()).replica.id;
+    const binding = await store.bindProviderConnection({
+      expectedLocalReplicaId: localReplicaId,
+      sourceConnectionId: "xero-connection-1",
+      entityId: "entity-1",
+      entityName: "Mina",
+      syncReplicaId: "xero-sync-replica-1",
+      provider: "xero",
+      environment: "production",
+      organisationId: "xero-tenant-1",
+      organisationName: "Mina Ltd",
+      activity: "self-employment",
+      capabilities: [],
+      boundAt: "2026-08-25T12:00:00.000Z",
+    });
+    const payloads = [
+      { BankTransactionID: "xero-bank-1", Status: "DELETED" },
+      { InvoiceID: "xero-invoice-1", LineItems: [{ LineItemID: "line-1" }] },
+    ];
+    const run = {
+      id: "xero-run-1",
+      sourceConnectionId: binding.sourceConnectionId,
+      syncReplicaId: binding.syncReplicaId,
+      localReplicaId,
+      dataset: "accounting-observations",
+      kind: "initial" as const,
+      fence: "900719925474099312347",
+      startedAt: "2026-08-25T12:00:00.000Z",
+    };
+    const manifest = {
+      schema: ACCOUNTING_SYNC_SCHEMA,
+      id: "xero-manifest-1",
+      runId: run.id,
+      sourceConnectionId: run.sourceConnectionId,
+      replicaId: run.syncReplicaId,
+      dataset: run.dataset,
+      sequence: 0,
+      fence: run.fence,
+      digest: await accountingPageDigest(payloads),
+      recordCount: payloads.length,
+      currentCursor: null,
+      nextCursor: "page-1",
+      coverageMarker: "xero-observations-v1",
+      dirtyGeneration: "0",
+      final: true,
+      expiresAt: "2099-08-25T12:10:00.000Z",
+    };
+    const rawVersions = await Promise.all(
+      payloads.map(async (payload, index) => ({
+        id: `xero-raw-${index + 1}`,
+        identity: {
+          provider: "xero" as const,
+          environment: "production" as const,
+          organisationId: binding.organisationId,
+          objectType: index === 0 ? "bank-transaction" : "invoice",
+          objectId: index === 0 ? "xero-bank-1" : "xero-invoice-1",
+        },
+        payloadDigest: await accountingValueDigest(payload),
+        observedAt: "2026-08-25T12:00:01.000Z",
+        deleted: index === 0,
+        payload,
+      }))
+    );
+    const normalizedVersions = [
+      {
+        id: "xero-normalized-line-1-net",
+        rawVersionId: rawVersions[1].id,
+        mapperVersion: "xero-mapper/1",
+        kind: "invoice-line-net",
+        candidateExternalId: "xero-invoice-1:line-1:net",
+        candidateContentDigest: "xero-net-digest-v1",
+        limitations: ["Tax treatment still needs review."],
+      },
+      {
+        id: "xero-normalized-line-1-tax",
+        rawVersionId: rawVersions[1].id,
+        mapperVersion: "xero-mapper/1",
+        kind: "invoice-line-tax",
+        candidateExternalId: "xero-invoice-1:line-1:tax",
+        candidateContentDigest: "xero-tax-digest-v1",
+        limitations: ["Tax treatment still needs review."],
+      },
+    ];
+    const candidates: ImportCandidate[] = [
+      {
+        record: { ...INCOME, amount: 10_000, description: "Invoice line net" },
+        origin: {
+          kind: "accounting-provider",
+          externalId: "xero-invoice-1:line-1:net",
+          sourceRevision: "revision-1",
+          provider: {
+            provider: "xero",
+            environment: "production",
+            organisationId: binding.organisationId,
+            objectType: "invoice-line",
+          },
+        },
+        contentDigest: "xero-net-digest-v1",
+      },
+      {
+        record: { ...INCOME, amount: 2_345, description: "Invoice line tax" },
+        origin: {
+          kind: "accounting-provider",
+          externalId: "xero-invoice-1:line-1:tax",
+          sourceRevision: "revision-1",
+          provider: {
+            provider: "xero",
+            environment: "production",
+            organisationId: binding.organisationId,
+            objectType: "invoice-line",
+          },
+        },
+        contentDigest: "xero-tax-digest-v1",
+      },
+    ];
+
+    await expect(
+      store.commitProviderPage({
+        run,
+        manifest,
+        rawVersions,
+        normalizedVersions,
+        candidates: [
+          {
+            record: INCOME,
+            origin: {
+              kind: "accounting-provider",
+              externalId: "unlinked-review-candidate",
+              provider: {
+                provider: "xero",
+                environment: "production",
+                organisationId: binding.organisationId,
+                objectType: "invoice-line",
+              },
+            },
+            contentDigest: "unlinked-content-digest",
+          },
+        ],
+      })
+    ).rejects.toThrow(/link to one normalised outcome/i);
+
+    const committed = await store.commitProviderPage({
+      run,
+      manifest,
+      rawVersions,
+      normalizedVersions,
+      candidates,
+      committedAt: "2026-08-25T12:00:02.000Z",
+    });
+    const replayed = await store.commitProviderPage({
+      run,
+      manifest,
+      rawVersions,
+      normalizedVersions,
+      candidates,
+    });
+    const state = await store.state();
+
+    expect(committed).toMatchObject({ added: 2, replayed: false });
+    expect(replayed).toMatchObject({ added: 2, replayed: true });
+    expect(state.rawProviderVersions).toHaveLength(2);
+    expect(state.normalizedProviderVersions).toHaveLength(2);
+    expect(state.normalizedProviderVersions.map((version) => version.mappedEventId)).toEqual([
+      expect.any(String),
+      expect.any(String),
+    ]);
+    expect(new Set(state.normalizedProviderVersions.map((version) => version.mappedEventId)).size)
+      .toBe(2);
+    expect(state.syncRuns[0].pages[0]).toMatchObject({
+      rawVersionIds: ["xero-raw-1", "xero-raw-2"],
+      normalizedVersionIds: ["xero-normalized-line-1-net", "xero-normalized-line-1-tax"],
+    });
+
+    const changedPayload = {
+      InvoiceID: "xero-invoice-1",
+      LineItems: [{ LineItemID: "line-1", NetMinor: 11_000 }],
+    };
+    const changedRun = {
+      ...run,
+      id: "xero-run-2",
+      kind: "incremental" as const,
+      fence: "900719925474099312348",
+    };
+    const changedManifest = {
+      ...manifest,
+      id: "xero-manifest-2",
+      runId: changedRun.id,
+      fence: changedRun.fence,
+      digest: await accountingPageDigest([changedPayload]),
+      recordCount: 1,
+      currentCursor: "page-1",
+      nextCursor: "page-2",
+      coverageMarker: "xero-observations-v2",
+    };
+    const changedRaw = {
+      ...rawVersions[1],
+      id: "xero-raw-3",
+      payload: changedPayload,
+      payloadDigest: await accountingValueDigest(changedPayload),
+      providerRevision: "revision-2",
+      observedAt: "2026-08-25T12:05:01.000Z",
+    };
+    const changedNormalized = {
+      ...normalizedVersions[0],
+      id: "xero-normalized-line-1-net-v2",
+      rawVersionId: changedRaw.id,
+      candidateContentDigest: "xero-net-digest-v2",
+    };
+    const changedCandidate: ImportCandidate = {
+      ...candidates[0],
+      record: { ...candidates[0].record, amount: 11_000 },
+      origin: { ...candidates[0].origin, sourceRevision: "revision-2" },
+      contentDigest: "xero-net-digest-v2",
+    };
+    const changed = await store.commitProviderPage({
+      run: changedRun,
+      manifest: changedManifest,
+      rawVersions: [changedRaw],
+      normalizedVersions: [changedNormalized],
+      candidates: [changedCandidate],
+      committedAt: "2026-08-25T12:05:02.000Z",
+    });
+    const afterChange = await store.state();
+
+    expect(changed).toMatchObject({ added: 0, conflicts: 1 });
+    expect(
+      afterChange.normalizedProviderVersions.find(
+        (version) => version.id === changedNormalized.id
+      )?.mappedEventId
+    ).toBeUndefined();
+    expect(afterChange.conflictCases).toContainEqual(
+      expect.objectContaining({ kind: "changed-source", status: "open" })
+    );
+  });
+
   it("commits every provider page locally before acknowledgement and promotes only a completed run", async () => {
     const store = createRecordsStore(new Map());
     const localReplicaId = (await store.state()).replica.id;
