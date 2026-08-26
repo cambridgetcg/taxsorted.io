@@ -212,9 +212,9 @@ export default function RecordsClient({
           <p className="mt-5 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink-soft">
             <strong className="text-ink">Available now:</strong>{" "}up to one UK sole-trader
             business and one UK property business, kept separate, in pounds, with a 2026–27
-            Income Tax view. These records stay only in this browser. Signing in does not back
-            them up or put them on another device. Limited companies and full annual accounts are
-            not supported yet.
+            Income Tax view. These records stay only in this browser. TaxSorted does not encrypt
+            or back them up, and signing in does not put them on another device. Limited companies
+            and full annual accounts are not supported yet.
           </p>
         ) : null}
       </header>

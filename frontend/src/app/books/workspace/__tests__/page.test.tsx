@@ -154,7 +154,9 @@ describe("Books workspace entry", () => {
     expect(screen.getByRole("heading", { name: "No records yet" })).toBeInTheDocument();
     expect(screen.getByText(/up to one UK sole-trader business and one UK property business/i))
       .toBeInTheDocument();
-    expect(screen.getByText(/signing in does not back them up/i)).toBeInTheDocument();
+    expect(screen.getByText(/TaxSorted does not encrypt or back them up/i)).toBeInTheDocument();
+    expect(screen.getByText(/signing in does not put them on another device/i))
+      .toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add money in or out/ }))
       .toHaveAttribute("href", "/books/workspace/money?start=manual");
     expect(screen.queryByText(/up to date/i)).not.toBeInTheDocument();
