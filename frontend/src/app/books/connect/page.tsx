@@ -32,14 +32,14 @@ const STARTING_PATHS = [
   },
   {
     title: "I have a bank CSV",
-    body: "Import signed GBP amounts into local Starter Books and review every row.",
-    href: "/books/workspace?start=csv",
+    body: "Bring in one amount column, where money in is positive and money out is negative, then check every row.",
+    href: "/books/workspace/money?start=csv",
     status: "Open now",
   },
   {
     title: "I have one transaction",
     body: "Add one money movement by hand without opening an account.",
-    href: "/books/workspace?start=manual",
+    href: "/books/workspace/money?start=manual",
     status: "Open now",
   },
   {

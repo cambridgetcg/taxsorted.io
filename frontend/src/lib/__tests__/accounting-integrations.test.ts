@@ -9,7 +9,7 @@ describe("accounting integration catalogue", () => {
   it("has one honest live source and no fake provider connect action", () => {
     const live = ACCOUNTING_SOURCES.filter((source) => source.state === "open-now");
     expect(live.map((source) => source.id)).toEqual(["csv"]);
-    expect(live[0]?.action?.href).toBe("/books/workspace?start=csv");
+    expect(live[0]?.action?.href).toBe("/books/workspace/money?start=csv");
 
     for (const provider of ACCOUNTING_SOURCES.filter((source) => source.id !== "csv")) {
       expect(provider.state).toBe("planned");

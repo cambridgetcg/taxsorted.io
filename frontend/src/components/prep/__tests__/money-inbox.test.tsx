@@ -35,15 +35,19 @@ const event = eventFromRecord(
 );
 
 describe("Money Inbox", () => {
-  it("shows Cash, Profit, Tax and Source trail together with the suggestion limits", () => {
+  it("shows the money movement, bounded tax effect and source without claiming profit", () => {
     render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={vi.fn()} />);
 
-    expect(screen.getByText("Cash")).toBeInTheDocument();
-    expect(screen.getByText("Profit")).toBeInTheDocument();
-    expect(screen.getByText("Tax")).toBeInTheDocument();
-    expect(screen.getByText("Source trail")).toBeInTheDocument();
+    expect(screen.getByText("Money movement")).toBeInTheDocument();
+    expect(screen.getByText("Income Tax totals")).toBeInTheDocument();
+    expect(screen.getByText("Income Tax category")).toBeInTheDocument();
+    expect(screen.getByText("Where this came from")).toBeInTheDocument();
+    expect(screen.queryByText("Profit")).not.toBeInTheDocument();
     expect(screen.getByText(/not tax due/i)).toBeInTheDocument();
     expect(screen.getByText(/bank line only/i)).toBeInTheDocument();
+    expect(screen.getByText(/do not choose Yes for transfers, loans, owner money/i)).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Was this an ordinary running cost?" }))
+      .toBeInTheDocument();
   });
 
   it("requires a Yes answer and an explicit check before marking a row ready", async () => {
@@ -51,11 +55,11 @@ describe("Money Inbox", () => {
     render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={onReview} />);
 
     expect(onReview).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: /confirm transaction/i })).toBeDisabled();
-    fireEvent.click(screen.getByRole("radio", { name: "Yes" }));
-    expect(screen.getByRole("button", { name: /confirm transaction/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /mark as checked/i })).toBeDisabled();
+    fireEvent.click(screen.getByRole("radio", { name: "Yes, all of it" }));
+    expect(screen.getByRole("button", { name: /mark as checked/i })).toBeDisabled();
     fireEvent.click(screen.getByRole("checkbox", { name: /I checked the date/i }));
-    fireEvent.click(screen.getByRole("button", { name: /confirm transaction/i }));
+    fireEvent.click(screen.getByRole("button", { name: /mark as checked/i }));
 
     await waitFor(() =>
       expect(onReview).toHaveBeenCalledWith("event-1", {
@@ -76,10 +80,10 @@ describe("Money Inbox", () => {
 
     fireEvent.change(screen.getByLabelText(/Amount in pounds/i), { target: { value: "12.34" } });
     fireEvent.click(screen.getByRole("radio", { name: "Money in" }));
-    fireEvent.click(screen.getByRole("radio", { name: "UK property" }));
-    fireEvent.click(screen.getByRole("radio", { name: "Yes" }));
+    fireEvent.click(screen.getByRole("radio", { name: "A property I let" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Yes, all of it" }));
     fireEvent.click(screen.getByRole("checkbox", { name: /I checked the date/i }));
-    fireEvent.click(screen.getByRole("button", { name: /confirm transaction/i }));
+    fireEvent.click(screen.getByRole("button", { name: /mark as checked/i }));
 
     await waitFor(() =>
       expect(onReview).toHaveBeenCalledWith(
@@ -97,9 +101,9 @@ describe("Money Inbox", () => {
   it("can leave a row out without deleting it", async () => {
     const onReview = vi.fn().mockResolvedValue({ ...event, reviewState: "excluded", revision: 2 });
     render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={onReview} />);
-    expect(screen.getByRole("button", { name: /leave out/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /keep out of Income Tax totals/i })).toBeDisabled();
     fireEvent.click(screen.getByRole("radio", { name: "No" }));
-    fireEvent.click(screen.getByRole("button", { name: /leave out/i }));
+    fireEvent.click(screen.getByRole("button", { name: /keep out of Income Tax totals/i }));
     await waitFor(() =>
       expect(onReview).toHaveBeenCalledWith("event-1", {
         expectedRevision: 1,
@@ -110,10 +114,51 @@ describe("Money Inbox", () => {
 
   it("keeps partly-business and unsure rows waiting", () => {
     render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={vi.fn()} />);
-    fireEvent.click(screen.getByRole("radio", { name: "Partly" }));
-    expect(screen.getByText(/splitting a partly-business payment is not supported/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /confirm transaction/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /leave out/i })).toBeDisabled();
+    fireEvent.click(screen.getByRole("radio", { name: "Only part" }));
+    expect(screen.getByText(/cannot split one payment into business and personal parts/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /mark as checked/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /keep out of Income Tax totals/i })).toBeDisabled();
+  });
+
+  it("requires a fresh answer and check after a material fact changes", () => {
+    render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={vi.fn()} />);
+
+    const submit = screen.getByRole("button", { name: /mark as checked/i });
+    fireEvent.click(screen.getByRole("radio", { name: "Yes, all of it" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /I checked the date/i }));
+    expect(submit).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText(/Amount in pounds/i), {
+      target: { value: "12.34" },
+    });
+    expect(submit).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /I checked the date/i }));
+    expect(submit).toBeEnabled();
+    fireEvent.click(screen.getByRole("radio", { name: "Money in" }));
+
+    expect(screen.getByRole("group", { name: "Was this ordinary business income?" }))
+      .toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Yes, all of it" })).not.toBeChecked();
+    expect(submit).toBeDisabled();
+  });
+
+  it("explains a failed check plainly and keeps technical detail optional", async () => {
+    const onReview = vi.fn().mockRejectedValue(new Error("record revision conflict"));
+    render(<MoneyInbox events={[event]} ledgers={[ledger]} onReview={onReview} />);
+
+    fireEvent.click(screen.getByRole("radio", { name: "Yes, all of it" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /I checked the date/i }));
+    fireEvent.click(screen.getByRole("button", { name: /mark as checked/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "We couldn’t save this check. Nothing was changed. Try again.",
+    );
+    const details = screen.getByText("Technical detail").closest("details");
+    expect(details).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText("Technical detail"));
+    expect(screen.getByText("record revision conflict")).toBeVisible();
   });
 });
 

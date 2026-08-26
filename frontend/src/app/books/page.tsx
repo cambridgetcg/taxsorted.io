@@ -20,7 +20,7 @@ const AUDIENCES = [
     title: "UK landlord",
     status: "Open now",
     body: "Keep UK property income and costs separate, review the proposed category and derive running totals.",
-    href: "/books/workspace?activity=uk-property",
+    href: "/books/workspace/money?activity=uk-property",
     action: "Open property books",
   },
   {
@@ -95,9 +95,9 @@ export default function BooksPage() {
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-ink-soft">
             TaxSorted is growing into accounting software for people and small organisations
-            without an in-house accounting team. Open today: local record-keeping for one UK sole
-            trade or one UK property business. Start with money in and money out; open the deeper
-            layers only when you want them.
+            without an in-house accounting team. Open today: local record-keeping for up to one UK
+            sole-trader business and one UK property business, kept separate. Start with money in
+            and money out; open the deeper layers only when you want them.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

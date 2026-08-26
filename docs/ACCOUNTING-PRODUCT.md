@@ -44,6 +44,21 @@ The interface may collapse layers. It must never erase them.
 - show unknown facts as unknown, never as zero
 - let a person export their records and the explanation
 
+## The first task shell
+
+Starter Books has four ordinary, linkable doors:
+
+- **Today** says what needs attention and offers no more than three useful next actions.
+- **Money** is where someone adds, imports, checks and exports money movements. Hand-added and
+  imported items both wait in **To check** before they can count.
+- **Business** keeps each sole trade or property business separate and shows only confirmed,
+  recorded income and costs. It does not call these figures a bank balance or final profit.
+- **Tax** shows cumulative Income Tax category totals for the current update period. It does not
+  claim to show tax due, a full-year forecast or anything sent to HMRC.
+
+The same underlying records feed every door. Waiting, excluded and unconfirmed items stay out of
+totals. Separate businesses do not acquire a combined total merely because one browser stores them.
+
 ## Deep means
 
 - money is stored as integer minor units
@@ -138,7 +153,7 @@ kept in [ACCOUNTING-INTEGRATIONS.md](ACCOUNTING-INTEGRATIONS.md).
 4. Prove the provider-neutral connection, local-page acknowledgement and sync-run history with a
    made-up adapter and no credentials or network access. **Working in local development.**
 5. Add the privacy, token-vault, deletion, incident and reconciliation gates a real provider needs.
-6. Prove one read-only Xero adapter through the existing Money Inbox review boundary.
+6. Prove one read-only Xero adapter through the existing To check review boundary.
 7. Add a real chart of accounts and balanced double-entry journal.
 8. Derive profit and loss and balance sheet from that ledger.
 9. Add year-end adjustments with an explicit review trail.

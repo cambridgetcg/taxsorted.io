@@ -452,7 +452,8 @@ export default function SyntheticAccountingDemoClient() {
                 proofs stay in this browser; provider tokens do not.
               </p>
               <p className="mt-4 text-sm text-ink-soft">
-                This proof stays in its own demo store and does not appear in the ordinary Money Inbox.
+                This proof stays in its own demo store and does not appear in To check in your
+                ordinary Books.
               </p>
             </div>
           ) : null}
