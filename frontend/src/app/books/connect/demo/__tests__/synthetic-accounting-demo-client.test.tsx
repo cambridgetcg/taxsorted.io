@@ -130,7 +130,8 @@ describe("made-up connector screen", () => {
     );
     expect(await screen.findByText(/local and server checkpoints agree/i)).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText(/does not appear in the ordinary money inbox/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not appear in To check in your ordinary Books/i))
+      .toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: /taxsorted person or organisation/i })).toBeDisabled();
     expect(screen.getByRole("radio", { name: /self-employment/i })).toBeDisabled();
   });

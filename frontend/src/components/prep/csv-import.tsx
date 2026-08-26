@@ -5,6 +5,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { categoryByKey, type SourceType } from "@taxsorted/engine/uk/itsa";
 import { Button } from "@/components/ui/button";
+import { ActionError } from "@/components/ui/action-error";
 import { SOURCES } from "@/lib/sources";
 import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import {
@@ -22,7 +23,7 @@ import type { ImportRecordsResult } from "@/lib/records";
 import type { ImportCandidate } from "@/lib/local-books";
 
 export interface CsvImportProps {
-  /** Stages every eligible row in one atomic import for the Money Inbox. */
+  /** Stages every eligible row in one atomic import for To check. */
   onImport: (records: ImportCandidate[]) => Promise<ImportRecordsResult>;
   /** Opens the file control directly when another control has already revealed this importer. */
   expanded?: boolean;
@@ -37,7 +38,7 @@ const WARNING_PAGE_SIZE = 20;
 type Status =
   | { kind: "idle" }
   | { kind: "success"; count: number; duplicateCount: number; conflictCount: number }
-  | { kind: "error"; message: string };
+  | { kind: "error"; technical?: string };
 
 const EMPTY_MAPPING: CsvMapping = { date: "", amount: "" };
 
@@ -47,7 +48,7 @@ const EMPTY_MAPPING: CsvMapping = { date: "", amount: "" };
  * with a placeholder (amount 0 / date ""), which is also exactly what
  * RecordsStore.validate would reject. Everything else with a warning (the
  * mortgage-interest note, a DD/MM-vs-MM/DD ambiguity, an auto-adjusted
- * category) is a soft warning carried into the Money Inbox.
+ * category) is a soft warning carried into To check.
  */
 function isHardInvalid(row: CsvImportRow): boolean {
   return row.record.amount <= 0 || row.record.date === "";
@@ -55,7 +56,7 @@ function isHardInvalid(row: CsvImportRow): boolean {
 
 /**
  * File input → preview (first 10 rows) → column mapping → one atomic staging
- * call with every eligible row. Category decisions happen in Money Inbox.
+ * call with every eligible row. Category decisions happen in To check.
  * default; the whole flow stays client-side, same as the rest of this page.
  */
 export function CsvImport({
@@ -104,7 +105,7 @@ export function CsvImport({
       return true;
     });
 
-  // Every soft warning follows its row into Money Inbox. The import screen
+  // Every soft warning follows its row into To check. The import screen
   // surfaces all of them, but this is not a second approval gate.
   const warningIndexes = resolvedRows
     .map((_, i) => i)
@@ -182,7 +183,10 @@ export function CsvImport({
       });
       resetFile();
     } catch (err) {
-      setStatus({ kind: "error", message: err instanceof Error ? err.message : "Import failed." });
+      setStatus({
+        kind: "error",
+        ...(err instanceof Error && err.message ? { technical: err.message } : {}),
+      });
     } finally {
       setImporting(false);
     }
@@ -200,17 +204,17 @@ export function CsvImport({
 
         <p className="text-sm text-ink-soft">
           Bring in a bank or bookkeeping export. Categories are suggestions, not decisions. Valid
-          rows go to your Money Inbox first and do not affect any figure until you confirm them.
+          rows go to To check first and do not affect any figure until you confirm them.
           An exact repeat of the same file is recognised and skipped.
         </p>
         <p className="text-sm text-ink-soft">
-          Use one signed amount column: positive amounts mean money in and negative amounts mean
-          money out. Files with separate Debit and Credit columns are not supported yet.
+          Use one amount column: positive numbers mean money in and negative numbers mean money
+          out. Files with separate Debit and Credit columns are not supported yet.
         </p>
 
         <div className="space-y-1.5">
           <label htmlFor={fileInputId} className="text-sm font-medium text-ink">
-            CSV file
+            Bank or bookkeeping file (.csv)
           </label>
           <input
             key={fileInputVersion}
@@ -235,10 +239,13 @@ export function CsvImport({
           ) : (
             <>
               <PillRadioGroup
-                label="Which activity do these rows belong to?"
+                label="Which work do these payments belong to?"
                 options={SOURCES.map((item) => ({
                   value: item.value,
-                  label: item.label,
+                  label:
+                    item.value === "self-employment"
+                      ? "My own business"
+                      : "A property I let",
                   title: item.plain,
                 }))}
                 value={source}
@@ -247,22 +254,30 @@ export function CsvImport({
                   setWarningPage(0);
                 }}
               />
+              {source ? (
+                <p className="text-sm text-ink-soft">
+                  <strong className="text-ink">
+                    {SOURCES.find((item) => item.value === source)?.label}:
+                  </strong>{" "}
+                  {SOURCES.find((item) => item.value === source)?.plain}.
+                </p>
+              ) : null}
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <MappingSelect
-                  label="Date column"
+                  label="Which column has the date?"
                   headers={headers}
                   value={mapping.date}
                   onChange={(value) => changeMapping({ date: value })}
                 />
                 <MappingSelect
-                  label="Amount column"
+                  label="Which column has the amount?"
                   headers={headers}
                   value={mapping.amount}
                   onChange={(value) => changeMapping({ amount: value })}
                 />
                 <MappingSelect
-                  label="Description column (optional)"
+                  label="Which column has the name or note? (optional)"
                   headers={headers}
                   value={mapping.description ?? ""}
                   onChange={(value) => changeMapping({ description: value || undefined })}
@@ -280,10 +295,10 @@ export function CsvImport({
                       <thead className="bg-gray-50 text-ink-soft">
                         <tr>
                           <th scope="col" className="p-2 font-medium">Date</th>
-                          <th scope="col" className="p-2 font-medium">Description</th>
-                          <th scope="col" className="p-2 text-right font-medium">Amount</th>
-                          <th scope="col" className="p-2 font-medium">Category</th>
-                          <th scope="col" className="p-2 font-medium">Warning</th>
+                          <th scope="col" className="p-2 font-medium">Name or note</th>
+                          <th scope="col" className="p-2 text-right font-medium">Money in or out</th>
+                          <th scope="col" className="p-2 font-medium">Suggested purpose</th>
+                          <th scope="col" className="p-2 font-medium">Needs attention</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -337,11 +352,11 @@ export function CsvImport({
                   {warningIndexes.length > 0 ? (
                     <div className="space-y-2 rounded-2xl border border-amber-300 bg-amber-50 p-3 sm:p-4">
                       <p className="text-sm font-semibold text-ink">
-                        Warnings going to Money Inbox ({warningIndexes.length})
+                        Items that need extra attention ({warningIndexes.length})
                       </p>
                       <p className="text-xs text-ink-soft">
-                        These rows parsed, but each needs extra attention. They are staged, not
-                        counted, and the warning remains beside the row until you review it.
+                        These items were read, but each needs a closer look. If you add them, they
+                        will wait in To check and the note will stay beside each item until review.
                       </p>
                       <ul className="space-y-2">
                         {visibleWarningIndexes.map((i) => {
@@ -353,7 +368,7 @@ export function CsvImport({
                             >
                               <span className="text-xs text-ink-soft">Row {i + 2}</span>
                               <span>{r.record.date}</span>
-                              <span className="max-w-56 truncate" title={r.record.description}>
+                              <span className="min-w-0 break-words">
                                 {r.record.description ?? "—"}
                               </span>
                               <span>
@@ -408,13 +423,13 @@ export function CsvImport({
                       disabled={importing || eligibleIndexes.length === 0 || tooManyRows}
                     >
                       {importing
-                        ? "Adding to inbox…"
-                        : `Add ${eligibleIndexes.length} to Money Inbox`}
+                        ? "Adding to check…"
+                        : `Add ${eligibleIndexes.length} item${eligibleIndexes.length === 1 ? "" : "s"} to check`}
                     </Button>
                     {hardInvalidCount > 0 ? (
                       <span className="text-sm text-ink-soft">
                         {hardInvalidCount} row{hardInvalidCount === 1 ? "" : "s"} can&apos;t be
-                        staged because the date or amount could not be read.
+                        added because the date or amount could not be read.
                       </span>
                     ) : null}
                   </div>
@@ -422,8 +437,8 @@ export function CsvImport({
               ) : (
                 <p className="text-sm text-red-600">
                   {!mapping.date || !mapping.amount
-                    ? "Choose a date column and a signed amount column before importing."
-                    : "Choose which activity these rows belong to before importing."}
+                    ? "Choose a date column and one amount column where money in is positive and money out is negative."
+                    : "Choose which work these payments belong to before importing."}
                 </p>
               )}
             </>
@@ -437,7 +452,7 @@ export function CsvImport({
             tabIndex={-1}
             className="text-sm text-green-700"
           >
-            Added {status.count} record{status.count === 1 ? "" : "s"} to your Money Inbox.
+            Added {status.count} item{status.count === 1 ? "" : "s"} to check.
             {status.duplicateCount > 0
               ? ` Skipped ${status.duplicateCount} exact duplicate${status.duplicateCount === 1 ? "" : "s"}.`
               : ""}
@@ -446,7 +461,12 @@ export function CsvImport({
               : ""}
           </p>
         ) : null}
-        {status.kind === "error" ? <p role="alert" className="text-sm text-red-600">{status.message}</p> : null}
+        {status.kind === "error" ? (
+          <ActionError
+            message="We couldn’t add these items. Nothing was changed. Try again."
+            technical={status.technical}
+          />
+        ) : null}
     </div>
   );
 

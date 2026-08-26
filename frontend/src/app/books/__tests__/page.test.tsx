@@ -15,7 +15,7 @@ describe("Books front door", () => {
       .toHaveAttribute("href", "/books/workspace");
     expect(screen.getByRole("link", { name: /open property books/i })).toHaveAttribute(
       "href",
-      "/books/workspace?activity=uk-property",
+      "/books/workspace/money?activity=uk-property",
     );
     expect(screen.getByRole("link", { name: /bring existing records/i })).toHaveAttribute(
       "href",

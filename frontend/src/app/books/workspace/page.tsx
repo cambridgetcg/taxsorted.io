@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function BooksWorkspacePage() {
-  return <RecordsClient entry="books" />;
+  return <RecordsClient entry="books" view="today" />;
 }

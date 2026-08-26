@@ -12,11 +12,11 @@ describe("Books connection path", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /import a bank csv/i })[0]).toHaveAttribute(
       "href",
-      "/books/workspace?start=csv",
+      "/books/workspace/money?start=csv",
     );
     expect(screen.getByRole("link", { name: /i have one transaction/i })).toHaveAttribute(
       "href",
-      "/books/workspace?start=manual",
+      "/books/workspace/money?start=manual",
     );
     expect(screen.getAllByText("Connector not live")).toHaveLength(4);
     expect(screen.getByText(/cannot ask them for access or collect provider data/i))

@@ -128,6 +128,7 @@ export interface RecordsStore {
   listForLedger(ledgerId: string): Promise<LedgerRecord[]>;
   listEvents(): Promise<AccountingEvent[]>;
   state(): Promise<LocalBooksState>;
+  /** Stage hand-added records for the same explicit review as imported records. */
   add(record: NewLedgerRecord): Promise<AccountingEvent>;
   addMany(records: NewLedgerRecord[]): Promise<AccountingEvent[]>;
   importMany(candidates: ImportCandidate[]): Promise<ImportRecordsResult>;
@@ -763,7 +764,7 @@ export function createRecordsStore(
             origin: { kind: "legacy", externalId: record.id },
             contentDigest: `legacy:${record.id}`,
             reviewNote:
-              "Moved from the earlier local record format. Confirm which separate business this belongs to before filing.",
+              "Moved from the earlier local record format. Confirm that its group contains records for one separate business before filing.",
           });
           validateAccountingEvent(event, state.ledgers);
           state.events.push(event);
@@ -817,7 +818,7 @@ export function createRecordsStore(
       id,
       ledgerId: ledger.id,
       now,
-      reviewState: "ready",
+      reviewState: "needs-review",
       origin: { kind: "manual", externalId: id },
       contentDigest: `manual:${id}:1`,
     });

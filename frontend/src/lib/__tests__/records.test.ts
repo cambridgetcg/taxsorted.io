@@ -35,17 +35,23 @@ function candidate(overrides: Partial<ImportCandidate> = {}): ImportCandidate {
 }
 
 describe("local books store", () => {
-  it("adds a manual event but projects it only after the ledger scope is confirmed", async () => {
+  it("stages a manual event and projects it only after review and ledger scope confirmation", async () => {
     const store = createRecordsStore(new Map());
     const event = await store.add(INCOME);
 
-    expect(event.reviewState).toBe("ready");
+    expect(event.reviewState).toBe("needs-review");
     expect(event.origin.kind).toBe("manual");
     expect(event.ledgerId).toBe("ledger:self-employment:primary");
     expect(await store.list()).toEqual([]);
     expect((await store.state()).ledgers[0].scopeState).toBe("needs-confirmation");
 
     await store.confirmLedger(event.ledgerId);
+    expect(await store.list()).toEqual([]);
+
+    await store.review(event.id, {
+      expectedRevision: event.revision,
+      reviewState: "ready",
+    });
     expect(await store.list()).toEqual([
       expect.objectContaining({ id: event.id, amount: 12345, category: "turnover" }),
     ]);
@@ -54,6 +60,10 @@ describe("local books store", () => {
   it("invalidates a confirmed ledger when another event is added", async () => {
     const store = createRecordsStore(new Map());
     const first = await store.add(INCOME);
+    await store.review(first.id, {
+      expectedRevision: first.revision,
+      reviewState: "ready",
+    });
     await store.confirmLedger(first.ledgerId);
     expect(await store.list()).toHaveLength(1);
 
@@ -84,6 +94,29 @@ describe("local books store", () => {
       ])
     ).rejects.toThrow(/cash amount/i);
     expect(await store.listEvents()).toHaveLength(0);
+  });
+
+  it("stages every member of a valid manual batch until each one is reviewed", async () => {
+    const store = createRecordsStore(new Map());
+    const events = await store.addMany([
+      INCOME,
+      { ...INCOME, date: "2026-05-02", amount: 200 },
+    ]);
+
+    expect(events.map((event) => event.reviewState)).toEqual([
+      "needs-review",
+      "needs-review",
+    ]);
+    await store.confirmLedger(events[0].ledgerId);
+    expect(await store.list()).toEqual([]);
+
+    for (const event of events) {
+      await store.review(event.id, {
+        expectedRevision: event.revision,
+        reviewState: "ready",
+      });
+    }
+    expect(await store.list()).toHaveLength(2);
   });
 
   it("stages an import, skips the exact same source event, then requires review", async () => {
@@ -279,9 +312,13 @@ describe("local books store", () => {
   it("excludes without deletion and returns it to review with reconstructable history", async () => {
     const store = createRecordsStore(new Map());
     const event = await store.add(INCOME);
+    const ready = await store.review(event.id, {
+      expectedRevision: event.revision,
+      reviewState: "ready",
+    });
     await store.confirmLedger(event.ledgerId);
     const excluded = await store.review(event.id, {
-      expectedRevision: 1,
+      expectedRevision: ready.revision,
       reviewState: "excluded",
     });
     expect(await store.list()).toHaveLength(0);
@@ -292,8 +329,8 @@ describe("local books store", () => {
       reviewState: "needs-review",
     });
     const state = await store.state();
-    expect(state.history).toHaveLength(2);
-    expect(state.history[0].before).toMatchObject({ id: event.id, reviewState: "ready" });
+    expect(state.history).toHaveLength(3);
+    expect(state.history[1].before).toMatchObject({ id: event.id, reviewState: "ready" });
     expect(state.events[0].reviewState).toBe("needs-review");
     expect(await store.list()).toHaveLength(0);
   });
@@ -366,6 +403,12 @@ describe("local books store", () => {
     ]);
     const events = await first.listEvents();
     expect(events).toHaveLength(2);
+    for (const event of events) {
+      await first.review(event.id, {
+        expectedRevision: event.revision,
+        reviewState: "ready",
+      });
+    }
     await first.confirmLedger(events[0].ledgerId);
     expect(await first.list()).toHaveLength(2);
   });
@@ -375,6 +418,10 @@ describe("local books store", () => {
     const manual = await store.add({ ...INCOME, description: "=SUM(A1)" });
     expect((await store.exportCsv()).split("\n")).toHaveLength(1);
     await store.importMany([candidate()]);
+    await store.review(manual.id, {
+      expectedRevision: manual.revision,
+      reviewState: "ready",
+    });
     await store.confirmLedger(manual.ledgerId);
 
     const csv = await store.exportCsv();

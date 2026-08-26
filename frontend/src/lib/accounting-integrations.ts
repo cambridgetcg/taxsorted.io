@@ -30,7 +30,7 @@ export const ACCOUNTING_SOURCES: readonly AccountingSourceSummary[] = [
     keeps: ["stable file and row identity", "source wording", "review state", "later corrections"],
     boundary:
       "GBP and one activity per import. Separate Debit and Credit columns, automatic bank matching and cloud backup are not live.",
-    action: { label: "Import a bank CSV", href: "/books/workspace?start=csv" },
+    action: { label: "Import a bank CSV", href: "/books/workspace/money?start=csv" },
     official: [
       {
         label: "Digital records and bank-feed checks",
@@ -192,16 +192,16 @@ export const RECORDS_TO_RECEIPT: readonly IntegrationStep[] = [
     stateLabel: "CSV open now",
     plain: "Choose a source and one business. See what will be read before anything enters your books.",
     proof: "A connection is access, not completeness.",
-    action: { label: "Import a CSV", href: "/books/workspace?start=csv" },
+    action: { label: "Import a CSV", href: "/books/workspace/money?start=csv" },
   },
   {
     number: 2,
     name: "Review the changes",
     state: "partly-open",
-    stateLabel: "Inbox open; conflicts next",
-    plain: "Resolve categorisation suggestions and possible duplicates in Money Inbox. Changed source rows are detected, but their dedicated resolution screen is still to build.",
+    stateLabel: "To check is open; changed rows are next",
+    plain: "Check suggested purposes and possible duplicates in To check. A changed row from the same source is detected, but its dedicated decision screen is still to build.",
     proof: "No suggestion changes a figure until you confirm it; a detected conflict is not called resolved.",
-    action: { label: "Open my Money Inbox", href: "/books/workspace" },
+    action: { label: "Open To check", href: "/books/workspace/money" },
   },
   {
     number: 3,

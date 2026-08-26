@@ -25,12 +25,12 @@ describe("CSV import screen", () => {
       />
     );
 
-    const input = screen.getByLabelText(/CSV file/i);
+    const input = screen.getByLabelText(/Bank or bookkeeping file/i);
     fireEvent.change(input, { target: { files: [first] } });
     fireEvent.change(input, { target: { files: [second] } });
 
     expect(await screen.findByText(/Selected: second\.csv/i)).toBeInTheDocument();
-    fireEvent.click(await screen.findByRole("radio", { name: /Self-employment/i }));
+    fireEvent.click(await screen.findByRole("radio", { name: /My own business/i }));
     expect(await screen.findByText("SECOND PAYMENT")).toBeInTheDocument();
 
     finishFirst("Date,Description,Amount\n13/05/2026,FIRST PAYMENT,99.00");
@@ -57,18 +57,18 @@ describe("CSV import screen", () => {
       />
     );
 
-    const input = screen.getByLabelText(/CSV file/i);
+    const input = screen.getByLabelText(/Bank or bookkeeping file/i);
     fireEvent.change(input, { target: { files: [first] } });
-    fireEvent.click(await screen.findByRole("radio", { name: /Self-employment/i }));
+    fireEvent.click(await screen.findByRole("radio", { name: /My own business/i }));
     expect(await screen.findByText("FIRST PAYMENT")).toBeInTheDocument();
 
     fireEvent.change(input, { target: { files: [second] } });
     expect(screen.getByText(/Selected: second\.csv/i)).toBeInTheDocument();
     expect(screen.queryByText("FIRST PAYMENT")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Add .*Money Inbox/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Add .*item.*to check/i })).not.toBeInTheDocument();
 
     finishSecond("Date,Description,Amount\n13/05/2026,SECOND PAYMENT,20.00");
-    fireEvent.click(await screen.findByRole("radio", { name: /Self-employment/i }));
+    fireEvent.click(await screen.findByRole("radio", { name: /My own business/i }));
     expect(await screen.findByText("SECOND PAYMENT")).toBeInTheDocument();
   });
 
@@ -83,8 +83,8 @@ describe("CSV import screen", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/CSV file/i), { target: { files: [file] } });
-    fireEvent.click(await screen.findByRole("radio", { name: /Self-employment/i }));
+    fireEvent.change(screen.getByLabelText(/Bank or bookkeeping file/i), { target: { files: [file] } });
+    fireEvent.click(await screen.findByRole("radio", { name: /My own business/i }));
 
     expect(await screen.findByText("Row 2")).toBeInTheDocument();
   });
@@ -106,15 +106,47 @@ describe("CSV import screen", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText(/CSV file/i), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText(/Bank or bookkeeping file/i), { target: { files: [file] } });
+    expect(await screen.findByRole("radio", { name: "My own business" })).toBeChecked();
+    expect(screen.getByText(/income and costs from running your own business/i)).toBeVisible();
     const importButton = await screen.findByRole("button", {
-      name: "Add 1 to Money Inbox",
+      name: "Add 1 item to check",
     });
     importButton.focus();
     fireEvent.click(importButton);
 
     const status = await screen.findByRole("status");
-    expect(status).toHaveTextContent("Added 1 record to your Money Inbox.");
+    expect(status).toHaveTextContent("Added 1 item to check.");
     expect(status).toHaveFocus();
+  });
+
+  it("explains a failed import plainly and keeps technical detail optional", async () => {
+    const file = csvFile(
+      "one-row.csv",
+      async () => "Date,Description,Amount\n13/05/2026,ONE PAYMENT,10.00"
+    );
+    render(
+      <CsvImport
+        expanded
+        initialSource="self-employment"
+        onImport={vi.fn().mockRejectedValue(new Error("local store locked"))}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/Bank or bookkeeping file/i), {
+      target: { files: [file] },
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Add 1 item to check" }),
+    );
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "We couldn’t add these items. Nothing was changed. Try again.",
+    );
+    const details = screen.getByText("Technical detail").closest("details");
+    expect(details).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText("Technical detail"));
+    expect(screen.getByText("local store locked")).toBeVisible();
   });
 });

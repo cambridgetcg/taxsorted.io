@@ -24,9 +24,9 @@ export function EducationNotice() {
       <details className="mt-2">
         <summary className="cursor-pointer font-medium text-accent">What this means</summary>
         <p className="mt-2 text-ink-soft">
-          TaxSorted explains the rules and does the arithmetic; it doesn&apos;t know your full
-          situation, so every figure here is an estimate. A sandbox receipt is practice evidence,
-          not a production filing or a paid tax bill.
+          TaxSorted can add the records you include exactly, but it cannot see your full situation,
+          so those totals may be incomplete. Any tax estimate is only as good as the facts supplied.
+          A sandbox receipt is practice evidence, not a production filing or a paid tax bill.
         </p>
       </details>
     </div>

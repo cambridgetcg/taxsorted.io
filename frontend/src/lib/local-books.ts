@@ -430,7 +430,7 @@ export function migrateLegacyRecords(
         origin: { kind: "legacy", externalId: record.id },
         contentDigest: `legacy:${record.id}`,
         reviewNote:
-          "Moved from the earlier local record format. Confirm which separate business this belongs to before filing.",
+          "Moved from the earlier local record format. Confirm that its group contains records for one separate business before filing.",
       })
     );
   }

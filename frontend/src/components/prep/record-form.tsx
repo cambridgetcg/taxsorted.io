@@ -5,12 +5,14 @@
 import { useId, useState, type FormEvent } from "react";
 import {
   categoriesFor,
+  categoryByKey,
   type LedgerRecord,
   type SourceType,
 } from "@taxsorted/engine/uk/itsa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ActionError } from "@/components/ui/action-error";
 import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { todayIsoLocal } from "@/lib/local-date";
 import { parsePounds, INVALID_AMOUNT_MESSAGE } from "@/lib/parse";
@@ -24,8 +26,8 @@ export interface RecordFormProps {
 }
 
 const KINDS: { value: LedgerRecord["kind"]; label: string; title: string }[] = [
-  { value: "income", label: "Income", title: "Money coming in" },
-  { value: "expense", label: "Expense", title: "Money going out" },
+  { value: "income", label: "Money in", title: "Money that came into the business" },
+  { value: "expense", label: "Money out", title: "Money that left the business" },
 ];
 
 /** The first category of the given kind for a source, falling back to the list's first entry. */
@@ -51,7 +53,7 @@ export function RecordForm({
   const [category, setCategory] = useState(() => defaultCategoryFor(initialSource, "income"));
   const [description, setDescription] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<{ technical?: string } | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -76,7 +78,7 @@ export function RecordForm({
     event.preventDefault();
     const parsed = parsePounds(amount);
     if (parsed === "blank") {
-      setAmountError("Enter an amount.");
+      setAmountError("Enter an amount, for example £40 or £40.50.");
       return;
     }
     if (parsed === "invalid") {
@@ -98,9 +100,11 @@ export function RecordForm({
       });
       setAmount("");
       setDescription("");
-      setSuccess("Record added to your Money Inbox.");
+      setSuccess("Added. Check this item before it changes your totals.");
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Could not add that record.");
+      setFormError({
+        ...(err instanceof Error && err.message ? { technical: err.message } : {}),
+      });
     } finally {
       setSubmitting(false);
     }
@@ -114,7 +118,7 @@ export function RecordForm({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor={dateId}>Date</Label>
+          <Label htmlFor={dateId}>When did the money move?</Label>
           <Input
             id={dateId}
             type="date"
@@ -124,7 +128,7 @@ export function RecordForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={amountId}>Amount (£)</Label>
+          <Label htmlFor={amountId}>How much?</Label>
           <Input
             id={amountId}
             type="text"
@@ -147,21 +151,31 @@ export function RecordForm({
       </div>
 
       <PillRadioGroup
-        label="Income or expense"
+        label="Did money come in or go out?"
         options={KINDS}
         value={kind}
         onChange={changeKind}
       />
 
       <PillRadioGroup
-        label="Source"
-        options={SOURCES.map((s) => ({ value: s.value, label: s.label, title: s.plain }))}
+        label="Which work was this for?"
+        options={SOURCES.map((sourceOption) => ({
+          value: sourceOption.value,
+          label:
+            sourceOption.value === "self-employment"
+              ? "My own business"
+              : "A property I let",
+          title: sourceOption.label,
+        }))}
         value={source}
         onChange={changeSource}
       />
+      <p className="text-sm text-ink-soft">
+        {SOURCES.find((sourceOption) => sourceOption.value === source)?.plain}
+      </p>
 
       <div className="space-y-1.5">
-        <Label htmlFor={categoryId}>Category</Label>
+        <Label htmlFor={categoryId}>What was it for?</Label>
         {/*
           Every category for this source is listed, grouped by kind, so the
           dropdown reads like the full HMRC field list — but only options
@@ -193,20 +207,26 @@ export function RecordForm({
               ))}
           </optgroup>
         </select>
+        <p className="text-sm text-ink-soft">{categoryByKey(category, source).plain}</p>
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor={descriptionId}>Description (optional)</Label>
+        <Label htmlFor={descriptionId}>Your note (optional)</Label>
         <Input
           id={descriptionId}
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What was this for?"
+          placeholder="For example, Royal Mail postage"
         />
       </div>
 
-      {formError ? <p className="text-base text-red-600">{formError}</p> : null}
+      {formError ? (
+        <ActionError
+          message="We couldn’t add this item. Nothing was saved. Try again."
+          technical={formError.technical}
+        />
+      ) : null}
       {success ? (
         <p role="status" className="text-base text-green-700">
           {success}
@@ -214,7 +234,7 @@ export function RecordForm({
       ) : null}
 
       <Button type="submit" disabled={submitting}>
-        Add record
+        Add to check
       </Button>
     </form>
   );

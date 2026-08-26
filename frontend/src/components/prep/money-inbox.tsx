@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { categoriesFor, categoryByKey } from "@taxsorted/engine/uk/itsa";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ActionError } from "@/components/ui/action-error";
 import { PillRadioGroup } from "@/components/prep/pill-radio-group";
 import { formatUkDate, gbp } from "@/lib/format";
 import { parsePounds } from "@/lib/parse";
@@ -63,14 +64,15 @@ export function MoneyInbox({ events, ledgers, onReview }: MoneyInboxProps) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 id="money-inbox-heading" className="text-2xl font-bold text-ink">
-            Money Inbox
+            To check
           </h2>
           <p className="mt-1 text-base text-ink-soft">
-            Imported rows wait here. Nothing enters your figures until you make the decision.
+            Marking an item as checked is the first step. It counts only after you also confirm
+            that its group contains records for one separate business.
           </p>
         </div>
         <p className="text-sm font-medium text-ink" aria-live="polite">
-          {pending.length} to review
+          {pending.length} waiting
         </p>
       </div>
 
@@ -80,7 +82,9 @@ export function MoneyInbox({ events, ledgers, onReview }: MoneyInboxProps) {
           tabIndex={-1}
           className="rounded-2xl border border-dashed border-line p-5 text-center text-base text-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          Inbox clear. Bring in a CSV above, or try the made-up card-shop example first.
+          {events.length === 0
+            ? "Nothing to check yet. Add money in or out, or bring in a CSV file."
+            : "Nothing is waiting for your check."}
         </p>
       ) : (
         <div className="space-y-4">
@@ -148,8 +152,10 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
   const [description, setDescription] = useState(event.description ?? "");
   const [category, setCategory] = useState(posting.category);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ technical?: string } | null>(null);
   const categoryId = useId();
+  const amountId = useId();
+  const dateId = useId();
   const postingKind = cashDirection === "in" ? "income" : "expense";
   const choices = categoriesFor(activity).filter((candidate) => candidate.kind === postingKind);
   const selectedCategory = choices.some((choice) => choice.key === category)
@@ -163,16 +169,18 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
     ? `${cashDirection === "out" ? "−" : "+"}${gbp(parsedAmount)}`
     : "Amount needs checking";
 
-  const profitEffect = (() => {
-    const effectivePostingEffect =
-      cashDirection === event.cash.direction ? posting.effect : "increase";
-    const raisesProfit =
-      (postingKind === "income" && effectivePostingEffect === "increase") ||
-      (postingKind === "expense" && effectivePostingEffect === "decrease");
-    return validAmount
-      ? `${raisesProfit ? "Would raise" : "Would reduce"} profit by ${gbp(parsedAmount)} if confirmed.`
-      : "Fix the amount before this can affect profit.";
-  })();
+  const businessQuestion =
+    postingKind === "income"
+      ? "Was this ordinary business income?"
+      : "Was this an ordinary running cost?";
+  const categoryEffect =
+    definition && validAmount
+      ? postingKind === "income"
+        ? `Would add ${gbp(parsedAmount)} to ${definition.label} in the Income Tax totals if this is the whole ordinary business amount.`
+        : definition.taxDeductible === false
+          ? `Would record ${gbp(parsedAmount)} as ${definition.label}. This category is kept separate because it is not treated as a deductible cost.`
+          : `Would add ${gbp(parsedAmount)} to ${definition.label} costs in the Income Tax totals if this is the whole ordinary business amount.`
+      : "Choose a valid amount and purpose before this can change a total.";
 
   const submit = async (reviewState: "ready" | "excluded") => {
     if (busy) return;
@@ -194,7 +202,9 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
           : {}),
       });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save that decision.");
+      setError({
+        ...(caught instanceof Error && caught.message ? { technical: caught.message } : {}),
+      });
     } finally {
       setBusy(false);
     }
@@ -217,19 +227,21 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
           </h3>
         </div>
         <div className="text-right">
-          <Badge variant="outline">Needs your decision</Badge>
+          <Badge variant="outline">Waiting for you</Badge>
           <p className="mt-1 text-lg font-semibold text-ink">{signedCash}</p>
         </div>
       </div>
 
       <p className="mt-4 font-medium text-ink">
-        {postingKind === "income"
-          ? "Was this money earned by this business?"
-          : "Was all of this paid for this business?"}
+        {businessQuestion}
       </p>
       <p className="mt-1 text-sm text-ink-soft">
-        Confirm only if the date, amount, business purpose and category all look right. If only
-        part is business, or you are not sure, leave it here for now.
+        Check the date, amount, which work it belongs to and what it was for.
+      </p>
+
+      <p role="note" className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+        Do not choose Yes for transfers, loans, owner money, tax or VAT movements, refunds, asset
+        purchases, or net payouts. Keep them waiting until the right treatment is clear.
       </p>
 
       {event.reviewNote ? (
@@ -240,55 +252,71 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
 
       <PillRadioGroup
         className="mt-4"
-        label="Was all of this for this business?"
+        label={businessQuestion}
         hideLabel
         value={purpose}
-        onChange={setPurpose}
+        onChange={(nextPurpose) => {
+          setPurpose(nextPurpose);
+          setAcknowledged(false);
+        }}
         options={[
-          { value: "yes", label: "Yes" },
-          { value: "partly", label: "Partly" },
+          { value: "yes", label: "Yes, all of it" },
+          { value: "partly", label: "Only part" },
           { value: "no", label: "No" },
-          { value: "unsure", label: "Not sure" },
+          { value: "unsure", label: "I’m not sure" },
         ]}
       />
 
       {purpose === "partly" || purpose === "unsure" ? (
         <p role="status" className="mt-3 rounded-xl bg-paper p-3 text-sm text-ink">
-          Leave this waiting for now. Splitting a partly-business payment is not supported yet;
-          check it with your records or an accountant before deciding.
+          Keep this waiting for now. This version cannot split one payment into business and
+          personal parts. Check your evidence or ask an accountant before deciding.
         </p>
       ) : null}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="space-y-1.5 text-sm font-medium text-ink">
+        <label htmlFor={dateId} className="space-y-1.5 text-sm font-medium text-ink">
           Date
           <input
+            id={dateId}
             type="date"
             value={occurredOn}
-            onChange={(change) => setOccurredOn(change.target.value)}
+            onChange={(change) => {
+              setOccurredOn(change.target.value);
+              setAcknowledged(false);
+            }}
+            aria-invalid={!validDate}
+            aria-describedby={!validDate ? `${dateId}-error` : undefined}
             className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </label>
-        <label className="space-y-1.5 text-sm font-medium text-ink">
+        <label htmlFor={amountId} className="space-y-1.5 text-sm font-medium text-ink">
           Amount in pounds
           <input
+            id={amountId}
             inputMode="decimal"
             value={amount}
-            onChange={(change) => setAmount(change.target.value)}
+            onChange={(change) => {
+              setAmount(change.target.value);
+              setAcknowledged(false);
+            }}
             aria-invalid={!validAmount}
+            aria-describedby={!validAmount ? `${amountId}-error` : undefined}
             className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </label>
       </div>
-      {!validAmount ? <p role="alert" className="mt-2 text-sm text-red-700">Enter an amount above £0.</p> : null}
-      {!validDate ? <p role="alert" className="mt-2 text-sm text-red-700">Enter a real date.</p> : null}
+      {!validAmount ? <p id={`${amountId}-error`} role="alert" className="mt-2 text-sm text-red-700">Enter an amount above £0.</p> : null}
+      {!validDate ? <p id={`${dateId}-error`} role="alert" className="mt-2 text-sm text-red-700">Enter a real date.</p> : null}
 
       <PillRadioGroup
         className="mt-4"
-        label="Cash direction"
+        label="Did money come in or go out?"
         value={cashDirection}
         onChange={(nextDirection) => {
           setCashDirection(nextDirection);
+          setPurpose(null);
+          setAcknowledged(false);
           const nextKind = nextDirection === "in" ? "income" : "expense";
           const nextChoices = categoriesFor(activity).filter((choice) => choice.kind === nextKind);
           setCategory(nextChoices[0]?.key ?? "");
@@ -301,36 +329,44 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
 
       <PillRadioGroup
         className="mt-4"
-        label="Which activity does it belong to?"
+        label="Which work was this for?"
         value={activity}
         onChange={(nextActivity) => {
           setActivity(nextActivity);
+          setPurpose(null);
+          setAcknowledged(false);
           const nextChoices = categoriesFor(nextActivity).filter((choice) => choice.kind === postingKind);
           setCategory(nextChoices[0]?.key ?? "");
         }}
         options={[
-          { value: "self-employment", label: "Self-employment" },
-          { value: "uk-property", label: "UK property" },
+          { value: "self-employment", label: "My own business" },
+          { value: "uk-property", label: "A property I let" },
         ]}
       />
 
       <label className="mt-4 block space-y-1.5 text-sm font-medium text-ink">
-        Description
+        Your note
         <input
           value={description}
-          onChange={(change) => setDescription(change.target.value)}
+          onChange={(change) => {
+            setDescription(change.target.value);
+            setAcknowledged(false);
+          }}
           className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </label>
 
       <div className="mt-4 space-y-1.5">
         <label htmlFor={categoryId} className="text-sm font-medium text-ink">
-          Proposed tax category
+          What was it for?
         </label>
         <select
           id={categoryId}
           value={selectedCategory}
-          onChange={(change) => setCategory(change.target.value)}
+          onChange={(change) => {
+            setCategory(change.target.value);
+            setAcknowledged(false);
+          }}
           className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {choices.map((choice) => (
@@ -343,7 +379,7 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
       </div>
 
       <details className="mt-3 rounded-xl bg-paper p-3 text-sm">
-        <summary className="cursor-pointer font-medium text-ink">Why this suggestion?</summary>
+        <summary className="cursor-pointer font-medium text-ink">Why we suggested this</summary>
         <p className="mt-2 text-ink-soft">
           {event.suggestion?.basis ?? "The amount direction supplied the starting category."}
         </p>
@@ -353,14 +389,17 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
       </details>
 
       <dl className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Lens label="Cash" value={`${signedCash} ${cashDirection === "in" ? "came in" : "left the account"}.`} />
-        <Lens label="Profit" value={profitEffect} />
         <Lens
-          label="Tax"
+          label="Money movement"
+          value={`${signedCash} ${cashDirection === "in" ? "came in" : "left the account"}. A recorded movement, not a bank balance.`}
+        />
+        <Lens label="Income Tax totals" value={categoryEffect} />
+        <Lens
+          label="Income Tax category"
           value={definition ? `${definition.label}${definition.saBox ? ` · ${definition.saBox}` : ""}. A category proposal, not tax due.` : "Choose a valid category."}
         />
         <Lens
-          label="Source trail"
+          label="Where this came from"
           value={
             event.origin.label
               ? `${event.origin.label}${event.origin.row ? ` · row ${event.origin.row}` : ""}. Bank line only; no receipt attached.`
@@ -377,12 +416,18 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
           className="mt-0.5 h-5 w-5 accent-accent"
         />
         <span>
-          I checked the date, amount, cash direction, activity, category
+          I checked the date, amount, money direction, business and purpose
           {event.reviewNote ? " and the warning above" : ""}.
         </span>
       </label>
 
-      {error ? <p role="alert" className="mt-3 text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <ActionError
+          className="mt-3"
+          message="We couldn’t save this check. Nothing was changed. Try again."
+          technical={error.technical}
+        />
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
@@ -390,10 +435,10 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
           onClick={() => submit("ready")}
           disabled={busy || purpose !== "yes" || !acknowledged || !validAmount || !validDate || !selectedCategory}
         >
-          {busy ? "Saving…" : "Confirm transaction"}
+          {busy ? "Saving your check…" : "Mark as checked"}
         </Button>
         <Button type="button" variant="outline" onClick={() => submit("excluded")} disabled={busy || purpose !== "no"}>
-          Leave out
+          Keep out of Income Tax totals
         </Button>
       </div>
     </article>
@@ -413,7 +458,7 @@ export function PracticeShop() {
   const [answer, setAnswer] = useState<"net" | "gross" | null>(null);
 
   return (
-    <details className="rounded-2xl border border-accent bg-accent-soft p-4 sm:p-5">
+    <details id="made-up-example" className="scroll-mt-24 rounded-2xl border border-accent bg-accent-soft p-4 sm:p-5">
       <summary className="cursor-pointer font-semibold text-ink">
         Play first: Mina&apos;s first card sale
       </summary>
