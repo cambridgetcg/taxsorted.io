@@ -1,5 +1,7 @@
 "use client";
 
+// Shared local-books workspace for the Books views and the Income Tax records route.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";

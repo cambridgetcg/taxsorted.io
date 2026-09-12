@@ -2,7 +2,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import RecordsClient from "../records-client";
+import RecordsClient from "@/features/books/records-client";
 import { emptyLocalBooks, eventFromRecord } from "@/lib/local-books";
 
 const store = vi.hoisted(() => ({

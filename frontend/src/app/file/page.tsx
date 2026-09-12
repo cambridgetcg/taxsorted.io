@@ -30,7 +30,7 @@ const LIVE_PATHS = [
   {
     title: "VAT",
     state: "Preparation open · sandbox only",
-    body: "Build nine VAT boxes from reviewed records and keep approval separate from sandbox transmission.",
+    body: "Review manually entered VAT figures and approve a sandbox submission. Starter Books does not yet derive VAT returns.",
     href: "/vat",
     action: "Open the VAT path",
   },

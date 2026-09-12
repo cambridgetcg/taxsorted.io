@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import RecordsClient from "../../itsa/records/records-client";
+import RecordsClient from "@/features/books/records-client";
 
 export const metadata: Metadata = {
   title: "Your books — local accounting workspace | TaxSorted",

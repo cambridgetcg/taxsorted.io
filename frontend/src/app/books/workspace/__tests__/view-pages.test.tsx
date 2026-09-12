@@ -7,7 +7,7 @@ import BooksMoneyPage from "../money/page";
 import BooksBusinessPage from "../business/page";
 import BooksTaxPage from "../tax/page";
 
-vi.mock("@/app/itsa/records/records-client", () => ({
+vi.mock("@/features/books/records-client", () => ({
   default: ({ entry, view }: { entry: string; view: string }) => (
     <p data-testid="records-client">
       {entry}:{view}

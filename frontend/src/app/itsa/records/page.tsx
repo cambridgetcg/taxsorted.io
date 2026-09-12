@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import RecordsClient from "./records-client";
+import RecordsClient from "@/features/books/records-client";
 
 // i18n: deferred to M2 — plain English for launch
 

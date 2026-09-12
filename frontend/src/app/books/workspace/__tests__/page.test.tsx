@@ -151,7 +151,7 @@ describe("Books workspace entry", () => {
     render(<BooksWorkspacePage />);
 
     expect(await screen.findByRole("heading", { name: "Your business money" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "No records yet" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "No records yet" })).toBeInTheDocument();
     expect(screen.getByText(/up to one UK sole-trader business and one UK property business/i))
       .toBeInTheDocument();
     expect(screen.getByText(/TaxSorted does not encrypt or back them up/i)).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("Books workspace entry", () => {
 
     expect(await screen.findByRole("heading", { name: "Your business money" })).toBeInTheDocument();
 
-    const manual = screen.getByRole("button", { name: "Add money in or out" });
+    const manual = await screen.findByRole("button", { name: "Add money in or out" });
     const csv = screen.getByRole("button", { name: "Bring in a CSV file" });
     expect(manual).toHaveAttribute("aria-expanded", "false");
     expect(manual).toHaveAttribute("aria-controls", "manual-start-panel");
@@ -194,7 +194,7 @@ describe("Books workspace entry", () => {
     render(<BooksMoneyPage />);
     await screen.findByRole("heading", { name: "Your business money" });
 
-    fireEvent.click(screen.getByRole("button", { name: "Add money in or out" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add money in or out" }));
     const amount = screen.getByLabelText("How much?");
     fireEvent.change(amount, { target: { value: "12.34" } });
 
@@ -210,7 +210,7 @@ describe("Books workspace entry", () => {
     render(<BooksMoneyPage />);
     await screen.findByRole("heading", { name: "Your business money" });
 
-    fireEvent.click(screen.getByRole("button", { name: "Add money in or out" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add money in or out" }));
 
     expect(screen.getByRole("radio", { name: "A property I let" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "My own business" })).not.toBeChecked();
@@ -371,7 +371,7 @@ describe("Books workspace entry", () => {
 
     render(<BooksMoneyPage />);
     await screen.findByRole("heading", { name: "Your business money" });
-    fireEvent.click(screen.getByRole("button", { name: "Add money in or out" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add money in or out" }));
     fireEvent.change(screen.getByLabelText("How much?"), { target: { value: "12.50" } });
     const submit = screen.getByRole("button", { name: "Add to check" });
     submit.focus();
