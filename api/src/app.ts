@@ -10,6 +10,7 @@ import { registerDeveloperApi } from "./developer-api.js";
 import { apiErrorHandler } from "./error-handler.js";
 import { requestId } from "./request-id.js";
 import { noSuchDoorProblem } from "./problem-details.js";
+import { browserMutationOrigin } from "./browser-mutation-origin.js";
 import { session } from "./session.js";
 import { entities } from "./routes/entities.js";
 import { connect } from "./routes/connect.js";
@@ -192,6 +193,8 @@ export function createApp() {
   // Browser identity belongs only to these existing human-facing route trees.
   // A new public or machine route therefore cannot start setting cookies merely
   // because its path happens to begin with /v1.
+  // Check unsafe-request origins before even refreshing/creating a session.
+  const protectBrowserMutation = browserMutationOrigin(config.corsOrigins);
   for (const base of [
     "/v1/entities",
     "/v1/hmrc",
@@ -199,8 +202,9 @@ export function createApp() {
     "/v1/account",
     "/v1/accounting",
   ]) {
-    app.use(base, session);
-    app.use(`${base}/*`, session);
+    // Hono's trailing wildcard includes the exact base as well as descendants.
+    // Register once so a root request cannot create/refresh two sessions.
+    app.use(`${base}/*`, protectBrowserMutation, session);
   }
   app.route("/v1/entities", entities);
   app.route("/v1/entities", vat);
