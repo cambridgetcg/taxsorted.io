@@ -263,7 +263,7 @@ trap 'rm -f "$body"' EXIT
 for page_and_marker in \
   '/|Pay what the law requires. Claim what the law allows.' \
   '/books|Know where every number came from.' \
-  '/books/workspace|TaxSorted does not encrypt or back them up' \
+  '/books/workspace|TaxSorted does not encrypt or automatically back them up' \
   '/checkup|Find where you stand. Then take the next honest step.' \
   '/plan|See covered lawful choices. Keep the decision yours.' \
   '/file|Nothing moves without your eyes and consent.' \

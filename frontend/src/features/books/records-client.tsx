@@ -39,6 +39,7 @@ import { formatUkDate, gbpCompact } from "@/lib/format";
 import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
 import { summariseBooks, type BooksSummary } from "@/lib/books-summary";
+import { BooksBackup } from "@/features/books/books-backup";
 
 const TAX_YEAR: TaxYear = "2026-27";
 const TAX_YEAR_START = "2026-04-06";
@@ -215,7 +216,7 @@ export default function RecordsClient({
             <strong className="text-ink">Available now:</strong>{" "}up to one UK sole-trader
             business and one UK property business, kept separate, in pounds, with a 2026–27
             Income Tax view. These records stay only in this browser. TaxSorted does not encrypt
-            or back them up, and signing in does not put them on another device. Limited companies
+            or automatically back them up, and signing in does not put them on another device. Limited companies
             and full annual accounts are not supported yet.
           </p>
         ) : null}
@@ -478,6 +479,7 @@ export default function RecordsClient({
               </div>
             </>
           ) : null}
+          <BooksBackup store={store} onRestored={refresh} />
         </>
       )}
     </div>
