@@ -4,6 +4,10 @@ Inspected **2026-09-12**, starting from `25871cc1bde61b858ab89650692e52333f3f4f2
 This is a repository and workflow audit with bounded local refactors, not approval to
 file real returns, open provider access or publish restricted datasets.
 
+Follow-up: [history consolidation](CONSOLIDATION.md) records the preserved local
+commits and working baseline; [production gaps](PRODUCTION-GAPS.md) turns this
+audit into actionable work packages. Verification below records the initial audit.
+
 ## Finding
 
 There is enough implemented architecture to develop the existing product into a
@@ -270,9 +274,11 @@ workspace root. Set the tracing root explicitly in a follow-up; do not remove th
 user's unrelated home lockfile. This warning did not prevent the static export.
 
 Live smoke scripts were not executed: they contain authenticated synthetic
-calculation requests and belong to an authorised release. No changes were committed,
-pushed or deployed by this pass. The original local and artist worktrees remain
-untouched; fetch updated remote-tracking references in the canonical clone.
+calculation requests and belong to an authorised release. At the end of the initial
+audit the changes were uncommitted; the subsequent consolidation commits them and
+aligns local main as described in `CONSOLIDATION.md`. No changes were pushed or
+deployed. The original local-only commits remain recoverable and the artist worktree
+is unchanged.
 
 ## Recommended build sequence
 

@@ -6,6 +6,8 @@ deployment settings.
 
 The [architecture audit](ARCHITECTURE-AUDIT.md) records the inspected revision,
 module map, orphan candidates, first refactors and production gaps.
+Use the [production gap plan](PRODUCTION-GAPS.md) for prioritized fixes and acceptance
+checks, and the [consolidation record](CONSOLIDATION.md) for local/GitHub history.
 
 ## Start here
 

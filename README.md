@@ -275,6 +275,8 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 ## Documentation
 
 - [`docs/README.md`](docs/README.md) — current contracts, workflow ownership and historical plans
+- [`docs/PRODUCTION-GAPS.md`](docs/PRODUCTION-GAPS.md) — prioritized fixes, dependencies and acceptance checks
+- [`docs/CONSOLIDATION.md`](docs/CONSOLIDATION.md) — GitHub baseline and preserved local-only commits
 - [`docs/ARCHITECTURE-AUDIT.md`](docs/ARCHITECTURE-AUDIT.md) — 2026-09-12 repository map, orphan inventory, first refactors and production gaps
 - [`research/README.md`](research/README.md) — the open book's index
 - [`docs/ACCOUNTING-INTEGRATIONS.md`](docs/ACCOUNTING-INTEGRATIONS.md) — the provider-neutral
