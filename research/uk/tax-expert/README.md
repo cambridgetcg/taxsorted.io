@@ -1,6 +1,6 @@
 # UK tax expert — architecture of understanding
 
-**Last Updated:** 2026-07-12
+**Last Updated:** 2026-09-12 (MTD source ledger; other capability reviews retain their own dates)
 **Confidence:** High for the architecture, admitted MTD sources and 2026/27 ANI threshold spine; capability depth varies by row
 **Status:** Two deep paths implemented; broader UK coverage mapped
 
@@ -68,6 +68,12 @@ The canonical structured records, including source kind, legal force, update dat
 review date, supported claims and limits, live beside the rules in
 `engine/jurisdictions/uk/expert/mtd-income-tax.ts`.
 
+The [12 September 2026 source review](source-review-2026-09-12.md) records the current
+claim-by-claim admission, relocated cessation guidance, known limits and next review due on
+12 October 2026. The accountable review role is **TaxSorted UK tax rules**; a named human owner
+for the next review remains to be assigned. Capability-registry review dates describe product
+coverage reviews, separately from the source freshness dates in each assessment.
+
 The admitted official sources are:
 
 - [Income Tax (Digital Obligations) Regulations 2026](https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf) — regulations 5 to 9, 12 to 15, 18 to 22, 25 to 36 and 38 to 45
@@ -76,7 +82,9 @@ The admitted official sources are:
 - [HMRC: exemptions](https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax)
 - [HMRC: quarterly updates](https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/send-quarterly-updates)
 - [HMRC: if your circumstances change](https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/if-your-circumstances-change)
+- [HMRC: add or cease income sources](https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources)
 - [HMRC: penalties](https://www.gov.uk/guidance/penalties-for-making-tax-digital-for-income-tax)
+- [HMRC: Self Assessment filing framework (SALF202)](https://www.gov.uk/hmrc-internal-manuals/self-assessment-legal-framework/salf202)
 - [HMRC: normal Self Assessment deadlines](https://www.gov.uk/self-assessment-tax-returns/deadlines)
 
 HMRC guidance is labelled as an official explanation, not binding law. The regulations are labelled

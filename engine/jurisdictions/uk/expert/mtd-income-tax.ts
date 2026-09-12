@@ -154,8 +154,10 @@ export interface MtdIncomeTaxDecision {
   boundaries: string[];
 }
 
-const retrievedOn = "2026-07-11";
-const reviewDueOn = "2026-08-11";
+// Claim-by-claim review: research/uk/tax-expert/source-review-2026-09-12.md.
+// These are evidence-admission dates, separate from the classifier version below.
+const retrievedOn = "2026-09-12";
+const reviewDueOn = "2026-10-12";
 
 export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
   {
@@ -193,8 +195,8 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "official-explanation",
     status: "in-force",
     territorialExtent: ["United Kingdom"],
-    updatedOn: "2026-06-02",
-    versionAsAt: "2026-06-02",
+    updatedOn: "2026-04-02",
+    versionAsAt: "2026-04-02",
     retrievedOn,
     reviewDueOn,
     supports: ["Who needs to use MTD Income Tax, first-year tasks and deadlines."],
@@ -209,8 +211,8 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "official-explanation",
     status: "in-force",
     territorialExtent: ["United Kingdom"],
-    updatedOn: "2026-01-29",
-    versionAsAt: "2026-01-29",
+    updatedOn: "2026-09-11",
+    versionAsAt: "2026-09-11",
     retrievedOn,
     reviewDueOn,
     supports: [
@@ -244,8 +246,8 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "official-explanation",
     status: "in-force",
     territorialExtent: ["United Kingdom"],
-    updatedOn: "2026-06-02",
-    versionAsAt: "2026-06-02",
+    updatedOn: "2026-05-19",
+    versionAsAt: "2026-05-19",
     retrievedOn,
     reviewDueOn,
     supports: ["Cumulative standard and calendar update periods and common deadlines."],
@@ -260,8 +262,24 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "official-explanation",
     status: "in-force",
     territorialExtent: ["United Kingdom"],
-    updatedOn: "2026-06-02",
-    versionAsAt: "2026-06-02",
+    updatedOn: "2026-09-07",
+    versionAsAt: "2026-09-07",
+    retrievedOn,
+    reviewDueOn,
+    supports: ["Becoming exempt does not remove Self Assessment; the 2026/27 annual return remains due on 31 January 2028."],
+    doesNotProve: ["Cessation notice and final-update details, which moved to the separate add-or-cease guidance."],
+  },
+  {
+    id: "hmrc-mtd-add-or-cease-income-sources",
+    title: "Use Making Tax Digital for Income Tax — add or cease income sources",
+    publisher: "HM Revenue & Customs",
+    url: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources",
+    kind: "hmrc-guidance",
+    legalForce: "official-explanation",
+    status: "in-force",
+    territorialExtent: ["United Kingdom"],
+    updatedOn: "2026-07-16",
+    versionAsAt: "2026-07-16",
     retrievedOn,
     reviewDueOn,
     supports: ["A ceased source must be notified and receive its final update for the period containing cessation."],
@@ -282,6 +300,20 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     reviewDueOn,
     supports: ["No quarterly-update penalty points in 2026/27, while required updates must still be sent before the return."],
     doesNotProve: ["That a late return, payment or later tax year carries no penalty."],
+  },
+  {
+    id: "hmrc-self-assessment-filing-framework",
+    title: "Self Assessment legal framework — SALF202: tax returns introduction",
+    publisher: "HM Revenue & Customs",
+    url: "https://www.gov.uk/hmrc-internal-manuals/self-assessment-legal-framework/salf202",
+    kind: "hmrc-guidance",
+    legalForce: "official-explanation",
+    status: "in-force",
+    territorialExtent: ["United Kingdom"],
+    retrievedOn,
+    reviewDueOn,
+    supports: ["The recurring normal paper, electronic-return and balancing-payment timetable after the tax year, including later-issued notice exceptions."],
+    doesNotProve: ["A personalised filing or payment deadline, or the amount payable."],
   },
   {
     id: "hmrc-self-assessment-deadlines",
@@ -469,7 +501,7 @@ function obligationsFor(
         appliesPerBusiness: true,
         expectedSubmissions: null,
         sourceIds: cessationDate
-          ? ["uksi-2026-336", "hmrc-mtd-quarterly-updates", "hmrc-mtd-circumstances-change"]
+          ? ["uksi-2026-336", "hmrc-mtd-quarterly-updates", "hmrc-mtd-add-or-cease-income-sources"]
           : ["uksi-2026-336", "hmrc-mtd-quarterly-updates"],
       } satisfies MtdObligation;
     }));
@@ -486,7 +518,7 @@ function obligationsFor(
       periodEnd: cessationDate,
       appliesPerBusiness: true,
       expectedSubmissions: null,
-      sourceIds: ["uksi-2026-336", "hmrc-mtd-circumstances-change"],
+      sourceIds: ["uksi-2026-336", "hmrc-mtd-add-or-cease-income-sources"],
     });
   }
   if (includeDigital && cessationDate !== null) {
@@ -504,7 +536,7 @@ function obligationsFor(
       periodEnd: cessationDate,
       appliesPerBusiness: true,
       expectedSubmissions: null,
-      sourceIds: ["uksi-2026-336", "hmrc-mtd-circumstances-change"],
+      sourceIds: ["uksi-2026-336", "hmrc-mtd-add-or-cease-income-sources"],
     });
   }
   if (annualMode === "mtd" || annualMode === "conditional") {
@@ -519,7 +551,7 @@ function obligationsFor(
       periodEnd: "2027-04-05",
       appliesPerBusiness: false,
       expectedSubmissions: 1,
-      sourceIds: ["hmrc-mtd-before-you-start", ...(cessationDate ? ["hmrc-mtd-circumstances-change"] : [])],
+      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-circumstances-change", ...(cessationDate ? ["hmrc-mtd-add-or-cease-income-sources"] : [])],
     });
   }
   if (annualMode === "normal-self-assessment" || annualMode === "conditional") {
@@ -537,7 +569,7 @@ function obligationsFor(
         periodEnd: "2027-04-05",
         appliesPerBusiness: false,
         expectedSubmissions: 1,
-        sourceIds: ["hmrc-self-assessment-deadlines"],
+        sourceIds: ["hmrc-self-assessment-deadlines", "hmrc-self-assessment-filing-framework"],
       },
       {
         id: "submit-online-self-assessment-return",
@@ -552,7 +584,7 @@ function obligationsFor(
         periodEnd: "2027-04-05",
         appliesPerBusiness: false,
         expectedSubmissions: 1,
-        sourceIds: ["hmrc-self-assessment-deadlines"],
+        sourceIds: ["hmrc-self-assessment-deadlines", "hmrc-self-assessment-filing-framework"],
       },
     );
   }
@@ -567,7 +599,7 @@ function obligationsFor(
     periodEnd: "2027-04-05",
     appliesPerBusiness: false,
     expectedSubmissions: 1,
-    sourceIds: ["hmrc-self-assessment-deadlines"],
+    sourceIds: ["hmrc-self-assessment-deadlines", "hmrc-self-assessment-filing-framework"],
   });
   return obligations;
 }
@@ -791,7 +823,7 @@ function nextActionsFor(work: DecisionWork, input: MtdIncomeTaxExpertRequest): T
     actions.push({
       id: "review-calendar-boundary-cessation",
       label: "Confirm the final short-period update and notice deadline for the 1 to 5 April cessation",
-      href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/if-your-circumstances-change",
+      href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources",
       responsibleParty: "qualified-adviser",
     });
   }
@@ -810,7 +842,7 @@ function nextActionsFor(work: DecisionWork, input: MtdIncomeTaxExpertRequest): T
     actions.push({
       id: "report-cessation",
       label: "Tell HMRC the cessation date and complete the final update for its period",
-      href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/if-your-circumstances-change",
+      href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources",
       responsibleParty: "caller",
     });
   }
@@ -906,14 +938,14 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
       statement: "An in-scope person keeps digital records and sends cumulative quarterly updates for each activity by the published deadlines.",
       kind: "hmrc-position",
       support: "direct",
-      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-quarterly-updates", "hmrc-mtd-circumstances-change"],
+      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-quarterly-updates", "hmrc-mtd-add-or-cease-income-sources"],
     },
     {
       id: "mtd-annual-return-obligation",
       statement: "An in-scope person uses compatible software to submit the MTD Income Tax return for the digital-obligation year.",
       kind: "hmrc-position",
       support: "direct",
-      sourceIds: ["hmrc-mtd-before-you-start"],
+      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-circumstances-change", "hmrc-mtd-add-or-cease-income-sources"],
     },
     {
       id: "mtd-2026-27-penalty-position",
@@ -927,7 +959,7 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
       statement: "An MTD exemption does not remove Self Assessment; normal paper and online filing deadlines differ, while payment is due by 31 January.",
       kind: "hmrc-position",
       support: "direct",
-      sourceIds: ["hmrc-mtd-exemptions", "hmrc-self-assessment-deadlines"],
+      sourceIds: ["hmrc-mtd-exemptions", "hmrc-self-assessment-deadlines", "hmrc-self-assessment-filing-framework"],
     },
   ];
 }

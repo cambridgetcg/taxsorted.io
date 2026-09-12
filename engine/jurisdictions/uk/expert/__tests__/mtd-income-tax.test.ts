@@ -19,7 +19,7 @@ import {
   type MtdWhyGraphNative,
 } from "../mtd-why-graph";
 
-const EVALUATED_ON = "2026-07-11";
+const EVALUATED_ON = "2026-09-12";
 
 function request(): MtdIncomeTaxExpertRequest {
   return {
@@ -724,6 +724,14 @@ describe("MTD Income Tax expert", () => {
     expect(obligationIds).toContain("submit-mtd-tax-return");
     expect(obligationIds).toContain("pay-self-assessment-tax");
     expect(result.answer?.obligations.find((item) => item.id === "quarterly-update-1")?.periodEnd).toBe("2026-05-12");
+    for (const id of ["quarterly-update-1", "notify-hmrc-of-cessation", "submit-mtd-tax-return"]) {
+      expect(result.answer?.obligations.find((item) => item.id === id)?.sourceIds)
+        .toContain("hmrc-mtd-add-or-cease-income-sources");
+    }
+    expect(result.escalation.nextActions).toContainEqual(expect.objectContaining({
+      id: "report-cessation",
+      href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources",
+    }));
   });
 
   it("uses the chosen period to map a cessation near a quarter boundary", () => {
@@ -793,12 +801,42 @@ describe("MTD Income Tax expert", () => {
     expect(result.answer?.phases[1].assessment).toBe("forecast-above-threshold");
   });
 
-  it("checks source freshness on a trusted evaluation date, not caller asOfDate", () => {
+  it("uses the September source admission for a current assessment and a historical asOfDate", () => {
+    const current = request();
+    current.asOfDate = EVALUATED_ON;
+    for (const input of [current, request()]) {
+      const result = assess(input);
+      expect(result.status).toBe("determined");
+      expect(result.answer?.decision).toBe("in_scope");
+      expect(result.applicability).toMatchObject({
+        effectiveDate: input.asOfDate,
+        evaluatedOn: "2026-09-12",
+        knowledgeAsOf: "2026-09-12",
+      });
+      expect(result.evidence.sources.every((source) => source.retrievedOn === "2026-09-12")).toBe(true);
+      expect(result.evidence.sources.find((source) => source.id === "hmrc-mtd-qualifying-income"))
+        .toMatchObject({ updatedOn: "2026-09-11" });
+    }
+  });
+
+  it("keeps the evidence usable on its review due date", () => {
+    const input = request();
+    input.asOfDate = "2026-10-12";
+    const result = assess(input, "2026-10-12");
+    expect(result.status).toBe("determined");
+    expect(result.answer?.decision).toBe("in_scope");
+  });
+
+  it("checks source freshness the day after review is due, not caller asOfDate", () => {
     const input = request();
     input.asOfDate = "2026-07-01";
-    const result = assess(input, "2026-08-12");
+    const result = assess(input, "2026-10-13");
     expect(result.status).toBe("needs_professional_review");
     expect(result.answer?.decision).toBe("source_review_required");
+    expect(result.answer?.obligations).toEqual([]);
+    expect(result.escalation.nextActions).toContainEqual(expect.objectContaining({
+      id: "refresh-sources", responsibleParty: "TaxSorted",
+    }));
     const graph = result.reasoning.whyGraph;
     expect(graph.edges.some((edge) => (
       edge.from === "gap:source_review_overdue" && edge.relation === "supported-by"
