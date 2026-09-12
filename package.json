@@ -10,10 +10,9 @@
     "api"
   ],
   "overrides": {
-    "hono": "4.12.34",
+    "hono": "4.13.7",
     "nanoid": "3.3.18",
-    "postcss": "8.5.23",
-    "sharp": "0.35.3"
+    "postcss": "8.5.23"
   },
   "scripts": {
     "test": "npm run test --workspaces --if-present",
