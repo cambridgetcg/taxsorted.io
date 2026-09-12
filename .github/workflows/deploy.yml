@@ -122,6 +122,7 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
 
       - name: Record production rollback points before deployment
+        timeout-minutes: 7
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -135,7 +136,21 @@ jobs:
           fly_status="${RUNNER_TEMP}/fly-status-before.json"
           pages_project="${RUNNER_TEMP}/pages-project-before.json"
 
-          flyctl status --app taxsorted-api --json >"${fly_status}"
+          echo 'Capturing the current Fly release and image.'
+          for attempt in 1 2 3
+          do
+            if timeout --signal=TERM --kill-after=5s 45s \
+              flyctl status --app taxsorted-api --json >"${fly_status}"
+            then
+              break
+            fi
+            if [ "${attempt}" -eq 3 ]; then
+              echo 'Could not capture the Fly rollback point; refusing to deploy.' >&2
+              exit 1
+            fi
+            echo 'Fly status lookup failed or timed out; retrying the read-only lookup.' >&2
+            sleep 3
+          done
           fly_target=$(
             jq --compact-output --exit-status '
               [
@@ -157,6 +172,7 @@ jobs:
             ' "${fly_status}"
           )
 
+          echo 'Capturing the current Cloudflare Pages deployment.'
           curl --fail-with-body --silent --show-error \
             --connect-timeout 10 --max-time 30 \
             --retry 4 --retry-delay 2 --retry-all-errors \
