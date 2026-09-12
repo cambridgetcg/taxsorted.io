@@ -3,6 +3,8 @@
 2026-09-12. The working baseline is GitHub `origin/main` at
 `25871cc1bde61b858ab89650692e52333f3f4f28`, followed by the reviewed local
 architecture/refactor commits. No remote branch was rewritten or pushed.
+The subsequent [hardening batch](RELEASE-HARDENING-2026-09-12.md) adds the dependency,
+source-evidence, browser-protection and Books-recovery work on that consolidated base.
 
 ## Decision
 

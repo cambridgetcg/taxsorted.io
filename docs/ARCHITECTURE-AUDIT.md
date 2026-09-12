@@ -7,6 +7,9 @@ file real returns, open provider access or publish restricted datasets.
 Follow-up: [history consolidation](CONSOLIDATION.md) records the preserved local
 commits and working baseline; [production gaps](PRODUCTION-GAPS.md) turns this
 audit into actionable work packages. Verification below records the initial audit.
+The [subsequent hardening batch](RELEASE-HARDENING-2026-09-12.md) records dependency,
+source-review, Books recovery and browser-mutation changes; use its results when
+assessing those gaps after the baseline audit.
 
 ## Finding
 

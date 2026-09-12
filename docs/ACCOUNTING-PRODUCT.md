@@ -106,6 +106,9 @@ the existing stable round ID remains the only saved learning progress.
 - No account is needed to try the public tools.
 - Starter Books is local browser data. It is not encrypted cloud storage; clearing site data
   can erase it.
+- Every Books view offers a versioned [backup and deliberate replacement flow](BOOKS-BACKUP.md).
+  Restore preserves record evidence and review history, creates a fresh replica and requires
+  business confirmation/provider reconnection. Downloads are unencrypted; signing in is not backup.
 - Source trails are kept today; receipt and invoice attachments are not.
 - No suggestion changes a figure until the user confirms it.
 - TaxSorted is not yet recognised for production filing with HMRC.

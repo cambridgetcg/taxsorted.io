@@ -849,7 +849,8 @@ The api restarts; `GET /v1/health` flips to `"configured": true`; every honest
 The api has a sandbox-only door for this — no secrets ever touch your hands:
 
 ```bash
-curl -s -X POST https://api.taxsorted.io/v1/hmrc/test-user | jq
+curl -s -X POST https://api.taxsorted.io/v1/hmrc/test-user \
+  -H 'Origin: https://taxsorted.io' | jq
 ```
 
 Keep the response: `userId`, `password`, and `vrn`. (In production this door
@@ -857,6 +858,15 @@ does not exist — it answers `no_such_door` like any other missing room.)
 
 If it returns `test_user_failed`, the `detail` field carries HMRC's own words —
 most often it means the **Create Test User** API isn't subscribed yet (step 1.3).
+
+Browser-route mutations (`/v1/entities`, `/v1/hmrc`, `/v1/itsa`, `/v1/account`
+and `/v1/accounting`) require an exact allowed `Origin` before session handling.
+In production those origins are `https://taxsorted.io` and
+`https://www.taxsorted.io`; development also admits `http://localhost:3000`.
+Browsers send this header automatically. Manual unsafe requests must supply it
+alongside their existing session and authorisation. Missing/foreign Origin returns
+`403 bad_origin` without creating cookies or touching the database. GET/HEAD reads,
+OAuth GET callbacks and workspace-key API tasks retain their separate contracts.
 
 ## 4. File the first sandbox return (the proof)
 
@@ -1055,6 +1065,11 @@ missing-data protocol.
 
 ## Production (later, not now)
 
+The operational statements below are the recorded M2/M3 position. The
+[2026-09-12 evidence inventory](../docs/OPERATING-EVIDENCE.md) tracks what the
+repository currently proves and what still needs reconciliation with private
+operating records; this repository review did not verify external approvals.
+
 Production credentials require HMRC's approval process: they review the app,
 test our fraud-prevention headers, and check terms of use. Start it from the
 same Developer Hub ("Add an application to production") once sandbox filing
@@ -1138,7 +1153,8 @@ API=https://api.taxsorted.io   # or http://localhost:8787 locally
    (`?rail=itsa` mints via `mtd-income-tax`, generating a NINO instead of a VRN):
 
    ```bash
-   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" | jq
+   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" \
+     -H 'Origin: https://taxsorted.io' | jq
    ```
 
    Keep `userId`, `password`, and `nino` from `testUser`. (In production this
@@ -1149,6 +1165,7 @@ API=https://api.taxsorted.io   # or http://localhost:8787 locally
 
    ```bash
    curl -s -b $JAR -c $JAR -X POST "$API/v1/entities" \
+     -H 'Origin: https://taxsorted.io' \
      -H "Content-Type: application/json" \
      -d '{"name":"Sandbox Sole Trader","kind":"person","nino":"<nino>"}' | jq
    ```
@@ -1212,7 +1229,8 @@ submission/calculation endpoints, and update the log below every time.
    sandbox door" above for the full curl):
 
    ```bash
-   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" | jq
+   curl -s -b $JAR -c $JAR -X POST "$API/v1/hmrc/test-user?rail=itsa" \
+     -H 'Origin: https://taxsorted.io' | jq
    ```
 
    Keep `userId`, `password`, `nino`.

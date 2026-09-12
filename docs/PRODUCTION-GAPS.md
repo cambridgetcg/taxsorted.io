@@ -2,12 +2,28 @@
 
 Prepared 2026-09-12 from the [architecture audit](ARCHITECTURE-AUDIT.md), inspected
 baseline `25871cc1bde61b858ab89650692e52333f3f4f28` and the bounded refactors built on
-it. This is the next-work backlog; it does not implement these fixes, renew tax
-sources, enable a provider or approve production filing.
+it. The original gap evidence below is retained as the baseline; the progress table
+records subsequent implementation. No entry approves production filing or provider
+admission by itself.
 
 The existing local preparation product, a reproducible release, a financial provider
 import and recognised production filing have different completion conditions. The
 current three-workspace architecture can support them; a rewrite is unnecessary.
+
+## First implementation batch — 2026-09-12
+
+| Package | Current result | Remaining boundary |
+|---|---|---|
+| PG-01 | Implemented: clean Node 22 install, valid dependency tree, zero full/production audit findings, all workspace tests, lint, types, corpus validators and 73-page static build pass | Local verification; deployment is a separate action |
+| PG-02 | Ten primary sources reviewed; cessation provenance repaired; source admission renewed through 12 October with the 13 October stop preserved | Existing classifier scope remains; named human owner for the next review is unassigned |
+| PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough remain unverified |
+| PG-06 | Shared pre-session Origin guard implemented; duplicate exact-root session execution fixed; real-router tests pass with mocked SQL/provider calls | Does not prove live Postgres, provider or edge rate-limit behavior |
+| PG-12 | [Operating evidence inventory](OPERATING-EVIDENCE.md) prepared with responsible roles and next actions | External decisions and private operating evidence remain unverified |
+
+See the [implementation and verification record](RELEASE-HARDENING-2026-09-12.md)
+and [Books backup contract](BOOKS-BACKUP.md). The next code sequence is PG-05 VAT
+validation/review context, then PG-07 grant lifecycle and PG-08 durable submission
+attempts. Broader Books scope and provider imports retain their own acceptance gates.
 
 ## Priorities and release boundaries
 

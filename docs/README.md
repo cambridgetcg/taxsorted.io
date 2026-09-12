@@ -8,6 +8,10 @@ The [architecture audit](ARCHITECTURE-AUDIT.md) records the inspected revision,
 module map, orphan candidates, first refactors and production gaps.
 Use the [production gap plan](PRODUCTION-GAPS.md) for prioritized fixes and acceptance
 checks, and the [consolidation record](CONSOLIDATION.md) for local/GitHub history.
+The [operating evidence inventory](OPERATING-EVIDENCE.md) separates repository proofs
+from unverified external decisions, names the responsible roles and records the next actions.
+The [first hardening batch](RELEASE-HARDENING-2026-09-12.md) records the implementation
+and verification that followed the audit.
 
 ## Start here
 
@@ -29,7 +33,7 @@ scope. The current journey is **Check · Plan · Books · File · Put it right �
 
 | Work | Read next | Implementation boundary |
 |---|---|---|
-| Keep and review records | Accounting product, then accounting integrations | Browser-local books; an Account does not create a backup or shared ledger |
+| Keep and review records | Accounting product, [backup/restore](BOOKS-BACKUP.md), then accounting integrations | Browser-local books with deliberate file backup/restore; an Account does not create a backup or shared ledger |
 | Import provider records | Accounting integrations, then [private Xero pilot](../api/RUNBOOK.md#private-xero-authorisation-pilot) | Synthetic page-sync proof works in development. Xero authorisation, token custody and organisation binding are implemented behind a closed pilot; financial dataset import is not implemented |
 | Prepare and file | People-power framework, then [HMRC runbook](../api/RUNBOOK.md) | VAT/ITSA sandbox routes exist; production filing and full year-end follow-through remain gated |
 | Answer a tax question | [Tax-expert research](../research/uk/tax-expert/README.md), API contract and Passport | Engine rules own calculations and source-review stops; unknown facts stay visible |

@@ -247,9 +247,10 @@ time. Provider revision values are evidence, not the sole identity.
 
 The local-books v3 foundation now has provider-namespaced identities, opaque text revisions,
 immutable raw and normalized versions, provider conflict cases, complete page manifests and
-per-replica dataset checkpoints. A real connector still needs attachment custody, conflict
-resolution actions, export/restore with a fresh replica, storage-failure recovery and the full
-reconciliation/readiness model before launch.
+per-replica dataset checkpoints. [Versioned local backup/restore](BOOKS-BACKUP.md) now preserves
+record evidence with a fresh replica, while retiring provider bindings and old coverage.
+A real connector still needs attachment custody, conflict resolution actions, the wider
+storage-failure recovery model and full reconciliation/readiness evidence before launch.
 
 ## Split provider access from accounting interpretation
 
@@ -866,7 +867,8 @@ the separate HMRC modules.
 
 ## Delivery order
 
-1. Keep CSV as the first source adapter and add a restore path for its portable export.
+1. Keep CSV as the first source adapter. **Versioned Books backup/restore is implemented**;
+   CSV remains a record import/export, not a complete-history restore file.
 2. Upgrade local books for provider origins, opaque revisions, raw/normalized versions, attachment
    custody, explicit conflict resolution, fresh-on-restore replica IDs, storage-failure recovery
    and export/restore.
