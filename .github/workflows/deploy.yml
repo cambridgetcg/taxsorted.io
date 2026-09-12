@@ -444,7 +444,7 @@ jobs:
           for page_and_marker in \
             'frontend/out/index.html|Pay what the law requires. Claim what the law allows.' \
             'frontend/out/books/index.html|Know where every number came from.' \
-            'frontend/out/books/workspace/index.html|TaxSorted does not encrypt or back them up' \
+            'frontend/out/books/workspace/index.html|TaxSorted does not encrypt or automatically back them up' \
             'frontend/out/checkup/index.html|Find where you stand. Then take the next honest step.' \
             'frontend/out/plan/index.html|See covered lawful choices. Keep the decision yours.' \
             'frontend/out/file/index.html|Nothing moves without your eyes and consent.' \
