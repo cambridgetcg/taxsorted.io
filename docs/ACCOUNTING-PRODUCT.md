@@ -121,9 +121,12 @@ silently.
 
 The connector foundation remains local-first. The working made-up proof stores only account-owned
 selection and sync-control metadata on the API server; each browser keeps its local-ledger binding,
-raw provider versions, normalized records and reviewed books. A real provider will also need an
-encrypted, versioned token vault before its OAuth door can open. A page becomes resumable only
-after its exact manifest is acknowledged under the current server fencing token; complete coverage
+raw provider versions, normalized records and reviewed books. The separate, default-closed Xero
+authorisation pilot now has encrypted, versioned token custody and explicit organisation binding;
+it has no financial dataset reader and does not import accounting records. Its private access and
+cleanup boundaries are documented in the [runbook](../api/RUNBOOK.md#private-xero-authorisation-pilot).
+A page becomes resumable only after its exact manifest is acknowledged under the current server
+fencing token; complete coverage
 advances only after the whole dataset run commits. Future webhooks mark every local replica as
 needing refresh; they do not silently build a second cloud ledger. Shared cloud books would be a
 later, explicit custody choice.
@@ -147,13 +150,15 @@ kept in [ACCOUNTING-INTEGRATIONS.md](ACCOUNTING-INTEGRATIONS.md).
 
 ## Build order
 
-1. Make Starter Books a first-class front door.
+1. Make Starter Books a first-class front door. **Implemented for the stated local UK scope.**
 2. Add evidence attachments with clear local/export/storage rules.
 3. Add bank reconciliation and separate ledgers for separate businesses.
 4. Prove the provider-neutral connection, local-page acknowledgement and sync-run history with a
    made-up adapter and no credentials or network access. **Working in local development.**
-5. Add the privacy, token-vault, deletion, incident and reconciliation gates a real provider needs.
-6. Prove one read-only Xero adapter through the existing To check review boundary.
+5. Complete the privacy, deletion, incident and reconciliation gates a real provider needs.
+   **Encrypted token custody and grant cleanup exist in the closed Xero authorisation pilot.**
+6. Prove one read-only Xero financial adapter through the existing To check review boundary.
+   **Authorisation and organisation binding alone do not complete this step.**
 7. Add a real chart of accounts and balanced double-entry journal.
 8. Derive profit and loss and balance sheet from that ledger.
 9. Add year-end adjustments with an explicit review trail.

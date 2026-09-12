@@ -2,12 +2,17 @@
 
 Last reviewed: 2026-08-25
 
+Implementation-status correction: 2026-09-12; external-source review dates are unchanged.
+
 Status: **target design, not a claim of live provider access.** CSV/manual local books and the
 labelled HMRC sandbox paths exist. A made-up, local-development provider proves the account-owned
 organisation selection, browser-local page commit, exact acknowledgement and whole-run checkpoint
-protocol without credentials, network access or customer data. Real provider app registrations,
-OAuth callbacks, token storage, webhook endpoints, reconciliation, direct migration and marketplace
-listings do not.
+protocol without credentials, network access or customer data. A separate, default-closed Xero
+pilot now implements OAuth, encrypted versioned token custody, organisation selection and explicit
+binding to a TaxSorted profile. It has no financial dataset reader and cannot import invoices,
+bank transactions or payments. Enabling that private pilot requires the operator configuration
+and account allowlist in the [runbook](../api/RUNBOOK.md#private-xero-authorisation-pilot).
+Webhook endpoints, reconciliation, direct migration and marketplace listings remain future work.
 
 ### Working local proof
 
@@ -869,7 +874,9 @@ the separate HMRC modules.
    or unsupported currencies stay blocked, not guessed into one ledger.
 4. Build the shared authorisation/organisation/source-connection model, encrypted versioned token
    vault, temporary organisation selection, capability observations, page manifests, staged and
-   committed replica checkpoints, tab locking and all off-switches.
+   committed replica checkpoints, tab locking and all off-switches. **The synthetic sync proof and
+   closed Xero authorisation/token-custody pilot implement parts of this foundation; they do not
+   establish complete provider ingestion.**
 5. Put public privacy/terms/support pages, retention and deletion rules, one-organisation
    disconnect, whole-grant/account deletion and the tested incident process in the shared
    foundation before a real customer organisation connects.
@@ -879,7 +886,9 @@ the separate HMRC modules.
    unsafe page/record budgets before local commit and promotes only whole-run checkpoints. Active
    partial-run resume, authoritative server budgets and webhook repair remain future work.**
 7. Run a five-connection Xero technical pilot with read-only granular scopes, foreground sync and
-   synthetic, demo or developer-owned data. No App Store or filing-readiness claim.
+   synthetic, demo or developer-owned data. **The implemented pilot currently stops at
+   authorisation and organisation binding; the financial reader and foreground sync remain to
+   build.** No App Store or filing-readiness claim.
 8. Add Xero webhook hints, incremental polling, missed-event repair, filing-time refresh, rate and
    egress monitoring, then admit a bounded private beta only after step 5 is verified.
 9. Add a FreeAgent single-company driver and QuickBooks direct connections through the same

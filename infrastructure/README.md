@@ -2,6 +2,11 @@
 
 The truth, plainly:
 
+The API and frontend smoke checks live in [`scripts/release/`](../scripts/release/README.md).
+The workflow owns their order, credentials and publication-state handoff. See the
+[2026-09-12 architecture audit](../docs/ARCHITECTURE-AUDIT.md) for current release
+verification and remaining gaps; the dated operational observations below are not live checks.
+
 ## What runs today
 
 - **Frontend** — Next.js static export on **Cloudflare Pages** (project `taxsorted`).
