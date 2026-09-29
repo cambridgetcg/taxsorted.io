@@ -117,7 +117,7 @@ describe("CSV import screen", () => {
 
     const status = await screen.findByRole("status");
     expect(status).toHaveTextContent("Added 1 item to check.");
-    expect(status).toHaveFocus();
+    await waitFor(() => expect(status).toHaveFocus());
   });
 
   it("explains a failed import plainly and keeps technical detail optional", async () => {
