@@ -4,6 +4,11 @@
 NOT RUN.** Source and packaged applications completed the same seven synthetic
 runtime checks on Windows x64, Linux x64, native Intel Mac and Apple silicon Mac.
 
+**Later artifact finding:** the archived Linux AppImage is unsuitable for
+distribution because its generated wrapper could disable the sandbox. The
+[follow-on finding](#follow-on-linux-artifact-finding) records that separate result;
+this campaign tested the unpacked Linux runtime.
+
 The final [GitHub Actions run](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36564143019)
 completed successfully at **11:58:25 UTC**, testing commit
 [`1b64679a1a8141fdf54f742e5ca43ea0328feab3`](https://github.com/cambridgetcg/taxsorted.io/commit/1b64679a1a8141fdf54f742e5ca43ea0328feab3)
@@ -97,3 +102,18 @@ production release was performed.
 Network observations cover the tested app-session probes, not device-wide silence.
 Records/backups remain unencrypted under the [documented OS-account boundary](../LOCAL-APP.md).
 Native CI passing does not complete consumer acceptance.
+
+## Follow-on Linux artifact finding
+
+Subsequent installer-path inspection found the archived Linux AppImage's generated
+desktop entry used `Exec=AppRun --no-sandbox %U`. Its generated launcher could also
+add `--no-sandbox` when a user-namespace probe failed. **This archived Linux AppImage
+is unsuitable for distribution.** The historical unpacked-runtime result above
+remains valid: that campaign did not execute the AppImage wrapper, so it did not
+establish the wrapper's sandbox behaviour.
+
+The [follow-on installer checks](../DESKTOP-TESTING.md#installer-path-automation)
+exercise the actual archive and inspect its mounted launcher. The replacement
+configuration removes the injected desktop argument and supplies an `AppRun` that
+refuses sandbox-disabling switches. Its native result must be recorded separately;
+this finding does not rewrite the prior run's outcomes or complete manual acceptance.

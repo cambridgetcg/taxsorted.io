@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The builder's default launcher can add --no-sandbox when user namespaces are
+# unavailable. TaxSorted keeps Chromium's sandbox required and fails closed.
+for argument in "$@"; do
+  case "$argument" in
+    --no-sandbox|--no-sandbox=*|--disable-setuid-sandbox|--disable-setuid-sandbox=*|--disable-web-security|--disable-web-security=*)
+      printf '%s\n' 'TaxSorted Local requires its browser security controls. Remove the option that disables them.' >&2
+      exit 64
+      ;;
+  esac
+done
+
+if [ -z "${APPDIR:-}" ]; then
+  APPDIR="$(dirname "$(readlink -f "$0")")"
+fi
+if [ ! -x "$APPDIR/taxsorted-local" ]; then
+  printf '%s\n' 'TaxSorted Local could not find its application. Download the complete AppImage again.' >&2
+  exit 66
+fi
+
+# Retain the library and desktop paths used by the pinned AppImage toolset.
+export APPDIR
+export PATH="${APPDIR}:${APPDIR}/usr/sbin${PATH:+:${PATH}}"
+export XDG_DATA_DIRS="${APPDIR}/usr/share/${XDG_DATA_DIRS:+:${XDG_DATA_DIRS}}:/usr/share/gnome:/usr/local/share/:/usr/share/"
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export GSETTINGS_SCHEMA_DIR="${APPDIR}/usr/share/glib-2.0/schemas${GSETTINGS_SCHEMA_DIR:+:${GSETTINGS_SCHEMA_DIR}}"
+
+exec "$APPDIR/taxsorted-local" "$@"

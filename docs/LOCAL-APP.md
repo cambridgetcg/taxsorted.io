@@ -154,12 +154,20 @@ After `npm run desktop:build`, run the relevant command on a native build machin
 
 Artifacts are written to `desktop/dist`. They contain application code and bundled
 public inputs, not the developer's app profile. The packaging command disables
-publication. Preview builds do not use a developer signing identity or notarisation.
+publication. macOS previews receive an ad-hoc integrity signature, with hardened
+runtime enabled, from the pinned local signing tool. A dedicated packaging hook
+uses a literal ad-hoc identity and disables certificate discovery, provisioning
+and timestamp services. The builder's automatic certificate signing and
+notarisation remain disabled. This signature identifies no publisher and does not
+provide Developer ID trust or notarisation; Windows previews remain unsigned.
 OS trust prompts are expected; a successful build alone is not an installation or
 runtime test on every supported machine.
 
 The [desktop build workflow](../.github/workflows/desktop-build.yml) defines a
 native matrix for these four targets, Node 22, scaffold/desktop tests and app builds.
+Installer-path checks additionally exercise copied/ejected DMG apps, current-user
+NSIS installation/uninstallation and the actual mounted AppImage. They retain
+separate installer/runtime evidence and do not replace consumer installation tests.
 It uploads preview installers/archives and allowlisted result summaries with 14-day
 retention. It has read-only repository permissions, manual dispatch and a source-change
 push trigger limited to `feat/service-oriented-rebuild-20260929`, no release publication
@@ -189,6 +197,27 @@ synthetic runtime checks; all eight runs reported zero renderer errors and zero
 loopback observer requests. Six downloaded preview package files matched their
 runner checksums. Manual consumer installation/dialog tests remain NOT RUN; Windows
 used Server 2025 and Linux used Xvfb with a scoped AppArmor prerequisite.
+
+The follow-on [installer automation](DESKTOP-TESTING.md#installer-path-automation)
+checks the downloaded artifact path in disposable runners. macOS copies the app
+out of its read-only DMG and ejects it before runtime checks; Windows installs and
+uninstalls the NSIS artifact with current-user registration and a synthetic
+data-retention sentinel; Linux requires the actual read-only FUSE mount and keeps
+the sandbox enabled. Run-specific installer evidence establishes results for
+these paths. It does not retroactively extend the earlier campaign or complete
+M01–M14. Uninstall retention of a sentinel is separate from real Books recovery.
+
+Inspection of the earlier Linux AppImage found a generated desktop command with
+`--no-sandbox` and a launcher that could add that flag after a failed user-namespace
+probe. That archived Linux artifact must not be distributed. Its passing unpacked
+runtime result did not cover this wrapper. The replacement uses an explicit
+launcher that keeps sandbox requirements and removes the injected desktop flag;
+the new native AppImage check must establish its actual mounted runtime result.
+
+Development Macs can run the documented `--inspect-only` DMG check without
+launching the app or accessing its normal profile. It compares the copied package
+against the current staging and records signing/Gatekeeper assessment. Preview
+trust rejection remains visible; the helper does not change OS trust settings.
 
 Initial local verification before that campaign (Apple silicon macOS, Node 22.23.3):
 

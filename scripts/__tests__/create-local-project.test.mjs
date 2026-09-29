@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -45,15 +45,19 @@ test("copies current tracked and new source; excludes personal/generated paths e
   f.write("frontend/src/new.ts", "new source\n");
   f.write("research/uk/public-rules.json", "{}\n");
   f.write("scripts/check.sh", "#!/bin/sh\nexit 0\n");
+  f.write("desktop/assets/AppRun", "#!/bin/sh\nexec ./taxsorted-local \"$@\"\n");
+  chmodSync(path.join(f.sourceDir, "desktop/assets/AppRun"), 0o700);
   const result = createLocalProject(f);
   assert.equal(readFileSync(path.join(result.targetDir, "frontend/src/page.tsx"), "utf8"), "current source\n");
   assert.equal(readFileSync(path.join(result.targetDir, "frontend/src/new.ts"), "utf8"), "new source\n");
   assert.ok(existsSync(path.join(result.targetDir, "research/uk/public-rules.json")));
+  assert.ok(existsSync(path.join(result.targetDir, "desktop/assets/AppRun")), "scaffold retains the production AppImage launcher");
   assert.equal(existsSync(path.join(result.targetDir, ".git")), false);
   for (const file of excluded) assert.equal(existsSync(path.join(result.targetDir, file)), false, "private or generated fixture is excluded");
   if (process.platform !== "win32") {
     assert.equal(lstatSync(result.targetDir).mode & 0o777, 0o700);
     assert.equal(lstatSync(path.join(result.targetDir, "package.json")).mode & 0o777, 0o600);
+    assert.equal(lstatSync(path.join(result.targetDir, "desktop/assets/AppRun")).mode & 0o777, 0o700);
   }
 });
 

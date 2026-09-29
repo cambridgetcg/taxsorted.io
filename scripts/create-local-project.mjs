@@ -52,7 +52,7 @@ export function isAllowedSourcePath(relativePath) {
   if (parts.length === 1) return ROOT_FILES.has(name);
   if (!SOURCE_ROOTS.has(parts[0])) return false;
   if (parts.some((part, index) => part.startsWith(".") && !(index === 0 && part === ".github") && !(index === parts.length - 1 && SOURCE_NAMES.has(part)))) return false;
-  return SOURCE_NAMES.has(name) || SOURCE_EXTENSIONS.has(path.posix.extname(name).toLowerCase());
+  return relativePath === "desktop/assets/AppRun" || SOURCE_NAMES.has(name) || SOURCE_EXTENSIONS.has(path.posix.extname(name).toLowerCase());
 }
 
 function runGit(sourceDir, args, input) {

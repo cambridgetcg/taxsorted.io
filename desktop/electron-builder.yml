@@ -16,10 +16,13 @@ extraResources:
 asar: true
 npmRebuild: false
 publish: null
+afterPack: scripts/ad-hoc-sign.cjs
 mac:
   icon: assets/icon.png
   category: public.app-category.finance
   identity: null
+  hardenedRuntime: true
+  notarize: false
   target:
     - dmg
     - zip
@@ -36,5 +39,10 @@ linux:
   executableName: taxsorted-local
   icon: assets/icon.png
   category: Finance
+  extraFiles:
+    - from: assets/AppRun
+      to: AppRun
   target:
     - AppImage
+appImage:
+  executableArgs: []

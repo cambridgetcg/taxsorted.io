@@ -10,7 +10,7 @@ does not transfer automatically. Earlier local checks are recorded in
 
 ## Environments and what each establishes
 
-| Target | Automated environment | CI campaign | Manual acceptance environment | Manual status |
+| Target | Automated environment | Original runtime campaign | Manual acceptance environment | Manual status |
 |---|---|---|---|---|
 | Windows x64 | `windows-2025` | PASS | Windows 11 x64 VM on an x64 host, fresh standard local test account | NOT RUN |
 | Linux x64 | `ubuntu-24.04`, Xvfb | PASS | Ubuntu 24.04 x64 Desktop, GNOME graphical session, fresh test account | NOT RUN |
@@ -20,9 +20,10 @@ does not transfer automatically. Earlier local checks are recorded in
 The pinned labels select the architectures listed in
 [GitHub's runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 `windows-2025` uses [Windows Server 2025](https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md).
-Its executable smoke test does not establish Windows 11 installer, SmartScreen or
-ordinary-user behaviour. Likewise, an Xvfb launch does not establish GNOME's real
-file dialogs or AppImage mounting.
+Its executable and silent-installer smoke tests do not establish Windows 11
+SmartScreen or ordinary-user behaviour. Likewise, Xvfb does not establish GNOME's
+real file dialogs; mounted AppImage evidence requires the separate launcher check
+below.
 
 Rosetta on Apple silicon is a supplemental x64 compatibility check. It translates
 Intel applications, so it cannot substitute for the Intel hardware row.
@@ -41,7 +42,8 @@ does not establish a running target OS.
    root or administrator. Record a non-identifying account label in the result.
 3. Obtain the exact candidate installer and `SHA256SUMS.txt`; compare its SHA-256
    before running it. Record version, source revision, artifact filename, checksum,
-   architecture, OS build and whether the package is unsigned. A checksum identifies
+   architecture, OS build and signing classification (unsigned, ad-hoc or developer
+   signed). A checksum identifies
    bytes; it does not establish publisher trust.
 4. For source/automated tests, install Git and Node 22, then run the scoped `npm ci`,
    `npm run desktop:install-runtime` and `npm run desktop:build` from
@@ -67,8 +69,9 @@ before each run.
 | Intel Mac | Use an Intel model on [Apple's macOS 15 compatibility list](https://support.apple.com/en-us/120282). Keep Gatekeeper/SIP enabled. Mount the DMG, copy the app into Applications, eject the DMG, then launch the installed app. Record trust prompts; launching the build-tree `.app` is a separate check. |
 | Apple silicon control | Follow the same DMG procedure using the arm64 artifact on Apple silicon. Record the host and executable architecture. |
 
-Unsigned preview trust prompts are expected observations, not evidence of a signed
-public release. If normal OS policy prevents installation or launch, record the exact
+Preview trust prompts are expected observations. macOS preview integrity signatures
+are ad-hoc, without a Developer ID or notarisation; Windows previews remain unsigned.
+If normal OS policy prevents installation or launch, record the exact
 boundary as **BLOCKED**; do not disable the security product or system policy to turn
 the result green. A later signed candidate needs its own installation run.
 
@@ -131,7 +134,8 @@ disposable account; it does not create or isolate one.
 
 The [workflow](../.github/workflows/desktop-build.yml) prepares native builds and
 evidence on the triggers below. An unpacked packaged-app launch checks the
-packaged runtime; the manual installer/AppImage cases still remain. Inspect the
+packaged runtime. Installer-path automation adds the checks below; manual consumer
+installation cases still remain. Inspect the
 generated report for the assertions actually run, including sandbox settings,
 renderer isolation, local routes, persistence and request blocking. Do not infer a
 pass from command availability or from an uploaded installer alone.
@@ -139,8 +143,9 @@ pass from command availability or from an uploaded installer alone.
 The workflow supports manual dispatch and source-change pushes on
 `feat/service-oriented-rebuild-20260929`; it uploads only preview artifacts and allowlisted result
 summaries for 14 days. It does not publish a release. Its Linux setup grants user
-namespaces to two exact executable paths through a temporary AppArmor profile, then
-removes that profile. It does not alter this development Mac. The Windows hosted
+namespaces to the exact source runtime, unpacked executable and AppImage paths
+through a temporary AppArmor profile, then removes that profile. It does not alter
+this development Mac. The Windows hosted
 runner is an administrator with UAC disabled, another reason to keep the standard-user
 Windows 11 installation cases separate.
 
@@ -156,6 +161,82 @@ native Electron dialogs. The harness must explicitly enable the sandbox. Automat
 dialog substitutes or preset download paths check application logic, not OS dialog
 interaction. If automation cannot launch a future hardened build, investigate the
 harness boundary without weakening the shipped application's security.
+
+### Installer-path automation
+
+These checks extend the original runtime campaign. Their implementation and a
+successful package build do not establish a native result: use each run's separate
+installer report and `installed-smoke.json`. The earlier campaign's recorded
+results remain unchanged.
+
+Follow-on inspection found that the earlier Linux AppImage's desktop entry used
+`Exec=AppRun --no-sandbox %U`, and its generated launcher could add `--no-sandbox`
+when a user-namespace probe failed. That archived Linux AppImage is unsuitable
+for distribution. The earlier unpacked-runtime sandbox checks remain valid; they
+did not launch the AppImage wrapper. The replacement package removes the injected
+desktop argument and supplies an `AppRun` that refuses sandbox-disabling switches
+instead of adding them. Its native artifact/runtime result remains pending until
+the new evidence is recorded; the new checks inspect the mounted launcher too.
+
+| Target | Automated path | Evidence in `desktop/test-results/` | Remaining boundary |
+|---|---|---|---|
+| Both Macs | Verify DMG; mount read-only; copy the app into a new temporary Applications directory; inspect the copied payload; eject the image; assess signing/Gatekeeper; run complete packaged smoke on the copy | `macos-installer.json`, `installed-smoke.json` | Finder installation, quarantine/trust prompts and real Applications-folder behaviour |
+| Windows x64 | Install actual NSIS artifact silently for the current user into an owned directory; inspect registration/payload; smoke the installed app; uninstall and check registration removal and retention of a synthetic profile sentinel | `windows-installer.json`, `installed-smoke.json` | Interactive wizard, Windows 11 standard-user permissions, SmartScreen/UAC and real-record reinstall persistence |
+| Linux x64 | Execute the actual AppImage; verify its matching archive, executable inside a read-only FUSE mount and mounted payload; run complete packaged smoke and confirm mount cleanup | `linux-installer.json`, `installed-smoke.json` | Stock Ubuntu policy, file-manager launch, desktop integration and GNOME interaction |
+
+Full installer tests require a fresh disposable native GitHub-hosted runner and the
+explicit `--disposable-os-account` acknowledgement. These checks do not create a
+test account. They refuse an existing TaxSorted profile and exclude self-hosted
+runners.
+The Windows helper refuses existing product registration, and its uninstall
+retention test uses only a clearly named synthetic sentinel. It does not prove
+that real Books survive uninstall/reinstall; M13 remains separate.
+
+Use the helpers from the project root after the native package build:
+
+```sh
+node desktop/testing/install-macos.cjs --installer=desktop/dist/TaxSorted-Local-0.1.0-mac-arm64.dmg --disposable-os-account
+node desktop/testing/install-windows.cjs --installer=desktop/dist/TaxSorted-Local-0.1.0-win-x64.exe --disposable-os-account
+xvfb-run -a node desktop/testing/install-linux.cjs --installer=desktop/dist/TaxSorted-Local-0.1.0-linux-x86_64.AppImage --disposable-os-account
+```
+
+Choose only the command matching the native runner; Intel Mac uses `mac-x64.dmg`.
+Update the version in filenames when packaging a new version. The Linux check
+rejects extraction fallback and verifies the actual renderer sandbox; its scoped
+CI AppArmor allowance remains an explicit environment prerequisite.
+
+On a development Mac, use the non-launching inspection mode instead:
+
+```sh
+node desktop/testing/install-macos.cjs --installer=desktop/dist/TaxSorted-Local-0.1.0-mac-arm64.dmg --inspect-only
+```
+
+This mode verifies/mounts/copies/ejects the DMG and records signature/Gatekeeper
+assessments without opening the app or reading its normal profile. The package
+must match the current local staging exactly. An archived CI package may have
+different generated page names even at the same source revision; inspect it
+against that build's staging, or package the current local staging for this check.
+Do not weaken the comparison. [Apple documents Gatekeeper assessment separately
+from signing](https://developer.apple.com/library/archive/technotes/tn2206/).
+An ad-hoc preview may be rejected; the result is recorded without changing
+security policy, and it is not consumer installation acceptance.
+
+The macOS packaging hook uses a literal ad-hoc signing identity with certificate
+validation/discovery and provisioning disabled. It keeps hardened runtime enabled
+and uses the pinned builder's entitlements for Electron JIT and library loading;
+timestamp services and notarisation are disabled. This repairs bundle integrity
+after packaging without establishing a publisher identity. The pinned builder's
+direct `identity: "-"` path first searches Keychain identities, so the hook invokes
+the pinned signing library directly while builder `mac.identity` remains `null`.
+[The builder's v26 signing documentation](https://www.electron.build/v26/docs/features/code-signing/code-signing-mac/)
+describes the distinction between ad-hoc and Developer ID signatures.
+
+Installer summaries identify artifact bytes with SHA-256 and keep test-checkout
+metadata separate from artifact provenance. Cleanup removes only owned test
+material after confirmed application shutdown or image ejection; an unconfirmed
+shutdown/mount retains material and fails the check. No app profiles or backups
+are included in uploaded evidence. **M01–M14 remain NOT RUN until their manual
+observations are recorded.**
 
 ## Manual cases on each native desktop
 
@@ -202,7 +283,8 @@ cases, even when automated smoke passes.
 Copy the [template](testing/desktop-result-template.md) once per OS/architecture and
 artifact checksum. Record the date, operator label, VM/hardware classification,
 exact OS build, command results, case statuses and short reproduction notes. Link
-the doctor's JSON, smoke summary, `desktop/test-results/package-inspection.json`,
+the doctor's JSON, source/packaged/installed smoke summaries, the applicable
+installer summary, `desktop/test-results/package-inspection.json`,
 `desktop/dist/artifact-manifest.json` and checksums when they exist. A missing report
 is **NOT RUN** or **BLOCKED**, never an inferred pass.
 
@@ -223,8 +305,9 @@ retention as a backup of anybody's records.
 A target passes this campaign only with matching automated evidence, manual
 M01–M13 passes, and no open P0/P1 issue. M14 remains an explicit release limitation
 until an upgrade pair is available. **BLOCKED** identifies an unmet environment or
-artifact prerequisite; it does not waive the corresponding acceptance case. Signing,
-notarisation and publication remain separately authorised release work.
+artifact prerequisite; it does not waive the corresponding acceptance case.
+Developer ID signing, notarisation and publication remain separately authorised
+release work.
 
 Official environment references above were checked on 29 September 2026; recheck
 them when changing runner images, Electron, Playwright or supported OS versions.
@@ -252,6 +335,27 @@ Runtime evidence is written to `desktop/test-results/source-smoke.json`; package
 inspection writes `desktop/test-results/package-inspection.json`. Generated evidence
 is ignored by Git. These local preparation checks did not start target VMs or
 establish outcomes for the subsequent native CI campaign.
+
+Initial follow-on local DMG inspection at 12:29 UTC on 29 September rebuilt the
+arm64 package from the current staging. Its read-only mount, copy,
+architecture/payload comparison and ejection completed; four runtime files and
+515 public files matched. Gatekeeper was enabled, but signature verification
+failed and Gatekeeper assessment returned exit 1, an assessment error, with the diagnostic
+`code has no resources but signature indicates they must be present`. This is
+**not trust acceptance**. An earlier attempt against the retained CI DMG correctly
+failed the strict staging comparison because that build's generated page names
+differed; both attempts cleaned up their mounts/copies. The retained CI artifact
+was unchanged.
+
+The deterministic ad-hoc packaging hook repaired that integrity failure. Repackaging
+and non-launching DMG inspection finished successfully at **12:35:41 UTC**: all
+five checks passed, strict signature verification succeeded, and Gatekeeper
+returned **rejected (exit 3)** because this preview has no Developer ID/notarisation.
+The inspector now requires a valid integrity signature. The repaired local DMG's
+SHA-256 is `73f950210aa4ac193f203131a106fad6c93dd758a078aec8070b4084628da7b8`;
+image and temporary installation cleanup completed. No local app was launched or
+normal TaxSorted profile accessed in any of these inspections. Native installed
+runtime and manual acceptance remain separate results.
 
 The campaign handoff is
 `desktop/dist/native-36564143019/TaxSorted-Local-0.1.0-test-source.zip`, regenerated

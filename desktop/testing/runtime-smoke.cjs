@@ -21,11 +21,14 @@ function optionsFrom(args) {
     if (argument.startsWith('--mode=')) options.mode = argument.slice(7);
     else if (argument.startsWith('--executable=')) options.executable = argument.slice(13);
     else if (argument === '--disposable-os-account') options.disposableAccount = true;
+    else if (argument === '--report-name=installed-smoke') options.reportName = 'installed-smoke';
+    else if (argument === '--expect-appimage') options.expectAppImage = true;
     else throw new Error('Unknown option. Use --mode=source or --mode=packaged --executable=<native executable> --disposable-os-account.');
   }
   if (!['source', 'packaged'].includes(options.mode)) throw new Error('Mode must be source or packaged.');
   if (options.mode === 'source' && (options.executable || options.disposableAccount)) throw new Error('Source mode uses the installed Electron runtime and a fresh temporary profile.');
   if (options.mode === 'packaged' && (!options.executable || !options.disposableAccount)) throw new Error('Packaged tests require --executable=<native executable> and --disposable-os-account. Run only in a disposable OS account or isolated CI runner.');
+  if (options.mode !== 'packaged' && (options.reportName || options.expectAppImage)) throw new Error('Installer evidence requires packaged mode.');
   return options;
 }
 
@@ -104,7 +107,7 @@ async function run(options) {
   const env = childEnvironment();
   const runId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + process.pid;
   const results = path.join(desktopRoot, 'test-results');
-  const reportPath = path.join(results, `${options.mode}-smoke.json`);
+  const reportPath = path.join(results, `${options.reportName || `${options.mode}-smoke`}.json`);
   const report = {
     schema: 'taxsorted.desktop-runtime-smoke/1', runId, mode: options.mode,
     platform: process.platform, arch: process.arch, osVersion: os.release(),
@@ -121,6 +124,7 @@ async function run(options) {
   let packagedLock;
   let app;
   let shutdownConfirmed = true;
+  const appImageMounts = new Set();
   let spy;
   let hits = 0;
   let failed = false;
@@ -137,6 +141,14 @@ async function run(options) {
     app = undefined;
     try {
       await bounded(closing.close(), 'close test app', 15_000);
+      if (options.expectAppImage && appImageMounts.size) {
+        await waitUntil(async () => {
+          const entries = (await fs.readFile('/proc/self/mountinfo', 'utf8')).split('\n');
+          const mounted = entries.map(line => (line.split(' ')[4] || '').replace(/\\([0-7]{3})/g, (_, octal) => String.fromCharCode(parseInt(octal, 8))));
+          return [...appImageMounts].every(directory => !mounted.includes(directory));
+        }, 'release AppImage FUSE mounts', 10_000);
+        report.appImage.mountsReleased = true;
+      }
       shutdownConfirmed = true;
     } catch (error) {
       // A forced stop is best effort. Keep cleanup unconfirmed after a failed
@@ -216,6 +228,40 @@ async function run(options) {
       assert.equal(await fs.realpath(runtime.userData), expected, 'App profile must be the fresh test profile');
       assert.equal(await fs.realpath(runtime.sessionData), expected, 'Session profile must be the fresh test profile');
       profileVerified = true;
+      if (options.expectAppImage) {
+        assert.equal(process.platform, 'linux', 'AppImage evidence requires Linux');
+        const probe = await evaluate((_electron, artifact) => {
+          const fs = process.getBuiltinModule('fs');
+          const path = process.getBuiltinModule('path');
+          const appDir = process.env.APPDIR && fs.realpathSync(process.env.APPDIR);
+          const appImage = process.env.APPIMAGE && fs.realpathSync(process.env.APPIMAGE);
+          const executable = fs.realpathSync(process.execPath);
+          const decode = value => value.replace(/\\([0-7]{3})/g, (_, octal) => String.fromCharCode(parseInt(octal, 8)));
+          const mount = fs.readFileSync('/proc/self/mountinfo', 'utf8').split('\n').map(line => line.split(' ')).find(fields => decode(fields[4] || '') === appDir);
+          const separator = mount?.indexOf('-');
+          const relative = appDir ? path.relative(appDir, executable) : null;
+          return {
+            archiveMatches: Boolean(appImage && appImage === fs.realpathSync(artifact)),
+            executableInsideMount: Boolean(relative && relative !== '..' && !relative.startsWith('../') && !path.isAbsolute(relative)),
+            fuseMounted: Boolean(mount && separator > 0 && /^fuse(?:\.|$)/.test(mount[separator + 1])),
+            readOnlyMount: Boolean(mount && mount[5].split(',').includes('ro')),
+            resources: process.resourcesPath,
+            mountPoint: appDir,
+          };
+        }, executable);
+        const firstAppImageProbe = !report.appImage;
+        const { resources: _resources, mountPoint: _mountPoint, ...publicProbe } = probe;
+        report.appImage = { ...publicProbe, mountsReleased: false };
+        if (probe.mountPoint) appImageMounts.add(probe.mountPoint);
+        for (const key of ['archiveMatches', 'executableInsideMount', 'fuseMounted', 'readOnlyMount']) assert.equal(probe[key], true, `AppImage ${key} must be verified`);
+        const payloadInspection = await require('./inspect-package.cjs').inspectPackage(probe.resources);
+        const appRun = await fs.readFile(path.join(probe.mountPoint, 'AppRun'));
+        assert.ok(appRun.equals(await fs.readFile(path.join(desktopRoot, 'assets/AppRun'))), 'Mounted AppImage must use the reviewed sandbox-preserving launcher');
+        const desktopEntry = await fs.readFile(path.join(probe.mountPoint, 'taxsorted-local.desktop'), 'utf8');
+        assert.match(desktopEntry, /^Exec=AppRun %U\r?$/m, 'Desktop shortcut must not disable the sandbox');
+        if (firstAppImageProbe) check('Actual AppImage archive launches from a read-only FUSE mount; mounted payload matches staging');
+        report.appImage = { ...publicProbe, payloadInspection, reviewedLauncher: true, sandboxedDesktopEntry: true, mountsReleased: false };
+      }
       // Never write user-profile paths to evidence.
       const { userData: _userData, sessionData: _sessionData, ...publicRuntime } = runtime;
       report.runtime = publicRuntime;
@@ -456,10 +502,13 @@ async function run(options) {
   return failed ? 1 : 0;
 }
 
-let options;
-try { options = optionsFrom(process.argv.slice(2)); }
-catch (error) { console.error(error.message); process.exitCode = 2; }
-if (options) run(options).then(code => { process.exitCode = code; }).catch(error => {
-  console.error(`Runtime smoke could not write its evidence (${safeError(error).type}).`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  let options;
+  try { options = optionsFrom(process.argv.slice(2)); }
+  catch (error) { console.error(error.message); process.exitCode = 2; }
+  if (options) run(options).then(code => { process.exitCode = code; }).catch(error => {
+    console.error(`Runtime smoke could not write its evidence (${safeError(error).type}).`);
+    process.exitCode = 1;
+  });
+}
+module.exports = { optionsFrom, childEnvironment, normalProfile, safeError, checkoutState };
