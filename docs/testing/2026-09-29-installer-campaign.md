@@ -5,6 +5,10 @@ acceptance: NOT RUN.** This follow-on campaign exercises the packaged artifact,
 after the source and unpacked-runtime checks. Consumer installation and native-dialog acceptance remain
 separate in the [manual plan](../DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
 
+This campaign predates encrypted Books files. Use the
+[protected recovery campaign](2026-09-29-protected-books.md) for the later candidate
+and its separate native results.
+
 ## Repairs established by artifact inspection
 
 - The previous Linux AppImage's generated desktop command included `--no-sandbox`;

@@ -4,7 +4,9 @@ Prepare and test one identifiable build on each target before describing it as a
 tested download. The [29 September native campaign](testing/2026-09-29-native-campaign.md)
 records the original source/package checks; the
 [installer campaign](testing/2026-09-29-installer-campaign.md) records the later
-artifact-path checks and packaging repairs. Manual consumer
+artifact-path checks and packaging repairs. The
+[protected Books campaign](testing/2026-09-29-protected-books.md) verifies the later
+encrypted recovery flow on all four targets. Manual consumer
 acceptance remains **NOT RUN**. Start each new build's
 [result template](testing/desktop-result-template.md) at NOT RUN; the previous result
 does not transfer automatically. Earlier local checks are recorded in
@@ -363,11 +365,12 @@ normal TaxSorted profile accessed in any of these inspections. Native installed
 runtime and manual acceptance remain separate results.
 
 The current campaign handoff is
-`desktop/dist/installers-36573482985/TaxSorted-Local-0.1.0-test-source.zip`, generated
-after the installer campaign report is committed. It carries the source, this plan,
+`desktop/dist/protected-books-36578036975/TaxSorted-Local-0.1.0-test-source.zip`, generated
+after the protected recovery report is committed. It carries the source, this plan,
 result template and test scripts. Unzip it into a new directory in the dedicated
 test environment, use Node 22 and follow the scoped install, explicit runtime-download
 and build commands. It includes no installed dependencies, app profiles or generated
 tax backups. Tested installers, per-platform checksums and sanitised evidence are
-retained separately under `desktop/dist/installers-36573482985/`. The earlier
-`native-36564143019/` folder is historical; its Linux AppImage is retired.
+retained separately under `desktop/dist/protected-books-36578036975/`. The earlier
+installer campaigns predate encrypted Books files. The `native-36564143019/` folder
+is historical; its Linux AppImage is retired.

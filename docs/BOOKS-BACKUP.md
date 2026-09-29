@@ -59,7 +59,7 @@ browser-local features are separate and are not copied by this operation.
 Encryption protects the exported Books file. It does not encrypt the live app
 profile, browser storage, Passport exports, CSV files or attachments, and it does
 not protect records while an attacker controls the running app or OS account.
-The file's size and cryptographic format remain visible; financial data, record
+The file's name, size and cryptographic format remain visible; financial data, record
 counts and the export timestamp are inside the encrypted payload. A strong unique
 password matters because someone holding a file can try guesses offline.
 
@@ -128,6 +128,8 @@ The desktop walkthrough exports protected files, independently decrypts them,
 rejects a wrong password without changing current Books, then performs a confirmed
 restore with a protected safety copy. Test backends and controlled IndexedDB doubles
 are disposable; no real person's browser records were used. The
-[batch verification record](RELEASE-HARDENING-2026-09-12.md) records final results and
-the unavailable interactive browser walkthrough. Cross-browser recovery exercises
-remain part of the operating evidence for a broader release.
+[September 12 verification record](RELEASE-HARDENING-2026-09-12.md) preserves the
+historical parser/store results and that earlier campaign's unavailable walkthrough.
+The [protected recovery campaign](testing/2026-09-29-protected-books.md) records this
+increment's encryption, UI and native runtime evidence. Cross-browser recovery and
+real native dialogs remain part of the manual acceptance plan for a broader release.
