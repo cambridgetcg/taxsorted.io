@@ -44,24 +44,29 @@ async function regularFile(filename) {
   if (!stat.isFile() || stat.isSymbolicLink()) throw refusal('EXPECTED_REGULAR_FILE');
 }
 
-function powershellJson(script, env) {
+function powershellJson(script, env, probe, timings) {
   const powershell = path.join(env.SystemRoot, 'System32/WindowsPowerShell/v1.0/powershell.exe');
-  const output = execFileSync(powershell, ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 15_000, windowsHide: true });
-  return JSON.parse(output.replace(/^\uFEFF/, '').trim());
+  const started = Date.now();
+  try {
+    // Include a bounded allowance for the hosted runner's first Windows
+    // PowerShell startup; a cold-start delay is possible, not established.
+    const output = execFileSync(powershell, ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 60_000, windowsHide: true });
+    return JSON.parse(output.replace(/^\uFEFF/, '').trim());
+  } finally { timings?.push({ probe, elapsedMs: Date.now() - started }); }
 }
 
-function windowsShortcuts(env) {
+function windowsShortcuts(env, timings) {
   const locations = powershellJson(`
     $ErrorActionPreference = 'Stop'
     $desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory, [Environment+SpecialFolderOption]::DoNotVerify)
     $programs = [Environment]::GetFolderPath([Environment+SpecialFolder]::Programs, [Environment+SpecialFolderOption]::DoNotVerify)
     ConvertTo-Json -InputObject @($desktop, $programs) -Compress
-  `, env);
+  `, env, 'shortcut-locations', timings);
   if (!Array.isArray(locations) || locations.length !== 2 || locations.some(location => typeof location !== 'string' || !path.win32.isAbsolute(location))) throw refusal('INVALID_SHORTCUT_LOCATIONS');
   return locations.map(location => path.join(location, 'TaxSorted Local.lnk'));
 }
 
-function registryState(env) {
+function registryState(env, timings) {
   // Exact product keys in both views; missing keys are distinct from permission
   // or query failures. Values stay internal and never enter evidence or logs.
   const script = `
@@ -84,7 +89,7 @@ function registryState(env) {
     }
     ConvertTo-Json -InputObject @($rows) -Compress
   `;
-  const rows = powershellJson(script, env);
+  const rows = powershellJson(script, env, 'product-registry', timings);
   if (!Array.isArray(rows)) throw refusal('INVALID_REGISTRY_RESPONSE');
   return rows;
 }
@@ -154,7 +159,7 @@ async function run(options) {
   const report = {
     schema: 'taxsorted.windows-installer-test/1', startedAt: new Date().toISOString(),
     platform: process.platform, arch: process.arch, osVersion: os.release(),
-    ...checkoutState(env), status: 'running', checks: [],
+    ...checkoutState(env), status: 'running', checks: [], probes: [],
     runtimeEvidence: 'installed-smoke.json', data: 'synthetic only',
     cleanup: { uninstalled: false, registrationRemoved: false, shortcutsRemoved: false, sentinelRemoved: false, temporaryFilesRemoved: false, lockRemoved: false },
     limits: 'Silent current-user NSIS lifecycle on a disposable GitHub Windows Server runner. Does not establish Windows 11 standard-user installation, interactive wizard, UAC, SmartScreen, native dialog, reboot or version-upgrade coverage. Retention checks a synthetic sentinel, not a real tax profile. Runner disposal removes residual OS installer cache.',
@@ -171,10 +176,15 @@ async function run(options) {
     if (!options.installer || path.resolve(options.installer).toLowerCase() !== expected.toLowerCase() || process.arch !== 'x64') throw refusal('EXPECTED_NATIVE_BUILD_ARTIFACT');
     await regularFile(expected);
     report.artifact = { name: path.basename(expected), sha256: crypto.createHash('sha256').update(await fs.readFile(expected)).digest('hex') };
+    stage = 'verify the normal profile and runtime lock are absent';
     profile = normalProfile(env);
-    if (!(await absent(profile)) || !(await absent(profile + '.runtime-smoke-lock')) || registryState(env).length) throw refusal('EXISTING_PROFILE_OR_INSTALLATION');
-    shortcuts = windowsShortcuts(env);
+    if (!(await absent(profile)) || !(await absent(profile + '.runtime-smoke-lock'))) throw refusal('EXISTING_PROFILE_OR_INSTALLATION');
+    stage = 'read existing current-user and machine installation registry keys';
+    if (registryState(env, report.probes).length) throw refusal('EXISTING_PROFILE_OR_INSTALLATION');
+    stage = 'read Desktop and Start menu shortcut locations and verify absence';
+    shortcuts = windowsShortcuts(env, report.probes);
     for (const shortcut of shortcuts) if (!(await absent(shortcut))) throw refusal('EXISTING_APPLICATION_SHORTCUT');
+    stage = 'claim the fresh profile for this installer test';
     token = crypto.randomUUID();
     lock = profile + '.installer-test-lock';
     await fs.writeFile(lock, token, { flag: 'wx', mode: 0o600 });
@@ -192,7 +202,8 @@ async function run(options) {
     safeToUninstall = true;
     await regularFile(executable);
     await regularFile(uninstaller);
-    validateRegistration(registryState(env), installDirectory, manifest.version);
+    stage = 'verify installed current-user registration and shortcuts';
+    validateRegistration(registryState(env, report.probes), installDirectory, manifest.version);
     for (const shortcut of shortcuts) await regularFile(shortcut);
     if (!(await absent(profile))) throw refusal('INSTALLER_UNEXPECTEDLY_CREATED_PROFILE');
     check('Silent installer completed, current-user registration and Desktop/Start menu shortcuts exist, and application did not auto-launch');
@@ -232,7 +243,8 @@ async function run(options) {
     await runNative(copiedUninstaller, nsisArguments(installDirectory, true), env, { verbatim: true });
     if (!(await absent(installDirectory))) throw refusal('INSTALL_DIRECTORY_REMAINS');
     report.cleanup.uninstalled = true;
-    if (registryState(env).length) throw refusal('INSTALLER_REGISTRATION_REMAINS');
+    stage = 'verify uninstalled registration, shortcuts and retained synthetic sentinel';
+    if (registryState(env, report.probes).length) throw refusal('INSTALLER_REGISTRATION_REMAINS');
     report.cleanup.registrationRemoved = true;
     for (const shortcut of shortcuts) if (!(await absent(shortcut))) throw refusal('APPLICATION_SHORTCUT_REMAINS');
     report.cleanup.shortcutsRemoved = true;
@@ -250,7 +262,7 @@ async function run(options) {
         await fs.copyFile(uninstaller, copy);
         await runNative(copy, nsisArguments(installDirectory, true), env, { verbatim: true });
         report.cleanup.uninstalled = await absent(installDirectory);
-        report.cleanup.registrationRemoved = registryState(env).length === 0;
+        report.cleanup.registrationRemoved = registryState(env, report.probes).length === 0;
         report.cleanup.shortcutsRemoved = (await Promise.all(shortcuts.map(absent))).every(Boolean);
       } catch (error) { report.cleanup.uninstallError = safeError(error); }
     }

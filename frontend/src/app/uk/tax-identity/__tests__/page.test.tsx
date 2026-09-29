@@ -188,6 +188,11 @@ describe("UK tax identity page", () => {
   it("publishes sessionless framework, graph, example, source, schema and OpenAPI doors", () => {
     render(<TaxIdentityPage />);
 
+    const publicApi = within(
+      screen.getByRole("region", {
+        name: /carry the dimensions and boundaries into software/i,
+      }),
+    );
     for (const [name, href] of [
       [/framework index/i, "https://api.taxsorted.io/v1/tax-identity/uk"],
       [/full identity graph/i, "https://api.taxsorted.io/v1/tax-identity/uk/graph"],
@@ -196,7 +201,7 @@ describe("UK tax identity page", () => {
       [/json schema/i, "https://api.taxsorted.io/v1/tax-identity/uk/schema"],
       [/openapi slice/i, "https://api.taxsorted.io/openapi/tax-identity-uk.json"],
     ] as const) {
-      expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
+      expect(publicApi.getByRole("link", { name })).toHaveAttribute("href", href);
     }
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
