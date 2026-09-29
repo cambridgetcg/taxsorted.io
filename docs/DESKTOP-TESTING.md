@@ -2,7 +2,9 @@
 
 Prepare and test one identifiable build on each target before describing it as a
 tested download. The [29 September native campaign](testing/2026-09-29-native-campaign.md)
-passed automated source/package checks on all four targets. Manual consumer
+records the original source/package checks; the
+[installer campaign](testing/2026-09-29-installer-campaign.md) records the later
+artifact-path checks and packaging repairs. Manual consumer
 acceptance remains **NOT RUN**. Start each new build's
 [result template](testing/desktop-result-template.md) at NOT RUN; the previous result
 does not transfer automatically. Earlier local checks are recorded in
@@ -140,9 +142,11 @@ generated report for the assertions actually run, including sandbox settings,
 renderer isolation, local routes, persistence and request blocking. Do not infer a
 pass from command availability or from an uploaded installer alone.
 
-The workflow supports manual dispatch and source-change pushes on
-`feat/service-oriented-rebuild-20260929`; it uploads only preview artifacts and allowlisted result
-summaries for 14 days. It does not publish a release. Its Linux setup grants user
+The workflow declares manual dispatch and source-change pushes on
+`feat/service-oriented-rebuild-20260929`. These campaigns used branch pushes;
+manual dispatch was unavailable while the workflow existed only on the feature
+branch. It uploads only preview artifacts and allowlisted result summaries for
+14 days. It does not publish a release. Its Linux setup grants user
 namespaces to the exact source runtime, unpacked executable and AppImage paths
 through a temporary AppArmor profile, then removes that profile. It does not alter
 this development Mac. The Windows hosted
@@ -175,8 +179,9 @@ when a user-namespace probe failed. That archived Linux AppImage is unsuitable
 for distribution. The earlier unpacked-runtime sandbox checks remain valid; they
 did not launch the AppImage wrapper. The replacement package removes the injected
 desktop argument and supplies an `AppRun` that refuses sandbox-disabling switches
-instead of adding them. Its native artifact/runtime result remains pending until
-the new evidence is recorded; the new checks inspect the mounted launcher too.
+instead of adding them. The replacement passed the mounted artifact/runtime checks
+in the [installer campaign](testing/2026-09-29-installer-campaign.md), including
+inspection of the mounted launcher. Stock-desktop acceptance remains separate.
 
 | Target | Automated path | Evidence in `desktop/test-results/` | Remaining boundary |
 |---|---|---|---|
@@ -302,7 +307,7 @@ retention as a backup of anybody's records.
 | P2 | Essential navigation, keyboard use, text clarity or export location is misleading | Fix before broad distribution, or explicitly record a bounded preview limitation |
 | P3 | Cosmetic defect with all tasks reachable | Record for follow-up |
 
-A target passes this campaign only with matching automated evidence, manual
+A target passes consumer acceptance only with matching automated evidence, manual
 M01–M13 passes, and no open P0/P1 issue. M14 remains an explicit release limitation
 until an upgrade pair is available. **BLOCKED** identifies an unmet environment or
 artifact prerequisite; it does not waive the corresponding acceptance case.
@@ -357,11 +362,12 @@ image and temporary installation cleanup completed. No local app was launched or
 normal TaxSorted profile accessed in any of these inspections. Native installed
 runtime and manual acceptance remain separate results.
 
-The campaign handoff is
-`desktop/dist/native-36564143019/TaxSorted-Local-0.1.0-test-source.zip`, regenerated
-after the final campaign report is committed. It carries the source, this plan,
+The current campaign handoff is
+`desktop/dist/installers-36573482985/TaxSorted-Local-0.1.0-test-source.zip`, generated
+after the installer campaign report is committed. It carries the source, this plan,
 result template and test scripts. Unzip it into a new directory in the dedicated
 test environment, use Node 22 and follow the scoped install, explicit runtime-download
 and build commands. It includes no installed dependencies, app profiles or generated
 tax backups. Tested installers, per-platform checksums and sanitised evidence are
-retained separately under `desktop/dist/native-36564143019/`.
+retained separately under `desktop/dist/installers-36573482985/`. The earlier
+`native-36564143019/` folder is historical; its Linux AppImage is retired.

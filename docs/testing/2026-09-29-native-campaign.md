@@ -9,6 +9,9 @@ distribution because its generated wrapper could disable the sandbox. The
 [follow-on finding](#follow-on-linux-artifact-finding) records that separate result;
 this campaign tested the unpacked Linux runtime.
 
+Use the [installer campaign](2026-09-29-installer-campaign.md) for the corrected
+artifacts and their separate native results. This report preserves the original run.
+
 The final [GitHub Actions run](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36564143019)
 completed successfully at **11:58:25 UTC**, testing commit
 [`1b64679a1a8141fdf54f742e5ca43ea0328feab3`](https://github.com/cambridgetcg/taxsorted.io/commit/1b64679a1a8141fdf54f742e5ca43ea0328feab3)

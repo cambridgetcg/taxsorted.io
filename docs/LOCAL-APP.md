@@ -199,7 +199,7 @@ runner checksums. Manual consumer installation/dialog tests remain NOT RUN; Wind
 used Server 2025 and Linux used Xvfb with a scoped AppArmor prerequisite.
 
 The follow-on [installer automation](DESKTOP-TESTING.md#installer-path-automation)
-checks the downloaded artifact path in disposable runners. macOS copies the app
+checks the packaged artifact path in disposable runners. macOS copies the app
 out of its read-only DMG and ejects it before runtime checks; Windows installs and
 uninstalls the NSIS artifact with current-user registration and a synthetic
 data-retention sentinel; Linux requires the actual read-only FUSE mount and keeps
@@ -211,8 +211,9 @@ Inspection of the earlier Linux AppImage found a generated desktop command with
 `--no-sandbox` and a launcher that could add that flag after a failed user-namespace
 probe. That archived Linux artifact must not be distributed. Its passing unpacked
 runtime result did not cover this wrapper. The replacement uses an explicit
-launcher that keeps sandbox requirements and removes the injected desktop flag;
-the new native AppImage check must establish its actual mounted runtime result.
+launcher that keeps sandbox requirements and removes the injected desktop flag.
+The [installer campaign](testing/2026-09-29-installer-campaign.md) records the
+replacement's passing mounted AppImage checks and the other native installer paths.
 
 Development Macs can run the documented `--inspect-only` DMG check without
 launching the app or accessing its normal profile. It compares the copied package
@@ -241,12 +242,14 @@ DMG into Applications or use a real person's tax records. The later native campa
 ran the complete packaged smoke on all four targets; its consumer installation,
 native dialog and upgrade limitations are recorded in the campaign report.
 
-The final campaign artifacts are under `desktop/dist/native-36564143019/`, with
+The current campaign artifacts are under `desktop/dist/installers-36573482985/`, with
 per-platform installers/archives, checksum lists and sanitised test evidence. The
 `TaxSorted-Local-0.1.0-test-source.zip` handoff in that directory is regenerated after
-the campaign report is committed, using the scaffold exclusions and no installed
-dependencies. Earlier local preview artifacts remain in `desktop/dist`. No production
-release or signing/notarisation was performed.
+the installer campaign report is committed, using the scaffold exclusions and no
+installed dependencies. Earlier local preview artifacts remain in `desktop/dist`
+as historical evidence; the old Linux AppImage is retired. macOS previews have
+ad-hoc integrity signatures. No production release, developer signing or
+notarisation was performed.
 
 Run the source-copy and desktop boundary tests without using real records:
 

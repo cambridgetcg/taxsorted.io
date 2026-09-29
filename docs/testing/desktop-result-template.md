@@ -35,6 +35,8 @@ profile contents. Use test labels and record only settings material to the resul
 | Source-mode smoke | NOT RUN | |
 | Packaged application inspection | NOT RUN | |
 | Packaged-mode smoke in disposable account | NOT RUN | |
+| Actual installer/AppImage lifecycle and cleanup | NOT RUN | |
+| Installed-app smoke, including sandbox and data persistence | NOT RUN | |
 | Artifact checksums/manifest | NOT RUN | |
 
 | Manual case | Status | Observation / minimal evidence reference |
