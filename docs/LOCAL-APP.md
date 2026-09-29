@@ -182,7 +182,15 @@ Use the [desktop validation plan](DESKTOP-TESTING.md) and its per-target result
 template for Windows 11, Ubuntu and Intel Mac acceptance. It separates CI smoke
 checks from real installation, native dialogs, network-off use and data recovery.
 
-Verified locally on 29 September 2026 (Apple silicon macOS, Node 22.23.3):
+The [29 September native campaign](testing/2026-09-29-native-campaign.md) passed all
+four native CI jobs at commit `1b64679a1a8141fdf54f742e5ca43ea0328feab3`: Windows x64,
+Linux x64, Intel Mac and Apple silicon. Each source and packaged app passed seven
+synthetic runtime checks; all eight runs reported zero renderer errors and zero
+loopback observer requests. Six downloaded preview package files matched their
+runner checksums. Manual consumer installation/dialog tests remain NOT RUN; Windows
+used Server 2025 and Linux used Xvfb with a scoped AppArmor prerequisite.
+
+Initial local verification before that campaign (Apple silicon macOS, Node 22.23.3):
 
 | Check | Result |
 |---|---|
@@ -199,13 +207,17 @@ Verified locally on 29 September 2026 (Apple silicon macOS, Node 22.23.3):
 The runtime walkthrough used disposable profiles and synthetic records. Its download
 harness supplied a temporary save path after checking the app's native Save-dialog
 options. A loopback observer received zero requests in remote-fetch boundary checks.
-The packaged-app launch checked its home screen; it did not install the DMG into
-Applications or use a real person's tax records. Windows, Linux and Intel Mac have
-build definitions only and have not been run here.
+The initial packaged-app launch checked its home screen; it did not install the
+DMG into Applications or use a real person's tax records. The later native campaign
+ran the complete packaged smoke on all four targets; its consumer installation,
+native dialog and upgrade limitations are recorded in the campaign report.
 
-Local artifacts are in `desktop/dist`: an unsigned Apple silicon DMG, application ZIP,
-source ZIP and `SHA256SUMS.txt`. They have not been published. The source archive is
-created with the same scaffold exclusions and contains no installed dependencies.
+The final campaign artifacts are under `desktop/dist/native-36564143019/`, with
+per-platform installers/archives, checksum lists and sanitised test evidence. The
+`TaxSorted-Local-0.1.0-test-source.zip` handoff in that directory is regenerated after
+the campaign report is committed, using the scaffold exclusions and no installed
+dependencies. Earlier local preview artifacts remain in `desktop/dist`. No production
+release or signing/notarisation was performed.
 
 Run the source-copy and desktop boundary tests without using real records:
 

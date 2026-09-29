@@ -1,20 +1,21 @@
 # Desktop validation plan
 
 Prepare and test one identifiable build on each target before describing it as a
-tested download. This plan and its [result template](testing/desktop-result-template.md)
-start at **NOT RUN**. Earlier Apple silicon checks are recorded separately in
-[Local app](LOCAL-APP.md#verification-and-next-work); they do not cover Windows,
-Linux or Intel hardware. Preparing this plan does not dispatch a workflow, start a
-VM or publish an artifact.
+tested download. The [29 September native campaign](testing/2026-09-29-native-campaign.md)
+passed automated source/package checks on all four targets. Manual consumer
+acceptance remains **NOT RUN**. Start each new build's
+[result template](testing/desktop-result-template.md) at NOT RUN; the previous result
+does not transfer automatically. Earlier local checks are recorded in
+[Local app](LOCAL-APP.md#verification-and-next-work).
 
 ## Environments and what each establishes
 
-| Target | Automated environment | Manual acceptance environment | Campaign status |
-|---|---|---|---|
-| Windows x64 | `windows-2025` | Windows 11 x64 VM on an x64 host, fresh standard local test account | NOT RUN |
-| Linux x64 | `ubuntu-24.04`, Xvfb | Ubuntu 24.04 x64 Desktop, GNOME graphical session, fresh test account | NOT RUN |
-| Intel Mac x64 | `macos-15-intel` | Actual supported Intel Mac running macOS 15, fresh standard test account | NOT RUN |
-| Apple silicon control | `macos-15` | Apple silicon Mac running macOS 15, fresh standard test account | NOT RUN |
+| Target | Automated environment | CI campaign | Manual acceptance environment | Manual status |
+|---|---|---|---|---|
+| Windows x64 | `windows-2025` | PASS | Windows 11 x64 VM on an x64 host, fresh standard local test account | NOT RUN |
+| Linux x64 | `ubuntu-24.04`, Xvfb | PASS | Ubuntu 24.04 x64 Desktop, GNOME graphical session, fresh test account | NOT RUN |
+| Intel Mac x64 | `macos-15-intel` | PASS | Actual supported Intel Mac running macOS 15, fresh standard test account | NOT RUN |
+| Apple silicon control | `macos-15` | PASS | Apple silicon Mac running macOS 15, fresh standard test account | NOT RUN |
 
 The pinned labels select the architectures listed in
 [GitHub's runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
@@ -230,9 +231,10 @@ them when changing runner images, Electron, Playwright or supported OS versions.
 
 ## Preparation evidence on this development Mac
 
-The following tooling checks were completed on 29 September 2026, using Node 22.23.3
-and macOS arm64. They establish that the prepared tools run here; the native campaign
-rows and manual installer cases above remain separate.
+The following historical preparation checks were completed on 29 September 2026,
+before the native campaign fixes, using Node 22.23.3 and macOS arm64. The
+[campaign report](testing/2026-09-29-native-campaign.md) records the later tested
+revision and counts; manual installer cases remain separate.
 
 | Preparation check | Observed result |
 |---|---|
@@ -251,8 +253,11 @@ inspection writes `desktop/test-results/package-inspection.json`. Generated evid
 is ignored by Git. These local preparation checks did not start target VMs or
 establish outcomes for the subsequent native CI campaign.
 
-The local `desktop/dist/TaxSorted-Local-0.1.0-test-kit.zip` carries the current source,
-this plan, result template and test scripts. Unzip it into a new directory in the
-dedicated test environment, use Node 22 and follow the scoped install/build commands.
-It includes no installed dependencies, app profiles or generated tax backups. Installers
-and hash-time metadata remain separate artifacts; a source ZIP is not an installer.
+The campaign handoff is
+`desktop/dist/native-36564143019/TaxSorted-Local-0.1.0-test-source.zip`, regenerated
+after the final campaign report is committed. It carries the source, this plan,
+result template and test scripts. Unzip it into a new directory in the dedicated
+test environment, use Node 22 and follow the scoped install, explicit runtime-download
+and build commands. It includes no installed dependencies, app profiles or generated
+tax backups. Tested installers, per-platform checksums and sanitised evidence are
+retained separately under `desktop/dist/native-36564143019/`.
