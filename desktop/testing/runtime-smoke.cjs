@@ -9,6 +9,7 @@ const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { createDecipheriv, pbkdf2Sync, randomBytes } = require('node:crypto');
 const { constants: fileModes } = require('node:fs');
 
 const desktopRoot = path.resolve(__dirname, '..');
@@ -392,21 +393,72 @@ async function run(options) {
       return JSON.parse(await fs.readFile(filename, 'utf8'));
     }
 
+    // Interoperate with the renderer using Node's crypto implementation. Never
+    // write the ephemeral synthetic password or decrypted payload into evidence.
+    const backupPassword = randomBytes(32).toString('base64');
+    async function prepareProtectedDownload() {
+      await page.getByLabel('Backup password', { exact: true }).fill(backupPassword);
+      await page.getByLabel('Repeat backup password', { exact: true }).fill(backupPassword);
+      await page.getByRole('checkbox', { name: 'I understand that TaxSorted cannot reset this password or recover the backup without it.', exact: true }).check();
+    }
+    function readProtectedExport(envelope) {
+      assert.equal(envelope.schema, 'taxsorted.encrypted-books-backup/1');
+      assert.deepEqual(Object.keys(envelope).sort(), ['cipher', 'ciphertext', 'kdf', 'schema']);
+      assert.deepEqual({ ...envelope.kdf, salt: undefined }, { name: 'PBKDF2', hash: 'SHA-256', iterations: 600_000, salt: undefined });
+      assert.deepEqual({ ...envelope.cipher, iv: undefined }, { name: 'AES-GCM', keyLength: 256, tagLength: 128, iv: undefined });
+      const salt = Buffer.from(envelope.kdf.salt, 'base64');
+      const iv = Buffer.from(envelope.cipher.iv, 'base64');
+      assert.equal(salt.length, 16);
+      assert.equal(iv.length, 12);
+      const key = pbkdf2Sync(backupPassword, salt, 600_000, 32, 'sha256');
+      let plaintext;
+      try {
+        const ciphertext = Buffer.from(envelope.ciphertext, 'base64');
+        const decipher = createDecipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
+        decipher.setAAD(Buffer.from(JSON.stringify({
+          schema: envelope.schema,
+          kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: 600_000, salt: envelope.kdf.salt },
+          cipher: { name: 'AES-GCM', keyLength: 256, tagLength: 128, iv: envelope.cipher.iv },
+        })));
+        decipher.setAuthTag(ciphertext.subarray(-16));
+        plaintext = Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]);
+        const decoded = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(plaintext));
+        assert.equal(decoded.schema, 'taxsorted.books-backup/1');
+        return decoded;
+      } finally {
+        key.fill(0);
+        plaintext?.fill(0);
+      }
+    }
+
     stage = 'export and restore synthetic Books with required confirmation';
     const backup = path.join(temporary, 'books-backup.json');
     await page.getByText('Back up or restore your Books', { exact: true }).click();
-    stage = 'export initial synthetic Books backup';
+    stage = 'export encrypted synthetic Books backup and independently decrypt it';
+    await prepareProtectedDownload();
     const exported = await exportBackup('Download a Books backup', backup);
-    assert.ok(JSON.stringify(exported).includes(baselineNote));
+    assert.equal(JSON.stringify(exported).includes(baselineNote), false);
+    assert.ok(JSON.stringify(readProtectedExport(exported)).includes(baselineNote));
     stage = 'add later synthetic record to verify actual backup replacement';
     await addRecord(extraNote, '9.99');
-    stage = 'preview restore and require backup confirmation';
+    stage = 'reject a wrong backup password without replacing current Books';
     await page.getByLabel('Choose a Books backup to restore', { exact: true }).setInputFiles(backup);
+    await page.getByLabel('Password for this backup', { exact: true }).fill(randomBytes(32).toString('base64'));
+    await page.getByRole('button', { name: 'Unlock preview', exact: true }).click();
+    await page.getByRole('alert').waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Check before replacing your Books', exact: true }).count(), 0);
+    await page.getByText(baselineNote, { exact: true }).first().waitFor();
+    await page.getByText(extraNote, { exact: true }).first().waitFor();
+    stage = 'unlock encrypted preview and require backup confirmation';
+    await page.getByLabel('Password for this backup', { exact: true }).fill(backupPassword);
+    await page.getByRole('button', { name: 'Unlock preview', exact: true }).click();
     await page.getByRole('heading', { name: 'Check before replacing your Books', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Replace these Books with the backup', exact: true }).isDisabled(), true);
-    stage = 'export current Books before replacing them';
+    stage = 'export an encrypted safety copy before replacing current Books';
+    await prepareProtectedDownload();
     const beforeRestore = await exportBackup('Download the Books currently here', path.join(temporary, 'before-restore.json'));
-    assert.ok(JSON.stringify(beforeRestore).includes(extraNote));
+    assert.equal(JSON.stringify(beforeRestore).includes(extraNote), false);
+    assert.ok(JSON.stringify(readProtectedExport(beforeRestore)).includes(extraNote));
     stage = 'confirm restore and verify earlier synthetic state is restored';
     await page.getByRole('checkbox', { name: 'I have saved the current Books and understand that restoring will replace them with this backup.', exact: true }).check();
     await page.getByRole('button', { name: 'Replace these Books with the backup', exact: true }).click();
@@ -415,7 +467,12 @@ async function run(options) {
     // The success notice precedes the asynchronous ledger refresh.
     await page.getByText(extraNote, { exact: true }).waitFor({ state: 'detached' });
     assert.equal(await page.getByText(extraNote, { exact: true }).count(), 0);
-    check('Blob export configures native Save options; validated JSON restores after backup and confirmation; later synthetic record removed');
+    report.backupProtection = {
+      schema: 'taxsorted.encrypted-books-backup/1', encryptedExport: true,
+      independentDecryption: true, wrongPasswordPreservedRecords: true,
+      encryptedSafetyCopy: true, confirmedRestore: true,
+    };
+    check('Encrypted export and safety copy independently decrypt; wrong password preserves Books; confirmed restore removes later synthetic record');
 
     stage = 'verify external-link cancellation and explicit handoff';
     await page.goto('taxsorted://app/trust/');

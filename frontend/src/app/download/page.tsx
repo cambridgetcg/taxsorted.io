@@ -146,16 +146,16 @@ export default function DownloadPage() {
               backup, sync or automatic update service.
             </p>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
-              TaxSorted does not encrypt this profile or exported files. Your operating system’s
-              account controls and disk protection matter. Anyone with access to the profile or
-              an exported copy may be able to read it.
+              Books backups are password-protected by default. TaxSorted does not encrypt the
+              live app profile, Passport exports or other ordinary exports. Your operating
+              system’s account controls and disk protection still matter.
             </p>
           </div>
           <div>
             <h3 className="font-display text-xl font-semibold text-ink">Bring your work, keep a backup</h3>
             <ol className="mt-3 list-decimal space-y-3 ps-5 text-sm leading-6 text-ink-soft">
-              <li>In your existing browser, open Money records and download a Books backup.</li>
-              <li>In the app’s Money records, choose that backup, review its contents and confirm the restore. Restoring replaces the Books already in that app.</li>
+              <li>In your existing browser, open Money records and download a password-protected Books backup. Keep its password separately; TaxSorted cannot reset it.</li>
+              <li>In the app’s Money records, choose that backup and unlock its preview. Save a protected copy of the current Books, review the contents and confirm the restore. Restoring replaces the Books already in that app.</li>
               <li>Export your Passport separately as JSON or an adviser handover. Passport exports are portable copies; Passport import is not available yet.</li>
             </ol>
             <p className="mt-3 text-sm leading-6 text-ink-soft">

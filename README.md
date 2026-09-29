@@ -12,7 +12,8 @@ renaming, module ownership and remaining integration work.
 **TaxSorted Local** reuses these tools in an offline desktop app. Installer-first
 packaging covers macOS, Windows and Linux; a source scaffold is available for
 customisation. The app has its own local profile, blocks remote app requests and
-needs no account. This preview does not add app-level encryption or online filing.
+needs no account. Books backups are password-protected by default; the live profile
+is not encrypted by the app, and online filing is unavailable.
 See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
 
 ```sh

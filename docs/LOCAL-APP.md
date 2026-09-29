@@ -99,16 +99,19 @@ These locations follow [Electron's app-data conventions](https://www.electronjs.
 Keeping the app identifier, profile directory and `taxsorted://app` origin stable lets
 replacement app builds reuse that local storage. An app update does not create a backup.
 
-This version does **not** add app-level encryption or a password vault. Local storage
-and exported Books backups are unencrypted; OS account access and disk protection
-matter. Another process or person with access to that OS account can access the profile.
-It is not an adviser multi-client security boundary. Use device encryption, separate
+The live profile remains unencrypted by the app. OS account access and disk protection
+matter: another process or person with access to that OS account can access the profile.
+Books backups are password-protected by default, with an explicit unencrypted option
+for compatibility. Other exports, including Passport and CSV, remain unencrypted.
+This is not an adviser multi-client security boundary. Use device encryption, separate
 OS accounts where needed, and a protected backup location for sensitive records.
 
 Use **Money records → Back up or restore your Books** to save a deliberate backup and
 move Books between the website and desktop edition. Existing website storage is not
 imported automatically. [Books backup and restore](BOOKS-BACKUP.md) documents replacement
-confirmation, restore checks and its exact coverage. The Books backup does not include
+confirmation, password protection, restore checks and its exact coverage. Keep the
+password separately: TaxSorted cannot reset it or recover a protected backup without
+it. Older plain Books backups remain supported. The Books backup does not include
 Passport facts, personal checklists, sign-in sessions or attachments. Those features
 currently have separate persistence/export capabilities; there is no complete encrypted
 workspace backup in this release.
@@ -135,7 +138,8 @@ makes no network requests. Source installs and packaging download build dependen
 | Audience services and personal checklist | Bundled, saved on this device |
 | Supported calculations and bundled tax guidance | Run locally; existing scope/review gates apply |
 | Money records and supported file imports | Local storage and deliberate file selection |
-| Books backup/restore and adviser exports | Deliberate files; exported records are unencrypted |
+| Books backup/restore | Password-protected by default; plain compatibility files require explicit choice |
+| Adviser, Passport and CSV exports | Deliberate unencrypted files; separate from protected Books backups |
 | Passport | Local facts and its existing export; separate from Books backup |
 | Provider authorisation and synchronisation | Unavailable offline |
 | TaxSorted account and cloud/public API features | Unavailable offline |
@@ -242,13 +246,14 @@ DMG into Applications or use a real person's tax records. The later native campa
 ran the complete packaged smoke on all four targets; its consumer installation,
 native dialog and upgrade limitations are recorded in the campaign report.
 
-The current campaign artifacts are under `desktop/dist/installers-36573482985/`, with
+The previous installer campaign artifacts are under `desktop/dist/installers-36573482985/`, with
 per-platform installers/archives, checksum lists and sanitised test evidence. The
 `TaxSorted-Local-0.1.0-test-source.zip` handoff in that directory is regenerated after
 the installer campaign report is committed, using the scaffold exclusions and no
 installed dependencies. Earlier local preview artifacts remain in `desktop/dist`
 as historical evidence; the old Linux AppImage is retired. macOS previews have
-ad-hoc integrity signatures. No production release, developer signing or
+ad-hoc integrity signatures. Those packages predate password-protected Books backups;
+their result applies to the recorded revision. No production release, developer signing or
 notarisation was performed.
 
 Run the source-copy and desktop boundary tests without using real records:
@@ -264,7 +269,14 @@ and refusal to overwrite an existing destination. They do not inspect or copy a 
 person's app profile. Desktop tests cover the local URL and packaged-file boundary;
 native app walkthroughs establish UI and persistence behaviour beyond those unit tests.
 
-The next product increment should make encrypted full-workspace backup/restore and
-recovery understandable before adding opt-in online connections. Any future connected
-edition needs an explicit view of what leaves the device, the party receiving it and
-the current authorisation; the offline edition should remain independently useful.
+Protected Books backups reuse the existing validated, atomic Books replacement.
+Full-workspace recovery remains separate work: Passport uses another writer/lock
+contract, while checklists live in localStorage outside the Books IndexedDB transaction.
+A future complete backup needs a shared restore generation and atomic storage boundary,
+with protection against stale open tabs. Calling each current save API in sequence
+would not provide that guarantee.
+
+Before opt-in online connections, extend that coordinated recovery contract to the
+other local features. Any future connected edition needs an explicit view of what
+leaves the device, the party receiving it and the current authorisation; the offline
+edition should remain independently useful.

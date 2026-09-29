@@ -13,10 +13,11 @@ describe("local app setup and data boundaries", () => {
     expect(screen.getAllByRole("link").some((link) => /\.(dmg|zip|exe|AppImage)$/i.test(link.getAttribute("href") ?? ""))).toBe(false);
   });
 
-  it("explains separate storage, unencrypted exports and deliberate migration", () => {
+  it("distinguishes protected Books backups from live storage and explains deliberate migration", () => {
     render(<DownloadPage />);
     expect(screen.getByText(/Existing website data is not moved into the app automatically/)).toBeInTheDocument();
-    expect(screen.getByText(/TaxSorted does not encrypt this profile or exported files/)).toBeInTheDocument();
+    expect(screen.getByText(/Books backups are password-protected by default/)).toHaveTextContent(/does not encrypt the live app profile/);
+    expect(screen.getByText(/Keep its password separately/)).toHaveTextContent(/cannot reset it/);
     expect(screen.getByText(/Passport import is not available yet/)).toBeInTheDocument();
     expect(screen.getByText(/Restoring replaces the Books already in that app/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open money records/i })).toHaveAttribute("href", "/books/workspace");

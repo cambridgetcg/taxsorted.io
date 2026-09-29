@@ -223,8 +223,9 @@ function RecordsWorkspace({
           <p className="mt-5 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink-soft">
             <strong className="text-ink">Available now:</strong>{" "}up to one UK sole-trader
             business and one UK property business, kept separate, in pounds, with a 2026–27
-            Income Tax view. These records stay only in this browser. TaxSorted does not encrypt
-            or automatically back them up, and signing in does not put them on another device. Limited companies
+            Income Tax view. These records stay in this app or browser. TaxSorted does not encrypt
+            the live records or back them up automatically. Download a password-protected Books
+            backup regularly. Signing in does not put them on another device. Limited companies
             and full annual accounts are not supported yet.
           </p>
         ) : null}

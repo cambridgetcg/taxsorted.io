@@ -193,7 +193,7 @@ describe("Books workspace entry", () => {
     expect(await screen.findByRole("heading", { name: "No records yet" })).toBeInTheDocument();
     expect(screen.getByText(/up to one UK sole-trader business and one UK property business/i))
       .toBeInTheDocument();
-    expect(screen.getByText(/TaxSorted does not encrypt or automatically back them up/i)).toBeInTheDocument();
+    expect(screen.getByText(/TaxSorted does not encrypt the live records or back them up automatically/i)).toHaveTextContent(/Download a password-protected Books backup regularly/i);
     expect(screen.getByText(/signing in does not put them on another device/i))
       .toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add money in or out/ }))
