@@ -87,8 +87,17 @@ async function waitUntil(read, label, milliseconds = timeoutMs) {
 function safeError(error) {
   const code = typeof error?.code === 'string' && /^[A-Z_0-9]{1,60}$/.test(error.code) ? error.code : undefined;
   const name = typeof error?.name === 'string' && /^[A-Za-z]{1,60}$/.test(error.name) ? error.name : 'Error';
+  const message = typeof error?.message === 'string' ? error.message : '';
+  const category = [
+    ['ambiguous-locator', /strict mode violation/i],
+    ['detached-element', /element is not attached|element was detached/i],
+    ['closed-target', /target page, context or browser has been closed/i],
+    ['interrupted-navigation', /navigation.*interrupted|execution context was destroyed/i],
+    ['timeout', /timeout|timed out/i],
+  ].find(([, pattern]) => pattern.test(message))?.[0];
   // Commands, environments, private paths and raw app error text are not reports.
-  return { type: name, ...(code ? { code } : {}) };
+  // Only fixed categories derived from that text may leave the process.
+  return { type: name, ...(code ? { code } : {}), ...(category ? { category } : {}) };
 }
 
 function refusal(code, message) {
@@ -479,14 +488,24 @@ async function run(options) {
     stage = 'add later synthetic record to verify actual backup replacement';
     await booksSection('Money', '/books/workspace/money');
     await addRecord(extraNote, '9.99');
-    stage = 'reject a wrong backup password without replacing current Books';
+    stage = 'open Backups for the wrong-password check';
     await booksSection('Backups', '/books/workspace/backups');
+    stage = 'select the protected file for the wrong-password check';
     await page.getByLabel('Choose a Books backup to restore', { exact: true }).setInputFiles(backup);
+    stage = 'enter the wrong synthetic backup password';
     await page.getByLabel('Password for this backup', { exact: true }).fill(randomBytes(32).toString('base64'));
+    stage = 'request unlock with the wrong password';
     await page.getByRole('button', { name: 'Unlock preview', exact: true }).click();
-    await page.getByRole('alert').waitFor();
+    stage = 'observe the backup-specific wrong-password rejection';
+    // Next's screen-reader route announcer also has role=alert. A page-wide
+    // wait could finish before decryption or become ambiguous once it rejects.
+    const backupControls = page.getByRole('region', { name: 'Books backup and restore controls', exact: true });
+    await backupControls.getByRole('alert').filter({ hasText: 'Unable to unlock this backup.' }).waitFor();
+    assert.equal(await backupControls.getByLabel('Password for this backup', { exact: true }).inputValue(), '');
     assert.equal(await page.getByRole('heading', { name: 'Check before replacing your Books', exact: true }).count(), 0);
+    stage = 'return to Money after completed wrong-password rejection';
     await booksSection('Money', '/books/workspace/money');
+    stage = 'verify both saved records remain after wrong-password rejection';
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
     await page.getByText(extraNote, { exact: true }).first().waitFor();
     stage = 'verify history return clears transient backup controls';
@@ -520,7 +539,7 @@ async function run(options) {
     assert.equal(await page.getByText(extraNote, { exact: true }).count(), 0);
     report.backupProtection = {
       schema: 'taxsorted.encrypted-books-backup/1', encryptedExport: true,
-      independentDecryption: true, wrongPasswordPreservedRecords: true,
+      independentDecryption: true, wrongPasswordRejectionObserved: true, wrongPasswordPreservedRecords: true,
       encryptedSafetyCopy: true, confirmedRestore: true,
     };
     stage = 'open recovery directly from the native File menu';

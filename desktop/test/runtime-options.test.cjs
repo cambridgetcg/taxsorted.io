@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { optionsFrom } = require('../testing/runtime-smoke.cjs');
+const { optionsFrom, safeError } = require('../testing/runtime-smoke.cjs');
 
 test('installer evidence cannot select arbitrary files or weaken the disposable-account boundary', () => {
   const packaged = ['--mode=packaged', '--executable=/synthetic/app', '--disposable-os-account'];
@@ -15,4 +15,16 @@ test('installer evidence cannot select arbitrary files or weaken the disposable-
 test('AppImage expectations apply only to a packaged app', () => {
   assert.throws(() => optionsFrom(['--mode=source', '--expect-appimage']));
   assert.equal(optionsFrom(['--mode=packaged', '--executable=/synthetic/app', '--disposable-os-account', '--expect-appimage']).expectAppImage, true);
+});
+
+test('runtime diagnostics classify locator failures without emitting raw text or private values', () => {
+  const error = new Error('locator.waitFor: strict mode violation; synthetic-private-path and synthetic-password');
+  assert.deepEqual(safeError(error), { type: 'Error', category: 'ambiguous-locator' });
+  for (const [message, category] of [
+    ['Element is not attached to the DOM: synthetic-private-path', 'detached-element'],
+    ['Target page, context or browser has been closed: synthetic-password', 'closed-target'],
+    ['Execution context was destroyed: synthetic-url', 'interrupted-navigation'],
+    ['Timeout 30000ms exceeded: synthetic-password', 'timeout'],
+  ]) assert.deepEqual(safeError(new Error(message)), { type: 'Error', category });
+  assert.deepEqual(safeError(new Error('Unclassified synthetic-private-value')), { type: 'Error' });
 });
