@@ -1,6 +1,7 @@
 # Local Books backup and restore
 
-Every ordinary Books view exposes **Back up or restore your Books**. An account is
+Open **Money records → Backups**, available from every ordinary Books view. The
+desktop status bar and **File → Back up or restore Books** open it directly. An account is
 not required. The default download is a password-protected file created on the
 person's device. Signing in does not back up Books. Keep the file outside the app's
 profile/site storage and keep its password separately. TaxSorted cannot reset the
@@ -8,17 +9,23 @@ password or recover a protected file without it.
 
 ## Save and recover a protected copy
 
-1. Open **Back up or restore your Books**. Choose a long, unique password with at
+1. Open **Backups → Save current Books**. Choose a long, unique password with at
    least 12 characters, repeat it and acknowledge that there is no password reset.
 2. Download the backup, then check that the chosen file was actually saved. A
    started download does not prove a file exists; cancelling the native Save dialog
    must not be treated as a successful safety copy.
-3. To recover, choose the file and enter its password to unlock a preview. Unlocking
+3. To recover, use **Restore a backup**, choose the file and enter its password to unlock a preview. Unlocking
    and checking a file do not replace any records. A wrong password or changed file
    stops before replacement.
-4. Review the comparison, download a protected safety copy of the Books currently
+4. Review the comparison, then use the safety-copy controls directly below it to
+   download a protected copy of the Books currently
    here, and confirm that it was saved before choosing replacement. Check the result
    and keep the original backup until recovery is verified.
+
+Leaving Backups clears its file selection, passwords and restore preview. Returning
+with Back or Forward does not resume a replacement: choose the file again. The
+underlying saved Books stay on the device. The Income Tax records route retains
+its embedded **Back up or restore your Books** disclosure for existing users.
 
 An explicitly selected **Unencrypted file** remains available for compatibility.
 It requires a separate acknowledgement. Plain files contain readable financial

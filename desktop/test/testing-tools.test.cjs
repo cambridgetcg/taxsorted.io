@@ -17,7 +17,7 @@ async function fixture(t, extraRuntime = false) {
   const manifest = JSON.stringify({ name: '@taxsorted/desktop', version: '0.1.0', main: 'src/main.cjs' });
   for (const base of [path.join(root, 'desktop'), application]) {
     await write(path.join(base, 'package.json'), manifest);
-    for (const file of ['main', 'local-policy', 'local-protocol']) await write(path.join(base, `src/${file}.cjs`), '/* synthetic runtime */');
+    for (const file of ['main', 'local-policy', 'local-protocol', 'navigation-menu']) await write(path.join(base, `src/${file}.cjs`), '/* synthetic runtime */');
   }
   if (extraRuntime) await write(path.join(application, 'personal-profile.json'), '{}');
   for (const base of [path.join(root, 'desktop/bundle'), path.join(resources, 'web')]) {
@@ -34,7 +34,7 @@ test('package inspection accepts only matching code, public bundle and licences'
   for (const base of [path.join(f.root, 'desktop/bundle'), path.join(f.resources, 'web')]) await f.write(path.join(base, 'learn/history/index.html'), '<h1>Public tax history</h1>');
   const report = await inspectPackage(f.resources, f.root);
   assert.equal(report.status, 'pass');
-  assert.equal(report.runtimeFiles, 4);
+  assert.equal(report.runtimeFiles, 5);
   assert.equal(report.bundledFiles, 3);
   assert.ok(!JSON.stringify(report).includes(f.root));
 });

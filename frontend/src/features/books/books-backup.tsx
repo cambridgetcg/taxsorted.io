@@ -28,7 +28,7 @@ const summaryRows: [string, keyof BooksBackupSummary][] = [
   ["Saved provider progress", "checkpoints"], ["Linked businesses", "linkedBusinesses"],
 ];
 
-type BooksBackupProps = { store: RecordsStore; onRestored: () => Promise<void> };
+type BooksBackupProps = { store: RecordsStore; onRestored: () => Promise<void>; expanded?: boolean };
 
 export function BooksBackup(props: BooksBackupProps) {
   const [scope, setScope] = useState({ store: props.store, version: 0 });
@@ -38,7 +38,7 @@ export function BooksBackup(props: BooksBackupProps) {
   return <BooksBackupControls key={scope.version} {...props} />;
 }
 
-function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
+function BooksBackupControls({ store, onRestored, expanded = false }: BooksBackupProps) {
   const [selected, setSelected] = useState<{ json: string; name: string; kind: "plain" | "encrypted"; preview: BooksRestorePreflight } | null>(null);
   const [locked, setLocked] = useState<{ json: string; name: string } | null>(null);
   const [protection, setProtection] = useState<"protected" | "plain">("protected");
@@ -58,10 +58,22 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
   const previewHeading = useRef<HTMLHeadingElement>(null);
   const alert = useRef<HTMLParagraphElement>(null);
   const status = useRef<HTMLParagraphElement>(null);
+  const restoreSection = useRef<HTMLElement>(null);
+  const restoreFragmentHandled = useRef(false);
 
   // Invalidate work still running when the component leaves the page. Passwords
   // live only in this component and the active crypto operation, never storage.
   useEffect(() => () => { selection.current += 1; }, [store]);
+  useEffect(() => {
+    if (restoreFragmentHandled.current) return;
+    restoreFragmentHandled.current = true;
+    // This component mounts after Books are loaded, when the fragment target
+    // exists. Check once so typing and ordinary navigation keep their focus.
+    if (expanded && window.location.hash === "#restore-books-backup") {
+      restoreSection.current?.focus({ preventScroll: true });
+      restoreSection.current?.scrollIntoView({ block: "start" });
+    }
+  }, [expanded]);
   useEffect(() => {
     if (error) alert.current?.focus();
     else if (message) status.current?.focus();
@@ -195,12 +207,7 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
     } finally { setBusy(null); }
   }
 
-  return (
-    <details className="mt-8 rounded-2xl border border-line bg-paper p-5">
-      <summary className="min-h-11 cursor-pointer font-semibold text-ink">Back up or restore your Books</summary>
-      <div className="mt-4 space-y-4 text-sm leading-6 text-ink-soft">
-        <p>Your Books stay in this app or browser on this device. Download a copy regularly and keep it somewhere safe. Password protection encrypts the downloaded file; it does not encrypt the Books stored in this app. Signing in does not save or move these records.</p>
-        <p>This is a Books backup: money records, original source data, record decisions and earlier versions. It does not include your Tax Passport, checklist, receipt attachments, account sign-in details or anything already held by HMRC. Files are checked and unlocked on this device and are not uploaded.</p>
+  const exportControls = (
         <fieldset disabled={!!busy} className="space-y-3 rounded-xl border border-line bg-white p-4">
           <legend className="px-1 font-semibold text-ink">Backup file protection</legend>
           <div className="flex flex-wrap gap-4">
@@ -227,12 +234,32 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
             {selected ? "Download the Books currently here" : "Download a Books backup"}
           </Button>
         </fieldset>
+  );
+
+  const content = (
+      <div className="space-y-5 text-sm leading-6 text-ink-soft">
+        <p>Your Books stay in this app or browser on this device. Download a copy regularly and keep it somewhere safe. Password protection encrypts the downloaded file; it does not encrypt the Books stored in this app. Signing in does not save or move these records.</p>
+        <p>This is a Books backup: money records, original source data, record decisions and earlier versions. It does not include your Tax Passport, checklist, receipt attachments, account sign-in details or anything already held by HMRC. Files are checked and unlocked on this device and are not uploaded.</p>
+        {!locked && !selected ? <section aria-labelledby="books-save-heading" className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="books-save-heading" className="text-xl font-semibold text-ink">Save current Books</h2>
+            <a href="#restore-books-backup" className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Restore a backup</a>
+          </div>
+          <p>Create a portable copy of the Books saved here. Choose a new password for this download.</p>
+          {exportControls}
+          {busy === "saving" ? <>
+            <p role="status">Preparing your backup on this device…</p>
+            <Button type="button" variant="outline" onClick={cancel}>Cancel backup operation</Button>
+          </> : null}
+        </section> : null}
+        <section ref={restoreSection} id="restore-books-backup" tabIndex={-1} aria-labelledby="books-restore-heading" className="scroll-mt-24 space-y-4 border-t border-line pt-5">
+          <h2 id="books-restore-heading" className="text-xl font-semibold text-ink">Restore a backup</h2>
         <div>
           <label htmlFor="books-backup-file" className="block font-semibold text-ink">Choose a Books backup to restore</label>
           <p id="books-backup-file-help">Choose a TaxSorted Books backup (.json): up to 14 MB if password-protected, or 10 MB if unencrypted. Older complete-history downloads are not restore files. Restoring replaces all Books currently in this app or browser.</p>
           <input ref={input} id="books-backup-file" type="file" accept=".json,application/json" aria-describedby="books-backup-file-help" disabled={busy === "restoring"} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full rounded-lg border border-line bg-white p-3 text-ink" />
         </div>
-        {busy ? <p role="status">{busy === "checking" ? "Checking your backup…" : busy === "unlocking" ? "Unlocking your backup on this device…" : busy === "saving" ? "Preparing your backup on this device…" : "Replacing your Books…"}</p> : null}
+        {busy && (busy !== "saving" || selected) ? <p role="status">{busy === "checking" ? "Checking your backup…" : busy === "unlocking" ? "Unlocking your backup on this device…" : busy === "saving" ? "Preparing your backup on this device…" : "Replacing your Books…"}</p> : null}
         {locked ? <section aria-labelledby="books-restore-unlock" className="space-y-3 rounded-xl border border-line bg-white p-4">
           <h2 id="books-restore-unlock" className="text-lg font-semibold text-ink">Unlock your backup</h2>
           <p className="break-words">Backup: {locked.name}. Enter its password to check what is inside. Your current Books will stay as they are until you confirm a replacement.</p>
@@ -244,7 +271,7 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
             <Button type="button" variant="outline" onClick={cancel}>Cancel restore</Button>
           </div>
         </section> : null}
-        {busy && !locked && !selected && busy !== "restoring" ? <Button type="button" variant="outline" onClick={cancel}>Cancel backup operation</Button> : null}
+        {busy === "checking" ? <Button type="button" variant="outline" onClick={cancel}>Cancel backup operation</Button> : null}
         {selected ? (
           <section aria-labelledby="books-restore-preview" className="space-y-4 rounded-xl border border-line bg-white p-4">
             <h2 ref={previewHeading} tabIndex={-1} id="books-restore-preview" className="text-lg font-semibold text-ink">Check before replacing your Books</h2>
@@ -258,7 +285,9 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
               </table>
             </div>
             <p>Money records and their decisions are kept. Every business needs confirmation again. Account and HMRC links are removed. Provider connections, update runs and saved progress are not carried into these Books; their old details remain in your backup file. Reconnect providers to check their current records. No figures become ready to file just because you restored a backup.</p>
-            <p>First download the Books currently here using the button above. Then confirm that you have saved that copy.</p>
+            <h3 className="text-lg font-semibold text-ink">Save the Books currently here before replacing them</h3>
+            <p>Choose a password for this safety copy and download it. This password is for the current Books, separate from the backup you are restoring. Check that the file was saved before you confirm below.</p>
+            {exportControls}
             <label className="flex items-start gap-3 text-ink">
               <input type="checkbox" checked={confirmed} disabled={!downloaded || !!busy} onChange={event => setConfirmed(event.currentTarget.checked)} className="mt-1 size-5 shrink-0" />
               <span>I have saved the current Books and understand that restoring will replace them with this backup.</span>
@@ -269,9 +298,18 @@ function BooksBackupControls({ store, onRestored }: BooksBackupProps) {
             </div>
           </section>
         ) : null}
+        </section>
         {error ? <p ref={alert} tabIndex={-1} role="alert" className="rounded-lg border border-line bg-white p-3 text-ink">{error}</p> : null}
         {message ? <p ref={status} tabIndex={-1} role="status" className="rounded-lg border border-line bg-white p-3 text-ink">{message}</p> : null}
       </div>
+  );
+
+  return expanded ? (
+    <section aria-label="Books backup and restore controls" className="mt-8">{content}</section>
+  ) : (
+    <details className="mt-8 rounded-2xl border border-line bg-paper p-5">
+      <summary className="min-h-11 cursor-pointer font-semibold text-ink">Back up or restore your Books</summary>
+      <div className="mt-4">{content}</div>
     </details>
   );
 }

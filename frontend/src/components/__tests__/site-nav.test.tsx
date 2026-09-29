@@ -22,6 +22,21 @@ afterEach(() => {
 
 // SiteNav has a safe English fallback when rendered outside I18nProvider.
 describe("SiteNav", () => {
+  it("opens saved records directly in the desktop app and marks that destination", () => {
+    navigation.local = true;
+    navigation.pathname = "/books/workspace/";
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Money records" })).toHaveAttribute("href", "/books/workspace");
+    expect(screen.getByRole("link", { name: "Money records" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("keeps desktop backup recovery within Money records", () => {
+    navigation.local = true;
+    navigation.pathname = "/books/workspace/backups/";
+    render(<SiteNav />);
+    expect(screen.getByRole("link", { name: "Money records" })).toHaveAttribute("aria-current", "true");
+  });
+
   it("offers local app help instead of an account in the offline app", () => {
     navigation.local = true;
     navigation.pathname = "/download/";

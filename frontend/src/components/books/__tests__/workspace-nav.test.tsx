@@ -16,19 +16,21 @@ const VIEWS: readonly {
   { view: "money", label: "Money", href: "/books/workspace/money" },
   { view: "business", label: "Business", href: "/books/workspace/business" },
   { view: "tax", label: "Tax", href: "/books/workspace/tax" },
+  { view: "backups", label: "Backups", href: "/books/workspace/backups" },
 ];
 
 describe("Books workspace navigation", () => {
-  it("keeps a landlord in the property journey across all four sections", () => {
+  it("keeps a landlord in the property journey across all five sections", () => {
     render(<BooksWorkspaceNav view="money" activity="uk-property" />);
     for (const item of VIEWS) {
       expect(screen.getByRole("link", { name: item.label })).toHaveAttribute("href", `${item.href}?activity=uk-property`);
     }
   });
-  it("uses four static links with plain visible names", () => {
+  it("uses five static links with plain visible names", () => {
     render(<BooksWorkspaceNav view="today" />);
 
     expect(screen.getByRole("navigation", { name: "Books sections" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(5);
     for (const item of VIEWS) {
       expect(screen.getByRole("link", { name: item.label })).toHaveAttribute(
         "href",

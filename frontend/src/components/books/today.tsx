@@ -23,9 +23,9 @@ function nextActions(summary: BooksSummary): NextAction[] {
         body: "Use a file from your bank or current bookkeeping app.",
       },
       {
-        href: "/books/workspace/money#made-up-example",
-        title: "Try a made-up example",
-        body: "See why bank money, income and costs can be different facts.",
+        href: "/books/workspace/backups#restore-books-backup",
+        title: "Restore a Books backup",
+        body: "Bring your Books from another browser or computer. Check the file before replacing anything.",
       },
     ];
   }
@@ -155,6 +155,14 @@ export function BooksToday({ summary, activity }: { summary: BooksSummary; activ
             </li>
           ))}
         </ul>
+        {summary.eventCount === 0 ? (
+          <Link
+            href={withBooksActivity("/books/workspace/money#made-up-example", activity)}
+            className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
+          >
+            Try a made-up example
+          </Link>
+        ) : null}
       </section>
 
       <p role="note" className="rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink-soft">

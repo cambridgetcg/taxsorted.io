@@ -80,7 +80,8 @@ function RecordsWorkspace({
   const focusedStart = useRef<"manual" | "csv" | null>(null);
   const mounted = useMounted();
   const enteredFromBooks = entry === "books";
-  const requestedStart = enteredFromBooks ? searchParams.get("start") : null;
+  const backupsView = enteredFromBooks && view === "backups";
+  const requestedStart = enteredFromBooks && view === "money" ? searchParams.get("start") : null;
   const queryStart = requestedStart === "manual" || requestedStart === "csv" ? requestedStart : null;
   const emptyStart =
     startChoice === null ? queryStart : startChoice === "closed" ? null : startChoice;
@@ -206,20 +207,22 @@ function RecordsWorkspace({
                 { href: "/itsa", label: "Income Tax" },
               ]
         }
-        current={enteredFromBooks ? "Your records" : "Starter Books"}
+        current={backupsView ? "Backups" : enteredFromBooks ? "Your records" : "Starter Books"}
       />
 
       <header className="mt-5">
-        {enteredFromBooks ? <p className="section-label">Books in plain words</p> : null}
+        {enteredFromBooks ? <p className="section-label">{backupsView ? "Money records · Backups" : "Books in plain words"}</p> : null}
         <h1 className={`${enteredFromBooks ? "font-display" : ""} mt-4 text-3xl font-bold text-ink sm:text-4xl`}>
-          {enteredFromBooks ? "Your business money" : "Starter Books"}
+          {backupsView ? "Back up or restore your Books" : enteredFromBooks ? "Your business money" : "Starter Books"}
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-7 text-ink-soft">
-          {enteredFromBooks
+          {backupsView
+            ? "Save a protected copy of your money records, or bring an existing Books backup onto this device. You will review it before replacing anything."
+            : enteredFromBooks
             ? "Keep a checked record of money in and money out. We show what each item changes before it counts."
             : "Bring in money movements, answer one plain question at a time, and keep books you can explain. Suggestions never enter your figures until you confirm them."}
         </p>
-        {enteredFromBooks ? (
+        {enteredFromBooks && !backupsView ? (
           <p className="mt-5 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink-soft">
             <strong className="text-ink">Available now:</strong>{" "}up to one UK sole-trader
             business and one UK property business, kept separate, in pounds, with a 2026–27
@@ -297,6 +300,12 @@ function RecordsWorkspace({
                       Bring in a CSV file
                     </Button>
                   </div>
+                  {enteredFromBooks && events.length === 0 ? (
+                    <p className="mt-4 text-sm leading-6 text-ink-soft">
+                      Already have a Books backup?{" "}
+                      <Link href={withBooksActivity("/books/workspace/backups#restore-books-backup", preferredSource === "uk-property" ? preferredSource : undefined)} className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Restore a Books backup →</Link>
+                    </p>
+                  ) : null}
                   <div className="mt-6">
                     <section
                       id="manual-start-panel"
@@ -488,7 +497,14 @@ function RecordsWorkspace({
               </div>
             </>
           ) : null}
-          <BooksBackup store={store} onRestored={refresh} />
+          {backupsView || !enteredFromBooks ? (
+            <BooksBackup store={store} onRestored={refresh} expanded={backupsView} />
+          ) : (
+            <p className="mt-8 border-t border-line pt-4 text-sm text-ink-soft">
+              Keep a copy outside this app. {" "}
+              <Link href={withBooksActivity("/books/workspace/backups", preferredSource === "uk-property" ? preferredSource : undefined)} className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Back up or restore your Books →</Link>
+            </p>
+          )}
         </>
       )}
     </div>

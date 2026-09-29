@@ -16,9 +16,14 @@ export function LocalAppNotice() {
           <HardDrive size={15} aria-hidden="true" />
           Local app · offline
         </p>
-        <Link href="/download#your-data" className="inline-flex min-h-9 items-center text-ink-soft underline decoration-line-strong underline-offset-4 hover:text-accent">
-          Your data, backups &amp; app limits →
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-5">
+          <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center font-semibold text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep">
+            Back up or restore
+          </Link>
+          <Link href="/download#your-data" className="inline-flex min-h-11 items-center text-ink-soft underline decoration-line-strong underline-offset-4 hover:text-accent">
+            Your data &amp; app limits
+          </Link>
+        </div>
       </div>
     </aside>
   );

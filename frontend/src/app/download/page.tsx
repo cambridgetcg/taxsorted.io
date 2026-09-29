@@ -154,8 +154,8 @@ export default function DownloadPage() {
           <div>
             <h3 className="font-display text-xl font-semibold text-ink">Bring your work, keep a backup</h3>
             <ol className="mt-3 list-decimal space-y-3 ps-5 text-sm leading-6 text-ink-soft">
-              <li>In your existing browser, open Money records and download a password-protected Books backup. Keep its password separately; TaxSorted cannot reset it.</li>
-              <li>In the app’s Money records, choose that backup and unlock its preview. Save a protected copy of the current Books, review the contents and confirm the restore. Restoring replaces the Books already in that app.</li>
+              <li>In your existing browser, open Money records → Backups and download a password-protected Books backup. Keep its password separately; TaxSorted cannot reset it.</li>
+              <li>In the app’s Backups page, choose that backup and unlock its preview. Save a protected copy of the current Books, review the contents and confirm the restore. Restoring replaces the Books already in that app.</li>
               <li>Export your Passport separately as JSON or an adviser handover. Passport exports are portable copies; Passport import is not available yet.</li>
             </ol>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
@@ -166,6 +166,7 @@ export default function DownloadPage() {
           </div>
         </div>
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-6 text-sm font-semibold text-accent">
+          <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Back up or restore Books →</Link>
           <Link href="/books/workspace" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Money records →</Link>
           <Link href="/passport" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Passport →</Link>
           <Link href="/trust" className="inline-flex min-h-10 items-center underline underline-offset-4">All product boundaries →</Link>

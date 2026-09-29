@@ -129,13 +129,14 @@ export function SiteNav() {
           className={`${menuOpen ? "flex" : "hidden"} soft-shadow w-full max-w-full flex-col divide-y divide-line rounded-2xl border border-line bg-surface p-2 xl:flex xl:w-auto xl:flex-row xl:items-center xl:gap-1 xl:divide-y-0 xl:rounded-full xl:p-1 xl:shadow-sm`}
         >
           {DOORS.map((door) => {
-            const state = doorState(door, pathname);
+            const href = localApp && door.href === "/books" ? "/books/workspace" : door.href;
+            const state = doorState({ ...door, href }, pathname);
             const { labelId, descId } = doorIds(door.href);
 
             return (
               <Link
                 key={door.href}
-                href={door.href}
+                href={href}
                 onClick={closeMenu}
                 aria-current={ariaCurrentFor(state)}
                 aria-labelledby={labelId}

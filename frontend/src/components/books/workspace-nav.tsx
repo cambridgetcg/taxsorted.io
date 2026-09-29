@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { SourceType } from "@taxsorted/engine/uk/itsa";
 import { withBooksActivity } from "@/lib/books-navigation";
 
-export type BooksWorkspaceNavView = "today" | "money" | "business" | "tax";
+export type BooksWorkspaceNavView = "today" | "money" | "business" | "tax" | "backups";
 
 const VIEWS: readonly {
   view: BooksWorkspaceNavView;
@@ -13,10 +13,11 @@ const VIEWS: readonly {
   { view: "money", href: "/books/workspace/money", label: "Money" },
   { view: "business", href: "/books/workspace/business", label: "Business" },
   { view: "tax", href: "/books/workspace/tax", label: "Tax" },
+  { view: "backups", href: "/books/workspace/backups", label: "Backups" },
 ];
 
 /**
- * Four ordinary links into the Books workspace. These are navigation, not an
+ * Ordinary links into the Books workspace. These are navigation, not an
  * ARIA tab widget: every destination has its own URL and normal browser
  * back/forward behaviour. The visible word is also the accessible name.
  */

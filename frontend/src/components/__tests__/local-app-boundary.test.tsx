@@ -36,11 +36,12 @@ describe("offline app navigation", () => {
     expect(screen.getByText("Account form")).toBeInTheDocument();
   });
 
-  it("labels the desktop runtime and gives direct access to its data explanation", () => {
+  it("links straight to recovery as well as the desktop data explanation", () => {
     runtime.local = true;
     render(<LocalAppNotice />);
     expect(screen.getByText("Local app · offline")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /your data, backups/i })).toHaveAttribute("href", "/download#your-data");
+    expect(screen.getByRole("link", { name: "Back up or restore" })).toHaveAttribute("href", "/books/workspace/backups");
+    expect(screen.getByRole("link", { name: /your data & app limits/i })).toHaveAttribute("href", "/download#your-data");
   });
 
   it("does not claim website sessions are offline", () => {

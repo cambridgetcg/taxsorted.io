@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { LOCAL_ORIGIN, isLocalUrl, isLocalBlob, externalWebUrl } = require('./local-policy.cjs');
 const { createLocalHandler } = require('./local-protocol.cjs');
+const { createNavigationMenu } = require('./navigation-menu.cjs');
 
 app.setName('TaxSorted Local');
 app.enableSandbox();
@@ -18,6 +19,7 @@ app.setPath('sessionData', dataDirectory);
 
 let mainWindow;
 let externalPromptOpen = false;
+const navigation = createNavigationMenu({ getWindow: () => mainWindow, getMenu: () => Menu.getApplicationMenu() });
 
 async function openWebsite(value) {
   const url = externalWebUrl(value);
@@ -54,6 +56,7 @@ function createWindow(localSession) {
   });
   mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.on('closed', () => { mainWindow = undefined; });
+  navigation.bind(mainWindow);
   openPage('/');
 }
 
@@ -83,10 +86,12 @@ if (!app.requestSingleInstanceLock()) {
       { label: 'File', submenu: [
         { label: 'Home', click: () => openPage('/') },
         { label: 'My checklist', click: () => openPage('/checkup/') },
-        { label: 'Records and backups', click: () => openPage('/books/workspace/money/') },
+        { label: 'Money records', click: () => openPage('/books/workspace/') },
+        { label: 'Back up or restore Books', click: () => openPage('/books/workspace/backups/') },
         { type: 'separator' }, { role: process.platform === 'darwin' ? 'close' : 'quit' },
       ] },
       { role: 'editMenu' },
+      navigation.template,
       { label: 'View', submenu: [{ role: 'reload' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] },
       { label: 'Help', submenu: [
         { label: 'Your data and local setup', click: () => openPage('/download/#your-data') },

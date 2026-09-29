@@ -17,7 +17,7 @@ async function regularFiles(root, relative = '') {
 
 async function inspectPackage(resources, project = path.resolve(__dirname, '../..')) {
   const archive = path.join(resources, 'app.asar');
-  const permitted = ['package.json', 'src/local-policy.cjs', 'src/local-protocol.cjs', 'src/main.cjs'];
+  const permitted = ['package.json', 'src/local-policy.cjs', 'src/local-protocol.cjs', 'src/main.cjs', 'src/navigation-menu.cjs'];
   const files = [];
   for (const name of asar.listPackage(archive)) {
     const relative = name.replace(/^[/\\]/, '').replaceAll('\\', '/');

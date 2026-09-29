@@ -78,5 +78,7 @@ describe("MTD records entry", () => {
     expect(businessCheck.compareDocumentPosition(backup) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.queryByRole("navigation", { name: "Books sections" })).not.toBeInTheDocument();
+    const recovery = screen.getByText("Back up or restore your Books").closest("details");
+    expect(recovery).not.toHaveAttribute("open");
   });
 });

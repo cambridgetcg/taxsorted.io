@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BooksBackup } from "../books-backup";
@@ -13,9 +13,12 @@ const downloads: Blob[] = [];
 const PASSWORD = "synthetic backup phrase only";
 const REPLACE_ACK = "I have saved the current Books and understand that restoring will replace them with this backup.";
 const PASSWORD_ACK = "I understand that TaxSorted cannot reset this password or recover the backup without it.";
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
 
 beforeEach(() => {
   downloads.length = 0;
+  window.history.replaceState({}, "", "/");
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { value: vi.fn(), configurable: true });
   vi.stubGlobal("crypto", webcrypto);
   vi.stubGlobal("URL", class extends URL {
     static createObjectURL(blob: Blob) { downloads.push(blob); return "blob:books-backup-test"; }
@@ -23,7 +26,12 @@ beforeEach(() => {
   });
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
 });
-afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals();
+  window.history.replaceState({}, "", "/");
+  if (originalScrollIntoView) Object.defineProperty(HTMLElement.prototype, "scrollIntoView", originalScrollIntoView);
+  else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+});
 
 function file(json: string, name = "books-backup.json") {
   const selected = new File([json], name, { type: "application/json" });
@@ -44,7 +52,7 @@ function blobText(blob: Blob): Promise<string> {
   });
 }
 
-async function setup() {
+async function setup({ expanded = false } = {}) {
   const backend = new Map();
   const store = createRecordsStore(backend);
   const current = await store.add(INCOME);
@@ -54,8 +62,8 @@ async function setup() {
   await source.confirmLedger(incoming.ledgerId);
   const json = await source.exportBackup();
   const refreshed = vi.fn(async () => undefined);
-  const view = render(<BooksBackup store={store} onRestored={refreshed} />);
-  fireEvent.click(screen.getByText("Back up or restore your Books"));
+  const view = render(<BooksBackup store={store} onRestored={refreshed} expanded={expanded} />);
+  if (!expanded) fireEvent.click(screen.getByText("Back up or restore your Books"));
   return { backend, store, current, incoming, json, refreshed, ...view };
 }
 
@@ -91,6 +99,41 @@ function delayNextBackupOperation(operation: "encryptBooksBackup" | "decryptBook
 }
 
 describe("Books backup and restore controls", () => {
+  it("shows separate save and restore sections immediately in the dedicated view", async () => {
+    await setup({ expanded: true });
+    expect(screen.getByRole("heading", { name: "Save current Books" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Restore a backup" })).toBeVisible();
+    expect(screen.getByLabelText("Choose a Books backup to restore")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Restore a backup" })).toHaveAttribute("href", "#restore-books-backup");
+    expect(screen.getByRole("region", { name: "Books backup and restore controls" }).closest("details")).toBeNull();
+  });
+
+  it("focuses a directly requested restore section once after mounting without interrupting later typing", async () => {
+    window.history.replaceState({}, "", "/books/workspace/backups#restore-books-backup");
+    await setup({ expanded: true });
+    const restore = screen.getByRole("region", { name: "Restore a backup" });
+    await waitFor(() => expect(restore).toHaveFocus());
+    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: "start" });
+    expect(vi.mocked(HTMLElement.prototype.scrollIntoView).mock.contexts[0]).toBe(restore);
+    const password = screen.getByLabelText("Backup password", { exact: true });
+    password.focus();
+    fireEvent.change(password, { target: { value: "synthetic draft" } });
+    expect(password).toHaveFocus();
+    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledOnce();
+  });
+
+  it.each(["", "#unrelated"])("does not move focus for ordinary Backups navigation with fragment %s", async fragment => {
+    window.history.replaceState({}, "", `/books/workspace/backups${fragment}`);
+    const focused = document.createElement("button");
+    document.body.appendChild(focused);
+    focused.focus();
+    try {
+      await setup({ expanded: true });
+      expect(focused).toHaveFocus();
+      expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled();
+    } finally { focused.remove(); }
+  });
+
   it("downloads only an encrypted backup by default and clears the transient password controls", async () => {
     const { current } = await setup();
     const downloadButton = screen.getByRole("button", { name: "Download a Books backup" });
@@ -119,6 +162,11 @@ describe("Books backup and restore controls", () => {
     choose(file(json));
     await screen.findByRole("heading", { name: "Check before replacing your Books" });
     expect(screen.getByText("Unencrypted backup.")).toBeInTheDocument();
+    const preview = screen.getByRole("region", { name: "Check before replacing your Books" });
+    const safetyCopy = within(preview).getByRole("group", { name: "Backup file protection" });
+    const confirmation = within(preview).getByRole("checkbox", { name: REPLACE_ACK });
+    expect(safetyCopy.compareDocumentPosition(confirmation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Save current Books" })).not.toBeInTheDocument();
     expect(screen.getByRole("table", { name: "Current Books and selected backup" })).toHaveTextContent("Earlier record versions");
     expect(screen.getByText(/Every business needs confirmation again/)).toBeInTheDocument();
     const replace = screen.getByRole("button", { name: "Replace these Books with the backup" });
@@ -249,6 +297,8 @@ describe("Books backup and restore controls", () => {
     const before = structuredClone([...backend]);
     choose(file(await encryptBooksBackup(json, PASSWORD), "protected.json"));
     const password = await screen.findByLabelText("Password for this backup");
+    expect(screen.queryByLabelText("Backup password", { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Repeat backup password")).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Check before replacing your Books" })).not.toBeInTheDocument();
     fireEvent.change(password, { target: { value: "wrong synthetic password" } });
     fireEvent.click(screen.getByRole("button", { name: "Unlock preview" }));

@@ -21,6 +21,7 @@ describe("local app setup and data boundaries", () => {
     expect(screen.getByText(/Passport import is not available yet/)).toBeInTheDocument();
     expect(screen.getByText(/Restoring replaces the Books already in that app/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open money records/i })).toHaveAttribute("href", "/books/workspace");
+    expect(screen.getByRole("link", { name: /back up or restore Books/i })).toHaveAttribute("href", "/books/workspace/backups");
     expect(screen.getByRole("link", { name: /open passport/i })).toHaveAttribute("href", "/passport");
   });
 

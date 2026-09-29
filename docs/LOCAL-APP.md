@@ -106,7 +106,7 @@ for compatibility. Other exports, including Passport and CSV, remain unencrypted
 This is not an adviser multi-client security boundary. Use device encryption, separate
 OS accounts where needed, and a protected backup location for sensitive records.
 
-Use **Money records → Back up or restore your Books** to save a deliberate backup and
+Use **Money records → Backups** to save a deliberate backup and
 move Books between the website and desktop edition. Existing website storage is not
 imported automatically. [Books backup and restore](BOOKS-BACKUP.md) documents replacement
 confirmation, password protection, restore checks and its exact coverage. Keep the
@@ -119,6 +119,21 @@ workspace backup in this release.
 Removing app data or an OS account can remove local records. The Windows installer is
 configured to retain app data on uninstall. Do not rely on uninstall or reinstall as a
 backup procedure on any OS.
+
+## Finding your way around
+
+The desktop **Money records** navigation opens the saved workspace directly.
+**Backups** has its own Books section; the local status bar and **File → Back up or
+restore Books** also open it. An empty workspace offers restore beside manual entry
+and CSV import. Save, unlock, preview and the required safety copy use the same
+local Books store and protection checks.
+
+**Navigate → Back / Forward** follows the current window's page history, including
+Books activity choices. macOS uses `Cmd+[` / `Cmd+]`; Windows and Linux use
+`Alt+Left` / `Alt+Right`. A command is disabled when there is no page in that
+direction. These commands navigate pages; they do not undo record changes or save
+unfinished forms. Leaving Backups clears transient passwords, file selection and
+restore preview. Returning requires selecting the file again.
 
 ## Network and integration boundaries
 

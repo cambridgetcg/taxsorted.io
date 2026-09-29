@@ -331,6 +331,18 @@ async function run(options) {
     stage = 'create synthetic checklist and Books record';
     const baselineNote = `Synthetic runtime smoke ${runId} baseline`;
     const extraNote = `Synthetic runtime smoke ${runId} after backup`;
+    async function historyCommand(id) {
+      return evaluate(({ Menu }, commandId) => {
+        const item = Menu.getApplicationMenu()?.getMenuItemById(commandId);
+        if (!item || !item.enabled) return false;
+        item.click();
+        return true;
+      }, id);
+    }
+    async function booksSection(name, route) {
+      await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name, exact: true }).click();
+      await page.waitForURL(propertyRoute(route));
+    }
     async function addRecord(note, amount) {
       // Empty Books use a button; populated Books use a native details summary.
       await page.locator('button, summary').filter({ hasText: /^Add money in or out$/ }).click();
@@ -352,11 +364,35 @@ async function run(options) {
     // transition. A click can finish before a client-side URL update does.
     await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name: 'Today', exact: true }).click();
     await page.waitForURL(propertyRoute('/books/workspace'));
+    stage = 'open the empty-workspace restore action with keyboard focus';
+    await page.getByRole('link', { name: 'Restore a Books backup', exact: true }).click();
+    await page.waitForURL(propertyRoute('/books/workspace/backups'));
+    await waitUntil(() => page.locator('#restore-books-backup').evaluate(element => document.activeElement === element), 'focus the requested restore section');
+    assert.equal(await historyCommand('navigation-back'), true);
+    await page.waitForURL(propertyRoute('/books/workspace'));
     await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name: 'Money', exact: true }).click();
+    await page.waitForURL(propertyRoute('/books/workspace/money'));
+    stage = 'verify native history commands preserve property context';
+    const menuState = await evaluate(({ Menu }) => {
+      const menu = Menu.getApplicationMenu();
+      return ['navigation-back', 'navigation-forward'].map(id => {
+        const item = menu?.getMenuItemById(id);
+        return item ? { label: item.label, enabled: item.enabled, accelerator: item.accelerator } : null;
+      });
+    });
+    assert.deepEqual(menuState, [
+      { label: 'Back', enabled: true, accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Alt+Left' },
+      { label: 'Forward', enabled: false, accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Alt+Right' },
+    ]);
+    assert.equal(await historyCommand('navigation-back'), true);
+    await page.waitForURL(propertyRoute('/books/workspace'));
+    await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name: 'Today', exact: true }).waitFor();
+    await waitUntil(() => evaluate(({ Menu }) => Menu.getApplicationMenu()?.getMenuItemById('navigation-forward')?.enabled), 'enable forward after client navigation');
+    assert.equal(await historyCommand('navigation-forward'), true);
     await page.waitForURL(propertyRoute('/books/workspace/money'));
     stage = 'save synthetic Books record';
     await addRecord(baselineNote, '123.45');
-    check('Client navigation retains landlord activity; synthetic checklist and money record saved');
+    check('Client navigation and native Back/Forward retain landlord activity; synthetic checklist and money record saved');
 
     stage = 'verify persistence across app quit and restart';
     await closeApp();
@@ -433,22 +469,36 @@ async function run(options) {
 
     stage = 'export and restore synthetic Books with required confirmation';
     const backup = path.join(temporary, 'books-backup.json');
-    await page.getByText('Back up or restore your Books', { exact: true }).click();
+    await booksSection('Backups', '/books/workspace/backups');
+    await page.getByLabel('Backup password', { exact: true }).waitFor();
     stage = 'export encrypted synthetic Books backup and independently decrypt it';
     await prepareProtectedDownload();
     const exported = await exportBackup('Download a Books backup', backup);
     assert.equal(JSON.stringify(exported).includes(baselineNote), false);
     assert.ok(JSON.stringify(readProtectedExport(exported)).includes(baselineNote));
     stage = 'add later synthetic record to verify actual backup replacement';
+    await booksSection('Money', '/books/workspace/money');
     await addRecord(extraNote, '9.99');
     stage = 'reject a wrong backup password without replacing current Books';
+    await booksSection('Backups', '/books/workspace/backups');
     await page.getByLabel('Choose a Books backup to restore', { exact: true }).setInputFiles(backup);
     await page.getByLabel('Password for this backup', { exact: true }).fill(randomBytes(32).toString('base64'));
     await page.getByRole('button', { name: 'Unlock preview', exact: true }).click();
     await page.getByRole('alert').waitFor();
     assert.equal(await page.getByRole('heading', { name: 'Check before replacing your Books', exact: true }).count(), 0);
+    await booksSection('Money', '/books/workspace/money');
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
     await page.getByText(extraNote, { exact: true }).first().waitFor();
+    stage = 'verify history return clears transient backup controls';
+    assert.equal(await historyCommand('navigation-back'), true);
+    await page.waitForURL(propertyRoute('/books/workspace/backups'));
+    const restoreFile = page.getByLabel('Choose a Books backup to restore', { exact: true });
+    await restoreFile.waitFor();
+    assert.equal(await restoreFile.inputValue(), '');
+    assert.equal(await page.getByLabel('Backup password', { exact: true }).inputValue(), '');
+    assert.equal(await page.getByLabel('Password for this backup', { exact: true }).count(), 0);
+    assert.equal(await page.getByRole('heading', { name: 'Check before replacing your Books', exact: true }).count(), 0);
+    await restoreFile.setInputFiles(backup);
     stage = 'unlock encrypted preview and require backup confirmation';
     await page.getByLabel('Password for this backup', { exact: true }).fill(backupPassword);
     await page.getByRole('button', { name: 'Unlock preview', exact: true }).click();
@@ -463,6 +513,7 @@ async function run(options) {
     await page.getByRole('checkbox', { name: 'I have saved the current Books and understand that restoring will replace them with this backup.', exact: true }).check();
     await page.getByRole('button', { name: 'Replace these Books with the backup', exact: true }).click();
     await page.getByText(/Your Books were replaced\./).waitFor();
+    await booksSection('Money', '/books/workspace/money');
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
     // The success notice precedes the asynchronous ledger refresh.
     await page.getByText(extraNote, { exact: true }).waitFor({ state: 'detached' });
@@ -472,6 +523,18 @@ async function run(options) {
       independentDecryption: true, wrongPasswordPreservedRecords: true,
       encryptedSafetyCopy: true, confirmedRestore: true,
     };
+    stage = 'open recovery directly from the native File menu';
+    const openedBackupPage = await evaluate(({ Menu }) => {
+      const file = Menu.getApplicationMenu()?.items.find(item => item.label === 'File');
+      const recovery = file?.submenu?.items.find(item => item.label === 'Back up or restore Books');
+      if (!recovery || !recovery.enabled) return false;
+      recovery.click();
+      return true;
+    });
+    assert.equal(openedBackupPage, true);
+    await page.waitForURL(url => url.pathname.replace(/\/$/, '') === '/books/workspace/backups' && !url.search);
+    await page.getByLabel('Choose a Books backup to restore', { exact: true }).waitFor();
+    report.navigation = { nativeBackForward: true, propertyContextRetained: true, restoreLinkFocused: true, backupStateClearedOnReturn: true, directBackupMenu: true };
     check('Encrypted export and safety copy independently decrypt; wrong password preserves Books; confirmed restore removes later synthetic record');
 
     stage = 'verify external-link cancellation and explicit handoff';
