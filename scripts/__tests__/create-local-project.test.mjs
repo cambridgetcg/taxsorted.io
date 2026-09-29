@@ -61,6 +61,32 @@ test("copies current tracked and new source; excludes personal/generated paths e
   }
 });
 
+test("copies the reviewed Backups route without admitting adjacent or generated backup material", (t) => {
+  const f = fixture(t);
+  const route = "frontend/src/app/books/workspace/backups/page.tsx";
+  const source = "export default function BackupsPage() { return null; }\n";
+  f.write(route, source);
+  const excluded = [
+    "frontend/src/app/books/workspace/backups/personal-books.json",
+    "frontend/src/app/books/workspace/backups/notes.txt",
+    "frontend/src/app/books/workspace/backups/private/page.tsx",
+    "frontend/src/app/books/workspace/backups/backups/page.tsx",
+    "frontend/src/app/books/workspace/backup/page.tsx",
+    "frontend/src/app/books/workspace/money/backups/page.tsx",
+    "frontend/src/app/books/workspace/money/taxsorted-books-backup.json",
+    "frontend/out/books/workspace/backups/index.html",
+    "desktop/bundle/books/workspace/backups/index.html",
+    "docs/backups/personal-books.json",
+  ];
+  for (const file of excluded) f.write(file, "synthetic personal or generated fixture\n");
+  f.git("add", "--force", ".");
+
+  createLocalProject(f);
+
+  assert.equal(readFileSync(path.join(f.targetDir, route), "utf8"), source);
+  for (const file of excluded) assert.equal(existsSync(path.join(f.targetDir, file)), false, "route exception does not admit backup data or generated files");
+});
+
 test("never follows source file or ancestor symlinks", { skip: process.platform === "win32" ? "Windows symlink privileges vary" : false }, (t) => {
   const f = fixture(t);
   const outside = path.join(f.base, "outside");

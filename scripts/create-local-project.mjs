@@ -37,6 +37,9 @@ const BLOCKED_DIRECTORIES = new Set([
 const PRIVATE_NAME = /(^|[._-])(secrets?|credentials?|passwords?|cookies?)([._-]|$)/i;
 const PRIVATE_DATA_NAME = /(^|[._-])(auth|sessions?|tokens?|backups?|exports?|private|profile)([._-]|$)/i;
 const DATA_EXTENSION = /\.(jsonc?|ya?ml|txt|toml)$/i;
+// This reviewed route is application source despite its data-directory name.
+// Keep the exception file-specific so adjacent personal backups stay excluded.
+const BACKUPS_ROUTE_SOURCE = "frontend/src/app/books/workspace/backups/page.tsx";
 
 /** Conservative path policy, not an inspection of arbitrary file contents. */
 export function isAllowedSourcePath(relativePath) {
@@ -46,7 +49,7 @@ export function isAllowedSourcePath(relativePath) {
   const name = parts.at(-1);
   if (parts.some((part) => part.toLowerCase().startsWith(".env"))) return false;
   if (parts.some((part) => PRIVATE_NAME.test(part))) return false;
-  if (parts.slice(0, -1).some((part) => BLOCKED_DIRECTORIES.has(part.toLowerCase()))) return false;
+  if (relativePath !== BACKUPS_ROUTE_SOURCE && parts.slice(0, -1).some((part) => BLOCKED_DIRECTORIES.has(part.toLowerCase()))) return false;
   if (/\.local(?:\.|$)/i.test(name) || /\.tsbuildinfo$/i.test(name)) return false;
   if (DATA_EXTENSION.test(name) && PRIVATE_DATA_NAME.test(name)) return false;
   if (parts.length === 1) return ROOT_FILES.has(name);

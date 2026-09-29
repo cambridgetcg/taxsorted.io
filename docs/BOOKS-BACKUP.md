@@ -137,6 +137,10 @@ restore with a protected safety copy. Test backends and controlled IndexedDB dou
 are disposable; no real person's browser records were used. The
 [September 12 verification record](RELEASE-HARDENING-2026-09-12.md) preserves the
 historical parser/store results and that earlier campaign's unavailable walkthrough.
-The [protected recovery campaign](testing/2026-09-29-protected-books.md) records this
-increment's encryption, UI and native runtime evidence. Cross-browser recovery and
+The [protected recovery campaign](testing/2026-09-29-protected-books.md) records the
+initial encryption and UI evidence. The current
+[navigation and recovery campaign](testing/2026-09-29-desktop-navigation.md) records
+the direct Backups page, focus and native history checks, and explicitly observes
+wrong-password rejection before checking that current records remain unchanged.
+All 12 current native runtime reports pass that stronger assertion. Cross-browser recovery and
 real native dialogs remain part of the manual acceptance plan for a broader release.

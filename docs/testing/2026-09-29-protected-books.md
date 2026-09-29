@@ -3,6 +3,11 @@
 **Native automated matrix: PASS on all four targets. Manual consumer acceptance:
 NOT RUN.**
 
+This historical campaign predates the direct Backups page and native history
+navigation. Use the [later campaign](2026-09-29-desktop-navigation.md) for the current
+handoff and corrected wrong-password observation: this campaign's broad alert wait
+did not establish that rejection had occurred before inspecting saved records.
+
 Books downloads now default to password protection. Restore unlocks a preview on
 the device, requires an encrypted copy of the Books currently present, and retains
 the existing explicit replacement confirmation and atomic storage guard. Ordinary

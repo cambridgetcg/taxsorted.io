@@ -42,7 +42,7 @@ profile contents. Use test labels and record only settings material to the resul
 | Manual case | Status | Observation / minimal evidence reference |
 |---|---|---|
 | M01 Native installation, trust prompts, launch and profile | NOT RUN | |
-| M02 Audience routes, keyboard, zoom and narrow window | NOT RUN | |
+| M02 Audience routes, native Back/Forward, restore focus, zoom and narrow window | NOT RUN | |
 | M03 Native CSV picker cancel/import and two-row review | NOT RUN | |
 | M04 Native export Save cancel/save | NOT RUN | |
 | M05 Restore picker/confirmation cancellation preserves data | NOT RUN | |

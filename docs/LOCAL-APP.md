@@ -209,10 +209,20 @@ Use the [desktop validation plan](DESKTOP-TESTING.md) and its per-target result
 template for Windows 11, Ubuntu and Intel Mac acceptance. It separates CI smoke
 checks from real installation, native dialogs, network-off use and data recovery.
 
-The [protected Books campaign](testing/2026-09-29-protected-books.md) passed all four
+The current [navigation and recovery campaign](testing/2026-09-29-desktop-navigation.md)
+passed all four native installer jobs at
+`fd73870d08e3e14fbd279c924e012539c4b973ee`. All 12 source, unpacked and installed
+runtime reports verify the five navigation assertions and six backup assertions,
+including explicit observation of wrong-password rejection. Each target passed
+864 frontend and 388 engine tests; the report records platform-specific desktop,
+scaffold, installer and cleanup results. Manual consumer acceptance remains NOT RUN.
+
+The earlier [protected Books campaign](testing/2026-09-29-protected-books.md) passed all four
 native installer jobs at `261cf6ae90eebc923409cd7f618e5cb6f6bd88cb`. Its 12 source,
 unpacked and installed runtime reports verify encrypted export, independent
-decryption, wrong-password refusal, encrypted safety copy and confirmed restore.
+decryption, encrypted safety copy and confirmed restore. Its broad alert wait did
+not establish observed wrong-password rejection; that assertion is covered by the
+corrected campaign above.
 Each target passed 850 frontend and 388 engine tests; the report records desktop,
 scaffold and cleanup results plus the remaining manual acceptance boundaries.
 
@@ -268,12 +278,14 @@ DMG into Applications or use a real person's tax records. The later native campa
 ran the complete packaged smoke on all four targets; its consumer installation,
 native dialog and upgrade limitations are recorded in the campaign report.
 
-The current protected-backup artifacts are under `desktop/dist/protected-books-36578036975/`, with
-per-platform installers/archives, checksum lists and sanitised test evidence. The
-`TaxSorted-Local-0.1.0-test-source.zip` handoff in that directory is regenerated after
-the protected recovery report is committed, using the scaffold exclusions and no
-installed dependencies. Earlier local preview artifacts remain in `desktop/dist`
-as historical evidence; the old Linux AppImage is retired. macOS previews have
+The current navigation and recovery artifacts are under
+`desktop/dist/friction-36601360712/`, with per-platform installers/archives,
+checksum lists and sanitised test evidence. The
+`TaxSorted-Local-0.1.0-test-source.zip` handoff in that directory uses the scaffold
+exclusions and contains no installed dependencies. Its README identifies the native
+tested revision and the later source/documentation revision. Earlier local preview
+artifacts remain in `desktop/dist` as historical evidence; the old Linux AppImage is
+retired. macOS previews have
 ad-hoc integrity signatures. Earlier installer campaigns predate password-protected
 Books backups; each result applies to its recorded revision. No production release,
 developer signing or notarisation was performed.
