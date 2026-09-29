@@ -1,0 +1,157 @@
+name: Test and build local desktop previews
+
+on:
+  workflow_dispatch:
+  # Bootstrap native tests without merging this new workflow into production.
+  push:
+    branches: [feat/service-oriented-rebuild-20260929]
+    paths:
+      - .github/workflows/desktop-build.yml
+      - desktop/**
+      - frontend/**
+      - engine/**
+      - api/**
+      - research/**
+      - regs/**
+      - content/**
+      - scripts/**
+      - package.json
+      - package-lock.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple silicon
+            os: macos-15
+            target: --mac --arm64
+            platform: darwin
+            arch: arm64
+            executable: desktop/dist/mac-arm64/TaxSorted Local.app/Contents/MacOS/TaxSorted Local
+            resources: desktop/dist/mac-arm64/TaxSorted Local.app/Contents/Resources
+            artifact: taxsorted-macos-arm64-preview
+          - name: macOS Intel
+            os: macos-15-intel
+            target: --mac --x64
+            platform: darwin
+            arch: x64
+            executable: desktop/dist/mac/TaxSorted Local.app/Contents/MacOS/TaxSorted Local
+            resources: desktop/dist/mac/TaxSorted Local.app/Contents/Resources
+            artifact: taxsorted-macos-x64-preview
+          - name: Windows
+            os: windows-2025
+            target: --win --x64
+            platform: win32
+            arch: x64
+            executable: desktop/dist/win-unpacked/TaxSorted Local.exe
+            resources: desktop/dist/win-unpacked/resources
+            artifact: taxsorted-windows-x64-preview
+          - name: Linux
+            os: ubuntu-24.04
+            target: --linux --x64
+            platform: linux
+            arch: x64
+            executable: desktop/dist/linux-unpacked/taxsorted-local
+            resources: desktop/dist/linux-unpacked/resources
+            artifact: taxsorted-linux-x64-preview
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install local app workspaces
+        run: npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+      - name: Test source scaffold
+        run: node --test scripts/__tests__/create-local-project.test.mjs
+      - name: Test shared tools and calculation engine
+        run: npm run test --workspace frontend --workspace @taxsorted/engine
+      - name: Test desktop boundaries
+        run: npm test --workspace @taxsorted/desktop
+      - name: Build and stage local frontend
+        run: npm run desktop:build
+      - name: Package unsigned preview
+        run: npm run package --workspace @taxsorted/desktop -- ${{ matrix.target }}
+      - name: Inspect packaged runtime and pages
+        run: npm run desktop:inspect -- "--resources=${{ matrix.resources }}" --write-evidence
+      - name: Prepare Linux graphical session and sandbox prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y xvfb xauth libgtk-3-0t64 libnss3 libasound2t64 libgbm1 libxss1 libatk-bridge2.0-0t64 libfuse2t64 apparmor-utils
+          if test -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns && test "$(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns)" = 1; then
+            node desktop/testing/linux-userns-profile.cjs > "$RUNNER_TEMP/taxsorted-ci-apparmor"
+            sudo install -m 0644 "$RUNNER_TEMP/taxsorted-ci-apparmor" /etc/apparmor.d/taxsorted-ci
+            sudo apparmor_parser -r /etc/apparmor.d/taxsorted-ci
+          fi
+      - name: Check native environment
+        if: runner.os != 'Linux'
+        run: npm run desktop:doctor -- --expect-platform=${{ matrix.platform }} --expect-arch=${{ matrix.arch }} --require-bundle
+      - name: Check Linux environment
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run desktop:doctor -- --expect-platform=linux --expect-arch=x64 --require-bundle
+      - name: Test source runtime
+        if: runner.os != 'Linux'
+        run: npm run desktop:smoke -- --mode=source
+      - name: Test packaged runtime in fresh runner account
+        if: runner.os != 'Linux'
+        run: npm run desktop:smoke -- --mode=packaged "--executable=${{ matrix.executable }}" --disposable-os-account
+      - name: Test Linux source and unpacked runtime
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          xvfb-run -a -s '-screen 0 1280x900x24' npm run desktop:smoke -- --mode=source
+          xvfb-run -a -s '-screen 0 1280x900x24' npm run desktop:smoke -- --mode=packaged "--executable=${{ matrix.executable }}" --disposable-os-account
+      - name: Record artifact checksums
+        run: npm run desktop:checksums
+      - name: Save sanitised test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}-test-evidence
+          path: |
+            desktop/test-results/source-smoke.json
+            desktop/test-results/packaged-smoke.json
+            desktop/test-results/package-inspection.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Save preview artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/*.exe
+            desktop/dist/*.AppImage
+            desktop/dist/SHA256SUMS.txt
+            desktop/dist/artifact-manifest.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove scoped Linux CI profile
+        if: always() && runner.os == 'Linux'
+        shell: bash
+        run: |
+          if test -f /etc/apparmor.d/taxsorted-ci; then
+            sudo apparmor_parser -R /etc/apparmor.d/taxsorted-ci
+            sudo rm /etc/apparmor.d/taxsorted-ci
+          fi

@@ -1,0 +1,255 @@
+# Desktop validation plan
+
+Prepare and test one identifiable build on each target before describing it as a
+tested download. This plan and its [result template](testing/desktop-result-template.md)
+start at **NOT RUN**. Earlier Apple silicon checks are recorded separately in
+[Local app](LOCAL-APP.md#verification-and-next-work); they do not cover Windows,
+Linux or Intel hardware. Preparing this plan does not dispatch a workflow, start a
+VM or publish an artifact.
+
+## Environments and what each establishes
+
+| Target | Automated environment | Manual acceptance environment | Campaign status |
+|---|---|---|---|
+| Windows x64 | `windows-2025` | Windows 11 x64 VM on an x64 host, fresh standard local test account | NOT RUN |
+| Linux x64 | `ubuntu-24.04`, Xvfb | Ubuntu 24.04 x64 Desktop, GNOME graphical session, fresh test account | NOT RUN |
+| Intel Mac x64 | `macos-15-intel` | Actual supported Intel Mac running macOS 15, fresh standard test account | NOT RUN |
+| Apple silicon control | `macos-15` | Apple silicon Mac running macOS 15, fresh standard test account | NOT RUN |
+
+The pinned labels select the architectures listed in
+[GitHub's runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+`windows-2025` uses [Windows Server 2025](https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md).
+Its executable smoke test does not establish Windows 11 installer, SmartScreen or
+ordinary-user behaviour. Likewise, an Xvfb launch does not establish GNOME's real
+file dialogs or AppImage mounting.
+
+Rosetta on Apple silicon is a supplemental x64 compatibility check. It translates
+Intel applications, so it cannot substitute for the Intel hardware row.
+[Apple describes that translation](https://support.apple.com/en-us/102527).
+Windows on ARM emulation and x64 QEMU software emulation are also supplemental,
+and must be labelled as such. A Docker CLI, emulator or VM application's presence
+does not establish a running target OS.
+
+## Prepare a disposable test environment
+
+1. Use a dedicated VM/device and synthetic data only. Keep personal accounts,
+   cloud drive mounts, browser sessions, passwords, signing credentials and real
+   tax exports out of it. Install OS updates before taking a clean snapshot.
+2. Create a standard local OS account dedicated to this campaign. Use an admin
+   account only for explicit prerequisite installation. Do not run TaxSorted as
+   root or administrator. Record a non-identifying account label in the result.
+3. Obtain the exact candidate installer and `SHA256SUMS.txt`; compare its SHA-256
+   before running it. Record version, source revision, artifact filename, checksum,
+   architecture, OS build and whether the package is unsigned. A checksum identifies
+   bytes; it does not establish publisher trust.
+4. For source/automated tests, install Git and Node 22, then run the scoped install
+   and `npm run desktop:build` from [Local app](LOCAL-APP.md#run-from-source).
+   Finish dependency downloads before the offline scenario. Do not use real records
+   to make a build pass.
+5. Take a **clean prerequisites** VM snapshot before first app launch. For physical
+   Macs, use a fresh test account with no existing TaxSorted profile and record that
+   starting condition. After the persistence cases, use a separate **synthetic data
+   saved** snapshot for reinstall/upgrade cases.
+
+Reset by restoring the disposable VM snapshot or returning to a fresh test account.
+Do not delete a person's existing profile to obtain a clean test. Copies of the
+source and installed app share the default TaxSorted profile within one OS account;
+they are not separate person accounts. Source-mode tests use a disposable development
+profile; packaged tests use the dedicated OS account. Close other TaxSorted processes
+before each run.
+
+| Platform | Preparation and first launch |
+|---|---|
+| Windows 11 x64 | Use an x64 image from [Microsoft](https://www.microsoft.com/en-us/software-download/windows11), with its supported VM prerequisites. Keep Defender, SmartScreen and UAC enabled. Run the NSIS installer interactively as the standard test account; record destination, any elevation request and every trust prompt. |
+| Ubuntu 24.04 x64 | Use [Ubuntu Desktop](https://ubuntu.com/tutorials/install-ubuntu-desktop), log into GNOME and record Wayland/X11. Keep AppArmor and the normal user-namespace policy enabled. Check the AppImage's executable permission and launch it from the desktop/file manager. |
+| Intel Mac | Use an Intel model on [Apple's macOS 15 compatibility list](https://support.apple.com/en-us/120282). Keep Gatekeeper/SIP enabled. Mount the DMG, copy the app into Applications, eject the DMG, then launch the installed app. Record trust prompts; launching the build-tree `.app` is a separate check. |
+| Apple silicon control | Follow the same DMG procedure using the arm64 artifact on Apple silicon. Record the host and executable architecture. |
+
+Unsigned preview trust prompts are expected observations, not evidence of a signed
+public release. If normal OS policy prevents installation or launch, record the exact
+boundary as **BLOCKED**; do not disable the security product or system policy to turn
+the result green. A later signed candidate needs its own installation run.
+
+### Linux display, FUSE and sandbox prerequisites
+
+Headed automation on a machine without a display uses `xvfb-run -a` before the smoke
+command, as described in [Playwright's CI guide](https://playwright.dev/docs/ci#running-headed).
+A real GNOME session remains required for the manual cases.
+
+AppImage's FUSE 2 library package is `libfuse2t64` on Ubuntu 24.04. If absent, install
+that package through the test machine's normal package manager and record the change.
+Keep FUSE 3 installed. [AppImage documents both the package rename and extraction fallback](https://docs.appimage.org/user-guide/troubleshooting/fuse.html).
+An unpacked binary or `--appimage-extract-and-run` can diagnose a FUSE problem, but
+neither passes the mounted AppImage launch case.
+
+Ubuntu 24.04 also restricts user namespaces through AppArmor. A sandbox refusal is
+a different boundary from missing FUSE or display libraries.
+[Ubuntu's security description](https://ubuntu.com/blog/whats-new-in-security-for-ubuntu-24-04-lts)
+explains that policy. Record any workflow-installed, executable-specific AppArmor
+rule as part of the CI environment. Such a rule does not establish that an AppImage
+launches under an unchanged consumer installation. If stock desktop launch needs a
+new rule, record the manual case as blocked pending reviewed packaging support.
+
+Do not use `--no-sandbox`, disable AppArmor, change global user-namespace restrictions,
+or run the app as root to bypass a failure. Record the failed operation, prerequisite
+and affected cases; leave them unpassed.
+
+## Automated checks
+
+Run these from the project root after building. The doctor reports prerequisites;
+it does not install them or prove UI behaviour.
+
+```sh
+npm run desktop:doctor -- --require-bundle
+node --test scripts/__tests__/create-local-project.test.mjs
+npm run test --workspace frontend --workspace @taxsorted/engine
+npm run desktop:test
+npm run desktop:smoke -- --mode=source
+```
+
+Native CI additionally pins the expected runtime with doctor flags such as
+`--expect-platform=win32 --expect-arch=x64`; macOS uses `darwin`, Linux uses `linux`.
+On headless Linux use `xvfb-run -a npm run desktop:smoke -- --mode=source`.
+
+After packaging, use the actual executable and resource directory for that artifact:
+
+```sh
+npm run desktop:inspect -- "--resources=ABSOLUTE_RESOURCES_DIRECTORY" --write-evidence
+npm run desktop:smoke -- --mode=packaged "--executable=ABSOLUTE_EXECUTABLE_PATH" --disposable-os-account
+npm run desktop:checksums
+```
+
+Replace the uppercase placeholders. Resource roots are the `.app/Contents/Resources`
+directory on macOS and the unpacked application's `resources` directory on Windows
+and Linux. The executable is the app binary, not the NSIS installer or DMG. Use Xvfb
+for packaged Linux automation if no graphical session is available. The
+`--disposable-os-account` flag is the operator's acknowledgement of an already
+disposable account; it does not create or isolate one.
+
+The [workflow](../.github/workflows/desktop-build.yml) prepares native builds and
+evidence when deliberately dispatched. An unpacked packaged-app launch checks the
+packaged runtime; the manual installer/AppImage cases still remain. Inspect the
+generated report for the assertions actually run, including sandbox settings,
+renderer isolation, local routes, persistence and request blocking. Do not infer a
+pass from command availability or from an uploaded installer alone.
+
+The workflow supports manual dispatch and source-change pushes on
+`feat/service-oriented-rebuild-20260929`; it uploads only preview artifacts and allowlisted result
+summaries for 14 days. It does not publish a release. Its Linux setup grants user
+namespaces to two exact executable paths through a temporary AppArmor profile, then
+removes that profile. It does not alter this development Mac. The Windows hosted
+runner is an administrator with UAC disabled, another reason to keep the standard-user
+Windows 11 installation cases separate.
+
+Local preparation on 29 September 2026 found an arm64 Mac with working Rosetta, UTM
+and QEMU commands. QEMU x64 offers software emulation; no target VM was started.
+The Docker CLI could not connect to its local daemon socket. Those observations do
+not provide Windows, Linux or native Intel test results. Use the native CI matrix and
+the dedicated environments above for those rows.
+
+[Playwright's Electron API](https://playwright.dev/docs/api/class-electron) is
+experimental, defaults its launch sandbox option to false and does not intercept
+native Electron dialogs. The harness must explicitly enable the sandbox. Automated
+dialog substitutes or preset download paths check application logic, not OS dialog
+interaction. If automation cannot launch a future hardened build, investigate the
+harness boundary without weakening the shipped application's security.
+
+## Manual cases on each native desktop
+
+Use this synthetic `desktop-test.csv`; the amounts are ordinary pounds, with a
+negative amount for money out. Select the matching year and self-employment activity.
+
+```csv
+date,amount,description
+2026-05-01,120.00,SYNTHETIC desktop income
+2026-05-02,-20.00,SYNTHETIC desktop expense
+```
+
+Run in order and record **PASS**, **FAIL**, **BLOCKED** or **NOT RUN** for every ID.
+
+| ID | Action | Required observation |
+|---|---|---|
+| M01 | Install/launch through the OS route above. Open Help → Show app data folder. | Correct architecture, usable window and expected profile location; no unexpected elevation or account requirement. Record all trust/prerequisite friction. |
+| M02 | Visit Individuals, Sole traders and Landlords; open each checklist and follow a records link. Use keyboard navigation, 200% zoom and a narrow window. | Clear audience/activity context, reachable navigation, visible focus and usable controls without clipped essential actions. |
+| M03 | Choose checklist items. Open CSV import, cancel the native file picker, then reopen and select the synthetic CSV. Review mapping before importing. | Cancel changes no records; two rows appear for review with £120 in and £20 out. Confirm activity/scope and review decisions before expecting confirmed totals. |
+| M04 | Export a Books backup. First cancel the native Save dialog, then save to the test account's folder and reopen the folder. | Cancel creates no export and changes no records; save creates the selected file in the chosen location. No silent cloud destination is assumed. |
+| M05 | With that safety copy saved, start restore and cancel the native file picker. Reopen, select the valid backup, then cancel the replacement confirmation. | Each cancellation preserves current Books. The preview explains replacement and requires the safety-copy confirmation before applying it. |
+| M06 | Record current counts/amounts. Try a file containing `not-json` and a JSON file containing `{"schema":"unsupported-test/0"}`. | Both are rejected with a useful message; counts, values and review states remain unchanged after reload. |
+| M07 | Add a distinct synthetic record after the backup, then restore the valid backup through its complete confirmation flow. | Restored rows match the backup; the later record is absent; scope requires confirmation again. Review the documented restore limits, not merely a success toast. |
+| M08 | Fully quit the app, relaunch from the OS, then reboot/log in and relaunch again. | Checklist choices and restored Books persist; the default profile location remains stable. Window close alone on macOS is not a full quit. |
+| M09 | After downloads are complete, disconnect the dedicated VM's network adapter (or the test device's network), leaving its firewall enabled. Relaunch and repeat checklist/edit/export/restore. | Bundled local tools continue working; unavailable online functions stay clearly unavailable. Record network state and exact actions. Offline success is not proof of zero network attempts. |
+| M10 | Reconnect the dedicated test environment. Open a public source link; cancel its native confirmation, then repeat and approve. | Cancel opens no browser. Approval opens only the displayed public URL in the normal browser; no saved record or synthetic marker is added to its URL. This deliberately uses the browser's network. |
+| M11 | Visit account, provider and filing routes while using the local edition. | Online-only actions cannot claim a successful connection/submission. Local preparation and exports remain understandable without sign-in. |
+| M12 | Export Books from a source run using a separate disposable `--profile-dir`. Quit it; restore that file in the packaged app's test account. Export from the package and restore into a second fresh source profile. | Both directions preserve the synthetic money events, amounts, review history and provenance within the supported backup contract. Checklist/Passport transfer is not implied. |
+| M13 | Save a safety backup and a snapshot. Uninstall/remove only the test app using the OS's normal route; retain its data. Reinstall the same version and launch. | Previously saved synthetic data survives; otherwise fail the persistence expectation and document recovery. Windows uses its uninstaller; macOS replaces the app bundle; Linux replaces the AppImage file. |
+| M14 | When a genuinely newer candidate version exists, install it over the prior version with the saved synthetic profile, then repeat M04–M08. | No unexpected migration loss or profile/origin change. Keep **NOT RUN** until two distinct versioned builds are available; same-version reinstall is not an upgrade test. |
+
+For M09, a reversible outbound rule scoped to the test app in the disposable
+environment may supplement adapter disconnection. Record the rule and remove it
+afterwards. Do not weaken the firewall. Record automated request probes separately:
+an observed zero-request result covers those probes and session configuration, not
+all OS services, future integrations or every possible network path.
+
+See [Books backup](BOOKS-BACKUP.md) for the exact file contract. Native Cancel/Save,
+file-picker accessibility and installer UX must be observed by a person in these
+cases, even when automated smoke passes.
+
+## Evidence and release decision
+
+Copy the [template](testing/desktop-result-template.md) once per OS/architecture and
+artifact checksum. Record the date, operator label, VM/hardware classification,
+exact OS build, command results, case statuses and short reproduction notes. Link
+the doctor's JSON, smoke summary, `desktop/test-results/package-inspection.json`,
+`desktop/dist/artifact-manifest.json` and checksums when they exist. A missing report
+is **NOT RUN** or **BLOCKED**, never an inferred pass.
+
+Retain only bounded result summaries, hashes and reviewed screenshots showing
+synthetic data. Do not upload app profiles, IndexedDB files, tax backups, environment
+dumps, raw process/console logs, HARs, traces or crash dumps. Keep failure diagnostics
+local; copy only the reviewed error classification and minimal non-sensitive evidence
+into the result. Retain CI evidence for 14 days as configured, without treating that
+retention as a backup of anybody's records.
+
+| Severity | Examples | Acceptance |
+|---|---|---|
+| P0 | Saved records leave the app without the described action; restore corrupts unrelated data; protection bypass required | Stop the candidate; preserve minimal evidence and repair before any release |
+| P1 | Cannot install/launch on the target under supported normal security; data lost on restart; backup/restore or cancellation fails | Target cannot be marked supported; fix and rerun affected cases |
+| P2 | Essential navigation, keyboard use, text clarity or export location is misleading | Fix before broad distribution, or explicitly record a bounded preview limitation |
+| P3 | Cosmetic defect with all tasks reachable | Record for follow-up |
+
+A target passes this campaign only with matching automated evidence, manual
+M01–M13 passes, and no open P0/P1 issue. M14 remains an explicit release limitation
+until an upgrade pair is available. **BLOCKED** identifies an unmet environment or
+artifact prerequisite; it does not waive the corresponding acceptance case. Signing,
+notarisation and publication remain separately authorised release work.
+
+Official environment references above were checked on 29 September 2026; recheck
+them when changing runner images, Electron, Playwright or supported OS versions.
+
+## Preparation evidence on this development Mac
+
+The following tooling checks were completed on 29 September 2026, using Node 22.23.3
+and macOS arm64. They establish that the prepared tools run here; the native campaign
+rows and manual installer cases above remain separate.
+
+| Preparation check | Observed result |
+|---|---|
+| Read-only environment doctor | Passed for darwin/arm64 with staged pages; does not execute Electron's auto-installer |
+| Desktop policy, protocol and test-tool suite | 29 tests passed |
+| Source scaffold suite | 6 tests passed |
+| Fresh scaffold install | Scoped clean install resolved ASAR 3.4.1 and Playwright 1.63.0; copied desktop tests passed |
+| Source runtime walkthrough | Seven checks passed, zero renderer errors and zero loopback observer requests |
+| Effective sandbox | macOS renderer process metric reported sandboxed; no sandbox-disabling launch switches |
+| Packaged-profile refusal | Synthetic existing-profile check stopped before Electron import and preserved the fixture |
+| Existing Apple silicon package inspection | Four declared runtime files and 515 staged public files matched; licences present |
+| Workflow definition | YAML parsed; four explicit native runner/architecture combinations; manual dispatch only |
+
+Runtime evidence is written to `desktop/test-results/source-smoke.json`; package
+inspection writes `desktop/test-results/package-inspection.json`. Generated evidence
+is ignored by Git. No Windows/Linux/Intel job, VM or external workflow was started.
+
+The local `desktop/dist/TaxSorted-Local-0.1.0-test-kit.zip` carries the current source,
+this plan, result template and test scripts. Unzip it into a new directory in the
+dedicated test environment, use Node 22 and follow the scoped install/build commands.
+It includes no installed dependencies, app profiles or generated tax backups. Installers
+and hash-time metadata remain separate artifacts; a source ZIP is not an installer.

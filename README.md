@@ -2,13 +2,35 @@
 
 **Tax, understood. Then sorted.**
 
+The service rebuild starts with **individuals, sole traders and landlords**.
+Choose a situation at `/services`, follow a personal checklist at `/checkup`,
+and open the existing checks, money records, preparation and handover tools.
+Advisers and organisations have separate pages explaining their current scope.
+See [the service map and delivery plan](docs/SERVICE-REBUILD.md) for purpose,
+renaming, module ownership and remaining integration work.
+
+**TaxSorted Local** reuses these tools in an offline desktop app. Installer-first
+packaging covers macOS, Windows and Linux; a source scaffold is available for
+customisation. The app has its own local profile, blocks remote app requests and
+needs no account. This preview does not add app-level encryption or online filing.
+See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
+
+```sh
+# Node 22; install only the workspaces needed by the local app
+npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:build
+npm run desktop:start
+# Optional source copy into a new directory:
+npm run scaffold:local -- ../my-taxsorted
+```
+
 Browser-local books are open now for UK sole traders and landlords: bring in money
 movements, review every suggestion, and understand how confirmed records become tax
 figures. TaxSorted is growing from that honest base into accounting software for people
 and small organisations without an in-house accounting team.
 
 The wider aim remains international tax made simple for everyone — a person, a business,
-a charity, a trust: same plain words, same engine. The public journey returns six powers:
+a charity, a trust: same plain words, same engine. The underlying tools cover six kinds of work:
 
 - **Check** — know what applies, what is known and what remains uncertain.
 - **Plan** — compare lawful choices across tax, cash flow, work, risk and wider consequences.

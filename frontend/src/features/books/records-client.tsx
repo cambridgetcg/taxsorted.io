@@ -40,6 +40,7 @@ import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
 import { summariseBooks, type BooksSummary } from "@/lib/books-summary";
 import { BooksBackup } from "@/features/books/books-backup";
+import { withBooksActivity } from "@/lib/books-navigation";
 
 const TAX_YEAR: TaxYear = "2026-27";
 const TAX_YEAR_START = "2026-04-06";
@@ -224,7 +225,7 @@ export default function RecordsClient({
 
       {enteredFromBooks ? (
         <div className="mt-6 border-y border-line py-3">
-          <BooksWorkspaceNav view={view} />
+          <BooksWorkspaceNav view={view} activity={preferredSource === "uk-property" ? preferredSource : undefined} />
         </div>
       ) : (
         <div className="mt-6"><EducationNotice /></div>
@@ -252,7 +253,7 @@ export default function RecordsClient({
       ) : (
         <>
           {enteredFromBooks && view === "today" && booksSummary ? (
-            <div className="mt-8"><BooksToday summary={booksSummary} /></div>
+            <div className="mt-8"><BooksToday summary={booksSummary} activity={preferredSource === "uk-property" ? preferredSource : undefined} /></div>
           ) : null}
 
           {(!enteredFromBooks || view === "money") ? (
@@ -401,7 +402,7 @@ export default function RecordsClient({
 
           {enteredFromBooks && view === "tax" && booksSummary ? (
             <div className="mt-8">
-              <BooksTaxView books={books} summary={booksSummary} quarter={quarter} />
+              <BooksTaxView books={books} summary={booksSummary} quarter={quarter} activity={preferredSource === "uk-property" ? preferredSource : undefined} />
             </div>
           ) : null}
 
@@ -442,7 +443,7 @@ export default function RecordsClient({
                           Review this Income Tax quarter →
                         </Link>
                         <Link
-                          href="/books/connect"
+                          href={withBooksActivity("/books/connect", preferredSource === "uk-property" ? preferredSource : undefined)}
                           className="inline-flex min-h-11 items-center text-accent underline underline-offset-4"
                         >
                           See how records could reach HMRC →
@@ -590,10 +591,12 @@ function BooksTaxView({
   books,
   summary,
   quarter,
+  activity,
 }: {
   books: LocalBooksState;
   summary: BooksSummary;
   quarter: ReturnType<typeof quarterForDate>;
+  activity?: SourceType;
 }) {
   const totals = quarter
     ? summary.ledgers.flatMap((ledgerSummary) => {
@@ -694,7 +697,7 @@ function BooksTaxView({
           <Link href="/itsa/quarter" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             Check this quarter before sending anything →
           </Link>
-          <Link href="/books/connect" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
+          <Link href={withBooksActivity("/books/connect", activity)} className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See how records could reach HMRC →
           </Link>
         </div>

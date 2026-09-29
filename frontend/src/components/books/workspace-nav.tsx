@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { SourceType } from "@taxsorted/engine/uk/itsa";
+import { withBooksActivity } from "@/lib/books-navigation";
 
 export type BooksWorkspaceNavView = "today" | "money" | "business" | "tax";
 
@@ -18,7 +20,7 @@ const VIEWS: readonly {
  * ARIA tab widget: every destination has its own URL and normal browser
  * back/forward behaviour. The visible word is also the accessible name.
  */
-export function BooksWorkspaceNav({ view }: { view: BooksWorkspaceNavView }) {
+export function BooksWorkspaceNav({ view, activity }: { view: BooksWorkspaceNavView; activity?: SourceType }) {
   return (
     <nav aria-label="Books sections">
       <ul className="flex flex-wrap gap-2">
@@ -27,7 +29,7 @@ export function BooksWorkspaceNav({ view }: { view: BooksWorkspaceNavView }) {
           return (
             <li key={item.view}>
               <Link
-                href={item.href}
+                href={withBooksActivity(item.href, activity)}
                 aria-current={current ? "page" : undefined}
                 className={
                   current

@@ -98,14 +98,14 @@ export function BooksBackup({ store, onRestored }: { store: RecordsStore; onRest
     <details className="mt-8 rounded-2xl border border-line bg-paper p-5">
       <summary className="min-h-11 cursor-pointer font-semibold text-ink">Back up or restore your Books</summary>
       <div className="mt-4 space-y-4 text-sm leading-6 text-ink-soft">
-        <p>Your Books stay in this browser. Download a copy regularly and keep it somewhere safe. The file contains private financial records and is not encrypted. Signing in does not save or move these records.</p>
+        <p>Your Books stay in this app or browser on this device. Download a copy regularly and keep it somewhere safe. The file contains private financial records and is not encrypted. Signing in does not save or move these records.</p>
         <p>This backup includes money records, original source data, record decisions and earlier versions. It does not include receipt attachments, account sign-in details or anything already held by HMRC. Files are checked on this device and are not uploaded.</p>
         <Button type="button" variant="outline" disabled={busy} onClick={() => void saveCurrent()}>
           {selected ? "Download the Books currently here" : "Download a Books backup"}
         </Button>
         <div>
           <label htmlFor="books-backup-file" className="block font-semibold text-ink">Choose a Books backup to restore</label>
-          <p id="books-backup-file-help">Choose a TaxSorted Books backup (.json), up to 10 MB. Older complete-history downloads are not restore files. Restoring replaces all Books currently in this browser.</p>
+          <p id="books-backup-file-help">Choose a TaxSorted Books backup (.json), up to 10 MB. Older complete-history downloads are not restore files. Restoring replaces all Books currently in this app or browser.</p>
           <input ref={input} id="books-backup-file" type="file" accept=".json,application/json" aria-describedby="books-backup-file-help" disabled={busy} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full rounded-lg border border-line bg-white p-3 text-ink" />
         </div>
         {busy ? <p role="status">Checking and saving your Books…</p> : null}

@@ -2,8 +2,10 @@
 
 ## What This Is
 International tax platform — every country, every tax, every kind of taxpayer (person,
-business, charity, trust). The public journey is **Check · Plan · Books · File ·
-Put it right · Understand**. One engine; countries are plugins — rules, dates and
+business, charity, trust). The public navigation is **Services · My checklist ·
+Money records · Tax guides · Help & corrections**. The audience catalogue and
+service rebuild are mapped in [docs/SERVICE-REBUILD.md](docs/SERVICE-REBUILD.md).
+Existing deep URLs and tax-module contracts remain stable. One engine; countries are plugins — rules, dates and
 words, never forks. The UK is jurisdiction #1, the proof. Read PHILOSOPHY.md first —
 the ground (law is a creation; execution is its meaning; the product exists to close
 the execution gap from the citizen's side) — then PRINCIPLES.md, the soul and the
@@ -65,6 +67,11 @@ dataset, a current tax answer or permission to file.
   - `src/features/books/` — shared Books workspace used by Books and ITSA route wrappers
   - `src/lib/` — browser storage, imports, derived figures and typed API clients
   - `src/components/` — shared UI and task components
+- `desktop/` — TaxSorted Local: offline Electron shell around the same static frontend
+  - `src/` — sandboxed window, remote-request boundary and bundled-page protocol
+  - `scripts/stage.cjs` — requires a closed research publication gate before packaging
+  - `bundle/`, `dist/` — ignored build output; never app profile data
+  - Local setup, source scaffolding and native OS packaging: `docs/LOCAL-APP.md`
 - `research/` — source notes, methods, candidate material and runtime datasets
   - `_schema/` — the shapes every country fills in (being promoted out of `uk/`;
     see its README for where each shape lives today)

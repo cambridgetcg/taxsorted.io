@@ -3,7 +3,7 @@ import Link from "next/link";
 import { TransactionWalkthrough } from "./transaction-walkthrough";
 
 export const metadata: Metadata = {
-  title: "Books — accounting you can understand | TaxSorted",
+  title: "Money records — income and expenses | TaxSorted",
   description:
     "UK Starter Books for sole traders and landlords, built as the first step towards accounting software people can inspect from evidence to tax rule.",
 };
@@ -14,7 +14,7 @@ const AUDIENCES = [
     status: "Open now",
     body: "Bring in a bank CSV, review each movement, keep a source trail and derive UK Income Tax quarter figures.",
     href: "/books/workspace",
-    action: "Open Starter Books",
+    action: "Open sole-trader records",
   },
   {
     title: "UK landlord",
@@ -27,15 +27,15 @@ const AUDIENCES = [
     title: "Individual",
     status: "Bounded tools open",
     body: "Map what changed, keep your known facts and unknowns, and follow source-backed personal-tax checks.",
-    href: "/checkup",
-    action: "Start a Tax Checkup",
+    href: "/checkup?for=individuals",
+    action: "Build my tax checklist",
   },
   {
     title: "Limited company or small organisation",
     status: "Not yet",
     body: "TaxSorted does not yet prepare statutory accounts, a balance sheet or a Company Tax Return. We name that gap before asking for data.",
-    href: "/feedback",
-    action: "Tell us what you need",
+    href: "/services/organisations",
+    action: "See organisation services",
   },
 ] as const;
 
@@ -89,22 +89,21 @@ export default function BooksPage() {
     <div lang="en" dir="ltr" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <header className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:gap-14">
         <div className="max-w-4xl">
-          <p className="section-label">01 · Starter Books</p>
+          <p className="section-label">Money records · UK sole traders and landlords</p>
           <h1 className="hero-title mt-5 max-w-4xl text-ink">
-            Know where every number came from.
+            Income and expenses, in order.
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-ink-soft">
-            TaxSorted is growing into accounting software for people and small organisations
-            without an in-house accounting team. Open today: local record-keeping for up to one UK
-            sole-trader business and one UK property business, kept separate. Start with money in
-            and money out; open the deeper layers only when you want them.
+            Add a transaction or import a bank file, check the details, and see the totals for
+            your business. Keep up to one UK sole-trader business and one UK property business
+            separate. No account needed to start.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/books/workspace"
               className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-deep"
             >
-              Start my books
+              Open my records
             </Link>
             <Link
               href="/books/connect"
@@ -154,13 +153,13 @@ export default function BooksPage() {
       </header>
 
       <section aria-labelledby="who-title" className="mt-24">
-        <p className="section-label">02 · Begin where you are</p>
+        <p className="section-label">Choose your records</p>
         <h2 id="who-title" className="section-title mt-4 text-ink">
-          Built wide. Open honestly.
+          Business or property? Keep them separate.
         </h2>
         <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">
-          The aim is accounting for every kind of person and organisation. The live UK product is
-          narrower today, so each door says exactly what exists.
+          Open the right workspace for your activity. Personal checks and organisation guidance
+          have their own paths below.
         </p>
         <div className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line sm:grid-cols-2">
           {AUDIENCES.map((audience) => (
@@ -185,14 +184,11 @@ export default function BooksPage() {
 
       <TransactionWalkthrough />
 
-      <section id="stack" aria-labelledby="stack-title" className="mt-24 scroll-mt-24">
-        <p className="section-label">04 · Beginner-friendly by going deep</p>
-        <h2 id="stack-title" className="section-title mt-4 text-ink">
-          One calm surface. Six inspectable layers.
-        </h2>
+      <details id="stack" className="mt-16 scroll-mt-24 rounded-2xl border border-line bg-surface p-6">
+        <summary className="min-h-11 cursor-pointer text-lg font-semibold text-accent">How a record becomes a tax figure</summary>
         <p className="mt-4 max-w-3xl text-lg leading-8 text-ink-soft">
-          Simple does not mean hiding the machinery. It means showing the right layer first and
-          keeping every deeper layer close enough to inspect.
+          The record, the accounting treatment and the tax calculation are different steps.
+          Here is what each step does and how much is available today.
         </p>
         <ol className="hairline-grid mt-8 grid overflow-hidden rounded-[2rem] border border-line md:grid-cols-2 lg:grid-cols-3">
           {STACK.map((layer) => (
@@ -214,7 +210,7 @@ export default function BooksPage() {
             </li>
           ))}
         </ol>
-      </section>
+      </details>
 
       <section aria-labelledby="source-title" className="mt-24 rounded-[2rem] border border-line bg-surface-muted/70 p-6 sm:p-8">
         <p className="section-label">05 · The UK boundary</p>
@@ -271,13 +267,13 @@ export default function BooksPage() {
           href="/books/workspace"
           className="inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-7 text-base font-semibold text-white hover:bg-accent-deep"
         >
-          Open my local books
+          Continue to my records
         </Link>
         <Link
           href="/checkup"
           className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong bg-surface px-6 text-base font-medium text-ink hover:border-accent hover:bg-accent-soft"
         >
-          I need a tax check first
+          Back to my tax checklist
         </Link>
       </div>
     </div>

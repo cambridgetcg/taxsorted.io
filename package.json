@@ -7,7 +7,8 @@
   "workspaces": [
     "engine",
     "frontend",
-    "api"
+    "api",
+    "desktop"
   ],
   "overrides": {
     "hono": "4.13.7",
@@ -17,6 +18,15 @@
   "scripts": {
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace frontend",
+    "desktop:build": "npm run build && npm run stage --workspace @taxsorted/desktop",
+    "desktop:start": "npm run start --workspace @taxsorted/desktop --",
+    "desktop:package": "npm run package --workspace @taxsorted/desktop --",
+    "desktop:test": "npm run test --workspace @taxsorted/desktop",
+    "desktop:doctor": "node desktop/testing/doctor.cjs",
+    "desktop:smoke": "node desktop/testing/runtime-smoke.cjs",
+    "desktop:inspect": "node desktop/testing/inspect-package.cjs",
+    "desktop:checksums": "node desktop/testing/checksums.cjs",
+    "scaffold:local": "node scripts/create-local-project.mjs",
     "validate:uk-personal-tax": "node scripts/validate-uk-personal-tax.mjs",
     "validate:uk-politics": "node scripts/validate-uk-politics.mjs && npm run validate:public-decision-pathways --workspace api",
     "validate:uk-tax-system": "npm run validate:tax-system --workspace api",

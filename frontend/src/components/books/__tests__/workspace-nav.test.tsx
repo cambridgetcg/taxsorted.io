@@ -19,6 +19,12 @@ const VIEWS: readonly {
 ];
 
 describe("Books workspace navigation", () => {
+  it("keeps a landlord in the property journey across all four sections", () => {
+    render(<BooksWorkspaceNav view="money" activity="uk-property" />);
+    for (const item of VIEWS) {
+      expect(screen.getByRole("link", { name: item.label })).toHaveAttribute("href", `${item.href}?activity=uk-property`);
+    }
+  });
   it("uses four static links with plain visible names", () => {
     render(<BooksWorkspaceNav view="today" />);
 

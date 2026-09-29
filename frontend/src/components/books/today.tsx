@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { BooksSummary } from "@/lib/books-summary";
+import type { SourceType } from "@taxsorted/engine/uk/itsa";
+import { withBooksActivity } from "@/lib/books-navigation";
 
 interface NextAction {
   href: string;
@@ -97,7 +99,7 @@ function statusCopy(summary: BooksSummary): { title: string; body: string } {
   };
 }
 
-export function BooksToday({ summary }: { summary: BooksSummary }) {
+export function BooksToday({ summary, activity }: { summary: BooksSummary; activity?: SourceType }) {
   const status = statusCopy(summary);
   const actions = nextActions(summary);
 
@@ -135,7 +137,7 @@ export function BooksToday({ summary }: { summary: BooksSummary }) {
           {actions.map((action, index) => (
             <li key={`${action.href}:${action.title}`}>
               <Link
-                href={action.href}
+                href={withBooksActivity(action.href, activity)}
                 aria-label={action.title}
                 aria-describedby={`books-next-action-${index}-description`}
                 className="group flex h-full min-h-40 flex-col rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-accent hover:bg-accent-soft"

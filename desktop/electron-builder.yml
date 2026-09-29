@@ -1,0 +1,40 @@
+appId: io.taxsorted.local
+productName: TaxSorted Local
+artifactName: TaxSorted-Local-${version}-${os}-${arch}.${ext}
+directories:
+  output: dist
+files:
+  - src/**/*.cjs
+  - package.json
+extraResources:
+  - from: bundle
+    to: web
+  - from: ../LICENSE
+    to: LICENSE
+  - from: ../CONTENT-LICENSE
+    to: CONTENT-LICENSE
+asar: true
+npmRebuild: false
+publish: null
+mac:
+  icon: assets/icon.png
+  category: public.app-category.finance
+  identity: null
+  target:
+    - dmg
+    - zip
+win:
+  icon: assets/icon.png
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+linux:
+  executableName: taxsorted-local
+  icon: assets/icon.png
+  category: Finance
+  target:
+    - AppImage

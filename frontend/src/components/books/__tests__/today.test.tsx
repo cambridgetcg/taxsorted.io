@@ -23,6 +23,12 @@ function actionLinks() {
 }
 
 describe("Books Today", () => {
+  it("carries property context into add, import and example actions", () => {
+    render(<BooksToday summary={summary()} activity="uk-property" />);
+    expect(screen.getByRole("link", { name: "Add money in or out" })).toHaveAttribute("href", "/books/workspace/money?start=manual&activity=uk-property");
+    expect(screen.getByRole("link", { name: "Bring in a CSV file" })).toHaveAttribute("href", "/books/workspace/money?start=csv&activity=uk-property");
+    expect(screen.getByRole("link", { name: "Try a made-up example" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property#made-up-example");
+  });
   it("puts waiting items first and shows no more than three action cards", () => {
     render(
       <BooksToday

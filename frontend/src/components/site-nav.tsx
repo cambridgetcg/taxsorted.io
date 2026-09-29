@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
+import { isLocalApp } from "@/lib/local-runtime";
+import { useMounted } from "@/lib/use-mounted";
 
-// One level deep, forever. The doors are plain links and the hub pages are
-// the menus — no dropdown can explain a destination better than the hub it
-// hides. The doors follow the person's work: see the position, compare
-// choices, keep the evidence, carry out the action, put mistakes right, then
-// understand and change the system. Utilities remain visually separate.
+// The service hubs explain the available tools; the navigation follows the
+// person's task. Existing URLs stay usable as the product's language changes.
+// Utilities remain visually separate.
 // Every target is at least 44px.
 //
 // `match` lists every route family that belongs to a door, because the URL
@@ -19,12 +19,11 @@ import { useI18n } from "@/i18n/I18nProvider";
 // URL parent belongs to another human job. Trailing slashes are normalized:
 // trailingSlash is on, so usePathname() returns "/uk/".
 const DOORS = [
-  { href: "/checkup", labelKey: "nav.check", descKey: "nav.check.desc", match: ["/checkup", "/itsa/am-i-in", "/uk/tax-expert", "/passport"] },
-  { href: "/plan", labelKey: "nav.plan", descKey: "nav.plan.desc", match: ["/plan", "/uk/personal-tax", "/tools/mileage"] },
-  { href: "/books", labelKey: "nav.books", descKey: "nav.books.desc", match: ["/books"] },
-  { href: "/file", labelKey: "nav.file", descKey: "nav.file.desc", match: ["/file", "/itsa", "/vat", "/dashboard"], exclude: ["/itsa/am-i-in"] },
-  { href: "/put-it-right", labelKey: "nav.putRight", descKey: "nav.putRight.desc", match: ["/put-it-right"] },
-  { href: "/learn", labelKey: "nav.understand", descKey: "nav.understand.desc", match: ["/learn", "/understanding", "/uk"], exclude: ["/uk/tax-expert", "/uk/personal-tax"] },
+  { href: "/services", labelKey: "nav.services", descKey: "nav.services.desc", match: ["/services", "/plan", "/file", "/passport", "/itsa", "/vat", "/dashboard"], exclude: ["/itsa/am-i-in", "/itsa/records"] },
+  { href: "/checkup", labelKey: "nav.checklist", descKey: "nav.checklist.desc", match: ["/checkup", "/itsa/am-i-in", "/uk/tax-expert", "/uk/personal-tax"] },
+  { href: "/books", labelKey: "nav.records", descKey: "nav.records.desc", match: ["/books", "/itsa/records", "/tools/mileage"] },
+  { href: "/learn", labelKey: "nav.guides", descKey: "nav.guides.desc", match: ["/learn", "/understanding", "/uk"], exclude: ["/uk/tax-expert", "/uk/personal-tax"] },
+  { href: "/put-it-right", labelKey: "nav.help", descKey: "nav.help.desc", match: ["/put-it-right"] },
 ] as const;
 
 function doorState(
@@ -52,6 +51,9 @@ function doorIds(href: string) {
 export function SiteNav() {
   const { t } = useI18n();
   const pathname = usePathname();
+  const mounted = useMounted();
+  const localApp = mounted && isLocalApp();
+  const utilityHref = localApp ? "/download" : "/account";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -161,12 +163,13 @@ export function SiteNav() {
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-2 pt-1 xl:ms-1 xl:gap-x-2 xl:border-s xl:border-line xl:px-1 xl:ps-2 xl:pt-0">
             <Link
-              href="/account"
+              href={utilityHref}
               onClick={closeMenu}
-              aria-current={ariaCurrentFor(doorState({ href: "/account", match: ["/account"] }, pathname))}
+              aria-current={ariaCurrentFor(doorState({ href: utilityHref, match: [utilityHref] }, pathname))}
+              lang={localApp ? "en" : undefined}
               className="inline-flex min-h-11 items-center rounded-full px-3 text-[0.95rem] font-medium text-ink hover:bg-paper hover:text-accent-deep"
             >
-              {t("nav.account")}
+              {localApp ? "Local app" : t("nav.account")}
             </Link>
             <LanguageSwitcher />
           </div>

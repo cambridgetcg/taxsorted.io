@@ -1,330 +1,296 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Check, Save, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AUDIENCES, getAudience, servicesForAudience, SERVICE_AVAILABILITY_LABELS,
+  type AudienceId, type ServiceId,
+} from "@/lib/tax-services";
+import {
+  CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress, parseSavedChecklist,
+  type SavedChecklist,
+} from "./checklist-state";
 
-type PathId =
-  | "mtd"
-  | "thresholds"
-  | "records"
-  | "passport"
-  | "vat"
-  | "plan"
-  | "correction"
-  | "understand";
-
-interface CheckupPath {
-  id: PathId;
-  label: string;
-  hint: string;
-  title: string;
-  status: string;
-  boundary: string;
-  steps: readonly {
-    href: string;
-    title: string;
-    detail: string;
-  }[];
+async function readSavedChecklist() {
+  try {
+    const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
+    const saved = raw === null ? null : parseSavedChecklist(raw);
+    return {
+      raw,
+      saved,
+      error: raw !== null && saved === null
+        ? "The saved checklist could not be read. It has been left untouched. You can use a temporary checklist or clear the saved checklist to start again."
+        : null,
+    };
+  } catch {
+    return {
+      raw: null,
+      saved: null,
+      error: "Checklist storage on this device could not be read. You can use the checklist for this visit, but saving is unavailable. Your other records have not changed.",
+    };
+  }
 }
 
-const PATHS: readonly CheckupPath[] = [
-  {
-    id: "mtd",
-    label: "I work for myself or rent out property",
-    hint: "Check whether Making Tax Digital for Income Tax may apply.",
-    title: "Start with your MTD position",
-    status: "Checks available now",
-    boundary:
-      "The quick check covers the main income threshold. The deeper check asks about returns, residence, exemptions and special cases, and keeps unknown facts visible.",
-    steps: [
-      {
-        href: "/itsa/am-i-in",
-        title: "Run the 60-second MTD check",
-        detail: "A short first pass using the main qualifying-income rules.",
-      },
-      {
-        href: "/uk/tax-expert#first-deep-path",
-        title: "Use the deeper MTD expert",
-        detail: "For return history, residence, exemptions or facts you are unsure about.",
-      },
-      {
-        href: "/plan#first-comparison",
-        title: "If you have one sole trade: calculate two profit routes",
-        detail: "This does not accept property, partnership or combined-trade figures, and it does not pretend the whole burden was compared.",
-      },
-      {
-        href: "/learn/for-landlords",
-        title: "If you rent out property: open the landlord guide",
-        detail: "Property allowances, finance costs and records follow a different path; a live property comparison is not open yet.",
-      },
-      {
-        href: "/books/workspace",
-        title: "Build and review the records",
-        detail: "Keep the evidence that makes the actual route reproducible.",
-      },
-      {
-        href: "/file",
-        title: "Follow the preparation and filing states",
-        detail: "Prepared, approved, submitted and received stay separate; production filing is not live.",
-      },
-    ],
-  },
-  {
-    id: "thresholds",
-    label: "My income may be near £60,000 or £100,000",
-    hint: "Map Child Benefit, Personal Allowance and Tax-Free Childcare interactions.",
-    title: "Map the income thresholds that interact",
-    status: "Browser-only check available now",
-    boundary:
-      "This check models a bounded 2026/27 path. It shows missing partner or claimant facts instead of treating them as zero, and points to HMRC for cases outside its boundary.",
-    steps: [
-      {
-        href: "/uk/personal-tax#threshold-check",
-        title: "Check my £60k and £100k lines",
-        detail: "Calculate adjusted net income once and see three separate consequences.",
-      },
-      {
-        href: "/uk/tax-expert#ani-deep-path",
-        title: "Understand what this path covers",
-        detail: "See the evidence model, exclusions and current capability status.",
-      },
-    ],
-  },
-  {
-    id: "records",
-    label: "I need to organise records or a quarter",
-    hint: "Keep evidence once, derive the totals and see what is still missing.",
-    title: "Build the record trail before the return",
-    status: "Local preparation tools available now",
-    boundary:
-      "The income and expense records stay in this browser. Account details and any HMRC sandbox connection are separate. Prepared does not mean filed, and the site says which state you are in.",
-    steps: [
-      {
-        href: "/books/workspace",
-        title: "Add or import income and expenses",
-        detail: "Keep the underlying records and let TaxSorted derive the figures.",
-      },
-      {
-        href: "/tools/mileage",
-        title: "Calculate a mileage deduction",
-        detail: "Enter the year’s business miles; keep the trip evidence separately.",
-      },
-      {
-        href: "/itsa/quarter",
-        title: "Review the quarter figures",
-        detail: "See the cited calculation before anything could be submitted.",
-      },
-      {
-        href: "/dashboard",
-        title: "Open the ITSA cockpit",
-        detail: "See the whole position together; starting the optional HMRC sandbox is explicit.",
-      },
-    ],
-  },
-  {
-    id: "passport",
-    label: "I need one tax picture I can keep or hand over",
-    hint:
-      "Map facts, unknowns and evidence, then carry a checked position into JSON or a printable report.",
-    title: "Build your Tax Position Passport",
-    status: "Browser-local handoff available now",
-    boundary:
-      "The Passport asks for no name, address, NINO value or UTR. Evidence is named by you, not inspected. The first live position is MTD Income Tax; PAYE and full liability calculations remain outside this version.",
-    steps: [
-      {
-        href: "/passport",
-        title: "Start or resume my Passport",
-        detail:
-          "Nothing is saved until you choose Save this Passport. Unknown facts stay unknown.",
-      },
-      {
-        href: "/uk/tax-expert#coverage-map",
-        title: "Check the wider capability boundary",
-        detail:
-          "See which UK tax positions are available, limited or still planned.",
-      },
-    ],
-  },
-  {
-    id: "vat",
-    label: "I run a VAT-registered business",
-    hint: "Build a VAT return from records and inspect every derived figure.",
-    title: "Use the VAT workbench",
-    status: "Preparation and HMRC sandbox journey",
-    boundary:
-      "TaxSorted is not yet recognised for production filing. The VAT journey keeps preparation, approval and sandbox submission separate from any future production filing or receipt.",
-    steps: [
-      {
-        href: "/vat",
-        title: "Open the VAT workbench",
-        detail: "Create or open a business, review records and build a return.",
-      },
-    ],
-  },
-  {
-    id: "plan",
-    label: "I want to reduce the lawful burden or compare choices",
-    hint: "Compare tax, cash flow, work, uncertainty, evidence and wider consequences.",
-    title: "Keep the planning choice yours",
-    status: "First sole-trader projection open",
-    boundary:
-      "TaxSorted compares consequences under the facts you control. It does not rank choices solely by tax saved or recommend a pension, investment, provider, legal structure or other suitability-dependent action.",
-    steps: [
-      {
-        href: "/plan",
-        title: "Open the planning map",
-        detail: "See the whole-burden framework and every planning area’s current capability.",
-      },
-      {
-        href: "/plan#first-comparison",
-        title: "Build a full-year trading-allowance projection",
-        detail: "Run the first bounded projected calculation using the engine’s current 2026–27 rules; year-to-date facts stop and the whole-burden comparison remains incomplete.",
-      },
-      {
-        href: "/uk/personal-tax#threshold-check",
-        title: "Check personal income thresholds",
-        detail: "Keep adjusted-net-income facts, partner facts and unknowns separate.",
-      },
-    ],
-  },
-  {
-    id: "correction",
-    label: "Something is wrong or I cannot pay",
-    hint: "Correct a record or return, challenge a decision, complain or find payment help.",
-    title: "Choose the right correction or challenge route",
-    status: "Public and official routes open",
-    boundary:
-      "TaxSorted does not accept confidential case files, decide whether an appeal will succeed or act for you before HMRC or a tribunal. Real notices and deadlines must be checked directly.",
-    steps: [
-      {
-        href: "/put-it-right",
-        title: "Name what needs putting right",
-        detail: "Keep record correction, return amendment, appeal, complaint and payment support separate.",
-      },
-      {
-        href: "/passport",
-        title: "Build a portable handoff",
-        detail: "Carry stated facts, unknowns, evidence states and bounded answers without claiming professional review.",
-      },
-    ],
-  },
-  {
-    id: "understand",
-    label: "I am not sure — I want to understand first",
-    hint: "Start with plain guides, then see who writes and administers the rules.",
-    title: "Begin with the map, not a form",
-    status: "Public and free, with no account",
-    boundary:
-      "The guides explain the covered rules and link their sources. They are educational; a guide does not silently become a personal calculation or professional advice.",
-    steps: [
-      {
-        href: "/learn",
-        title: "Learn tax in plain words",
-        detail: "Choose Income Tax, self-employment, landlords, MTD or the government guides.",
-      },
-      {
-        href: "/uk/tax-expert#coverage-map",
-        title: "See what the tax expert can actually do",
-        detail: "Available, bounded and planned capabilities are labelled separately.",
-      },
-      {
-        href: "/uk",
-        title: "Follow the wider UK tax system",
-        detail: "Explore public money, power, accountability, charities and the tax industry.",
-      },
-    ],
-  },
-] as const;
-
 export function CheckupClient() {
-  const [selected, setSelected] = useState<PathId | null>(null);
-  const path = PATHS.find((candidate) => candidate.id === selected) ?? null;
+  const searchParams = useSearchParams();
+  const requestedAudience = searchParams.get("for");
+  const [lastRequest, setLastRequest] = useState(requestedAudience);
+  const [chosenAudience, setChosenAudience] = useState<AudienceId | null>(null);
+  const [restoredAudience, setRestoredAudience] = useState<AudienceId | null>(null);
+  const [checked, setChecked] = useState(emptyChecklistProgress);
+  const [ready, setReady] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
+  const [canSave, setCanSave] = useState(true);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const lastSavedRaw = useRef<string | null>(null);
+
+  // A new audience URL changes the view, never the other audience's checkmarks.
+  if (requestedAudience !== lastRequest) {
+    setLastRequest(requestedAudience);
+    setChosenAudience(null);
+    setMessage(null);
+  }
+
+  const selected = chosenAudience ?? getAudience(requestedAudience)?.id ?? restoredAudience;
+  const audience = getAudience(selected);
+  const services = servicesForAudience(selected);
+  const checkedCount = selected ? checked[selected].length : 0;
+  const snapshot = selected
+    ? JSON.stringify({ schema: CHECKLIST_SCHEMA, audience: selected, checked } satisfies SavedChecklist)
+    : null;
+  const unsaved = snapshot !== null && snapshot !== savedSnapshot;
+
+  useEffect(() => {
+    let active = true;
+    void readSavedChecklist().then((result) => {
+      if (!active) return;
+      lastSavedRaw.current = result.raw;
+      setHasSaved(result.raw !== null);
+      setCanSave(result.error === null);
+      setError(result.error);
+      if (result.saved) {
+        setChecked(result.saved.checked);
+        setRestoredAudience(result.saved.audience);
+        setSavedSnapshot(JSON.stringify(result.saved));
+        setMessage("Your saved checklist has been restored on this device.");
+      }
+      setReady(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  function chooseAudience(id: AudienceId) {
+    setChosenAudience(id);
+    setMessage(null);
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set("for", id);
+    window.history.replaceState(window.history.state, "", `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+  }
+
+  function toggleStep(serviceId: ServiceId, isChecked: boolean) {
+    if (!selected) return;
+    setChecked((current) => ({
+      ...current,
+      [selected]: isChecked
+        ? [...current[selected].filter((id) => id !== serviceId), serviceId]
+        : current[selected].filter((id) => id !== serviceId),
+    }));
+    setMessage(null);
+  }
+
+  function saveChecklist() {
+    if (!ready || !canSave || snapshot === null) return;
+    try {
+      if (window.localStorage.getItem(CHECKLIST_STORAGE_KEY) !== lastSavedRaw.current) {
+        setCanSave(false);
+        setError("The saved checklist changed in another tab. Reload this page before saving so that its progress is not overwritten. Your changes here are still visible.");
+        return;
+      }
+      window.localStorage.setItem(CHECKLIST_STORAGE_KEY, snapshot);
+      lastSavedRaw.current = snapshot;
+      setSavedSnapshot(snapshot);
+      setHasSaved(true);
+      setError(null);
+      setMessage("Checklist saved on this device. It includes your selected audience and checkmarks for each audience; no tax figures or identifying details.");
+    } catch {
+      setError("The checklist could not be saved. Your checkmarks are still here for this visit. Check that local storage is available and try again.");
+      setMessage(null);
+    }
+  }
+
+  function clearSavedChecklist() {
+    try {
+      window.localStorage.removeItem(CHECKLIST_STORAGE_KEY);
+      lastSavedRaw.current = null;
+      setSavedSnapshot(null);
+      setChecked(emptyChecklistProgress());
+      setRestoredAudience(null);
+      setChosenAudience(selected);
+      setHasSaved(false);
+      setCanSave(true);
+      setError(null);
+      setMessage("The saved checklist and its checkmarks have been cleared. Your books, Tax Passport and account are unchanged.");
+    } catch {
+      setError("The saved checklist could not be cleared. Nothing was changed. Check that local storage is available and try again.");
+      setMessage(null);
+    }
+  }
+
+  const feedback = (
+    <>
+      <div className="mt-4" aria-live="polite" aria-atomic="true">
+        {message && <p role="status" className="rounded-xl border border-accent/20 bg-accent-soft p-3 text-sm leading-6 text-accent-deep">{message}</p>}
+      </div>
+      {error && <p role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm leading-6 text-amber-950">{error}</p>}
+      {ready && (hasSaved || !canSave) && (
+        <Button type="button" variant="ghost" onClick={clearSavedChecklist} className="mt-3 gap-2 whitespace-normal text-sm">
+          <Trash2 aria-hidden="true" className="h-4 w-4 shrink-0" />Clear saved checklist
+        </Button>
+      )}
+    </>
+  );
 
   return (
-    <section className="mt-10" aria-labelledby="checkup-question">
-      <fieldset>
-        <legend id="checkup-question" className="text-2xl font-semibold tracking-tight text-ink">
-          What do you need to do today?
+    <section className="mt-10" aria-labelledby="checklist-audience-title">
+      {audience ? (
+        <div className="rounded-2xl border border-line bg-surface p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <label htmlFor="checklist-audience" id="checklist-audience-title" className="text-lg font-semibold text-ink">
+              Who are you sorting tax for?
+            </label>
+            <p className="mt-1 text-sm leading-6 text-ink-soft">You can switch. Each audience keeps its own checkmarks.</p>
+          </div>
+          <select
+            id="checklist-audience"
+            value={audience.id}
+            onChange={(event) => {
+              const next = getAudience(event.target.value);
+              if (next) chooseAudience(next.id);
+            }}
+            disabled={!ready}
+            className="mt-3 min-h-12 w-full max-w-full rounded-xl border border-line bg-paper px-3 text-base text-ink sm:mt-0 sm:w-80"
+          >
+            {AUDIENCES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+        </div>
+      ) : <fieldset disabled={!ready}>
+        <legend id="checklist-audience-title" className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+          Who are you sorting tax for?
         </legend>
-        <p className="mt-2 max-w-3xl text-ink-soft">
-          Choose the closest starting point. This routing step asks for no name, address, National
-          Insurance number or tax reference, and it does not calculate your tax.
+        <p className="mt-2 max-w-3xl leading-7 text-ink-soft">
+          Choose a starting point. More than one can apply: switch between them and keep a separate
+          set of checkmarks for each.
         </p>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {PATHS.map((candidate) => (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {AUDIENCES.map((item) => (
             <label
-              key={candidate.id}
-              className={`block min-h-11 cursor-pointer rounded-2xl border p-5 transition focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${
-                selected === candidate.id
-                  ? "border-accent bg-accent-soft"
-                  : "border-line bg-white hover:border-accent/60"
+              key={item.id}
+              className={`flex min-h-16 cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                selected === item.id ? "border-accent bg-accent-soft" : "border-line bg-surface hover:border-accent/60"
               }`}
             >
               <input
                 type="radio"
-                name="checkup-path"
-                value={candidate.id}
-                checked={selected === candidate.id}
-                onChange={() => setSelected(candidate.id)}
-                className="mr-3 h-4 w-4 accent-[var(--color-accent)]"
+                name="checklist-audience"
+                value={item.id}
+                checked={selected === item.id}
+                onChange={() => chooseAudience(item.id)}
+                aria-label={item.name}
+                aria-describedby={`audience-${item.id}-description`}
+                className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
               />
-              <span className="font-semibold text-ink">{candidate.label}</span>
-              <span className="mt-2 block pl-7 text-sm text-ink-soft">{candidate.hint}</span>
+              <span>
+                <span className="font-semibold text-ink">{item.name}</span>
+                <span id={`audience-${item.id}-description`} className="mt-1 block text-sm leading-6 text-ink-soft">
+                  {item.description}
+                </span>
+              </span>
             </label>
           ))}
         </div>
-      </fieldset>
+      </fieldset>}
 
-      <div className="mt-8" aria-live="polite">
-        {path ? (
-          <article className="rounded-3xl border border-accent/30 bg-white p-6 shadow-sm sm:p-8">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-accent">
-                  Your next path
-                </p>
-                <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-                  {path.title}
-                </h2>
-              </div>
-              <span className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-medium text-ink">
-                {path.status}
-              </span>
-            </div>
+      {!ready && <p role="status" className="mt-6 text-sm text-ink-soft">Loading your checklist…</p>}
 
-            <ol className="mt-6 space-y-4">
-              {path.steps.map((step, index) => (
-                <li key={step.href} className="flex gap-4">
-                  <span
-                    aria-hidden="true"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white"
-                  >
-                    {index + 1}
-                  </span>
-                  <div>
-                    <Link
-                      href={step.href}
-                      className="font-semibold text-accent underline underline-offset-4 hover:text-accent-deep"
-                    >
-                      {step.title}
-                    </Link>
-                    <p className="mt-1 text-sm text-ink-soft">{step.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <p className="mt-6 rounded-2xl bg-paper p-4 text-sm text-ink-soft">
-              <strong className="text-ink">Boundary:</strong> {path.boundary}
+      {ready && audience ? (
+        <div className="mt-9 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <aside className="rounded-2xl border border-line bg-accent-soft/50 p-5 lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1" aria-labelledby="keep-checklist-title">
+            <h2 id="keep-checklist-title" className="text-lg font-semibold text-ink">Keep your place</h2>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">
+              Save before leaving to keep your checkmarks. Checkmarks are your reminders, not confirmation that tax is correct or a return was filed.
             </p>
-          </article>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-line bg-paper p-5 text-sm text-ink-soft">
-            Choose one starting point and TaxSorted will put the relevant checks and actions in
-            order. You can change the choice at any time.
-          </p>
-        )}
-      </div>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">
+              Only your audience choices and checkmarks stay in this app or browser on this device. This does not save figures in other tools or back up your books. Clearing the app’s or browser’s stored data can erase it.
+            </p>
+            <p className="mt-4 text-sm font-semibold text-ink">{unsaved ? "Changes are not saved" : "Saved on this device"}</p>
+            <Button type="button" onClick={saveChecklist} disabled={!canSave} className="mt-3 w-full gap-2">
+              <Save aria-hidden="true" className="h-4 w-4" />Save checklist
+            </Button>
+            {feedback}
+            <Link href={`/services/${audience.id}`} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">
+              See all services for {audience.shortName.toLowerCase()}
+            </Link>
+          </aside>
+          <div className="lg:col-start-1 lg:row-start-1">
+            <div className="rounded-t-2xl border border-line bg-surface px-5 py-6 sm:px-7">
+              <p className="section-label">Your next steps</p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">{audience.shortName} checklist</h2>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">{audience.scope}</p>
+              <p className="mt-4 text-sm font-semibold text-accent" aria-live="polite" aria-atomic="true">
+                {checkedCount} of {services.length} steps checked by you
+              </p>
+            </div>
+            <ol className="divide-y divide-line overflow-hidden rounded-b-2xl border-x border-b border-line bg-surface">
+              {services.map((service, index) => {
+                const isChecked = checked[audience.id].includes(service.id);
+                return (
+                  <li key={service.id} className="p-5 sm:p-7">
+                    <div className="flex gap-4">
+                      <span aria-hidden="true" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${isChecked ? "bg-accent text-white" : "bg-accent-soft text-accent"}`}>
+                        {isChecked ? <Check className="h-4 w-4" /> : index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-ink-soft">{SERVICE_AVAILABILITY_LABELS[service.availability]}</p>
+                        <h3 className="mt-1 text-lg font-semibold text-ink">{service.name}</h3>
+                        <p className="mt-2 text-sm leading-6 text-ink-soft">{service.description}</p>
+                        <Link href={service.href} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent underline decoration-accent/30 underline-offset-4 hover:text-accent-deep">
+                          {service.action}<ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        </Link>
+                        <details className="mt-2 text-sm leading-6 text-ink-soft">
+                          <summary className="min-h-11 cursor-pointer py-2 font-medium text-ink">What this step covers</summary>
+                          <p className="pb-2">{service.boundary}</p>
+                        </details>
+                        <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line bg-paper px-3 py-2 text-sm font-medium text-ink">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(event) => toggleStep(service.id, event.target.checked)}
+                            aria-label={`I have checked this step: ${service.name}`}
+                            className="h-4 w-4 shrink-0 accent-[var(--accent)]"
+                          />
+                          I have checked this step
+                        </label>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+
+        </div>
+      ) : ready ? (
+        <p className="mt-8 rounded-2xl border border-dashed border-line bg-surface p-6 leading-7 text-ink-soft">
+          Choose who this is for to see the relevant services in order. Nothing is saved until you choose Save checklist.
+        </p>
+      ) : null}
+
+      {(!ready || !audience) && feedback}
     </section>
   );
 }

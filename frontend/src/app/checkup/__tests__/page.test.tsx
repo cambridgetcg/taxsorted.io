@@ -1,109 +1,217 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import CheckupPage from "../page";
+import { CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress } from "../checklist-state";
 
-describe("Tax Checkup front door", () => {
-  it("asks for a situation without asking for identifying tax data", () => {
+const navigation = vi.hoisted(() => ({ query: "" }));
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(navigation.query) }));
+
+beforeEach(() => {
+  navigation.query = "";
+  window.localStorage.clear();
+  window.history.replaceState(null, "", "/checkup");
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+async function choose(name: string) {
+  const select = screen.queryByRole("combobox", { name: "Who are you sorting tax for?" });
+  if (select) {
+    await waitFor(() => expect(select).toBeEnabled());
+    const option = screen.getByRole("option", { name }) as HTMLOptionElement;
+    fireEvent.change(select, { target: { value: option.value } });
+    return;
+  }
+  const option = screen.getByRole("radio", { name });
+  await waitFor(() => expect(option).toBeEnabled());
+  fireEvent.click(option);
+}
+
+function savedSoleTrader() {
+  return JSON.stringify({
+    schema: CHECKLIST_SCHEMA,
+    audience: "sole-traders",
+    checked: { ...emptyChecklistProgress(), "sole-traders": ["mtd-check"] },
+  });
+}
+
+describe("My tax checklist", () => {
+  it("starts without a profile or an implicit save", async () => {
+    const writes = vi.spyOn(Storage.prototype, "setItem");
     render(<CheckupPage />);
-
-    const heading = screen.getByRole("heading", { name: /find where you stand/i });
-    expect(heading).toBeInTheDocument();
-    expect(heading.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
-    expect(screen.getAllByRole("radio")).toHaveLength(8);
-    expect(screen.getByText(/asks for no name, address, National Insurance number or tax reference/i))
-      .toBeInTheDocument();
-    expect(screen.getByText(/no tax figures or quarterly updates are sent to HMRC/i))
-      .toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "My tax checklist" })).toBeInTheDocument();
+    expect(screen.getByText(/asks for no name, tax reference or tax figures/i)).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    await screen.findByText(/choose who this is for to see/i);
+    expect(screen.getAllByRole("radio")).toHaveLength(5);
+    expect(screen.queryByRole("button", { name: "Save checklist" })).not.toBeInTheDocument();
+
+    await choose("Sole traders and freelancers");
+    expect(new URLSearchParams(window.location.search).get("for")).toBe("sole-traders");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    expect(screen.getByText("1 of 6 steps checked by you")).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
   });
 
-  it("orders the complete MTD check, plan, records and filing-state journey", () => {
+  it("opens the landlord path from the URL with the right records and no sole-trade comparison", async () => {
+    navigation.query = "for=landlords";
     render(<CheckupPage />);
-
-    fireEvent.click(screen.getByRole("radio", { name: /work for myself or rent out property/i }));
-
-    expect(screen.getByRole("heading", { name: "Start with your MTD position" }))
-      .toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Run the 60-second MTD check" }))
-      .toHaveAttribute("href", "/itsa/am-i-in");
-    expect(screen.getByRole("link", { name: "Use the deeper MTD expert" }))
-      .toHaveAttribute("href", "/uk/tax-expert#first-deep-path");
-    expect(screen.getByRole("link", { name: "If you have one sole trade: calculate two profit routes" }))
-      .toHaveAttribute("href", "/plan#first-comparison");
-    expect(screen.getByRole("link", { name: "If you rent out property: open the landlord guide" }))
-      .toHaveAttribute("href", "/learn/for-landlords");
-    expect(screen.getByText(/live property comparison is not open yet/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Build and review the records" }))
-      .toHaveAttribute("href", "/books/workspace");
-    expect(screen.getByRole("link", { name: "Follow the preparation and filing states" }))
-      .toHaveAttribute("href", "/file");
-    expect(screen.getByText(/keeps unknown facts visible/i)).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Landlords checklist" });
+    expect(screen.getByRole("combobox", { name: "Who are you sorting tax for?" })).toHaveValue("landlords");
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open property records" }))
+      .toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+    expect(screen.queryByRole("link", { name: "Compare sole-trader choices" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Review quarterly figures" })).toHaveAttribute("href", "/itsa/quarter");
+    expect(screen.getByText(/checkmarks are your reminders/i)).toBeInTheDocument();
   });
 
-  it("routes record preparation without claiming it is filing", () => {
+  it("safely ignores an unknown audience parameter", async () => {
+    navigation.query = "for=__proto__";
     render(<CheckupPage />);
-
-    fireEvent.click(screen.getByRole("radio", { name: /organise records or a quarter/i }));
-
-    expect(screen.getByRole("link", { name: "Add or import income and expenses" }))
-      .toHaveAttribute("href", "/books/workspace");
-    expect(screen.getByRole("link", { name: "Calculate a mileage deduction" }))
-      .toHaveAttribute("href", "/tools/mileage");
-    expect(screen.getByText(/keep the trip evidence separately/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open the ITSA cockpit" }))
-      .toHaveAttribute("href", "/dashboard");
-    expect(screen.getByText(/Prepared does not mean filed/i)).toBeInTheDocument();
+    await screen.findByText(/choose who this is for to see/i);
+    expect(screen.getAllByRole("radio").every((radio) => !(radio as HTMLInputElement).checked)).toBe(true);
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 
-  it("opens a portable Passport without claiming identity or professional review", () => {
+  it("keeps overlapping tasks separate when a person switches roles", async () => {
     render(<CheckupPage />);
-
-    fireEvent.click(
-      screen.getByRole("radio", {
-        name: /one tax picture I can keep or hand over/i,
-      }),
-    );
-
-    expect(
-      screen.getByRole("link", { name: /start or resume my passport/i }),
-    ).toHaveAttribute("href", "/passport");
-    expect(
-      screen.getByText(/evidence is named by you, not inspected/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/PAYE and full liability calculations remain outside/i),
-    ).toBeInTheDocument();
+    await choose("Sole traders and freelancers");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    await choose("Landlords");
+    expect(new URLSearchParams(window.location.search).get("for")).toBe("landlords");
+    expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
+    expect(screen.getByText("0 of 6 steps checked by you")).toBeInTheDocument();
+    await choose("Sole traders and freelancers");
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
   });
 
-  it("keeps thresholds, VAT and plain-language learning behind the same door", () => {
-    render(<CheckupPage />);
-
-    fireEvent.click(screen.getByRole("radio", { name: /near £60,000 or £100,000/i }));
-    expect(screen.getByRole("link", { name: /check my £60k and £100k lines/i }))
-      .toHaveAttribute("href", "/uk/personal-tax#threshold-check");
-
-    fireEvent.click(screen.getByRole("radio", { name: /VAT-registered business/i }));
-    expect(screen.getByRole("link", { name: "Open the VAT workbench" }))
-      .toHaveAttribute("href", "/vat");
-    expect(screen.getByText(/not yet recognised for production filing/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("radio", { name: /want to understand first/i }));
-    expect(screen.getByRole("link", { name: "Learn tax in plain words" }))
-      .toHaveAttribute("href", "/learn");
-    expect(screen.getByRole("link", { name: "Follow the wider UK tax system" }))
-      .toHaveAttribute("href", "/uk");
+  it("changes query-selected audiences without mixing or discarding unsaved progress", async () => {
+    navigation.query = "for=sole-traders";
+    const view = render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Sole traders checklist" });
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    navigation.query = "for=landlords";
+    view.rerender(<CheckupPage />);
+    expect(screen.getByRole("heading", { name: "Landlords checklist" })).toBeInTheDocument();
+    expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
+    navigation.query = "for=sole-traders";
+    view.rerender(<CheckupPage />);
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
   });
 
-  it("opens neutral planning and correction routes without claiming advice or representation", () => {
+  it("never marks a step checked just because its service link is opened", async () => {
+    navigation.query = "for=landlords";
     render(<CheckupPage />);
+    const link = await screen.findByRole("link", { name: "Check MTD requirements" });
+    link.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    fireEvent.click(link);
+    expect(screen.getAllByRole("checkbox").every((checkbox) => !(checkbox as HTMLInputElement).checked)).toBe(true);
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole("radio", { name: /reduce the lawful burden or compare choices/i }));
-    expect(screen.getByRole("link", { name: /open the planning map/i })).toHaveAttribute("href", "/plan");
-    expect(screen.getByText(/does not rank choices solely by tax saved/i)).toBeInTheDocument();
+  it("puts saving and its status ahead of the steps for mobile and keyboard readers", async () => {
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    const save = await screen.findByRole("button", { name: "Save checklist" });
+    const firstStep = screen.getByRole("link", { name: "Check MTD requirements" });
+    expect(save.compareDocumentPosition(firstStep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText(/save before leaving to keep your checkmarks/i)).toBeInTheDocument();
+    expect(screen.getAllByText("What this step covers")[0].closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(save);
+    const status = screen.getByRole("status");
+    expect(status.compareDocumentPosition(firstStep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 
-    fireEvent.click(screen.getByRole("radio", { name: /something is wrong or i cannot pay/i }));
-    expect(screen.getByRole("link", { name: /name what needs putting right/i })).toHaveAttribute("href", "/put-it-right");
-    expect(screen.getByText(/does not accept confidential case files/i)).toBeInTheDocument();
+  it("saves only on request and restores the versioned checklist on a later visit", async () => {
+    const first = render(<CheckupPage />);
+    await choose("Sole traders and freelancers");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+    const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
+    expect(JSON.parse(raw!)).toEqual(JSON.parse(savedSoleTrader()));
+    expect(screen.getByText(/^checklist saved on this device/i)).toBeInTheDocument();
+    first.unmount();
+
+    const writes = vi.spyOn(Storage.prototype, "setItem");
+    render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Sole traders checklist" });
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+    expect(screen.getByText("Saved on this device")).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+  });
+
+  it("lets an explicit audience URL take precedence over the saved selection without overwriting it", async () => {
+    window.localStorage.setItem(CHECKLIST_STORAGE_KEY, savedSoleTrader());
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Landlords checklist" });
+    expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe(savedSoleTrader());
+    await choose("Sole traders and freelancers");
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+  });
+
+  it("leaves malformed saved data untouched until the person clears this checklist", async () => {
+    window.localStorage.setItem(CHECKLIST_STORAGE_KEY, "{broken");
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("left untouched");
+    expect(screen.getByRole("button", { name: "Save checklist" })).toBeDisabled();
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe("{broken");
+    fireEvent.click(screen.getByRole("button", { name: "Clear saved checklist" }));
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+    expect(screen.getByRole("button", { name: "Save checklist" })).toBeEnabled();
+  });
+
+  it("reports a write failure and keeps the visible progress", async () => {
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Landlords checklist" });
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
+    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+    expect(screen.getByText("Changes are not saved")).toBeInTheDocument();
+  });
+
+  it("keeps a temporary checklist usable when storage cannot be read", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Checklist storage on this device could not be read");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+    expect(screen.getByRole("button", { name: "Save checklist" })).toBeDisabled();
+  });
+
+  it("clears only its own key and does not erase unrelated browser data", async () => {
+    window.localStorage.setItem(CHECKLIST_STORAGE_KEY, savedSoleTrader());
+    window.localStorage.setItem("taxsorted.locale", "en");
+    window.localStorage.setItem("unrelated-books-reference", "preserve");
+    render(<CheckupPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Clear saved checklist" }));
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem("taxsorted.locale")).toBe("en");
+    expect(window.localStorage.getItem("unrelated-books-reference")).toBe("preserve");
+    expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
+  });
+
+  it("does not overwrite changes made by another tab", async () => {
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Landlords checklist" });
+    window.localStorage.setItem(CHECKLIST_STORAGE_KEY, savedSoleTrader());
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("changed in another tab");
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe(savedSoleTrader());
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
   });
 });

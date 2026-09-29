@@ -4,7 +4,7 @@ export interface OfficialLink {
   label: string;
   href: string;
   publisher: "GOV.UK" | "HMRC" | "Xero" | "Intuit" | "FreeAgent" | "Sage";
-  checkedOn: "2026-08-01";
+  checkedOn: string;
 }
 
 export interface AccountingSourceSummary {
@@ -12,6 +12,7 @@ export interface AccountingSourceSummary {
   name: string;
   state: "open-now" | "planned";
   stateLabel: string;
+  availabilityNote?: string;
   plain: string;
   keeps: readonly string[];
   boundary: string;
@@ -45,6 +46,8 @@ export const ACCOUNTING_SOURCES: readonly AccountingSourceSummary[] = [
     name: "Xero",
     state: "planned",
     stateLabel: "Connector not live",
+    availabilityNote:
+      "A private Xero authorisation pilot exists, with public access closed. It only tests permission and organisation selection; it has no financial reader and cannot import your records.",
     plain: "The first planned read-only connection: choose one Xero organisation, bring in visible changes and keep the original Xero record IDs.",
     keeps: [
       "chosen Xero organisation",
@@ -302,3 +305,31 @@ export const OFFICIAL_FILING_HELP: readonly OfficialLink[] = [
     checkedOn: "2026-08-01",
   },
 ] as const;
+
+/** Direct filing destinations checked separately from the integration source ledger. */
+export const OFFICIAL_RETURN_ROUTES = [
+  {
+    id: "self-assessment",
+    label: "File Self Assessment on GOV.UK",
+    href: "https://www.gov.uk/log-in-file-self-assessment-tax-return",
+    publisher: "GOV.UK",
+    checkedOn: "2026-09-29",
+    plain: "Check who can use HMRC's online service and sign in to send a return.",
+  },
+  {
+    id: "mtd-income-tax",
+    label: "How to file with MTD Income Tax software",
+    href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/submit-your-tax-return",
+    publisher: "GOV.UK",
+    checkedOn: "2026-09-29",
+    plain: "If you use Making Tax Digital for Income Tax, follow HMRC's return guidance for compatible software.",
+  },
+  {
+    id: "vat",
+    label: "How to send a VAT return",
+    href: "https://www.gov.uk/submit-vat-return",
+    publisher: "GOV.UK",
+    checkedOn: "2026-09-29",
+    plain: "Follow HMRC's guide to preparing and sending a VAT return.",
+  },
+] as const satisfies readonly (OfficialLink & { id: string; plain: string })[];

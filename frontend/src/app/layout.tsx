@@ -3,11 +3,13 @@ import Link from "next/link";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SiteNav } from "@/components/site-nav";
+import { LocalAppNotice } from "@/components/local-app-notice";
+import { LocalAppBoundary } from "@/components/local-app-boundary";
 
 export const metadata: Metadata = {
-  title: "TaxSorted — Tax, understood. Then sorted.",
+  title: "TaxSorted — A clearer way to sort your tax",
   description:
-    "Check your UK tax position, compare lawful choices, keep browser-local books, prepare filings with consent, and find the right correction or challenge route.",
+    "Practical UK tax tools for individuals, sole traders and landlords. Find your next steps, organise income and expenses, prepare figures and get help with tax problems.",
 };
 
 // Runs before first paint (static export — no server): reads the saved
@@ -31,29 +33,55 @@ export default function RootLayout({
               The skip link lives inside SiteNav so it can speak the reader's
               language; it is still the first focusable thing on the page. */}
           <SiteNav />
+          <LocalAppNotice />
           <main id="main-content" tabIndex={-1} className="focus:outline-none">
-            {children}
+            <LocalAppBoundary>{children}</LocalAppBoundary>
           </main>
           <footer className="mt-20 border-t border-line bg-surface/60">
-            <div lang="en" dir="ltr" className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-[1fr_auto] md:items-end lg:px-8">
+            <div lang="en" dir="ltr" className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-2 lg:px-8">
               <div className="max-w-xl">
                 <p className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  Tax, understood. Then sorted.
+                  A clearer way to sort your tax.
                 </p>
-                <p className="mt-2">Free and open-source, built in the open. Prepared and filed always mean different things.</p>
+                <p className="mt-3 leading-6">Free and open-source. UK tools for checking your position, keeping money records and preparing your next step.</p>
+                <p className="mt-2 leading-6">Money records stay on this device. Production filing with HMRC is not live.</p>
               </div>
               <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-3 gap-y-1 md:justify-end">
                 <Link
-                  href="/plan"
+                  href="/download"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  Plan
+                  Local app
+                </Link>
+                <Link
+                  href="/services"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  Services
+                </Link>
+                <Link
+                  href="/checkup"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  My checklist
+                </Link>
+                <Link
+                  href="/books"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  Money records
+                </Link>
+                <Link
+                  href="/learn"
+                  className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
+                >
+                  Tax guides
                 </Link>
                 <Link
                   href="/put-it-right"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  Put it right
+                  Help & corrections
                 </Link>
                 <Link
                   href="/uk"
