@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RecordsClient from "@/features/books/records-client";
 import { emptyLocalBooks, eventFromRecord } from "@/lib/local-books";
 
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
+
 const store = vi.hoisted(() => ({
   state: vi.fn(),
   subscribe: vi.fn(() => () => undefined),

@@ -12,6 +12,13 @@ import {
 } from "@/lib/local-books";
 
 const NOW = "2026-08-20T12:00:00.000Z";
+const navigation = vi.hoisted(() => ({ query: null as string | null, pending: null as Promise<void> | null }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => {
+    if (navigation.pending) throw navigation.pending;
+    return new URLSearchParams(navigation.query ?? window.location.search);
+  },
+}));
 
 const store = vi.hoisted(() => ({
   state: vi.fn(),
@@ -136,6 +143,8 @@ function mixedBooks(): LocalBooksState {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  navigation.query = null;
+  navigation.pending = null;
   store.state.mockResolvedValue(emptyBooks());
   store.add.mockResolvedValue({});
   store.importMany.mockResolvedValue({ added: [], duplicateCount: 0, conflicts: [] });
@@ -147,6 +156,36 @@ afterEach(() => {
 });
 
 describe("Books workspace entry", () => {
+  it("uses the destination router query before window.location catches up", async () => {
+    window.history.replaceState({}, "", "/checkup?for=landlords");
+    navigation.query = "activity=uk-property&start=manual";
+    render(<BooksMoneyPage />);
+
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+    await screen.findByRole("heading", { name: "Add money in or out" });
+    expect(screen.getByRole("radio", { name: "A property I let" })).toBeChecked();
+    expect(window.location.search).toBe("?for=landlords");
+  });
+
+  it("updates navigation when the router changes activity without relying on document history", async () => {
+    navigation.query = "activity=uk-property";
+    const view = render(<BooksWorkspacePage />);
+    await screen.findByRole("heading", { name: "No records yet" });
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+
+    navigation.query = "activity=self-employment";
+    view.rerender(<BooksWorkspacePage />);
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money");
+  });
+
+  it("offers a loading status rather than links with a guessed activity before the router is ready", () => {
+    navigation.pending = new Promise(() => {});
+    render(<BooksMoneyPage />);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading your records workspace");
+    expect(screen.queryByRole("navigation", { name: "Books sections" })).not.toBeInTheDocument();
+    expect(store.state).not.toHaveBeenCalled();
+  });
+
   it("gives Today one truthful status and no completeness claim", async () => {
     render(<BooksWorkspacePage />);
 

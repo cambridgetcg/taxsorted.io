@@ -10,6 +10,9 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    // Keep DOM-heavy suites from competing for every CPU on hosted runners.
+    // Local runs retain Vitest's default worker selection.
+    maxWorkers: process.env.CI ? 2 : undefined,
   },
   resolve: {
     alias: {

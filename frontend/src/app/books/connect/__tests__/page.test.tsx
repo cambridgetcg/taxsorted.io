@@ -4,12 +4,40 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import BooksConnectPage from "../page";
 import { ACCOUNTING_SOURCES, OFFICIAL_FILING_HELP } from "@/lib/accounting-integrations";
 
+const navigation = vi.hoisted(() => ({ query: null as string | null, pending: null as Promise<void> | null }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => {
+    if (navigation.pending) throw navigation.pending;
+    return new URLSearchParams(navigation.query ?? window.location.search);
+  },
+}));
+
 afterEach(() => {
+  navigation.query = null;
+  navigation.pending = null;
   window.history.replaceState({}, "", "/");
   vi.unstubAllGlobals();
 });
 
 describe("Bring in records", () => {
+  it("uses the router activity during a client transition instead of the old browser URL", () => {
+    window.history.replaceState({}, "", "/books/connect?activity=self-employment");
+    navigation.query = "activity=uk-property";
+    const page = render(<BooksConnectPage />);
+    expect(screen.getByRole("link", { name: /import a bank csv/i })).toHaveAttribute("href", "/books/workspace/money?start=csv&activity=uk-property");
+
+    navigation.query = "activity=self-employment";
+    page.rerender(<BooksConnectPage />);
+    expect(screen.getByRole("link", { name: /import a bank csv/i })).toHaveAttribute("href", "/books/workspace/money?start=csv&activity=self-employment");
+  });
+
+  it("keeps a query-dependent action unavailable while its destination context loads", () => {
+    navigation.pending = new Promise(() => {});
+    render(<BooksConnectPage />);
+    expect(screen.queryByRole("link", { name: /import a bank csv/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/import a bank csv/i).closest('[aria-disabled="true"]')).toHaveAttribute("aria-busy", "true");
+  });
+
   it("opens working CSV and manual starts without a provider request", () => {
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);

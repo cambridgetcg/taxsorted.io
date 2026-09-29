@@ -2,8 +2,9 @@
 
 // Shared local-books workspace for the Books views and the Income Tax records route.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   BooksWorkspaceNav,
@@ -55,10 +56,21 @@ export interface RecordsClientProps {
   view?: BooksWorkspaceView;
 }
 
-export default function RecordsClient({
+export default function RecordsClient(props: RecordsClientProps = {}) {
+  return (
+    <Suspense fallback={<p role="status" className="mx-auto max-w-6xl px-4 py-10 text-ink-soft sm:px-6 lg:px-8">Loading your records workspace…</p>}>
+      <RecordsWorkspace {...props} />
+    </Suspense>
+  );
+}
+
+function RecordsWorkspace({
   entry = "mtd",
   view = "today",
 }: RecordsClientProps = {}) {
+  // Router context already holds the destination query during client navigation.
+  // window.location may still describe the previous page until Next commits it.
+  const searchParams = useSearchParams();
   const store = useMemo<RecordsStore>(() => createRecordsStore(), []);
   const [books, setBooks] = useState<LocalBooksState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -68,10 +80,7 @@ export default function RecordsClient({
   const focusedStart = useRef<"manual" | "csv" | null>(null);
   const mounted = useMounted();
   const enteredFromBooks = entry === "books";
-  const requestedStart =
-    enteredFromBooks && mounted && typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("start")
-      : null;
+  const requestedStart = enteredFromBooks ? searchParams.get("start") : null;
   const queryStart = requestedStart === "manual" || requestedStart === "csv" ? requestedStart : null;
   const emptyStart =
     startChoice === null ? queryStart : startChoice === "closed" ? null : startChoice;
@@ -80,9 +89,7 @@ export default function RecordsClient({
   };
   const preferredSource: SourceType =
     enteredFromBooks &&
-    mounted &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("activity") === "uk-property"
+    searchParams.get("activity") === "uk-property"
       ? "uk-property"
       : "self-employment";
 

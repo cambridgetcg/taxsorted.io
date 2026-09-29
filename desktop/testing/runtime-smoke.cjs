@@ -120,6 +120,7 @@ async function run(options) {
   let profileVerified = false;
   let packagedLock;
   let app;
+  let shutdownConfirmed = true;
   let spy;
   let hits = 0;
   let failed = false;
@@ -128,17 +129,29 @@ async function run(options) {
   const evaluate = (callback, argument) => bounded(app.evaluate(callback, argument), stage);
 
   async function closeApp() {
-    if (!app) return;
+    if (!app) {
+      if (!shutdownConfirmed) throw refusal('APP_SHUTDOWN_UNCONFIRMED', 'Test files are retained because app shutdown could not be confirmed.');
+      return;
+    }
     const closing = app;
     app = undefined;
     try {
       await bounded(closing.close(), 'close test app', 15_000);
+      shutdownConfirmed = true;
     } catch (error) {
+      // A forced stop is best effort. Keep cleanup unconfirmed after a failed
+      // graceful close, even when the launcher exits, so no profile is removed.
       const child = closing.process();
-      if (child.exitCode === null) {
-        child.kill('SIGKILL');
-        await bounded(new Promise(resolve => child.once('exit', resolve)), 'stop test process', 5_000);
-      }
+      try {
+        if (child.pid && process.platform === 'win32') {
+          // Playwright launches Electron through cmd.exe on Windows; killing
+          // that shell alone leaves Electron and its renderer processes alive.
+          execFileSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { env, stdio: 'ignore', windowsHide: true, timeout: 5_000 });
+        } else if (child.pid && child.exitCode === null) {
+          // Playwright gives this POSIX launch its own process group.
+          process.kill(-child.pid, 'SIGKILL');
+        }
+      } catch { /* Preserve the original failure and retain the test files. */ }
       throw error;
     }
   }
@@ -168,6 +181,7 @@ async function run(options) {
     const remote = `http://127.0.0.1:${spy.address().port}/synthetic-network-probe`;
 
     async function launch() {
+      shutdownConfirmed = false;
       app = await _electron.launch({
         executablePath: executable,
         args: options.mode === 'source' ? [desktopRoot, `--profile-dir=${expectedProfile}`] : [],
@@ -283,9 +297,17 @@ async function run(options) {
     await page.getByRole('checkbox').first().check();
     await page.getByRole('button', { name: 'Save checklist', exact: true }).click();
     await page.getByText('Saved on this device', { exact: true }).waitFor();
+    stage = 'retain property activity through client navigation';
+    const propertyRoute = pathname => url => url.pathname.replace(/\/$/, '') === pathname && url.searchParams.get('activity') === 'uk-property';
     await page.getByRole('link', { name: 'Open property records', exact: true }).click();
+    await page.waitForURL(propertyRoute('/books/workspace/money'));
+    // Exercise different destinations, waiting for the router to commit each
+    // transition. A click can finish before a client-side URL update does.
+    await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name: 'Today', exact: true }).click();
+    await page.waitForURL(propertyRoute('/books/workspace'));
     await page.getByRole('navigation', { name: 'Books sections' }).getByRole('link', { name: 'Money', exact: true }).click();
-    assert.equal(new URL(page.url()).searchParams.get('activity'), 'uk-property');
+    await page.waitForURL(propertyRoute('/books/workspace/money'));
+    stage = 'save synthetic Books record';
     await addRecord(baselineNote, '123.45');
     check('Client navigation retains landlord activity; synthetic checklist and money record saved');
 
@@ -294,7 +316,7 @@ async function run(options) {
     page = await launch();
     await page.goto('taxsorted://app/checkup/');
     await page.getByRole('checkbox').first().waitFor();
-    assert.equal(await page.getByRole('checkbox').first().isChecked(), true);
+    await waitUntil(() => page.getByRole('checkbox').first().isChecked(), 'restore saved checklist');
     await page.goto('taxsorted://app/books/workspace/money/?activity=uk-property');
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
     check('Checklist and IndexedDB money record persist across full app quit and relaunch');
@@ -344,6 +366,8 @@ async function run(options) {
     await page.getByRole('button', { name: 'Replace these Books with the backup', exact: true }).click();
     await page.getByText(/Your Books were replaced\./).waitFor();
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
+    // The success notice precedes the asynchronous ledger refresh.
+    await page.getByText(extraNote, { exact: true }).waitFor({ state: 'detached' });
     assert.equal(await page.getByText(extraNote, { exact: true }).count(), 0);
     check('Blob export configures native Save options; validated JSON restores after backup and confirmation; later synthetic record removed');
 
