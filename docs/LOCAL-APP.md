@@ -19,12 +19,16 @@ Install Node.js 22 and Git. From the project root:
 
 ```sh
 npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start
 ```
 
-Dependency installation needs the internet and downloads Electron. Building stages
-the static frontend into `desktop/bundle`; running the app reads that bundle. No
+Dependency installation needs the internet. `desktop:install-runtime` explicitly
+downloads the pinned Electron executable; Electron 44's npm package does not install
+that executable during `npm ci`. The environment doctor only inspects it and never
+starts a download. Building stages the static frontend into `desktop/bundle`;
+running the app reads that bundle. No
 personal records are needed to build it. The scoped install deliberately leaves out
 the API workspace's dependencies: its existing AgentTool SDK download is unavailable.
 The API source still supplies the frontend's local research review check, using the
@@ -52,6 +56,7 @@ From an existing TaxSorted Git checkout:
 node scripts/create-local-project.mjs ../my-taxsorted
 cd ../my-taxsorted
 npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start
 ```
@@ -155,9 +160,10 @@ runtime test on every supported machine.
 
 The [desktop build workflow](../.github/workflows/desktop-build.yml) defines a
 native matrix for these four targets, Node 22, scaffold/desktop tests and app builds.
-It uploads only installer/archive artifacts with 14-day retention. It has read-only
-repository permissions, a push trigger limited to the rebuild branch, no release publication step and no signing
-credentials. Its runner labels follow the
+It uploads preview installers/archives and allowlisted result summaries with 14-day
+retention. It has read-only repository permissions, manual dispatch and a source-change
+push trigger limited to `feat/service-oriented-rebuild-20260929`, no release publication
+step and no signing credentials. Its runner labels follow the
 [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 Adding the workflow locally does not run it or create public downloads. Windows, Linux
 and Intel Mac packages need their native workflow and installation checks before they

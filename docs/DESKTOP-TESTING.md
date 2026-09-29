@@ -42,10 +42,11 @@ does not establish a running target OS.
    before running it. Record version, source revision, artifact filename, checksum,
    architecture, OS build and whether the package is unsigned. A checksum identifies
    bytes; it does not establish publisher trust.
-4. For source/automated tests, install Git and Node 22, then run the scoped install
-   and `npm run desktop:build` from [Local app](LOCAL-APP.md#run-from-source).
-   Finish dependency downloads before the offline scenario. Do not use real records
-   to make a build pass.
+4. For source/automated tests, install Git and Node 22, then run the scoped `npm ci`,
+   `npm run desktop:install-runtime` and `npm run desktop:build` from
+   [Local app](LOCAL-APP.md#run-from-source). Electron 44's executable requires that
+   explicit download step; the doctor does not install it. Finish downloads before
+   the offline scenario. Do not use real records to make a build pass.
 5. Take a **clean prerequisites** VM snapshot before first app launch. For physical
    Macs, use a fresh test account with no existing TaxSorted profile and record that
    starting condition. After the persistence cases, use a separate **synthetic data
@@ -100,6 +101,7 @@ Run these from the project root after building. The doctor reports prerequisites
 it does not install them or prove UI behaviour.
 
 ```sh
+npm run desktop:install-runtime
 npm run desktop:doctor -- --require-bundle
 node --test scripts/__tests__/create-local-project.test.mjs
 npm run test --workspace frontend --workspace @taxsorted/engine
@@ -127,7 +129,7 @@ for packaged Linux automation if no graphical session is available. The
 disposable account; it does not create or isolate one.
 
 The [workflow](../.github/workflows/desktop-build.yml) prepares native builds and
-evidence when deliberately dispatched. An unpacked packaged-app launch checks the
+evidence on the triggers below. An unpacked packaged-app launch checks the
 packaged runtime; the manual installer/AppImage cases still remain. Inspect the
 generated report for the assertions actually run, including sandbox settings,
 renderer isolation, local routes, persistence and request blocking. Do not infer a
@@ -242,11 +244,12 @@ rows and manual installer cases above remain separate.
 | Effective sandbox | macOS renderer process metric reported sandboxed; no sandbox-disabling launch switches |
 | Packaged-profile refusal | Synthetic existing-profile check stopped before Electron import and preserved the fixture |
 | Existing Apple silicon package inspection | Four declared runtime files and 515 staged public files matched; licences present |
-| Workflow definition | YAML parsed; four explicit native runner/architecture combinations; manual dispatch only |
+| Workflow definition | Four explicit native runner/architecture combinations; manual dispatch and source-change pushes limited to the rebuild branch |
 
 Runtime evidence is written to `desktop/test-results/source-smoke.json`; package
 inspection writes `desktop/test-results/package-inspection.json`. Generated evidence
-is ignored by Git. No Windows/Linux/Intel job, VM or external workflow was started.
+is ignored by Git. These local preparation checks did not start target VMs or
+establish outcomes for the subsequent native CI campaign.
 
 The local `desktop/dist/TaxSorted-Local-0.1.0-test-kit.zip` carries the current source,
 this plan, result template and test scripts. Unzip it into a new directory in the

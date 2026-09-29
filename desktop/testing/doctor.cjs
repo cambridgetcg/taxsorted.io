@@ -32,8 +32,10 @@ function doctor(options = {}) {
     translated = probe.status === 0 && probe.stdout.trim() === '1';
     if (options['expect-arch'] === 'x64') check('native-intel', !translated, 'Rosetta execution does not establish native Intel coverage');
   }
-  try { check('electron-installed', installedElectronExecutable(), 'Electron executable exists; launch still needs verification'); }
-  catch { check('electron-installed', false, 'Run the scoped npm ci without --ignore-scripts'); }
+  try {
+    const installed = installedElectronExecutable();
+    check('electron-installed', installed, installed ? 'Electron executable exists; launch still needs verification' : 'Run npm run desktop:install-runtime after the scoped npm ci');
+  } catch { check('electron-installed', false, 'Run npm run desktop:install-runtime after the scoped npm ci'); }
   try { check('playwright-installed', Boolean(require.resolve('playwright')), 'Project-pinned Electron automation'); }
   catch { check('playwright-installed', false, 'Run the scoped npm ci'); }
   if (options['require-bundle']) check('staged-pages', fs.existsSync(path.join(__dirname, '../bundle/index.html')), 'Run npm run desktop:build');

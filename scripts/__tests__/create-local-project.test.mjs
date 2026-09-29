@@ -97,6 +97,31 @@ test("refuses a destination inside the checkout, missing parents, and incomplete
   assert.equal(existsSync(f.targetDir), false);
 });
 
+test("refuses a worktree subdirectory even when it has a complete project shape", (t) => {
+  const f = fixture(t);
+  for (const file of ["package.json", "package-lock.json", "frontend/package.json", "engine/package.json", "desktop/package.json"]) {
+    f.write(`nested/${file}`, "{}\n");
+  }
+  assert.throws(
+    () => createLocalProject({ sourceDir: path.join(f.sourceDir, "nested"), targetDir: f.targetDir }),
+    /source root must be the repository root/,
+  );
+  assert.equal(existsSync(f.targetDir), false);
+});
+
+test("refuses bare repositories and directories outside a Git worktree", (t) => {
+  const f = fixture(t);
+  const bare = path.join(f.base, "bare.git");
+  const init = spawnSync("git", ["init", "--bare", "--quiet", bare], { encoding: "utf8" });
+  assert.equal(init.status, 0, "bare fixture Git command succeeded");
+  const ordinary = path.join(f.base, "ordinary");
+  mkdirSync(ordinary);
+  for (const sourceDir of [bare, ordinary]) {
+    assert.throws(() => createLocalProject({ sourceDir, targetDir: f.targetDir }), /source root must be the repository root/);
+    assert.equal(existsSync(f.targetDir), false);
+  }
+});
+
 test("rejects escaped paths and sensitive filenames; retains ordinary implementation files", () => {
   for (const name of ["../package.json", "/frontend/a.ts", "frontend/../a.ts", "frontend\\a.ts", "frontend/C:a.ts", "frontend/a\nb.ts", "frontend/.git/config", "frontend/local.env", "frontend/auth.json", "frontend/session.json", "desktop/secrets.yml", "frontend/.env", "frontend/.env.example", "frontend/config.local.json"]) {
     assert.equal(isAllowedSourcePath(name), false, "unsafe source path is excluded");

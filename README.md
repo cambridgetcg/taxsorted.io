@@ -18,6 +18,7 @@ See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
 ```sh
 # Node 22; install only the workspaces needed by the local app
 npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start
 # Optional source copy into a new directory:

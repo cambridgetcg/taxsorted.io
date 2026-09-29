@@ -80,6 +80,8 @@ jobs:
           cache-dependency-path: package-lock.json
       - name: Install local app workspaces
         run: npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+      - name: Download the pinned Electron runtime
+        run: npm run desktop:install-runtime
       - name: Test source scaffold
         run: node --test scripts/__tests__/create-local-project.test.mjs
       - name: Test shared tools and calculation engine

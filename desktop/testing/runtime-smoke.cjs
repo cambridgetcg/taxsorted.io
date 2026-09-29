@@ -159,7 +159,7 @@ async function run(options) {
     const { _electron } = require('playwright');
     // Inspect installed metadata; importing Electron 44 can install missing binaries.
     const executable = options.mode === 'source' ? require('./doctor.cjs').electronExecutablePath() : path.resolve(options.executable);
-    if (!executable) throw refusal('MISSING_ELECTRON_RUNTIME', 'Install the scoped dependencies before running source smoke tests.');
+    if (!executable) throw refusal('MISSING_ELECTRON_RUNTIME', 'Run npm run desktop:install-runtime after installing the scoped dependencies.');
     try { await fs.access(executable, fileModes.X_OK); }
     catch (error) { throw refusal(error.code === 'ENOENT' ? 'MISSING_EXECUTABLE' : 'EXECUTABLE_ACCESS_DENIED', 'The native app executable is missing or cannot be executed.'); }
     if (!(await fs.stat(executable)).isFile()) throw refusal('EXECUTABLE_NOT_FILE', 'Pass the native executable file, not an application or output directory.');

@@ -85,8 +85,11 @@ function hasOnlyRegularAncestors(sourceDir, relativePath) {
 
 export function createLocalProject({ sourceDir, targetDir }) {
   const source = realpathSync(sourceDir);
-  const top = runGit(source, ["rev-parse", "--show-toplevel"]);
-  if (top.status !== 0 || realpathSync(top.stdout.trim()) !== source) {
+  // Ask Git whether this directory is the worktree root. Comparing absolute
+  // path spellings breaks on Windows drive casing and short-name aliases.
+  const position = runGit(source, ["rev-parse", "--is-inside-work-tree", "--show-prefix"]);
+  const [insideWorktree, prefix] = position.stdout?.split(/\r?\n/) ?? [];
+  if (position.status !== 0 || insideWorktree !== "true" || prefix !== "") {
     throw new Error("Run the scaffold from a TaxSorted Git checkout; its source root must be the repository root.");
   }
   const requestedTarget = path.resolve(targetDir);

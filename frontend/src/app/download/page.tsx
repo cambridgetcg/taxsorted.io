@@ -24,6 +24,7 @@ const localTools = [
 const scaffoldCommands = `node scripts/create-local-project.mjs ../my-taxsorted
 cd ../my-taxsorted
 npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start`;
 

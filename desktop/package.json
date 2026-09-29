@@ -7,6 +7,7 @@
   "license": "AGPL-3.0-only",
   "main": "src/main.cjs",
   "scripts": {
+    "install-runtime": "install-electron",
     "start": "electron .",
     "stage": "node scripts/stage.cjs",
     "package": "electron-builder --config electron-builder.yml --publish never",
