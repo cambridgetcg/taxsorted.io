@@ -110,12 +110,16 @@ the existing stable round ID remains the only saved learning progress.
   Restore preserves record evidence and review history, creates a fresh replica and requires
   business confirmation/provider reconnection. Books backups are password-protected by default;
   an unencrypted compatibility download requires an explicit choice. Signing in is not backup.
-- Books backups do not include Passport facts, return-preparation drafts, personal checklists,
-  sign-in sessions or attachments. Passport, CSV and preparation-summary exports remain
-  unencrypted. There is no complete workspace backup; see [local data custody](LOCAL-APP.md#where-personal-data-lives).
+- Books-only backups do not include Passport facts, return-preparation drafts, personal
+  checklists, sign-in sessions or attachments. The complete saved-workspace backup at
+  `/backups` adds one encrypted file and atomic restore for Books, Passport, both supported
+  preparation years and personal checklists. It excludes unsaved edits, account sessions,
+  provider credentials, attachments and app preferences. Passport, CSV and preparation-summary
+  exports remain unencrypted; see [local data custody](LOCAL-APP.md#where-personal-data-lives).
 - Source trails are kept today; receipt and invoice attachments are not.
 - No suggestion changes a figure until the user confirms it.
-- TaxSorted is not yet recognised for production filing with HMRC.
+- Production filing is not enabled. Current HMRC recognition evidence remains
+  unverified in the [operating inventory](OPERATING-EVIDENCE.md).
 - TaxSorted does not claim to replace professional advice when the facts exceed a tool's
   stated scope.
 
@@ -157,6 +161,10 @@ kept in [ACCOUNTING-INTEGRATIONS.md](ACCOUNTING-INTEGRATIONS.md).
 
 ## Build order
 
+This is the accounting-specific build order. The [overall TaxSorted roadmap](SERVICE-REBUILD.md)
+sets current priorities across individual preparation, desktop delivery and infrastructure.
+Status notes distinguish current implementation from future scope.
+
 1. Make Starter Books a first-class front door. **Implemented for the stated local UK scope.**
 2. Add evidence attachments with clear local/export/storage rules.
 3. Add bank reconciliation and separate ledgers for separate businesses.
@@ -171,6 +179,12 @@ kept in [ACCOUNTING-INTEGRATIONS.md](ACCOUNTING-INTEGRATIONS.md).
 9. Add year-end adjustments with an explicit review trail.
 10. Add the UK limited-company accounts and separate Corporation Tax XML path.
 11. Add production filing only after recognition, deliberate approval and tested receipts.
+
+Steps 7–10 describe expansion into a full accounting product. They are not
+prerequisites for every filing capability: bounded VAT and manual/CSV Income Tax
+paths can be admitted independently under their own [production-gap contracts](PRODUCTION-GAPS.md),
+source review and operating evidence. Provider connectivity is also not required for
+a supported manual-record filing path.
 
 Each step must be useful alone and leave an off-switch. No step may claim the next one is
 already complete.

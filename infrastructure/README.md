@@ -1,9 +1,11 @@
 # Infrastructure and data map
 
-Repository map reviewed **2026-09-30**, against service-rebuild code at `6175c20`.
+Repository map reviewed **2026-09-30**, against service-rebuild code at `4486638`.
 This is the entry point for the current stack, data custody and integration boundaries.
 The rebuild branch includes features that have not been deployed to `taxsorted.io`.
 Configuration and local tests do not establish live provider access or production filing.
+The [current product roadmap](../docs/SERVICE-REBUILD.md) connects this infrastructure
+work with user journeys, desktop acceptance and release priorities.
 
 ## Stack and purpose
 
@@ -12,7 +14,7 @@ Configuration and local tests do not establish live provider access or productio
 | Website | Next.js 16 static export, React 19, TypeScript, Tailwind 4; Cloudflare Pages | Serves the interface and bundled guidance. Local tools run in the browser; there is no Next.js server runtime in this deployment. |
 | Local desktop | Electron, the same static frontend and tax engine; Windows, Linux, Intel and Apple silicon macOS packaging | Runs bundled preparation tools without a TaxSorted account or backend. Remote app requests, account sign-in, provider sync and online filing are unavailable. |
 | Shared rules | `engine/`, TypeScript | Supported calculations, tax contracts, validation and accounting-sync contracts. Its older HMRC subtree still includes browser/network helpers; complete transport separation remains work. |
-| Local records | IndexedDB and localStorage | Books, Passport, preparation drafts and checklists have separate stores. The browser and desktop have separate profiles; account sign-in does not synchronise or back them up. |
+| Local records | IndexedDB workspace with compatibility reads for older records and localStorage checklists | Saved Books, Passport, preparation drafts and checklists share a workspace-aware persistence boundary. Explicit backup/restore preview validates and adopts older saved data into the canonical workspace; opening a page does not activate it. Browser and desktop profiles remain separate, with deliberate file transfer and no account sync. |
 | Online API | Node 22, Hono, Zod/OpenAPI; Docker on Fly.io, primary region `lhr` | Account and entity access, provider grants, HMRC sandbox routes and scoped developer APIs. London is the configured API region, not proof of UK-only processing by every service. |
 | Hosted database | PostgreSQL, `postgres.js`, SQL migrations | Accounts, sessions, tax entities, grants, sync-control state and submission payloads/receipts. It is not a cloud copy of local Books or preparation drafts. |
 | Authentication | WebAuthn passkeys and recovery codes; separate scoped workspace API keys | Recovery-only sessions cannot access protected tax data until upgraded with a passkey. Provider OAuth grants and HMRC authorisation are separate from TaxSorted sign-in. |
@@ -48,8 +50,9 @@ flowchart LR
 
 | Information | Current home and protection |
 |---|---|
-| Books events, review history, imported records | Local IndexedDB. The app does not encrypt the live profile. Books backup files are password-protected by default and can be restored deliberately. |
-| Passport facts, tax-return preparation drafts, personal checklist | Separate local persistence; excluded from Books backups. Passport and preparation exports have their own scope and are unencrypted. There is no complete encrypted workspace backup. |
+| Books events, review history, imported records | Local IndexedDB through the workspace-aware persistence boundary. The app does not encrypt the live profile. Books-only backup files are password-protected by default; the complete workspace format also includes saved Books. |
+| Passport facts, tax-return preparation drafts, personal checklist | Local workspace data, with compatibility reads before adoption. These remain outside Books-only files but are included in encrypted workspace backups. Separate Passport and preparation-summary exports remain unencrypted. |
+| Complete saved-workspace backup | `/backups` creates a password-protected file covering Books, Passport, both supported preparation years and audience checklists. Restore replaces all covered sections atomically after a protected safety copy and confirmation; unsaved forms, original documents, attachments, account state, provider credentials and preferences are excluded. |
 | Underlying P60s and other preparation documents | Remain with the person. The preparation journey records checklist state and entered figures; it does not upload evidence documents. |
 | Accounts, sessions and tax entity identifiers | Hosted PostgreSQL when online account features are used. Entity fields can include NINO and VAT registration number; local-first is not a claim that the API holds no sensitive data. |
 | Provider/HMRC access and refresh tokens | API-side encrypted token custody. Tokens are not delivered to the browser; token encryption does not encrypt every database field. |
@@ -297,15 +300,15 @@ an exercised hosted release or recovery operation.
 
 | Order | Work package and purpose | Completion evidence | Status |
 |---|---|---|---|
-| INF-01 · now | Share one frontend release contract between artifact checks and live smoke checks. Catch broken rebuilt routes before an API deployment starts. | Current generated pages pass; missing/wrong pages fail; core service, preparation and download routes are covered; existing publication, header and exact-byte checks remain. | Implemented; now 35 generated routes, including workspace recovery, and 9 offline tests pass. Live release not run. |
-| INF-02 · now | Restore a reproducible full install by using the available npm artifact for the existing exact SDK version. | npm artifact matches the existing lockfile integrity; clean Node 22 `npm ci`, all workspace tests/types and production dependency audit; existing mirror behaviour and tests retained without an SDK upgrade or stub. | Implemented; isolated install and combined checks pass. Full and production audits report zero findings. |
-| INF-03 · now | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | Implemented; PostgreSQL 16.14 and 17.10 passed locally. CI prepared, not run; hosted recovery unverified. |
+| INF-01 · implemented | Share one frontend release contract between artifact checks and live smoke checks. Catch broken rebuilt routes before an API deployment starts. | Current generated pages pass; missing/wrong pages fail; core service, preparation and download routes are covered; existing publication, header and exact-byte checks remain. | Implemented; 35 generated routes, including workspace recovery, and 9 offline tests passed on 30 September. Live release not run. |
+| INF-02 · implemented | Restore a reproducible full install by using the available npm artifact for the existing exact SDK version. | npm artifact matches the existing lockfile integrity; clean Node 22 `npm ci`, all workspace tests/types and production dependency audit; existing mirror behaviour and tests retained without an SDK upgrade or stub. | Implemented; isolated install and combined checks passed on 30 September. Full and production audits reported zero findings at that check. |
+| INF-03 · implemented; local rehearsal passed | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | Implemented; PostgreSQL 16.14 and 17.10 passed locally on 30 September. CI prepared, not run; hosted recovery unverified. |
 | INF-04 · next | Establish actual hosted recovery and continuity. | Dated inventory of current database/version, backup location/retention, agreed recovery-time/data-loss objectives and token-key recovery dependency; authorised restore into an isolated target, verified outcome and cleanup. | Pending scoped operator exercise; synthetic tests cannot close it |
 | INF-05 · next | Make service health and release rollback observable. | Separate process/configuration health from database readiness; bounded/redacted failures, observed alert path, permitted API + frontend rollback rehearsal; review edge abuse controls and database concurrency evidence. | Planned; see PG-08 and PG-12 |
 | INF-06 · implemented and native-tested | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Implemented; Windows, Linux, Intel Mac and Apple silicon passed source/packaged/installed recovery and installer checks at `af4a5ab`. Exact-candidate acceptance packs are prepared; supplemental Mac native-dialog checks passed. Manual consumer acceptance awaits target environments; see [acceptance preparation](../docs/DESKTOP-TESTING.md#consumer-acceptance-preparation--30-september-2026) and [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838). |
-| INF-07 · after the foundations | Complete the online accounting and filing service within explicit supported scope. | Durable submission intent and uncertain-outcome recovery, grant lifecycle control, annual-return coverage and one read-only financial-provider pilot; recorded approval for each admitted capability. | Separate product work: PG-04 and PG-07–12 in [production gaps](../docs/PRODUCTION-GAPS.md) |
+| INF-07 · after the foundations | Complete the online accounting and filing service within explicit supported scope. | VAT validation and exact review context, durable submission intent and uncertain-outcome recovery, grant lifecycle control, annual-return coverage and one read-only financial-provider pilot; recorded approval for each admitted capability. | Separate product work: PG-04–05 and PG-07–12 in [production gaps](../docs/PRODUCTION-GAPS.md) |
 
-INF-01–03 can be built and tested without production data or new cloud resources.
+INF-01–03 were built and tested without production data or new cloud resources.
 INF-04 requires a concrete recovery plan naming the existing backup and isolated
 destination before requesting any external mutation. A passing health endpoint is
 not its acceptance test. INF-05 must not make offline preparation depend on the API.
@@ -382,7 +385,8 @@ No cloud service or profile encryption was added.
 On 30 September, the expanded source desktop walkthrough passed on macOS arm64,
 including independent decryption, wrong-password preservation and complete recovery
 after quit/relaunch. The [local recovery guide](../docs/LOCAL-APP.md#verification-and-next-work)
-records its run ID and exact verification limits. Current checks passed: 1,147
+records its run ID and exact verification limits. At that source-only checkpoint,
+checks passed: 1,147
 frontend tests, 51 desktop tests, 33 infrastructure tests, 9 scaffold tests, types,
 frontend lint, an 83-page build and 35 release contracts. A fresh 912-file scaffold
 included the new source and excluded generated profiles, bundles and recovery evidence.
@@ -400,9 +404,12 @@ Before the campaign, a Windows React focus assertion was changed to await the
 required focus effect, and all installer helpers adopted one shared recovery-evidence
 validator. Local preparation tests passed 24/24; desktop tests passed 56/56. The
 campaign passed those checks natively, including the formerly failing Windows suite.
-No website or production deployment was performed. Consumer native-dialog and
-cross-platform transfer checks remain M15 in the
-[desktop testing plan](../docs/DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
+No website or production deployment was performed. The later `4486638` acceptance
+preparation adds verified installer packs, synthetic fixtures and result sheets;
+79 desktop tests and supplemental source-profile Mac Cancel/Save checks passed.
+Those checks do not close manual consumer acceptance on the installed candidates.
+Manual target-OS installation, accessibility, recovery and cross-platform transfer remain
+unrun as specified in the [desktop testing plan](../docs/DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
 
 ## What was retired
 

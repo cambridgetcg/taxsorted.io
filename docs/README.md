@@ -1,10 +1,13 @@
 # Documentation map
 
-Source map reviewed 2026-09-12. This index describes the repository's contracts and
-implementation boundaries; it does not renew tax-source reviews or attest to live
-deployment settings.
+Source map reviewed 2026-09-30 through `4486638`. This index describes the repository's
+contracts and implementation boundaries; it does not renew tax-source reviews or
+attest to live deployment settings.
 
-The [architecture audit](ARCHITECTURE-AUDIT.md) records the inspected revision,
+The [current roadmap and service map](SERVICE-REBUILD.md) records implemented scope,
+remaining gaps, the next development slice and release dependencies across the local
+product, desktop distribution and online service. Start there for current progress.
+The historical [architecture audit](ARCHITECTURE-AUDIT.md) records its inspected revision,
 module map, orphan candidates, first refactors and production gaps.
 Use the [production gap plan](PRODUCTION-GAPS.md) for prioritized fixes and acceptance
 checks, and the [consolidation record](CONSOLIDATION.md) for local/GitHub history.
@@ -17,7 +20,7 @@ and verification that followed the audit.
 
 Read [PHILOSOPHY.md](../PHILOSOPHY.md) and [PRINCIPLES.md](../PRINCIPLES.md) for the
 purpose and product commitments, then [the root README](../README.md) for the public
-scope. The current navigation is **Services · My checklist · Money records · Tax guides ·
+scope. The current navigation is **Services · My tax year · Money records · Tax guides ·
 Help & corrections**. Start with the [service rebuild](SERVICE-REBUILD.md) for the
 audience paths, visible renames and wiring to the existing capability families.
 The [local app guide](LOCAL-APP.md) covers personal source scaffolds, offline desktop
@@ -40,7 +43,7 @@ manual acceptance cases and a result template whose default status is NOT RUN.
 | Work | Read next | Implementation boundary |
 |---|---|---|
 | Keep and review records | Accounting product, [backup/restore](BOOKS-BACKUP.md), then accounting integrations | Browser-local books with deliberate file backup/restore; an Account does not create a backup or shared ledger |
-| Run privately on a device | [Local app](LOCAL-APP.md) | Shared frontend in an offline desktop app; local profiles and unencrypted backups, with online integrations unavailable |
+| Run privately on a device | [Local app](LOCAL-APP.md), [desktop testing](DESKTOP-TESTING.md) | Offline desktop, source scaffolding and encrypted saved-workspace backup/restore. The live profile is not encrypted by the app; online integrations are unavailable. Automated native checks pass; consumer acceptance remains pending |
 | Import provider records | Accounting integrations, then [private Xero pilot](../api/RUNBOOK.md#private-xero-authorisation-pilot) | Synthetic page-sync proof works in development. Xero authorisation, token custody and organisation binding are implemented behind a closed pilot; financial dataset import is not implemented |
 | Prepare and file | People-power framework, then [HMRC runbook](../api/RUNBOOK.md) | VAT/ITSA sandbox routes exist; production filing and full year-end follow-through remain gated |
 | Answer a tax question | [Tax-expert research](../research/uk/tax-expert/README.md), API contract and Passport | Engine rules own calculations and source-review stops; unknown facts stay visible |
@@ -86,6 +89,6 @@ sync metadata do not create a cloud ledger.
 
 The [February filing workflow designs](../research/uk/filing/submission/workflow/)
 contain useful entity, obligation and submission concepts alongside an earlier dashboard
-and navigation proposal. Their old frontend map is not the current six-door product
+and navigation proposal. Their old frontend map is not the current service navigation
 specification. Treat dated technical and competitive research the same way: preserve
 provenance, then check the current implementation and sources before reusing a claim.

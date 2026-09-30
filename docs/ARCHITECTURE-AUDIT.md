@@ -5,9 +5,10 @@ This is a repository and workflow audit with bounded local refactors, not approv
 file real returns, open provider access or publish restricted datasets.
 
 **Historical baseline:** workspace counts, feature gaps and verification below describe
-September 12. Use the [September 30 infrastructure and data map](../infrastructure/README.md)
-for the current four-workspace stack, desktop edition, local preparation, Books backup
-and integration status. Later implementations do not retroactively change the tests
+September 12. Use the [current roadmap](SERVICE-REBUILD.md) for overall progress and
+next priorities, and the [infrastructure and data map](../infrastructure/README.md)
+for the four-workspace stack, desktop edition, preparation, workspace recovery and
+integration status. Later implementations do not retroactively change the tests
 or operational evidence recorded in this audit.
 
 Follow-up: [history consolidation](CONSOLIDATION.md) records the preserved local

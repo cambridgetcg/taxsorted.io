@@ -12,6 +12,23 @@ existing architecture can support them; a rewrite is unnecessary. The September 
 baseline had three workspaces; the [current stack](../infrastructure/README.md) adds
 the desktop workspace and records later implementation and verification boundaries.
 
+## Current progress at 30 September 2026
+
+Use the [product roadmap](SERVICE-REBUILD.md#next-delivery-work) for overall delivery
+order. This document owns the detailed PG acceptance contracts for accounting and
+online production scope; original gap descriptions below are dated audit evidence,
+not a claim that every original defect is still present.
+
+| Packages | Current disposition | Remaining work |
+|---|---|---|
+| PG-01 | Implemented; later SDK download repair and shared route checks are recorded in [infrastructure](../infrastructure/README.md#first-implementation-batch) | Keep the release gate green for each candidate; no public rebuild release is recorded |
+| PG-02 | September review admitted through 12 October 2026 | Assign the reviewer and renew from primary sources before the 13 October stop; this roadmap edit does not renew evidence |
+| PG-03 | Books recovery implemented; complete encrypted saved-workspace recovery now passes all four native targets | [Consumer desktop acceptance](DESKTOP-TESTING.md) remains NOT RUN; live profiles are not encrypted by the app |
+| PG-06 | Browser mutation Origin guard implemented and regression-tested | Deployed abuse/rate controls still require separate operating evidence |
+| PG-04, PG-05, PG-07–11 | Broader accounting, VAT review, grant lifecycle, durable filing, annual scope and real provider data remain incomplete | Follow the package-specific dependencies below; preparation and offline use do not require all these capabilities |
+| PG-12 | Operating inventory exists; external decisions and actual hosted recovery remain unverified | Reconcile private evidence and named owners; unverified does not establish absence |
+| PG-13 | First extractions are recorded; additional retirement/consolidation remains later work | Preserve public routes, compatibility and runtime research inputs |
+
 ## First implementation batch — 2026-09-12
 
 | Package | Result recorded on 12 September | Boundary recorded at that batch |
@@ -58,6 +75,10 @@ additional jurisdictions does not invalidate a clearly bounded local preparation
 
 ### PG-01 — Restore a reproducible release gate
 
+**Current disposition:** implemented in the recorded hardening/infrastructure batches
+above. The gap and implementation path below preserve the original audit and repair
+contract; they are not instructions to repeat an already-completed dependency repair.
+
 **Gap and evidence.** The audit's production dependency check reported seven affected
 entries, including critical Next and high sharp entries. [Root overrides](../package.json)
 and the [frontend manifest](../frontend/package.json) pin the relevant dependency
@@ -85,10 +106,12 @@ avoid dependency edits until this patch is integrated.
 
 ### PG-02 — Renew MTD source evidence without weakening the stop
 
-**Gap and evidence.** [MTD expert rules](../engine/jurisdictions/uk/expert/mtd-income-tax.ts)
-set `reviewDueOn` to 2026-08-11 and return `source_review_required` after that date.
-The release canary accepts the explicit degraded state. Corpus shape validation does
-not prove that a source is current.
+**Historical gap and evidence.** At the September 12 audit baseline,
+[MTD expert rules](../engine/jurisdictions/uk/expert/mtd-income-tax.ts) set
+`reviewDueOn` to 2026-08-11 and returned `source_review_required` after that date.
+The subsequent source review moved the due date to **2026-10-12**, preserving the
+overdue stop. The release canary accepts the explicit degraded state. Corpus shape
+validation does not prove that a source is current.
 
 **Implementation path.** Review every admitted primary source against its supported
 claims, applicable periods and stated limits. Record retrieval/review evidence and
@@ -392,6 +415,9 @@ are settled; do not combine them with a behavior fix merely to reduce file size.
 
 ## Concrete batches and parallel sequence
 
+These batches describe the accounting/online track. Local service improvements and
+desktop release readiness are sequenced in the [product roadmap](SERVICE-REBUILD.md).
+
 | Batch | Parallel work | Integration and exit condition |
 |---|---|---|
 | 1 — Release and source recovery | PG-01 dependency owner; PG-02 source-review owner; PG-12 evidence inventory | Reproducible checks pass; evidence is renewed or the source-overdue stop remains explicit. No capability switch opens automatically |
@@ -400,9 +426,10 @@ are settled; do not combine them with a behavior fix merely to reduce file size.
 | 4 — Provider ingress | PG-11 bounded financial reader alongside PG-09 tax completion, after PG-03/PG-04 and applicable PG-12 gates | Authorised read-only pilot, exact local review/checkpoint evidence and off-switch. Provider completeness and tax readiness remain distinct |
 | 5 — Additional coverage | PG-10 Books-to-VAT, further accounting depth and PG-13 extractions | Admit each capability independently; wider provider/company/country scope follows evidence rather than navigation changes |
 
-The immediate recommended implementation batch is **PG-01**, with **PG-02 evidence
-review** and **PG-12 operating-evidence inventory** running independently. Next, ship
-PG-03 and PG-06 as bounded preparation/security improvements while PG-05 is reproduced
-and fixed. Give migrations, lockfile changes and the record-store schema one owner per
-batch. Source review, external decisions and permission to release remain explicit
-dependencies throughout.
+PG-01, PG-03 and PG-06 now have implementation evidence; do not restart their original
+repair batches. The next online code sequence is **PG-05 → PG-07 → PG-08**, followed
+by PG-09 within the declared filing scope. PG-04/PG-11 follow their own accounting
+and provider dependencies. Run **PG-02 source renewal** and **PG-12 operating-evidence
+reconciliation** concurrently, including INF-04/05 hosted recovery and observability.
+Give migrations, lockfile changes and the record-store schema one owner per batch.
+Source review, external decisions and permission to release remain dependencies.

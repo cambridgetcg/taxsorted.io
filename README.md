@@ -13,8 +13,8 @@ Advisers and organisations have separate pages explaining their current scope.
 drafts. Choose a purpose, map your circumstances, collect evidence and check P60
 employment figures before previewing a preparation summary. Saving is explicit
 and local; this does not calculate or file a complete return.
-See [the service map and delivery plan](docs/SERVICE-REBUILD.md) for purpose,
-renaming, module ownership and remaining integration work.
+See [the current roadmap and service map](docs/SERVICE-REBUILD.md) for reviewed
+progress, module ownership, the next development slice and release dependencies.
 The [infrastructure and data map](infrastructure/README.md) explains the hosted and
 desktop stack, where information lives, current accounting/integration capabilities
 and what still needs verification before the rebuild can be published.
@@ -318,6 +318,7 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 
 ## Documentation
 
+- [`docs/SERVICE-REBUILD.md`](docs/SERVICE-REBUILD.md) — current roadmap, progress map, user needs, next development and release dependencies
 - [`docs/README.md`](docs/README.md) — current contracts, workflow ownership and historical plans
 - [`docs/PRODUCTION-GAPS.md`](docs/PRODUCTION-GAPS.md) — prioritized fixes, dependencies and acceptance checks
 - [`docs/CONSOLIDATION.md`](docs/CONSOLIDATION.md) — GitHub baseline and preserved local-only commits
