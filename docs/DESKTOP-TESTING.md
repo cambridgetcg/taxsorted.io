@@ -6,14 +6,60 @@ records the original source/package checks; the
 [installer campaign](testing/2026-09-29-installer-campaign.md) records the later
 artifact-path checks and packaging repairs. The
 [protected Books campaign](testing/2026-09-29-protected-books.md) records the first
-encrypted recovery flow. The current
+encrypted recovery flow. The earlier
 [navigation and recovery campaign](testing/2026-09-29-desktop-navigation.md) passed
 all four targets with direct recovery, native Back/Forward and an explicit
-observation of wrong-password rejection. Manual consumer
+observation of wrong-password rejection. The complete workspace campaign below
+adds recovery of Passport, both preparation years and checklist on all four targets.
+Manual consumer
 acceptance remains **NOT RUN**. Start each new build's
 [result template](testing/desktop-result-template.md) at NOT RUN; the previous result
 does not transfer automatically. Earlier local checks are recorded in
 [Local app](LOCAL-APP.md#verification-and-next-work).
+
+## Complete workspace recovery campaign — 30 September 2026
+
+[Run 36742667838](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838)
+passed on all four targets at **16:33 UTC on 30 September 2026**, testing clean commit
+`af4a5abfc05d773447bed8d88477e4de5bd1868a`. This candidate
+adds encrypted complete-workspace recovery to the established Books-only journey.
+The expanded walkthrough saves Books, Passport, both preparation years and the
+checklist; exports and independently decrypts a protected backup; changes each
+area; observes wrong-password rejection; checks the exact protected safety copy;
+restores; quits and relaunches; then compares every recovered section.
+
+| Target | Source / packaged / installed recovery | Installer lifecycle |
+|---|---|---|
+| Windows x64 | PASS: 8 / 8 / 8 checks | PASS: NSIS install, registration/shortcuts, runtime, uninstall and synthetic retention |
+| Linux x64 | PASS: 8 / 8 / 9 checks | PASS: actual FUSE-mounted AppImage, reviewed launcher and released mounts |
+| Intel Mac x64 | PASS: 8 / 8 / 8 checks | PASS: DMG copy, image ejection, installed runtime and cleanup |
+| Apple silicon control | PASS: 8 / 8 / 8 checks | PASS: DMG copy, image ejection, installed runtime and cleanup |
+
+All 12 runtime reports identify the exact clean revision, all nine workspace
+recovery flags, six Books protection flags and five navigation flags, zero renderer
+errors or network observer hits and all applicable cleanup. The shared validator
+accepted every packaged/installed report. Windows completed all five installer
+checks and six cleanup checks, including retention of the synthetic sentinel;
+this does not establish real-record uninstall/reinstall recovery.
+Both ad-hoc Mac signatures verify; Gatekeeper rejects them with exit 3. Linux uses
+the documented disposable CI AppArmor allowance and Xvfb. These observations do not
+establish ordinary consumer trust prompts, stock Linux desktop policy or manual
+acceptance. M01–M15 retain their separate manual statuses.
+
+The earlier Windows run failed a preparation focus assertion that checked the DOM
+before React's passive focus effect completed. The test now waits for the same
+required focus state; no timeout increase, skip or production behavior change was
+needed. The installer validators also now share one explicit recovery contract,
+replacing obsolete seven-check expectations. The local preparation suite passed
+24 tests and the expanded desktop suite passed 56 before this campaign.
+
+Downloaded packages, manifests and sanitised evidence are retained in
+`desktop/dist/workspace-36742667838/`. All six downloaded files match their runner
+manifests and checksum lists; both DMGs, the NSIS EXE and AppImage also match their
+installer reports. `campaign-verification.json` records the combined local audit.
+Mac ZIP alternatives are checksummed but were not independently installed.
+Hosted artifacts retain the workflow's 14-day expiry. No public release or
+production deployment is part of this campaign.
 
 ## Environments and what each establishes
 

@@ -302,7 +302,7 @@ an exercised hosted release or recovery operation.
 | INF-03 · now | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | Implemented; PostgreSQL 16.14 and 17.10 passed locally. CI prepared, not run; hosted recovery unverified. |
 | INF-04 · next | Establish actual hosted recovery and continuity. | Dated inventory of current database/version, backup location/retention, agreed recovery-time/data-loss objectives and token-key recovery dependency; authorised restore into an isolated target, verified outcome and cleanup. | Pending scoped operator exercise; synthetic tests cannot close it |
 | INF-05 · next | Make service health and release rollback observable. | Separate process/configuration health from database readiness; bounded/redacted failures, observed alert path, permitted API + frontend rollback rehearsal; review edge abuse controls and database concurrency evidence. | Planned; see PG-08 and PG-12 |
-| INF-06 · implemented locally | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Implemented; macOS arm64 source recovery/relaunch passed. Expanded native campaign awaits Windows, Linux and Intel Mac runs. See [local recovery](../docs/LOCAL-APP.md#verification-and-next-work). |
+| INF-06 · implemented and native-tested | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Implemented; Windows, Linux, Intel Mac and Apple silicon passed source/packaged/installed recovery and installer checks at `af4a5ab`. Manual consumer acceptance remains separate. See [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838). |
 | INF-07 · after the foundations | Complete the online accounting and filing service within explicit supported scope. | Durable submission intent and uncertain-outcome recovery, grant lifecycle control, annual-return coverage and one read-only financial-provider pilot; recorded approval for each admitted capability. | Separate product work: PG-04 and PG-07–12 in [production gaps](../docs/PRODUCTION-GAPS.md) |
 
 INF-01–03 can be built and tested without production data or new cloud resources.
@@ -387,10 +387,22 @@ frontend tests, 51 desktop tests, 33 infrastructure tests, 9 scaffold tests, typ
 frontend lint, an 83-page build and 35 release contracts. A fresh 912-file scaffold
 included the new source and excluded generated profiles, bundles and recovery evidence.
 
-The expanded native harness is prepared for Windows, Linux and Intel Mac; this
-follow-up did not run those targets, package new installers or publish the website.
-Consumer native-dialog and cross-platform transfer checks are recorded as M15 in
-the [desktop testing plan](../docs/DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
+The subsequent [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838)
+completed successfully on all four targets at 16:33 UTC. Its tested revision is
+`af4a5abfc05d773447bed8d88477e4de5bd1868a`; all 12 runtime reports identify that clean
+checkout. Source, packaged and installed recovery passed, along with NSIS lifecycle,
+actual FUSE AppImage and both DMG installation paths. All six downloaded packages
+match their manifests/checksum lists and all four installer files match their
+installer reports. Retained packages, sanitised reports and the combined audit are
+under `desktop/dist/workspace-36742667838/`.
+
+Before the campaign, a Windows React focus assertion was changed to await the
+required focus effect, and all installer helpers adopted one shared recovery-evidence
+validator. Local preparation tests passed 24/24; desktop tests passed 56/56. The
+campaign passed those checks natively, including the formerly failing Windows suite.
+No website or production deployment was performed. Consumer native-dialog and
+cross-platform transfer checks remain M15 in the
+[desktop testing plan](../docs/DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
 
 ## What was retired
 

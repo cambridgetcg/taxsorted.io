@@ -373,11 +373,21 @@ overflow at 320, 375 and 1,440 pixels. Its sanitised report and mobile screensho
 are under `desktop/test-results/workspace-browser-*`; the repeatable command is in
 the [testing guide](DESKTOP-TESTING.md#automated-checks).
 
-The shared native harness now runs this journey in source, packaged and installed
-campaigns. Windows, Linux, Intel Mac and packaged/installer runs of this new journey
-remain unrun; earlier native campaigns do not establish this change's result.
-Real native Save cancellation, consumer installation and cross-platform transfer
-remain in [manual acceptance](DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
+The subsequent [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838)
+passed Windows x64, Linux x64, Intel Mac and Apple silicon on clean commit
+`af4a5abfc05d773447bed8d88477e4de5bd1868a`. All 12 source/packaged/installed runtime
+reports passed complete workspace recovery, retained Books compatibility and
+applicable cleanup with zero renderer errors or network observer hits. NSIS,
+actual FUSE AppImage and both DMG installation paths passed. The six downloaded
+packages match their runner checksums; installer hashes match their corresponding
+reports. Packages and sanitised evidence are retained under
+`desktop/dist/workspace-36742667838/` with `campaign-verification.json`.
+
+Mac previews have verifying ad-hoc signatures but Gatekeeper rejection; Windows
+previews are unsigned. Linux used Xvfb and the documented CI AppArmor allowance.
+Real native Save cancellation, consumer trust/installation, cross-platform transfer
+and upgrade acceptance remain in the
+[manual plan](DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
 
 Any future connected edition needs an explicit view of what
 leaves the device, the party receiving it and the current authorisation; the offline
