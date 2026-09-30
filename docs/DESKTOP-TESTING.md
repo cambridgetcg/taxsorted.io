@@ -61,6 +61,83 @@ Mac ZIP alternatives are checksummed but were not independently installed.
 Hosted artifacts retain the workflow's 14-day expiry. No public release or
 production deployment is part of this campaign.
 
+## Consumer acceptance preparation — 30 September 2026
+
+Four transfer-ready packets for that exact candidate are retained under
+`desktop/dist/acceptance-36742667838/`: `windows-x64`, `linux-x64`, `macos-x64`
+and `macos-arm64`. Each contains the matching installer, SHA-256 list, selected
+manifest, bounded campaign provenance, synthetic CSV, OS-specific walkthrough and
+prefilled `RESULT.md`. The walkthrough includes M01–M15. The packets contain no
+app profiles, saved tax backups, credentials or raw logs. Every manual case starts
+**NOT RUN**; retained CI results do not fill in a new environment's observations.
+
+The generator verifies the expected clean commit, target/architecture, installer
+and runtime evidence, recovery/cleanup checks, artifact size and SHA-256 before
+copying, then verifies the copied installer again. It refuses existing output.
+Its 23 checks and the complete 79-test desktop suite passed on the development Mac.
+Each target also has a ZIP beside its folder; all seven archive members were
+compared with their source files, and the parent `SHA256SUMS.txt` identifies the
+four transfer archives. These ZIPs are acceptance packs, not new app builds.
+To prepare another copy, choose a new output directory with an existing parent:
+
+```sh
+node desktop/testing/prepare-acceptance.cjs \
+  --campaign=desktop/dist/workspace-36742667838 \
+  --output=desktop/dist/acceptance-36742667838-new \
+  --commit=af4a5abfc05d773447bed8d88477e4de5bd1868a
+```
+
+Transfer the complete target folder, compare its installer checksum on the target,
+and start with M01 in a standard disposable OS account. Windows first-launch
+checks must cover the interactive install-mode choice: the current builder
+configuration allows a current-user/all-users choice and elevation, whereas CI
+explicitly selected `/currentuser`. Record any elevation request and chosen
+destination. On Ubuntu, record executable permission, missing FUSE and AppArmor
+sandbox refusals separately; the CI allowance is not consumer packaging support.
+
+The available development host is macOS 15.7.3 (24G419), Apple silicon. `utmctl
+list` returned no configured VM; the inspected local VM inventory did not supply
+Windows 11 x64 or Ubuntu x64 GNOME. No native Intel test host is established. This
+account already has a TaxSorted profile, which is preserved. Consumer acceptance
+therefore still needs the target devices/VMs and their disposable accounts; no
+packaged test is launched against the existing profile. Source-mode native-dialog
+automation can provide supplemental evidence here without claiming manual or
+Intel acceptance.
+
+### Supplemental native-dialog result
+
+At **17:47 UTC on 30 September 2026**, the isolated arm64 source run passed three
+actual macOS dialog checks: cancelling the workspace restore picker preserved
+selection/storage, cancelling Save produced no export and preserved saved work,
+and pressing Save export created one encrypted file. Independent Node decryption
+recovered the exact synthetic checklist and confirmed the other workspace areas
+were absent. Password inputs cleared after cancelled export. Zero renderer errors
+were observed; the process exited and its temporary profile, export and helper
+were removed. No existing TaxSorted profile was opened or changed.
+
+The repeatable command is:
+
+```sh
+node desktop/testing/macos-native-dialogs.cjs
+```
+
+It requires the built source bundle, pinned Electron/Playwright, Swift command-line
+tools, an unlocked English-language macOS GUI session and already-granted
+Accessibility access. It compiles a temporary helper and acts on native dialogs
+belonging to its own source process, including the system AppKit file-panel
+service. It does not request OS permissions, replace Electron dialog methods or
+set a DownloadItem save path. Only the test process's Downloads location is
+redirected to its temporary export directory. Failure leaves manual cases unpassed.
+
+The sanitised report is `desktop/test-results/macos-native-dialogs.json`. It records
+the development checkout `ae7b780` with new test/documentation changes and the
+542-file staged-page digest
+`70c92af67ed66cc3041ba90492749a34e9df925742bd2935e1d724e6e60956cb`.
+Application runtime and frontend source have no changes from candidate `af4a5ab`;
+this source-mode result still does not establish that candidate's Finder install,
+quarantine behavior, screen-reader use, reboot, physical network-off behavior or
+manual acceptance. **All M01–M15 consumer statuses remain NOT RUN.**
+
 ## Environments and what each establishes
 
 | Target | Automated environment | Original runtime campaign | Manual acceptance environment | Manual status |
