@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CheckupClient } from "./checkup-client";
@@ -24,6 +25,13 @@ export default function CheckupPage() {
           Tax Passport. Nothing is sent or filed by showing your progress.
         </p>
       </header>
+      <section aria-labelledby="prepare-year-title" className="mt-8 rounded-2xl border border-accent/25 bg-accent-soft p-5 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-6">
+        <div className="max-w-2xl">
+          <h2 id="prepare-year-title" className="text-xl font-semibold text-ink">Prepare a particular tax year</h2>
+          <p className="mt-2 text-sm leading-6 text-ink-soft">Choose the year you are working on, collect your evidence and check employment figures. Each year keeps its own preparation draft.</p>
+        </div>
+        <Link href="/prepare" className="mt-4 inline-flex min-h-12 shrink-0 items-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-accent-deep sm:mt-0">Start or resume preparation →</Link>
+      </section>
       <Suspense fallback={<p className="mt-10 text-ink-soft">Loading your checklist…</p>}>
         <CheckupClient />
       </Suspense>

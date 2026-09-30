@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { OFFICIAL_RETURN_ROUTES } from "@/lib/accounting-integrations";
 
 export const metadata: Metadata = {
-  title: "Prepare a return | TaxSorted",
+  title: "File and pay | TaxSorted",
   description:
     "Find your next step for personal, sole-trader or landlord tax. Review records, prepare quarterly figures and find the official HMRC filing route.",
 };
@@ -25,9 +25,9 @@ const STATES = [
 const STARTING_POINTS = [
   {
     title: "My personal tax",
-    description: "Start with your circumstances and find the checks that apply to you.",
-    action: "Check my next steps",
-    href: "/checkup",
+    description: "Choose a year, gather your evidence and check employment figures against your P60.",
+    action: "Prepare my tax return",
+    href: "/prepare",
     icon: UserRound,
   },
   {
@@ -49,20 +49,20 @@ const STARTING_POINTS = [
 export default function FilePage() {
   return (
     <div lang="en" dir="ltr" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <Breadcrumbs items={[{ href: "/services", label: "Services" }]} current="Prepare a return" />
+      <Breadcrumbs items={[{ href: "/services", label: "Services" }]} current="File and pay" />
       <header className="mt-7 max-w-3xl">
         <p className="section-label">UK tax · preparation</p>
-        <h1 className="hero-title mt-4 text-ink">Prepare a return.</h1>
+        <h1 className="hero-title mt-4 text-ink">File and pay.</h1>
         <p className="mt-5 text-lg leading-8 text-ink-soft">
-          Get your records in order, understand the figures and know what to do next.
-          Choose the part of your tax you want to work on.
+          Find your preparation tools and the official routes for sending a return and
+          paying the tax you owe.
         </p>
       </header>
 
       <aside aria-label="Filing availability" className="mt-7 rounded-2xl border border-warm/30 bg-warm/5 px-5 py-4 text-sm leading-6 text-ink-soft">
         <p className="font-semibold text-ink">Live filing with HMRC is not available in TaxSorted yet.</p>
         <p className="mt-1">
-          You can organise records and prepare quarterly Income Tax figures here. A complete
+          You can prepare a personal evidence summary, organise records and prepare quarterly Income Tax figures here. A complete
           year-end return is not available. HMRC submissions here use its test system and do not
           file your tax.{" "}
           <a href="#official-filing" className="font-semibold text-accent underline underline-offset-4">

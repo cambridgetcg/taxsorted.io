@@ -9,6 +9,10 @@ Choose **Show my saved progress** to read local Books and Passport status for th
 visit. Books counts cover 2026–27; Passport and personal checklist reminders remain
 general. The overview changes no records and does not establish filing readiness.
 Advisers and organisations have separate pages explaining their current scope.
+**Prepare my tax return** at `/prepare` keeps separate 2025–26 and 2026–27
+drafts. Choose a purpose, map your circumstances, collect evidence and check P60
+employment figures before previewing a preparation summary. Saving is explicit
+and local; this does not calculate or file a complete return.
 See [the service map and delivery plan](docs/SERVICE-REBUILD.md) for purpose,
 renaming, module ownership and remaining integration work.
 
@@ -65,6 +69,10 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/checkup` — My tax year.** Choose your situation, optionally show saved local
   Books and Passport progress, and open up to three useful next tasks. Keep personal
   checkmarks separately. The overview does not calculate tax, change records or file.
+- **`/prepare` — Prepare my tax return.** Keep a year-specific evidence checklist,
+  record employment sources and check supported P60 figures. Missing answers,
+  unsupported documents and unresolved circumstances stay visible. Review a
+  plain-text handover with optional figures and notes before downloading it.
 - **`/plan` — Compare my choices.** Minimise total lawful burden rather than one tax number.
   The first live module calculates a clearly labelled full-year projection for trading allowance
   and ordinary-deduction profit routes side by side. Year-to-date figures, transition profit,

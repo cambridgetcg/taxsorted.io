@@ -26,6 +26,7 @@ describe("tax service routing", () => {
       expect(existsSync(fileURLToPath(new URL(`../../app/${path}/page.tsx`, import.meta.url))), service.href).toBe(true);
     }
     expect(SERVICES.find((service) => service.id === "quarter-figures")?.availability).toBe("available");
+    expect(SERVICES.find((service) => service.id === "return-preparation")?.availability).toBe("available");
     expect(SERVICES.find((service) => service.id === "prepare-return")?.availability).toBe("guidance");
     expect(SERVICES.find((service) => service.id === "vat")?.availability).toBe("sandbox");
   });

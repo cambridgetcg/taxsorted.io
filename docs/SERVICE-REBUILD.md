@@ -19,7 +19,7 @@ be kept? What happens next?
 |---|---|---|
 | `/` | Choose a starting point or resume records | Audience catalogue, MTD check, records workspace |
 | `/services` | Find a service by situation or task | Searchable catalogue; no new tax logic |
-| `/services/individuals` | Understand personal income and prepare a handover | Personal-tax checks, Income Tax guide, Passport, official help |
+| `/services/individuals` | Prepare personal evidence and understand income | Year-specific preparation, personal-tax checks, Income Tax guide, Passport, official help |
 | `/services/sole-traders` | Work from an MTD check through records to preparation | MTD, local books, sole-trade projection, quarter totals |
 | `/services/landlords` | Keep property work distinct from a sole trade | MTD, property records, landlord guidance, quarter totals |
 | `/services/advisers` | Help someone prepare an inspectable handover | Expert coverage, deeper MTD check, Passport export |
@@ -29,6 +29,7 @@ be kept? What happens next?
 | `/books/connect` | Bring in existing records | Manual entry and CSV; truthful provider availability |
 | `/file` | Prepare and find an actual filing route | Existing quarter/VAT preparation and official authority routes |
 | `/passport` | Prepare a tax summary and handover | Existing Passport contract, save, export and print |
+| `/prepare` | Prepare evidence for a particular tax year | Separate local drafts, circumstances, evidence checklist, P60 capture and summary preview |
 
 Audience choice is navigation context, not a determination of tax status. People
 may use several paths. A landlord is never routed into the sole-trader-only
@@ -92,6 +93,7 @@ families remain available through their existing routes.
 | Money records | Manual/CSV intake, review, separate supported trade/property books, totals and backup | Bank-feed reconciliation, general company accounts, automatic cloud backup |
 | Activity context | Keeps a property entry selected through workspace/import links | Treats audience choice as confirmed ownership or a tax fact |
 | Passport | Deliberate local save, export and printable handover | Shared adviser workspace, inspected documents, client authority |
+| Return preparation | Year-specific drafts, evidence states, checked P60 figures and a selective summary | Complete annual return, obligation decision, automatic Passport/Books import, tax calculation or HMRC submission |
 | Accounting providers | Describes import routes; Xero has a closed authorisation pilot in the backend | Public provider imports or a working Xero financial reader |
 | HMRC | Existing, explicitly authorised VAT/Income Tax sandbox journeys | Production filing, complete Income Tax year-end filing or recognition |
 | Accounts | Existing sign-in/session capabilities | Backup of local records or an adviser/client relationship |
@@ -206,3 +208,62 @@ The source Electron report is supplementary local evidence, not a new native
 installer campaign. Existing downloaded installers retain their earlier recorded
 revision. No tax calculations, accounts, provider connections or HMRC submissions
 were added, and no production deployment was performed.
+
+## 30 September 2026: individual return preparation
+
+`/prepare` connects circumstances to evidence and a preparation review. Each
+supported year, 2025–26 or 2026–27, has a separate local draft. The purpose is
+explicit: prepare an annual return or organise that year's records. Current-year
+P60 entries cannot be marked reviewed while the year is still running.
+
+Opening the page does not read personal drafts. Starting or resuming deliberately
+reads the chosen year; saving is a separate action. Atomic revision checks reject
+stale saves, and malformed stored drafts are preserved. No Passport, Books or
+personal-checklist facts are imported or reassigned to a year.
+Unsaved edits survive client navigation in a temporary, same-tab recovery slot.
+Returning offers explicit recovery; pending saves are awaited before recovered
+edits are enabled, so a committed revision is not mistaken for a stale draft.
+Reload or quit ends that memory-only recovery. The desktop's native unload prompt
+defaults to keeping edits; it never silently saves or grants online access.
+
+The first guided evidence task is a P60 employment entry. A review requires a
+matching document year, an employer and source label, explicit pay and tax figures,
+and the person's confirmation. Blank amounts remain unknown; negative tax records
+a refund. Material edits remove the review mark. P45 and other sources remain
+unresolved; repeat employers or document labels prompt an overlap check. There is
+no annual aggregation, tax calculation, filing-obligation decision or submission.
+
+Other circumstances generate evidence tasks with user-recorded statuses. A status
+does not mean TaxSorted has inspected a document. Previously entered employment
+sources remain stored when the person changes their circumstances, and are labelled
+inactive in the summary. Underlying documents stay with the person.
+
+The summary preview lets the person choose whether to include figures and notes.
+The downloaded text is unencrypted and is not a restorable backup. Books backups
+do not cover preparation drafts. The live draft uses ordinary browser/app storage;
+this feature adds no cloud service, document upload or account requirement.
+
+Field guidance was checked against [HMRC employment notes](https://www.gov.uk/government/publications/self-assessment-employment-sa102),
+[P60 guidance](https://www.gov.uk/paye-forms-p45-p60-p11d/p60) and
+[record guidance](https://www.gov.uk/keeping-your-pay-tax-records/overview).
+
+Verified locally with Node 22:
+
+| Check | Result |
+|---|---|
+| Frontend suite | 1,032 tests across 115 files passed, including 75 preparation domain/store and 23 guided UI tests |
+| Desktop and scaffold suites | 51 desktop tests and nine scaffold tests passed |
+| TypeScript and ESLint | Passed |
+| Static build and desktop staging | 82 pages, including `/prepare`; publication gate remained closed |
+| Fresh scaffold | 888 source files; preparation source/tests and Books Backups route included, generated browser evidence excluded |
+| Isolated Chrome walkthrough | Nine checks passed: explicit I/O, blank/zero/refund handling, year matching, review invalidation, selective export, reload, stale-save refusal and same-tab Back/Forward recovery |
+| Layout | Evidence forms fit 320px, 390px and 200% zoom; desktop and mobile screenshots inspected |
+| Source Electron walkthrough | Seven runtime checks passed, extended with native leave cancellation/approval and preparation persistence across full quit/relaunch |
+
+The browser walkthrough recorded zero renderer errors and zero external request
+attempts. The Electron walkthrough recorded zero renderer errors and zero observer
+requests; its app and observer closed and its temporary files were removed.
+Reports and synthetic screenshots are under `desktop/test-results/preparation-*`
+and `desktop/test-results/source-smoke.json`. This is source runtime evidence on
+this Mac, not a new Windows/Linux/Intel Mac installer result.
+Existing downloaded installers remain at their recorded earlier revisions.

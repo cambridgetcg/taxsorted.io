@@ -13,6 +13,15 @@ export interface TaxService {
 
 export const SERVICES = [
   {
+    id: "return-preparation",
+    name: "Prepare my tax return",
+    description: "Choose a tax year, gather the evidence for your circumstances and check employment figures against a P60.",
+    href: "/prepare",
+    action: "Start or resume preparation",
+    availability: "available",
+    boundary: "A local evidence checklist and preparation summary. It does not calculate a complete return, decide whether you must file or submit to HMRC.",
+  },
+  {
     id: "personal-income",
     name: "Check your personal income",
     description: "See how adjusted net income affects Personal Allowance, Child Benefit and Tax-Free Childcare.",
@@ -195,8 +204,8 @@ export const AUDIENCES = [
     name: "Individuals and families",
     shortName: "Individuals",
     description: "Understand your income, family-related tax checks and the information you need to keep.",
-    scope: "Start with personal income checks and a portable summary. Full Self Assessment and PAYE reconciliation are not available here. If you also trade or rent out property, use those checklists too.",
-    serviceIds: ["personal-income", "income-guide", "tax-summary", "prepare-return", "fix-problem"],
+    scope: "Prepare evidence for a chosen tax year, check personal income and keep a portable summary. Full Self Assessment and PAYE reconciliation are not available here. Trading and property records have their own tools.",
+    serviceIds: ["return-preparation", "personal-income", "income-guide", "tax-summary", "prepare-return", "fix-problem"],
   },
   {
     id: "sole-traders",
@@ -205,7 +214,7 @@ export const AUDIENCES = [
     description: "Keep business records, check MTD requirements and prepare figures you can explain.",
     scope: "The books support one UK sole trade and one separate UK property business in pounds. The profit comparison covers one sole trade; it does not cover partnerships, companies or property income.",
     serviceIds: ["mtd-check", "sole-trader-records", "sole-trader-choices", "quarter-figures", "tax-summary", "prepare-return"],
-    additionalServiceIds: ["csv-import", "record-connections", "mtd-detail", "fix-problem"],
+    additionalServiceIds: ["return-preparation", "csv-import", "record-connections", "mtd-detail", "fix-problem"],
   },
   {
     id: "landlords",
@@ -214,7 +223,7 @@ export const AUDIENCES = [
     description: "Separate property income and costs, understand the rules and prepare quarterly figures.",
     scope: "For the supported UK property business in pounds, held personally. Property records stay separate from sole-trader records. Foreign property and company-owned property need another route.",
     serviceIds: ["mtd-check", "property-records", "property-guide", "quarter-figures", "tax-summary", "prepare-return"],
-    additionalServiceIds: ["csv-import", "record-connections", "mtd-detail", "fix-problem"],
+    additionalServiceIds: ["return-preparation", "csv-import", "record-connections", "mtd-detail", "fix-problem"],
   },
   {
     id: "advisers",

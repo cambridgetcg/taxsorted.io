@@ -150,6 +150,16 @@ async function run(options) {
     const closing = app;
     app = undefined;
     try {
+      // Only this harness's disposable, synthetic profile is being closed.
+      // A failed form check can leave unsaved work; explicitly discard it for
+      // cleanup rather than leaving a hidden confirmation open indefinitely.
+      for (const page of closing.context().pages()) {
+        page.once('dialog', prompt => { void prompt.accept().catch(() => undefined); });
+      }
+      await bounded(closing.evaluate(({ dialog }) => {
+        const original = dialog.showMessageBoxSync;
+        dialog.showMessageBoxSync = (window, options) => options.title === 'Unsaved changes' ? 1 : original(window, options);
+      }), 'allow synthetic cleanup');
       await bounded(closing.close(), 'close test app', 15_000);
       if (options.expectAppImage && appImageMounts.size) {
         await waitUntil(async () => {
@@ -213,6 +223,11 @@ async function run(options) {
       page.setDefaultTimeout(timeoutMs);
       page.setDefaultNavigationTimeout(timeoutMs);
       page.on('pageerror', () => { report.rendererErrorCount += 1; });
+      // Electron owns beforeunload through its native will-prevent-unload
+      // handler. Avoid Playwright's automatic dismissal racing that handler.
+      page.on('dialog', prompt => {
+        if (prompt.type() !== 'beforeunload') void prompt.dismiss().catch(() => undefined);
+      });
       const runtime = await evaluate(({ app, BrowserWindow }) => {
         const preferences = BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences();
         return {
@@ -403,6 +418,55 @@ async function run(options) {
     await addRecord(baselineNote, '123.45');
     check('Client navigation and native Back/Forward retain landlord activity; synthetic checklist and money record saved');
 
+    stage = 'prepare a separate annual employment record';
+    await page.goto('taxsorted://app/prepare/');
+    await page.getByRole('button', { name: 'Start preparation', exact: true }).click();
+    await page.getByRole('group', { name: 'Employment', exact: true }).getByRole('radio', { name: 'Yes', exact: true }).check();
+    await page.getByRole('button', { name: 'Continue to evidence', exact: true }).click();
+    await page.getByRole('button', { name: 'Add an employment', exact: true }).click();
+    await page.getByLabel('Employer or job label', { exact: true }).fill('Synthetic employment');
+    await page.getByLabel(/^Tax year shown on the document/).selectOption('2025-26');
+    await page.getByLabel('Document label or where you keep it', { exact: true }).fill('Synthetic P60');
+    await page.getByLabel('Pay in this employment (£)', { exact: true }).fill('24000.00');
+    await page.getByLabel('Tax deducted in this employment (£)', { exact: true }).fill('2000.00');
+    await page.getByRole('checkbox', { name: /I checked this job, the tax year/ }).check();
+    await page.getByRole('button', { name: 'Mark employment 1 reviewed', exact: true }).click();
+    await page.getByText('Reviewed against your document', { exact: true }).waitFor();
+    async function nativeLeavePreparation(choice) {
+      await evaluate(({ dialog, Menu }, response) => {
+        globalThis.__taxsortedUnsavedOriginal = dialog.showMessageBoxSync;
+        globalThis.__taxsortedUnsavedPrompt = null;
+        dialog.showMessageBoxSync = (_window, options) => {
+          globalThis.__taxsortedUnsavedPrompt = {
+            title: options.title, buttons: options.buttons,
+            defaultId: options.defaultId, cancelId: options.cancelId,
+          };
+          return response;
+        };
+        Menu.getApplicationMenu().items.find(item => item.label === 'File').submenu.items.find(item => item.label === 'Home').click();
+      }, choice);
+      try {
+        const prompt = await waitUntil(() => evaluate(() => globalThis.__taxsortedUnsavedPrompt), 'native unsaved-change prompt');
+        assert.deepEqual(prompt, { title: 'Unsaved changes', buttons: ['Keep editing', 'Leave without saving'], defaultId: 0, cancelId: 0 });
+        if (choice === 1) await page.waitForURL('taxsorted://app/');
+        else assert.equal(new URL(page.url()).pathname, '/prepare/');
+      } finally {
+        await evaluate(({ dialog }) => {
+          dialog.showMessageBoxSync = globalThis.__taxsortedUnsavedOriginal;
+          delete globalThis.__taxsortedUnsavedOriginal;
+          delete globalThis.__taxsortedUnsavedPrompt;
+        });
+      }
+    }
+    stage = 'retain unsaved preparation when native navigation is cancelled';
+    await nativeLeavePreparation(0);
+    assert.equal(await page.getByLabel('Pay in this employment (£)', { exact: true }).inputValue(), '24000.00');
+    await page.getByRole('button', { name: 'Save preparation on this device', exact: true }).click();
+    await page.getByText('Preparation saved on this device. No information was uploaded.', { exact: true }).waitFor();
+    await page.getByLabel('Notes or questions (optional)', { exact: true }).fill('Synthetic unsaved change to discard');
+    stage = 'allow native navigation only after deliberate discard';
+    await nativeLeavePreparation(1);
+
     stage = 'verify persistence across app quit and restart';
     await closeApp();
     page = await launch();
@@ -411,7 +475,14 @@ async function run(options) {
     await waitUntil(() => page.getByRole('checkbox').first().isChecked(), 'restore saved checklist');
     await page.goto('taxsorted://app/books/workspace/money/?activity=uk-property');
     await page.getByText(baselineNote, { exact: true }).first().waitFor();
-    check('Checklist and IndexedDB money record persist across full app quit and relaunch');
+    await page.goto('taxsorted://app/prepare/');
+    await page.getByRole('button', { name: 'Resume saved preparation', exact: true }).click();
+    await page.getByRole('button', { name: 'Continue to evidence', exact: true }).click();
+    assert.equal(await page.getByLabel('Employer or job label', { exact: true }).inputValue(), 'Synthetic employment');
+    assert.equal(await page.getByLabel('Pay in this employment (£)', { exact: true }).inputValue(), '24000.00');
+    await page.getByText('Reviewed against your document', { exact: true }).waitFor();
+    await page.goto('taxsorted://app/books/workspace/money/?activity=uk-property');
+    check('Native leave confirmation protects unsaved work; checklist, Books and preparation persist across full app relaunch');
 
     async function exportBackup(buttonName, filename) {
       await evaluate(({ session }, output) => {

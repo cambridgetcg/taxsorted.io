@@ -112,7 +112,7 @@ imported automatically. [Books backup and restore](BOOKS-BACKUP.md) documents re
 confirmation, password protection, restore checks and its exact coverage. Keep the
 password separately: TaxSorted cannot reset it or recover a protected backup without
 it. Older plain Books backups remain supported. The Books backup does not include
-Passport facts, personal checklists, sign-in sessions or attachments. Those features
+Passport facts, return-preparation drafts, personal checklists, sign-in sessions or attachments. Those features
 currently have separate persistence/export capabilities; there is no complete encrypted
 workspace backup in this release.
 
@@ -121,6 +121,17 @@ configured to retain app data on uninstall. Do not rely on uninstall or reinstal
 backup procedure on any OS.
 
 ## Finding your way around
+
+**Prepare my tax return** at `/prepare` is available from My tax year, Services
+and the desktop File menu. It keeps separate local drafts for 2025–26 and 2026–27;
+opening the page does not read them, and saving requires an explicit action.
+The live draft is ordinary app storage, not encrypted by TaxSorted. Its optional
+plain-text summary is a handover, not a restorable or password-protected backup.
+Underlying evidence documents remain with the person; no documents are uploaded.
+Unsaved preparation can be resumed after client navigation within the same window.
+That recovery is memory-only and ends on reload or quit. Full desktop navigation
+or closing an unsaved preparation asks whether to keep editing or leave without
+saving; keeping editing is the default. Save explicitly for durable recovery.
 
 The desktop **Money records** navigation opens the saved workspace directly.
 **Backups** has its own Books section; the local status bar and **File → Back up or

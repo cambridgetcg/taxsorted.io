@@ -36,7 +36,11 @@ async function openWebsite(value) {
 }
 
 function openPage(route) {
-  if (mainWindow && !mainWindow.isDestroyed()) void mainWindow.loadURL(`${LOCAL_ORIGIN}${route}`);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    void mainWindow.loadURL(`${LOCAL_ORIGIN}${route}`).catch(error => {
+      if (error.code !== 'ERR_ABORTED') console.warn('The local page could not be opened.');
+    });
+  }
 }
 
 function createWindow(localSession) {
@@ -46,6 +50,15 @@ function createWindow(localSession) {
     webPreferences: { session: localSession, sandbox: true, contextIsolation: true, nodeIntegration: false, nodeIntegrationInWorker: false, webviewTag: false, webSecurity: true, allowRunningInsecureContent: false, devTools: !app.isPackaged, spellcheck: false },
   });
   mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
+  mainWindow.webContents.on('will-prevent-unload', event => {
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+      type: 'question', title: 'Unsaved changes', message: 'Leave without saving your changes?',
+      detail: 'Your latest changes have not been saved. Stay on this page to save them first.',
+      buttons: ['Keep editing', 'Leave without saving'], defaultId: 0, cancelId: 0, noLink: true,
+    });
+    // Electron requires this to deliberately allow the pending navigation/close.
+    if (choice === 1) event.preventDefault();
+  });
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (!isLocalUrl(url)) { event.preventDefault(); void openWebsite(url).catch(() => undefined); }
   });
@@ -86,6 +99,7 @@ if (!app.requestSingleInstanceLock()) {
       { label: 'File', submenu: [
         { label: 'Home', click: () => openPage('/') },
         { label: 'My tax year', click: () => openPage('/checkup/') },
+        { label: 'Prepare my tax return', click: () => openPage('/prepare/') },
         { label: 'Money records', click: () => openPage('/books/workspace/') },
         { label: 'Back up or restore Books', click: () => openPage('/books/workspace/backups/') },
         { type: 'separator' }, { role: process.platform === 'darwin' ? 'close' : 'quit' },

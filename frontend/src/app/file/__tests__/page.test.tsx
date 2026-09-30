@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 import FilePage from "../page";
 import { OFFICIAL_RETURN_ROUTES } from "@/lib/accounting-integrations";
 
-describe("Prepare a return page", () => {
+describe("File and pay page", () => {
   it("offers relevant next actions for individuals, sole traders and landlords", () => {
     render(<FilePage />);
-    expect(screen.getByRole("heading", { name: "Prepare a return." })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /my personal tax/i })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("heading", { name: "File and pay." })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /my personal tax/i })).toHaveAttribute("href", "/prepare");
     expect(screen.getByRole("link", { name: /my sole-trader tax/i })).toHaveAttribute("href", "/books/workspace?activity=self-employment");
     expect(screen.getByRole("link", { name: /my landlord tax/i })).toHaveAttribute("href", "/books/workspace?activity=uk-property");
     expect(screen.getByRole("link", { name: /review my records/i })).toHaveAttribute("href", "/books/workspace/money");

@@ -140,7 +140,7 @@ describe("Books backup and restore controls", () => {
     expect(downloadButton).toBeDisabled();
     expect(screen.getByRole("radio", { name: "Password-protected file" })).toBeChecked();
     expect(screen.getByText(/does not encrypt the Books stored in this app/)).toBeInTheDocument();
-    expect(screen.getByText(/does not include your Tax Passport, checklist/)).toBeInTheDocument();
+    expect(screen.getByText(/does not include your Tax Passport, return-preparation drafts, checklist/)).toBeInTheDocument();
     setExportPassword();
     fireEvent.click(downloadButton);
     await screen.findByText(/Backup download started/);

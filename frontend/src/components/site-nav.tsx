@@ -19,7 +19,7 @@ import { useMounted } from "@/lib/use-mounted";
 // URL parent belongs to another human job. Trailing slashes are normalized:
 // trailingSlash is on, so usePathname() returns "/uk/".
 const DOORS = [
-  { href: "/services", labelKey: "nav.services", descKey: "nav.services.desc", match: ["/services", "/plan", "/file", "/passport", "/itsa", "/vat", "/dashboard"], exclude: ["/itsa/am-i-in", "/itsa/records"] },
+  { href: "/services", labelKey: "nav.services", descKey: "nav.services.desc", match: ["/services", "/prepare", "/plan", "/file", "/passport", "/itsa", "/vat", "/dashboard"], exclude: ["/itsa/am-i-in", "/itsa/records"] },
   { href: "/checkup", labelKey: "nav.checklist", descKey: "nav.checklist.desc", match: ["/checkup", "/itsa/am-i-in", "/uk/tax-expert", "/uk/personal-tax"] },
   { href: "/books", labelKey: "nav.records", descKey: "nav.records.desc", match: ["/books", "/itsa/records", "/tools/mileage"] },
   { href: "/learn", labelKey: "nav.guides", descKey: "nav.guides.desc", match: ["/learn", "/understanding", "/uk"], exclude: ["/uk/tax-expert", "/uk/personal-tax"] },

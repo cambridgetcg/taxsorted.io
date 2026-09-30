@@ -26,7 +26,7 @@ export function LocalAppBoundary({ children }: { children: ReactNode }) {
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/books/workspace" className="inline-flex min-h-12 items-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white hover:bg-accent-deep">Open Money records →</Link>
-        <Link href="/file" className="inline-flex min-h-12 items-center rounded-full border border-line-strong px-6 py-3 text-sm font-semibold text-ink hover:border-accent">Prepare your next step →</Link>
+        <Link href="/prepare" className="inline-flex min-h-12 items-center rounded-full border border-line-strong px-6 py-3 text-sm font-semibold text-ink hover:border-accent">Prepare my tax return →</Link>
       </div>
       <Link href="/download#your-data" className="mt-7 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">About your local data and app limits →</Link>
     </div>

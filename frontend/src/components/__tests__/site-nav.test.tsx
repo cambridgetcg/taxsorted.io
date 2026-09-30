@@ -114,6 +114,7 @@ describe("SiteNav", () => {
     ["/services/landlords/", "Services"],
     ["/plan/", "Services"],
     ["/file/", "Services"],
+    ["/prepare/", "Services"],
     ["/vat/", "Services"],
     ["/dashboard/", "Services"],
     ["/uk/tax-expert/", "My tax year"],

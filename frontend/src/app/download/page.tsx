@@ -15,7 +15,7 @@ const platforms = [
 ];
 
 const localTools = [
-  { name: "Your checklist", detail: "Choose your circumstances and keep track of the next steps.", href: "/checkup" },
+  { name: "Tax preparation", detail: "Choose a tax year, collect evidence and review your employment figures.", href: "/prepare" },
   { name: "Money records", detail: "Add income and expenses, import CSV files and review your figures.", href: "/books" },
   { name: "Planning & guides", detail: "Use the bundled calculators and read the included tax guides.", href: "/plan" },
   { name: "Adviser handover", detail: "Prepare a Tax Position Passport and export a copy to share yourself.", href: "/passport" },
@@ -140,7 +140,7 @@ export default function DownloadPage() {
           <div>
             <h3 className="font-display text-xl font-semibold text-ink">Saved on this computer</h3>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
-              The app keeps money records, saved Passport drafts, checklists and preferences in
+              The app keeps money records, saved Passport and preparation drafts, checklists and preferences in
               its own local app profile. This is separate from taxsorted.io in your browser.
               Existing website data is not moved into the app automatically. It has no cloud
               backup, sync or automatic update service.
@@ -160,9 +160,10 @@ export default function DownloadPage() {
             </ol>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
               Keep backups somewhere you control before removing the app profile or moving to
-              another computer. A Books backup does not include Passport drafts, receipt
+              another computer. A Books backup does not include Passport or preparation drafts, receipt
               attachments, checklist progress or account sign-in details.
             </p>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">Preparation summaries are unencrypted text handovers. They cannot restore a preparation draft in another browser or app.</p>
           </div>
         </div>
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-6 text-sm font-semibold text-accent">

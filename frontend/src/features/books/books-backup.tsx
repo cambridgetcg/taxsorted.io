@@ -239,7 +239,7 @@ function BooksBackupControls({ store, onRestored, expanded = false }: BooksBacku
   const content = (
       <div className="space-y-5 text-sm leading-6 text-ink-soft">
         <p>Your Books stay in this app or browser on this device. Download a copy regularly and keep it somewhere safe. Password protection encrypts the downloaded file; it does not encrypt the Books stored in this app. Signing in does not save or move these records.</p>
-        <p>This is a Books backup: money records, original source data, record decisions and earlier versions. It does not include your Tax Passport, checklist, receipt attachments, account sign-in details or anything already held by HMRC. Files are checked and unlocked on this device and are not uploaded.</p>
+        <p>This is a Books backup: money records, original source data, record decisions and earlier versions. It does not include your Tax Passport, return-preparation drafts, checklist, receipt attachments, account sign-in details or anything already held by HMRC. Files are checked and unlocked on this device and are not uploaded.</p>
         {!locked && !selected ? <section aria-labelledby="books-save-heading" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="books-save-heading" className="text-xl font-semibold text-ink">Save current Books</h2>
