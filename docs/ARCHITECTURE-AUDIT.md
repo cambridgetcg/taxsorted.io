@@ -4,6 +4,12 @@ Inspected **2026-09-12**, starting from `25871cc1bde61b858ab89650692e52333f3f4f2
 This is a repository and workflow audit with bounded local refactors, not approval to
 file real returns, open provider access or publish restricted datasets.
 
+**Historical baseline:** workspace counts, feature gaps and verification below describe
+September 12. Use the [September 30 infrastructure and data map](../infrastructure/README.md)
+for the current four-workspace stack, desktop edition, local preparation, Books backup
+and integration status. Later implementations do not retroactively change the tests
+or operational evidence recorded in this audit.
+
 Follow-up: [history consolidation](CONSOLIDATION.md) records the preserved local
 commits and working baseline; [production gaps](PRODUCTION-GAPS.md) turns this
 audit into actionable work packages. Verification below records the initial audit.

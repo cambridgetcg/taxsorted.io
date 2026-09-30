@@ -40,7 +40,7 @@ describe("offline app navigation", () => {
     runtime.local = true;
     render(<LocalAppNotice />);
     expect(screen.getByText("Local app · offline")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back up or restore" })).toHaveAttribute("href", "/books/workspace/backups");
+    expect(screen.getByRole("link", { name: "Back up or restore" })).toHaveAttribute("href", "/backups");
     expect(screen.getByRole("link", { name: /your data & app limits/i })).toHaveAttribute("href", "/download#your-data");
   });
 

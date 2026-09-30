@@ -10,11 +10,7 @@ import {
   type PassportIncomeSourceId,
   type TaxPositionPassport,
 } from "@taxsorted/engine/uk/passport";
-import {
-  del as idbDelete,
-  get as idbGet,
-  set as idbSet,
-} from "idb-keyval";
+import { createWorkspaceSession } from "@/lib/workspace-storage";
 
 export const TAX_POSITION_PASSPORT_DRAFT_SCHEMA =
   "taxsorted.uk.tax-position-passport.draft/1" as const;
@@ -228,6 +224,7 @@ export function createPassportStore(
 ): PassportStore {
   const useIdb = backend === "idb";
   const map = useIdb ? null : backend;
+  const session = useIdb ? createWorkspaceSession() : null;
   const subscribers = new Set<(change: PassportStoreChange) => void>();
   const channel =
     useIdb && typeof BroadcastChannel !== "undefined"
@@ -251,15 +248,15 @@ export function createPassportStore(
   }
 
   const getValue = async (): Promise<unknown> =>
-    useIdb ? await idbGet(PASSPORT_STORAGE_KEY) : await map!.get(PASSPORT_STORAGE_KEY);
+    session ? await session.read(PASSPORT_STORAGE_KEY) : await map!.get(PASSPORT_STORAGE_KEY);
 
   const setValue = async (value: unknown): Promise<void> => {
-    if (useIdb) await idbSet(PASSPORT_STORAGE_KEY, value);
+    if (session) await session.update(PASSPORT_STORAGE_KEY, () => value);
     else await map!.set(PASSPORT_STORAGE_KEY, structuredClone(value));
   };
 
   const deleteValue = async (): Promise<void> => {
-    if (useIdb) await idbDelete(PASSPORT_STORAGE_KEY);
+    if (session) await session.update(PASSPORT_STORAGE_KEY, () => null);
     else await map!.delete(PASSPORT_STORAGE_KEY);
   };
 
@@ -296,14 +293,15 @@ export function createPassportStore(
     save: (draft) =>
       serialize(async () => {
         assertPassportDraft(draft);
-        const stored = await getValue();
+        let saved!: TaxPositionPassportDraft;
+        const replace = (stored: unknown) => {
         let existing: TaxPositionPassportDraft | null = null;
         if (stored !== undefined && stored !== null) {
           assertPassportDraft(stored);
           existing = stored;
         }
         if (
-          (existing && draft.revision !== existing.revision)
+          (existing && (draft.revision !== existing.revision || draft.createdAt !== existing.createdAt))
           || (!existing && draft.revision !== 0)
         ) {
           throw new Error(
@@ -314,14 +312,17 @@ export function createPassportStore(
         if (!isIsoInstant(savedAt)) {
           throw new Error("Passport clock must return an ISO UTC instant.");
         }
-        const saved: TaxPositionPassportDraft = {
+        saved = {
           ...structuredClone(draft),
           revision: (existing?.revision ?? 0) + 1,
           createdAt: existing?.createdAt ?? draft.createdAt,
           updatedAt: savedAt,
         };
         assertPassportDraft(saved);
-        await setValue(saved);
+        return saved;
+        };
+        if (session) await session.update(PASSPORT_STORAGE_KEY, replace);
+        else await setValue(replace(await getValue()));
         channel?.postMessage({
           schema: TAX_POSITION_PASSPORT_DRAFT_SCHEMA,
           revision: saved.revision,
@@ -338,7 +339,7 @@ export function createPassportStore(
 
     delete: (expectedRevision) =>
       serialize(async () => {
-        const stored = await getValue();
+        const remove = (stored: unknown) => {
         if (stored !== undefined && stored !== null) {
           assertPassportDraft(stored);
           if (stored.revision !== expectedRevision) {
@@ -347,7 +348,10 @@ export function createPassportStore(
             );
           }
         }
-        await deleteValue();
+        return null;
+        };
+        if (session) await session.update(PASSPORT_STORAGE_KEY, remove);
+        else { remove(await getValue()); await deleteValue(); }
         channel?.postMessage({
           schema: TAX_POSITION_PASSPORT_DRAFT_SCHEMA,
           deleted: true,

@@ -4,6 +4,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import CheckupPage from "../page";
 import { CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress } from "../checklist-state";
 import { TAX_YEAR_PERIOD } from "@/lib/tax-year-progress";
+import { workspaceTestDb as database } from "@/lib/__tests__/workspace-idb-harness";
+vi.mock("idb-keyval", async () => {
+  const { workspaceTestDb } = await import("@/lib/__tests__/workspace-idb-harness");
+  return { createStore: () => workspaceTestDb.store };
+});
 
 const navigation = vi.hoisted(() => ({ query: "" }));
 const progress = vi.hoisted(() => ({ read: vi.fn() }));
@@ -15,6 +20,7 @@ vi.mock("@/lib/tax-year-progress", async (importOriginal) => ({
 
 beforeEach(() => {
   navigation.query = "";
+  database.reset();
   window.localStorage.clear();
   window.history.replaceState(null, "", "/checkup");
   progress.read.mockReset().mockResolvedValue({
@@ -169,7 +175,7 @@ describe("My tax year and personal checklist", () => {
     expect(screen.getByText(/save before leaving to keep your checkmarks/i)).toBeInTheDocument();
     expect(screen.getAllByText("What this step covers")[0].closest("details")).not.toHaveAttribute("open");
     fireEvent.click(save);
-    const status = screen.getByRole("status");
+    const status = await screen.findByRole("status");
     expect(status.compareDocumentPosition(firstStep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -178,7 +184,8 @@ describe("My tax year and personal checklist", () => {
     await choose("Sole traders and freelancers");
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
-    const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
+    await screen.findByText(/^checklist saved on this device/i);
+    const raw = database.values.get(CHECKLIST_STORAGE_KEY) as string;
     expect(JSON.parse(raw!)).toEqual(JSON.parse(savedSoleTrader()));
     expect(screen.getByText(/^checklist saved on this device/i)).toBeInTheDocument();
     first.unmount();
@@ -210,7 +217,9 @@ describe("My tax year and personal checklist", () => {
     expect(screen.getByRole("button", { name: "Save checklist" })).toBeDisabled();
     expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe("{broken");
     fireEvent.click(screen.getByRole("button", { name: "Clear saved checklist" }));
-    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+    await screen.findByText(/saved checklist and its checkmarks have been cleared/i);
+    expect(database.values.get(CHECKLIST_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe("{broken");
     expect(screen.getByRole("button", { name: "Save checklist" })).toBeEnabled();
   });
 
@@ -219,9 +228,10 @@ describe("My tax year and personal checklist", () => {
     render(<CheckupPage />);
     await screen.findByRole("heading", { name: "Landlords checklist" });
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save checklist" })).toBeEnabled());
+    database.failCommit = true;
     fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
+    expect(await screen.findByRole("alert")).toHaveTextContent("could not be saved");
     expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
     expect(screen.getByText("Changes are not saved")).toBeInTheDocument();
   });
@@ -242,7 +252,9 @@ describe("My tax year and personal checklist", () => {
     window.localStorage.setItem("unrelated-books-reference", "preserve");
     render(<CheckupPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Clear saved checklist" }));
-    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+    await screen.findByText(/saved checklist and its checkmarks have been cleared/i);
+    expect(database.values.get(CHECKLIST_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe(savedSoleTrader());
     expect(window.localStorage.getItem("taxsorted.locale")).toBe("en");
     expect(window.localStorage.getItem("unrelated-books-reference")).toBe("preserve");
     expect(screen.getAllByRole("checkbox")[0]).not.toBeChecked();
@@ -252,10 +264,11 @@ describe("My tax year and personal checklist", () => {
     navigation.query = "for=landlords";
     render(<CheckupPage />);
     await screen.findByRole("heading", { name: "Landlords checklist" });
+    await waitFor(() => expect(screen.getByRole("combobox")).toBeEnabled());
     window.localStorage.setItem(CHECKLIST_STORAGE_KEY, savedSoleTrader());
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("changed in another tab");
+    expect(await screen.findByRole("alert")).toHaveTextContent("workspace changed");
     expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBe(savedSoleTrader());
     expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
   });

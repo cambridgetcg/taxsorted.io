@@ -1,0 +1,54 @@
+name: Disposable database recovery
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "api/migrations/**"
+      - "api/src/db.ts"
+      - "api/src/runtime-environment.ts"
+      - "infrastructure/testing/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/database-recovery.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-recovery-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rehearsal:
+    name: PostgreSQL ${{ matrix.postgres }} synthetic restore
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ["16", "17"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install migration worker dependencies without lifecycle scripts
+        run: npm ci --omit=dev --ignore-scripts --workspace @taxsorted/api --workspace @taxsorted/engine --include-workspace-root=false
+      - name: Check admission and owned cleanup boundaries
+        run: node --test infrastructure/testing/__tests__/*.test.mjs
+      - name: Admit the disposable PostgreSQL image
+        run: docker pull postgres:${{ matrix.postgres }}
+      - name: Migrate, dump, restore, verify and remove owned container
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: node infrastructure/testing/database-recovery.mjs --allow-local-container --postgres-major ${{ matrix.postgres }}
+      - name: Retain only the sanitised rehearsal report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-recovery-postgres-${{ matrix.postgres }}
+          path: ${{ runner.temp }}/taxsorted-db-recovery-*/report.json
+          if-no-files-found: ignore
+          retention-days: 14

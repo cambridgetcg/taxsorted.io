@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const { requireDisposableRunner, nsisArguments, validateRegistration, validateRuntimeSmoke, removeOwnedSentinel } = require('../testing/install-windows.cjs');
+const { runtimeFixture, expectedFixture } = require('./fixtures/runtime-evidence.cjs');
 
 test('Windows installer test refuses personal, self-hosted and non-Windows environments', () => {
   const options = { disposableAccount: true };
@@ -32,10 +33,10 @@ test('registration check rejects all-users installation and unexpected location 
 });
 
 test('installed runtime evidence rejects stale, wrong-checkout or incomplete smoke results', () => {
-  const report = { startedAt: '2026-09-29T10:00:00.000Z', checkoutCommit: 'a'.repeat(40), checkoutHadLocalChanges: false };
-  const smoke = { schema: 'taxsorted.desktop-runtime-smoke/1', mode: 'packaged', platform: 'win32', arch: 'x64', ...report, startedAt: '2026-09-29T10:01:00.000Z', finishedAt: '2026-09-29T10:02:00.000Z', status: 'passed', checks: Array(7).fill({ name: 'synthetic check' }), rendererErrorCount: 0, remoteObserverHits: 0, cleanup: { appClosed: true, observerClosed: true, temporaryFilesRemoved: true, packagedProfileRemoved: true } };
+  const report = expectedFixture();
+  const smoke = runtimeFixture();
   assert.doesNotThrow(() => validateRuntimeSmoke(smoke, report));
-  for (const changed of [{ mode: 'source' }, { platform: 'darwin' }, { arch: 'arm64' }, { checkoutCommit: 'b'.repeat(40) }, { startedAt: '2026-09-28T10:01:00.000Z' }, { status: 'failed' }, { checks: [] }, { remoteObserverHits: 1 }, { cleanup: { ...smoke.cleanup, appClosed: false } }]) assert.throws(() => validateRuntimeSmoke({ ...smoke, ...changed }, report));
+  for (const changed of [{ mode: 'source' }, { platform: 'darwin' }, { arch: 'arm64' }, { checkoutCommit: 'b'.repeat(40) }, { startedAt: new Date(500).toISOString() }, { status: 'failed' }, { checks: [] }, { workspaceRecovery: undefined }, { remoteObserverHits: 1 }, { cleanup: { ...smoke.cleanup, appClosed: false } }]) assert.throws(() => validateRuntimeSmoke({ ...smoke, ...changed }, report));
 });
 
 test('sentinel cleanup preserves directories containing unexpected data or a changed token', async t => {

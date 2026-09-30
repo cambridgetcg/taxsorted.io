@@ -1,28 +1,13 @@
 #!/usr/bin/env bash
 # Run from the repository root; invoked only by the authorised release workflow.
 set -euo pipefail
+frontend_contract='scripts/release/frontend-contract.mjs'
+# Validate the shared contract before making any network request. Assignment
+# propagates a failed validator, unlike a failing process substitution.
+contract_paths=$(node "${frontend_contract}" list)
 for path in \
-  / \
-  /books \
-  /books/workspace \
-  /checkup \
-  /plan \
-  /file \
-  /put-it-right \
-  /trust \
-  /learn \
-  /passport \
-  /uk/public-funding \
-  /uk/accountability \
-  /uk/cases \
-  /uk/cases/haworth-v-hmrc \
   /uk/opportunities \
   /uk/regulator-scrutiny \
-  /uk/tax-expert \
-  /uk/tax-identity \
-  /uk/politics/stand \
-  /uk/politics/decisions \
-  /learn/history/window-tax \
   /media/window-tax/manifest.json \
   /sitemap.xml \
   /robots.txt \
@@ -35,17 +20,6 @@ do
     --retry 12 --retry-delay 5 --retry-all-errors \
     --output /dev/null "https://taxsorted.io${path}"
 done
-
-tax_identity_page="${RUNNER_TEMP}/uk-tax-identity.html"
-curl --fail --silent --show-error \
-  --location \
-  --connect-timeout 10 --max-time 30 --retry-max-time 120 \
-  --retry 12 --retry-delay 5 --retry-all-errors \
-  --output "${tax_identity_page}" \
-  https://taxsorted.io/uk/tax-identity
-grep --fixed-strings \
-  'One subject can carry several tax identities at once.' \
-  "${tax_identity_page}" >/dev/null
 
 opportunities_page="${RUNNER_TEMP}/uk-professional-opportunities.html"
 scrutiny_page="${RUNNER_TEMP}/uk-regulator-scrutiny.html"
@@ -260,35 +234,15 @@ done < <(
 
 body=$(mktemp)
 trap 'rm -f "$body"' EXIT
-for page_and_marker in \
-  '/|Pay what the law requires. Claim what the law allows.' \
-  '/books|Know where every number came from.' \
-  '/books/workspace|TaxSorted does not encrypt or automatically back them up' \
-  '/checkup|Find where you stand. Then take the next honest step.' \
-  '/plan|See covered lawful choices. Keep the decision yours.' \
-  '/file|Nothing moves without your eyes and consent.' \
-  '/put-it-right|A mistake is not the end of the road.' \
-  '/trust|The boundary should be as visible as the feature.' \
-  '/learn|Play the books. Keep the money you can prove.' \
-  '/passport|Understanding that travels.' \
-  '/uk/charities|Check a charity, understand its tax, ask it for help.' \
-  '/uk/accountability|Who checks the checkers' \
-  '/uk/tax-expert|Check which tax rules apply to you' \
-  '/uk/politics/stand|Start with the work, not the title.' \
-  '/uk/politics/decisions|Find where the decision lives.' \
-  '/learn/history/window-tax|The paper trail says more than a wall' \
-  '/itsa/records|Starter Books' \
-  '/itsa/quarter|Quarterly figures'
+while IFS= read -r page
 do
-  page=${page_and_marker%%|*}
-  marker=${page_and_marker#*|}
   page_ready=false
   for _ in $(seq 1 12)
   do
     if curl --fail --silent --show-error --location --output "$body" \
       --connect-timeout 10 --max-time 30 \
       "https://taxsorted.io${page}" && \
-      grep --fixed-strings --quiet "${marker}" "$body"
+      node "${frontend_contract}" check-page "${page}" "$body"
     then
       page_ready=true
       break
@@ -296,7 +250,7 @@ do
     sleep 5
   done
   if [ "${page_ready}" != true ]; then
-    echo "The deployed guide ${page} did not expose ${marker}." >&2
+    echo "The deployed page ${page} did not match the shared release contract." >&2
     exit 1
   fi
-done
+done <<< "${contract_paths}"

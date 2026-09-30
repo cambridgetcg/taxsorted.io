@@ -8,15 +8,17 @@ admission by itself.
 
 The existing local preparation product, a reproducible release, a financial provider
 import and recognised production filing have different completion conditions. The
-current three-workspace architecture can support them; a rewrite is unnecessary.
+existing architecture can support them; a rewrite is unnecessary. The September 12
+baseline had three workspaces; the [current stack](../infrastructure/README.md) adds
+the desktop workspace and records later implementation and verification boundaries.
 
 ## First implementation batch — 2026-09-12
 
-| Package | Current result | Remaining boundary |
+| Package | Result recorded on 12 September | Boundary recorded at that batch |
 |---|---|---|
 | PG-01 | Implemented: clean Node 22 install, valid dependency tree, zero full/production audit findings, all workspace tests, lint, types, corpus validators and 73-page static build pass | Local verification; deployment is a separate action |
 | PG-02 | Ten primary sources reviewed; cessation provenance repaired; source admission renewed through 12 October with the 13 October stop preserved | Existing classifier scope remains; named human owner for the next review is unassigned |
-| PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough remain unverified |
+| PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough were unverified at this batch. See the [later protected-backup and native recovery evidence](#pg-03--restore-local-books-safely). |
 | PG-06 | Shared pre-session Origin guard implemented; duplicate exact-root session execution fixed; real-router tests pass with mocked SQL/provider calls | Does not prove live Postgres, provider or edge rate-limit behavior |
 | PG-12 | [Operating evidence inventory](OPERATING-EVIDENCE.md) prepared with responsible roles and next actions | External decisions and private operating evidence remain unverified |
 
@@ -105,17 +107,43 @@ replace it with a mechanical date change.
 
 ### PG-03 — Restore local books safely
 
-**Gap and evidence.** [RecordsStore](../frontend/src/lib/records.ts) exposes JSON/CSV
-exports but no complete backup restore operation. [Local books](../frontend/src/lib/local-books.ts)
+**Historical gap — 12 September audit baseline.** [RecordsStore](../frontend/src/lib/records.ts)
+exposed JSON/CSV exports but no complete backup restore operation. [Local books](../frontend/src/lib/local-books.ts)
 retain review state, revisions, conflicts, provider identities and replica metadata
 that a transaction CSV alone cannot preserve.
 
-**Implementation path.** Define a versioned backup envelope and strict restore
+**Original implementation path.** Define a versioned backup envelope and strict restore
 validation. First ship an explicit replace-from-backup flow with a preflight summary
 and an export of existing work; defer merging two histories to a separate contract.
 Restore atomically, preserve evidence/revision links and assign a fresh local replica
 identity. Provider coverage and account/HMRC bindings must be invalidated or explicitly
 re-established, never silently inherited as current authority.
+
+**Subsequent implementation and verification.** Versioned backup and deliberate replacement
+are implemented. The [current Books contract](BOOKS-BACKUP.md) adds password-protected
+downloads by default, an explicit plain-file compatibility option, and a protected safety
+copy before restore. Protected files have a 14 MiB encoded limit; decoded Books retain
+the 10 MiB limit and the contract's collection bounds. Restore still requires Web Locks
+and atomically replaces the Books keys after checking the preview's saved-state baseline.
+
+The [29 September navigation and recovery campaign](testing/2026-09-29-desktop-navigation.md)
+records all 12 source, unpacked and installed runtime reports passing on Windows x64,
+Linux x64, Intel Mac and Apple silicon Mac at clean commit
+`fd73870d08e3e14fbd279c924e012539c4b973ee`. Each verifies encrypted export, independent
+decryption, observed wrong-password rejection with current records preserved, a protected
+safety copy and confirmed restore. These are synthetic tests in disposable profiles at
+that recorded revision. They do not establish recovery of a person's existing profile,
+cross-browser recovery, real native-dialog acceptance, reinstall/upgrade persistence or
+disaster recovery. [Manual consumer acceptance](DESKTOP-TESTING.md#manual-cases-on-each-native-desktop)
+remains NOT RUN.
+
+Protection applies to exported Books files. The live browser/app profile is not encrypted
+by TaxSorted. Passport facts, return-preparation drafts, personal checklists, sign-in
+sessions and attachments are outside the Books backup. Available Passport, CSV and
+preparation-summary exports remain unencrypted. The later INF-06 workspace flow
+adds one encrypted file and atomic restore for Books, Passport, both preparation
+years and checklists. Accounts and attachments remain excluded. See
+[local data custody](LOCAL-APP.md#where-personal-data-lives).
 
 **Acceptance.** Export → clear a disposable store → restore reproduces supported book
 facts, money, review states and history. Malformed/oversized files, duplicate IDs,

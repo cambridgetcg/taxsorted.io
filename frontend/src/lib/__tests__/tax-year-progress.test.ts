@@ -18,6 +18,7 @@ import {
 } from "../local-books";
 import { createEmptyPassportDraft, PASSPORT_STORAGE_KEY } from "../passport-store";
 import { readTaxYearProgress, TAX_YEAR_PERIOD } from "../tax-year-progress";
+import { WORKSPACE_KEYS, WORKSPACE_SCHEMA, WORKSPACE_STORAGE_KEY } from "../workspace-storage";
 
 const database = vi.hoisted(() => ({
   values: new Map<string, unknown>(),
@@ -41,8 +42,12 @@ vi.mock("idb-keyval", async importOriginal => {
         if (mode !== "readonly") database.forbidden();
         if (database.failOpen) throw new DOMException("Private source details", "SecurityError");
         const snapshot = structuredClone(database.values);
+        let pending = 0;
+        const transaction = { oncomplete: null as null | (() => void), onerror: null as null | (() => void), onabort: null as null | (() => void), abort() { transaction.onabort?.(); } };
         const store = {
+          transaction,
           get(key: string) {
+            pending += 1;
             database.keys.push(key);
             const request = {
               result: snapshot.get(key),
@@ -51,8 +56,10 @@ vi.mock("idb-keyval", async importOriginal => {
               onerror: null as null | (() => void),
             };
             queueMicrotask(() => {
-              if (database.failKey === key) request.onerror?.();
+              if (database.failKey === key) { request.onerror?.(); transaction.onerror?.(); }
               else request.onsuccess?.();
+              pending -= 1;
+              if (pending === 0) queueMicrotask(() => transaction.oncomplete?.());
             });
             return request;
           },
@@ -136,6 +143,20 @@ afterEach(() => {
 });
 
 describe("explicit local tax-year progress read", () => {
+  it("reads canonical saved progress while ignoring older direct-key writes", async () => {
+    const canonicalBooks = books();
+    addRecord(canonicalBooks, "2026-05-01", "needs-review");
+    database.values.set(WORKSPACE_STORAGE_KEY, {
+      schema: WORKSPACE_SCHEMA, generation: "restored-generation",
+      values: { ...Object.fromEntries(WORKSPACE_KEYS.map(key => [key, undefined])), [BOOKS_STORAGE_KEY]: canonicalBooks, [PASSPORT_STORAGE_KEY]: passport() },
+    });
+    database.values.set(BOOKS_STORAGE_KEY, { schema: "old-tab-data" });
+    database.values.set(PASSPORT_STORAGE_KEY, { schema: "old-tab-data" });
+    const result = await readTaxYearProgress();
+    expect(result.books).toMatchObject({ status: "saved", activities: { "self-employment": { records: 1, needsReview: 1 } } });
+    expect(result.passport.status).toBe("saved");
+    expect(database.modes).toEqual(["readonly"]);
+  });
   it("reads exactly the four source keys together without creating records or conflating missing with zero", async () => {
     expect(database.modes).toEqual([]);
     expect(await readTaxYearProgress()).toEqual({
@@ -146,7 +167,7 @@ describe("explicit local tax-year progress read", () => {
     });
     expect(database.modes).toEqual(["readonly"]);
     expect(database.keys).toEqual([
-      BOOKS_STORAGE_KEY, BOOKS_LEGACY_STORAGE_KEY, BOOKS_MIGRATION_CLOSED_KEY, PASSPORT_STORAGE_KEY,
+      WORKSPACE_STORAGE_KEY, BOOKS_STORAGE_KEY, BOOKS_LEGACY_STORAGE_KEY, BOOKS_MIGRATION_CLOSED_KEY, PASSPORT_STORAGE_KEY,
     ]);
     expect(database.values.size).toBe(0);
   });

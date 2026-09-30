@@ -15,12 +15,16 @@ employment figures before previewing a preparation summary. Saving is explicit
 and local; this does not calculate or file a complete return.
 See [the service map and delivery plan](docs/SERVICE-REBUILD.md) for purpose,
 renaming, module ownership and remaining integration work.
+The [infrastructure and data map](infrastructure/README.md) explains the hosted and
+desktop stack, where information lives, current accounting/integration capabilities
+and what still needs verification before the rebuild can be published.
 
 **TaxSorted Local** reuses these tools in an offline desktop app. Installer-first
 packaging covers macOS, Windows and Linux; a source scaffold is available for
 customisation. The app has its own local profile, blocks remote app requests and
-needs no account. Books backups are password-protected by default; the live profile
-is not encrypted by the app, and online filing is unavailable.
+needs no account. Encrypted workspace backups cover saved Books, Passport,
+preparation drafts and checklists. The live profile is not encrypted by the app,
+and online filing is unavailable.
 See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
 
 ```sh
@@ -154,12 +158,13 @@ See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 ## Project Structure
 
 ```
-taxsorted.io/           # npm workspaces: engine · frontend · api
+taxsorted.io/           # npm workspaces: engine · frontend · api · desktop
 ├── PRINCIPLES.md       # The soul
 ├── engine/             # One engine, countries as plugins — pure TypeScript
 │   └── jurisdictions/uk/   # Plugin #1: tax rules plus the expert contract and coverage registry
 ├── frontend/           # Next.js web application (static export)
 │   └── src/app/        # Landing (the map), dashboard, vat/ (real cockpit + demo)
+├── desktop/            # Electron app: bundled frontend, isolated local profile, OS packaging
 ├── api/                # The rails — Hono on Fly.io: browser accounts + workspace API keys
 │   ├── migrations/     # Postgres: sessions → entities → connections → submissions
 │   └── RUNBOOK.md      # How the HMRC rail switches on
@@ -184,13 +189,17 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 ## Tech Stack
 
 - **Frontend**: Next.js 16 (App Router, static export), React 19, TypeScript, Tailwind CSS 4
+- **Desktop**: Electron + Electron Builder, sharing the static frontend and engine.
+  Local tools use IndexedDB/localStorage in a separate app profile; online account,
+  provider and filing features are unavailable. See [the stack and data map](infrastructure/README.md).
 - **Deployment**: Fly API first, then Cloudflare Pages. CI runs tests, typechecks, data
   validators, a high-severity production dependency audit and the static build on every push;
   frontend deployment proceeds only after the API deploy succeeds.
-- **Backend**: `api/` — Hono + Postgres on Fly.io (London): anonymous device
-  sessions, server-side HMRC OAuth with an encrypted token vault, engine-validated
-  submission, immutable receipts. One typed API for humans and agents alike.
-  Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
+- **Backend**: `api/` — Hono + Postgres on Fly.io (configured London region): device
+  sessions, passkey accounts, server-side HMRC OAuth with encrypted token custody,
+  engine-validated sandbox submission and stored payloads/receipts. One typed API
+  for humans and agents alike. Production filing requires HMRC recognition plus
+  the remaining implementation and operating evidence (see [the runbook](api/RUNBOOK.md)).
 - **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
   public `GET /v1/uk/professional-tools` integration boundaries and task-sized OpenAPI,
   authenticated no-task-scope `GET /v1/api-workspace` inspection of only the presented key,
@@ -341,7 +350,7 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   public-power case method, source ledger, money-language rules, local custody boundary and first
   evidence-bounded Haworth deep dive
 - [`research/uk/case-commons/AGENTTOOL.md`](research/uk/case-commons/AGENTTOOL.md) —
-  optional, exact-pinned AgentTool SDK 0.16.3 GitHub release artifact for verifying one public
+  optional, exact-pinned AgentTool SDK 0.16.3 npm artifact for verifying one public
   packet and placing it in a caller-operated loopback `agent-data/v1` node; dry-run by default and
   no hosted write
 - `/uk/cases` — public case commons and `/uk/cases/haworth-v-hmrc` — the first deep case

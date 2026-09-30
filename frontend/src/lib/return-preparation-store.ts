@@ -1,4 +1,4 @@
-import { get as idbGet, update as idbUpdate } from "idb-keyval";
+import { createWorkspaceSession } from "@/lib/workspace-storage";
 import { assertPreparationDraft, PREPARATION_YEARS, type PreparationDraft, type PreparationYear } from "@/lib/return-preparation";
 
 export interface PreparationStoreBackend {
@@ -23,6 +23,7 @@ export function createReturnPreparationStore(
   now: () => string = () => new Date().toISOString(),
 ): ReturnPreparationStore {
   const key = preparationStorageKey(year);
+  const session = backend === "idb" ? createWorkspaceSession() : null;
   function readValue(value: unknown): PreparationDraft | null {
     if (value === undefined) return null;
     assertPreparationDraft(value);
@@ -37,7 +38,7 @@ export function createReturnPreparationStore(
     return result;
   }
   return {
-    load: () => serialize(async () => readValue(backend === "idb" ? await idbGet<unknown>(key) : await backend.get(key))),
+    load: () => serialize(async () => readValue(session ? await session.read(key) : await (backend as PreparationStoreBackend).get(key))),
     save(draft) {
       // Capture caller state before async work, so edits during a pending save
       // cannot silently become the committed value.
@@ -63,8 +64,8 @@ export function createReturnPreparationStore(
           assertPreparationDraft(saved);
           return saved;
         };
-        if (backend === "idb") await idbUpdate<unknown>(key, replace);
-        else await backend.set(key, structuredClone(replace(await backend.get(key))));
+        if (session) await session.update(key, replace);
+        else await (backend as PreparationStoreBackend).set(key, structuredClone(replace(await (backend as PreparationStoreBackend).get(key))));
         return structuredClone(saved!);
       });
     },

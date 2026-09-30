@@ -28,6 +28,10 @@ vi.mock("idb-keyval", () => ({
     if (name !== "keyval-store" || objectStore !== "keyval") throw new Error("Unexpected database schema");
     return async (mode: string, operation: (store: IDBObjectStore) => Promise<void>) => {
       database.openedModes.push(mode);
+      if (mode === "readwrite") {
+        database.beforeUpdate?.();
+        database.beforeUpdate = null;
+      }
       const draft = new Map(structuredClone([...database.data]));
       let aborted = false;
       let pending = 0;
@@ -131,7 +135,7 @@ describe("Books restore storage boundary", () => {
     const { store, json, preview } = await fixture();
     database.data.set(BOOKS_LEGACY_STORAGE_KEY, [{ ...INCOME, id: "late-legacy" }]);
     const before = structuredClone([...database.data]);
-    await expect(store.restoreBackup(json, preview)).rejects.toThrow(/changed after the preview/);
+    await expect(store.restoreBackup(json, preview)).rejects.toThrow(/workspace changed/);
     expect([...database.data]).toEqual(before);
   });
 
@@ -139,11 +143,13 @@ describe("Books restore storage boundary", () => {
     const { store, json, preview } = await fixture();
     vi.stubGlobal("navigator", {});
     const before = structuredClone([...database.data]);
+    const modesBefore = [...database.openedModes];
     await expect(store.previewRestore(json)).rejects.toThrow(/supports Web Locks/);
     await expect(store.restoreBackup(json, preview)).rejects.toThrow(/supports Web Locks/);
+    expect(database.openedModes).toEqual(modesBefore);
     await expect(store.exportBackup()).resolves.toContain("taxsorted.books-backup/1");
     expect([...database.data]).toEqual(before);
-    expect(database.openedModes).toEqual([]);
+    expect(database.openedModes.slice(modesBefore.length).every(mode => mode === "readonly")).toBe(true);
   });
 
   it("refuses to write a stale installation over a replaced store", async () => {
@@ -151,7 +157,7 @@ describe("Books restore storage boundary", () => {
     const replacement = structuredClone(database.data.get(BOOKS_STORAGE_KEY)) as LocalBooksState;
     replacement.replica.id = "replacement-installation";
     database.beforeUpdate = () => { database.data.set(BOOKS_STORAGE_KEY, replacement); };
-    await expect(store.add({ ...INCOME, amount: 3300 })).rejects.toThrow(/changed after the preview/);
+    await expect(store.add({ ...INCOME, amount: 3300 })).rejects.toThrow(/workspace changed/);
     expect(database.data.get(BOOKS_STORAGE_KEY)).toEqual(replacement);
   });
 

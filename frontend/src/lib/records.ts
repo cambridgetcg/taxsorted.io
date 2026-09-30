@@ -3,6 +3,7 @@
 // list() projects only reviewed events into the tax engine's small shape.
 
 import { del as idbDel, get as idbGet, getMany as idbGetMany, set as idbSet, update as idbUpdate } from "idb-keyval";
+import { createWorkspaceSession } from "@/lib/workspace-storage";
 import { validateLocalBooksState as validateState } from "@/lib/local-books-validation";
 import {
   booksBackupDigest, exportBooksBackup, parseBooksBackup, restoredBooks, summariseBooksBackup,
@@ -486,6 +487,7 @@ export function createRecordsStore(
   const useIdb = backend === "idb";
   const map = useIdb ? null : (backend as RecordsBackend);
   const storagePrefix = useIdb ? (scope.storagePrefix ?? "") : "";
+  const workspace = useIdb && storagePrefix === "" ? createWorkspaceSession() : null;
   const physicalKey = (key: string) => storagePrefix + key;
   const lockName = physicalKey(STORAGE_KEY);
   const subscribers = new Set<() => void>();
@@ -500,7 +502,7 @@ export function createRecordsStore(
   }
 
   const getValue = async <T>(key: string): Promise<T | undefined> =>
-    useIdb
+    workspace ? (await workspace.read(key)) as T | undefined : useIdb
       ? await idbGet<T>(physicalKey(key))
       : ((await map!.get(key)) as T | undefined);
 
@@ -597,10 +599,12 @@ export function createRecordsStore(
     if (useIdb) {
       // A tab which read the old installation before a restore must not write it
       // back afterwards, including browsers without Web Locks.
-      await idbUpdate<unknown>(physicalKey(STORAGE_KEY), (current) => {
+      const replace = (current: unknown) => {
         if (isLocalBooksState(current) && current.replica.id !== state.replica.id) throw new Error(BOOKS_CHANGED_MESSAGE);
         return state;
-      });
+      };
+      if (workspace) await workspace.update(STORAGE_KEY, replace);
+      else await idbUpdate<unknown>(physicalKey(STORAGE_KEY), replace);
     } else await setValue(STORAGE_KEY, state);
     channel?.postMessage({ schema: LOCAL_BOOKS_SCHEMA, storeRevision: state.storeRevision });
   }
@@ -618,7 +622,7 @@ export function createRecordsStore(
     });
 
   async function storageSnapshot(): Promise<unknown[]> {
-    return useIdb
+    return workspace ? workspace.readMany(BOOKS_STORAGE_KEYS) : useIdb
       ? idbGetMany(BOOKS_STORAGE_KEYS.map(physicalKey), booksIdbStore)
       : Promise.all(BOOKS_STORAGE_KEYS.map(key => getValue(key)));
   }
@@ -702,7 +706,12 @@ export function createRecordsStore(
       await serialize(async () => {
         // No loadState here: even legacy migrations must not write during a
         // failed restore. All compared keys and the marker commit together.
-        if (useIdb) {
+        if (workspace) {
+          await workspace.updateMany(BOOKS_STORAGE_KEYS, values => {
+            if (booksStorageFingerprint(BOOKS_STORAGE_KEYS.map(key => values[key])) !== preflight.expectedStorageFingerprint) throw new Error(BOOKS_CHANGED_MESSAGE);
+            return { [STORAGE_KEY]: replacement, [STORAGE_KEY_V1]: null, [BOOKS_MIGRATION_CLOSED_KEY]: true };
+          });
+        } else if (useIdb) {
           await booksIdbStore("readwrite", store => replaceBooksInTransaction(
             store, BOOKS_STORAGE_KEYS.map(physicalKey), preflight.expectedStorageFingerprint, replacement,
           ));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   PREPARATION_CIRCUMSTANCES,
@@ -28,6 +29,7 @@ type UnsavedWork = {
   saved: string | null;
   step: Step;
   temporary: boolean;
+  store: ReturnType<typeof createReturnPreparationStore> | null;
   pendingSave?: Promise<PreparationDraft>;
 };
 // In-memory only: survives client navigation within this tab, never reload/quit.
@@ -156,7 +158,7 @@ export function PrepareClient() {
 
   useEffect(() => {
     latestWork.current =
-      draft && dirty ? { draft, saved, step, temporary } : null;
+      draft && dirty ? { draft, saved, step, temporary, store: store.current } : null;
   }, [draft, dirty, saved, step, temporary]);
 
   useEffect(
@@ -279,7 +281,7 @@ export function PrepareClient() {
     setError(null);
     try {
       const pendingSave = store.current.save(draft);
-      latestWork.current = { draft, saved, step, temporary, pendingSave };
+      latestWork.current = { draft, saved, step, temporary, pendingSave, store: store.current };
       const stored = await pendingSave;
       if (operation !== request.current) return;
       setDraft(stored);
@@ -371,9 +373,7 @@ export function PrepareClient() {
     setBusy(null);
     setYear(recoveredDraft.year);
     setPurpose(recoveredDraft.purpose);
-    store.current = recovered.temporary
-      ? null
-      : createReturnPreparationStore(recovered.draft.year);
+    store.current = recovered.store;
     setMessage(
       JSON.stringify(recoveredDraft) === recoveredSaved
         ? "Your completed save was recovered from this tab’s memory. The latest changes are saved on this device."
@@ -646,6 +646,10 @@ export function PrepareClient() {
                 </Button>
               </div>
             </div>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">
+              <Link href="/backups" className={helpLinkClass}>Back up your saved workspace</Link>
+              {" "}includes saved preparation. Save changes here before making a backup.
+            </p>
             {leaving && (
               <div
                 role="group"

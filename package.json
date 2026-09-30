@@ -17,6 +17,9 @@
   },
   "scripts": {
     "test": "npm run test --workspaces --if-present",
+    "test:infrastructure": "node --test scripts/release/frontend-contract.test.mjs infrastructure/testing/__tests__/*.test.mjs",
+    "check:release-pages": "node scripts/release/frontend-contract.mjs check-build",
+    "infrastructure:restore": "node infrastructure/testing/database-recovery.mjs --allow-local-container",
     "build": "npm run build --workspace frontend",
     "desktop:build": "npm run build && npm run stage --workspace @taxsorted/desktop",
     "desktop:install-runtime": "npm run install-runtime --workspace @taxsorted/desktop",
@@ -40,6 +43,7 @@
     "review:professional-opportunities": "npm run review:professional-opportunities --workspace api --",
     "validate:professional-opportunity-review": "npm run check:professional-opportunity-review --workspace api",
     "validate:learn": "npm run validate:uk-personal-tax && npm run validate:uk-politics && npm run validate:uk-tax-system && npm run validate:uk-tax-identity && npm run validate:uk-tax-industry && npm run validate:uk-charities && npm run validate:uk-observer-accountability && npm run validate:uk-public-funding && npm run validate:professional-opportunity-review",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present && npm run typecheck:infrastructure",
+    "typecheck:infrastructure": "tsc --project infrastructure/testing/tsconfig.json"
   }
 }

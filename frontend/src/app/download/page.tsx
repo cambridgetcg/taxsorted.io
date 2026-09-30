@@ -146,7 +146,7 @@ export default function DownloadPage() {
               backup, sync or automatic update service.
             </p>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
-              Books backups are password-protected by default. TaxSorted does not encrypt the
+              Workspace backups are password-protected; Books-only backups also offer protection by default. TaxSorted does not encrypt the
               live app profile, Passport exports or other ordinary exports. Your operating
               system’s account controls and disk protection still matter.
             </p>
@@ -154,20 +154,22 @@ export default function DownloadPage() {
           <div>
             <h3 className="font-display text-xl font-semibold text-ink">Bring your work, keep a backup</h3>
             <ol className="mt-3 list-decimal space-y-3 ps-5 text-sm leading-6 text-ink-soft">
-              <li>In your existing browser, open Money records → Backups and download a password-protected Books backup. Keep its password separately; TaxSorted cannot reset it.</li>
-              <li>In the app’s Backups page, choose that backup and unlock its preview. Save a protected copy of the current Books, review the contents and confirm the restore. Restoring replaces the Books already in that app.</li>
-              <li>Export your Passport separately as JSON or an adviser handover. Passport exports are portable copies; Passport import is not available yet.</li>
+              <li>Save your work in each tool, then open Workspace backups in your existing browser. Prepare and download a protected copy of saved Books, Passport, preparation drafts and personal checklists. Keep its password separately; TaxSorted cannot reset it.</li>
+              <li>In the app’s Workspace backups page, choose that file and unlock its preview. Download a protected safety copy of the work currently there, review the comparison and confirm replacement. All included areas are replaced together, including areas with no saved work in the backup.</li>
+              <li>Reload TaxSorted after restoration. Confirm each Books business again and reconnect providers before preparing figures to file. Restoring saved work does not submit it to HMRC.</li>
             </ol>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
               Keep backups somewhere you control before removing the app profile or moving to
-              another computer. A Books backup does not include Passport or preparation drafts, receipt
-              attachments, checklist progress or account sign-in details.
+              another computer. Workspace backups include saved preparation for 2025–26 and 2026–27;
+              unsaved forms, original documents, receipt attachments, account sign-in details, provider
+              permissions and preferences are excluded. Older Books-only backups still restore through Money records → Backups.
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">Preparation summaries are unencrypted text handovers. They cannot restore a preparation draft in another browser or app.</p>
+            <p className="mt-3 text-sm leading-6 text-ink-soft">Ordinary Passport exports and preparation summaries remain unencrypted handovers. Use a workspace backup to restore the saved drafts.</p>
           </div>
         </div>
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-6 text-sm font-semibold text-accent">
-          <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Back up or restore Books →</Link>
+          <Link href="/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Back up or restore saved work →</Link>
+          <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Books-only backups →</Link>
           <Link href="/books/workspace" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Money records →</Link>
           <Link href="/passport" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Passport →</Link>
           <Link href="/trust" className="inline-flex min-h-10 items-center underline underline-offset-4">All product boundaries →</Link>

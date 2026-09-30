@@ -165,6 +165,11 @@ succeeded without dependency changes. The API suite was not run; backend code,
 credentials and deployment configuration were not changed. No push or deployment
 was performed. The public site still serves the previously deployed version.
 
+**Infrastructure follow-up — 30 September:** the exact SDK version is now available
+from npm with the same lockfile integrity. Full-workspace installation succeeds after
+changing that download source. The [infrastructure roadmap](../infrastructure/README.md#infrastructure-roadmap)
+records the new combined verification separately from this earlier frontend-only campaign.
+
 ## My tax year — 30 September 2026
 
 `/checkup` now joins optional saved-work progress to the existing personal
@@ -239,8 +244,9 @@ sources remain stored when the person changes their circumstances, and are label
 inactive in the summary. Underlying documents stay with the person.
 
 The summary preview lets the person choose whether to include figures and notes.
-The downloaded text is unencrypted and is not a restorable backup. Books backups
-do not cover preparation drafts. The live draft uses ordinary browser/app storage;
+The downloaded text is unencrypted and is not a restorable backup. The later
+encrypted workspace flow at `/backups` includes saved preparation drafts for both
+supported years; Books-only backups still exclude them. The live draft uses ordinary browser/app storage;
 this feature adds no cloud service, document upload or account requirement.
 
 Field guidance was checked against [HMRC employment notes](https://www.gov.uk/government/publications/self-assessment-employment-sa102),

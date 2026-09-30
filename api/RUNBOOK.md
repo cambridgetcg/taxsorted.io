@@ -1,10 +1,15 @@
 # Switching on the HMRC rail
 
-What exists: the api (Fly.io, London) with server-side OAuth, an encrypted token
-vault, engine-validated submission, immutable receipts, and live HMRC sandbox
-credentials (verified via `GET /v1/health` → `hmrc.configured:true`). What it
-waits for: production credentials — HMRC's approval process (milestone M3).
-Only a human can mint those.
+What exists: the API (Fly.io, configured London region) with server-side OAuth,
+encrypted token custody, engine-validated sandbox submission paths and stored
+payloads/receipts. `GET /v1/health` reporting `hmrc.configured:true` verifies
+configuration presence, not credential validity, a database query or an HMRC call.
+Production credentials and recognition remain separate from the remaining grant
+lifecycle, durable submission-attempt and annual-return work (PG-07–09 in
+[production gaps](../docs/PRODUCTION-GAPS.md)). See the current
+[infrastructure and data map](../infrastructure/README.md) and
+[operating evidence](../docs/OPERATING-EVIDENCE.md) before treating a sandbox path
+as a production service.
 
 ## UK politics publication controls
 
@@ -1207,7 +1212,7 @@ API=https://api.taxsorted.io   # or http://localhost:8787 locally
 ## The first submission
 
 The quarterly cumulative update is the whole rail's proof: local records →
-derived category totals → an api PUT into HMRC's sandbox → an immutable
+derived category totals → an API PUT into HMRC's sandbox → a stored
 receipt → HMRC's own calculation shown beside our estimate. Every leg of it
 is covered by mocked-HMRC tests (`itsa-submit.test.ts`, `itsa.test.ts`, and
 the cross-endpoint chain in `itsa-chain.test.ts` — businesses → quarterly-

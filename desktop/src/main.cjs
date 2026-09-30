@@ -101,7 +101,7 @@ if (!app.requestSingleInstanceLock()) {
         { label: 'My tax year', click: () => openPage('/checkup/') },
         { label: 'Prepare my tax return', click: () => openPage('/prepare/') },
         { label: 'Money records', click: () => openPage('/books/workspace/') },
-        { label: 'Back up or restore Books', click: () => openPage('/books/workspace/backups/') },
+        { label: 'Back up or restore workspace', click: () => openPage('/backups/') },
         { type: 'separator' }, { role: process.platform === 'darwin' ? 'close' : 'quit' },
       ] },
       { role: 'editMenu' },

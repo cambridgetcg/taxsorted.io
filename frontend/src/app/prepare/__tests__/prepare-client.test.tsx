@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,8 +24,21 @@ const io = vi.hoisted(() => ({
   values: new Map<string, unknown>(),
   get: vi.fn(),
   update: vi.fn(),
+  generation: 0,
 }));
-vi.mock("idb-keyval", () => ({ get: io.get, update: io.update }));
+vi.mock("@/lib/workspace-storage", () => ({
+  createWorkspaceSession: () => {
+    let generation: number | undefined;
+    return {
+      async read(key: string) { generation ??= io.generation; return io.get(key); },
+      async update(key: string, updater: (value: unknown) => unknown) {
+        if (generation !== undefined && generation !== io.generation) throw new Error("This workspace changed after you opened it. Reload before saving.");
+        generation ??= io.generation;
+        return io.update(key, updater);
+      },
+    };
+  },
+}));
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -100,6 +114,7 @@ async function save() {
 
 beforeEach(() => {
   io.values.clear();
+  io.generation = 0;
   io.get.mockReset();
   io.update.mockReset();
   io.get.mockImplementation(async (key: string) =>
@@ -159,9 +174,11 @@ describe("guided return preparation", () => {
     ).toHaveAccessibleDescription(
       "Did you work for an employer during this tax year?",
     );
-    expect(
+    // The heading can be found after commit but before its passive focus effect
+    // runs, especially on Windows. Wait for the required observable behaviour.
+    await waitFor(() => expect(
       screen.getByRole("heading", { name: "1. Circumstances" }),
-    ).toHaveFocus();
+    ).toHaveFocus());
   });
 
   it("never overlays an existing draft with a new one, and resumes the saved purpose", async () => {
@@ -297,6 +314,21 @@ describe("guided return preparation", () => {
       (io.values.get(preparationStorageKey("2025-26")) as PreparationDraft)
         .purpose,
     ).toBe("organise-records");
+  });
+
+  it("retains the originating store generation when resuming unsaved work after a workspace restore", async () => {
+    const view = render(<PrepareClient />);
+    await start();
+    answer("Employment", "Yes");
+    view.unmount();
+    io.generation += 1;
+    render(<PrepareClient />);
+    fireEvent.click(screen.getByRole("button", { name: "Resume unsaved work in this tab" }));
+    await screen.findByRole("heading", { name: "1. Circumstances" });
+    fireEvent.click(screen.getByRole("button", { name: "Save preparation on this device" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Your changes could not be saved. They are still here.");
+    expect(io.update).not.toHaveBeenCalled();
+    expect(within(screen.getByRole("group", { name: "Employment" })).getByRole("radio", { name: "Yes" })).toBeChecked();
   });
 
   it("offers explicit recovery after client navigation without reading or writing persistent storage", async () => {

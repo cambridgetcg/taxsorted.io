@@ -1,7 +1,9 @@
 # Local Books backup and restore
 
 Open **Money records → Backups**, available from every ordinary Books view. The
-desktop status bar and **File → Back up or restore Books** open it directly. An account is
+desktop status bar and **File → Back up or restore workspace** now open
+[complete workspace recovery](LOCAL-APP.md#where-personal-data-lives), which includes a link
+back to this Books-only flow. An account is
 not required. The default download is a password-protected file created on the
 person's device. Signing in does not back up Books. Keep the file outside the app's
 profile/site storage and keep its password separately. TaxSorted cannot reset the
@@ -112,7 +114,10 @@ it does not identify an accountant, provider or other author of those records.
 The preview captures a comparison fingerprint of the stored Books, legacy migration
 baseline and migration-retirement marker. Replacement compares those keys and writes
 the new Books, removes the old migration baseline and retires further legacy merging
-in one [IndexedDB transaction](../frontend/src/lib/books-storage.ts). Any intervening
+in one IndexedDB transaction. Before complete workspace adoption this uses the
+[legacy Books keys](../frontend/src/lib/books-storage.ts); afterwards it updates those
+slots inside the [canonical workspace](../frontend/src/lib/workspace-storage.ts),
+preserving Passport, preparation and checklist slots. Any intervening
 edit requires a new preview and safety copy. Failed or aborted writes keep the prior
 keys. Digest verification and other asynchronous work finish before that transaction.
 

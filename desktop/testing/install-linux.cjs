@@ -12,6 +12,7 @@ const { createHash } = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const { appImageName } = require('./linux-userns-profile.cjs');
 const { childEnvironment, normalProfile, safeError, checkoutState } = require('./runtime-smoke.cjs');
+const { validateInstalledRuntime } = require('./runtime-evidence.cjs');
 
 const projectRoot = path.resolve(__dirname, '../..');
 const resultRoot = path.join(projectRoot, 'desktop/test-results');
@@ -27,20 +28,8 @@ function parseOptions(args) {
   return options;
 }
 
-function validateRuntimeEvidence(report, previousRunId, startedAt, architecture) {
-  assert.equal(report.schema, 'taxsorted.desktop-runtime-smoke/1');
-  assert.equal(report.status, 'passed');
-  assert.equal(report.mode, 'packaged');
-  assert.equal(report.platform, 'linux');
-  assert.equal(report.arch, architecture);
-  assert.equal(typeof report.runId, 'string');
-  assert.notEqual(report.runId, previousRunId, 'Installed runtime evidence must come from this invocation');
-  assert.ok(Number.isFinite(Date.parse(report.startedAt)) && Date.parse(report.startedAt) >= startedAt, 'Installed runtime evidence must be fresh');
-  assert.equal(report.rendererErrorCount, 0);
-  assert.equal(report.remoteObserverHits, 0);
-  for (const key of ['archiveMatches', 'executableInsideMount', 'fuseMounted', 'readOnlyMount', 'reviewedLauncher', 'sandboxedDesktopEntry', 'mountsReleased']) assert.equal(report.appImage?.[key], true, `Actual AppImage evidence required: ${key}`);
-  assert.equal(report.appImage?.payloadInspection?.status, 'pass');
-  for (const key of ['appClosed', 'observerClosed', 'temporaryFilesRemoved', 'packagedProfileRemoved']) assert.equal(report.cleanup?.[key], true, `Runtime cleanup must be confirmed: ${key}`);
+function validateRuntimeEvidence(smoke, previousRunId, startedAt, architecture, checkout) {
+  validateInstalledRuntime(smoke, { ...checkout, platform: 'linux', arch: architecture, previousRunId, startedAt, appImage: true });
 }
 
 async function absent(filename) {
@@ -108,8 +97,7 @@ async function run(options) {
       '--report-name=installed-smoke', '--expect-appimage',
     ], { cwd: projectRoot, env, stdio: 'ignore' });
     const smoke = JSON.parse(await fs.readFile(smokePath, 'utf8'));
-    validateRuntimeEvidence(smoke, previousRunId, smokeStartedAt, process.arch);
-    assert.equal(smoke.checkoutCommit, report.checkoutCommit);
+    validateRuntimeEvidence(smoke, previousRunId, smokeStartedAt, process.arch, report);
     report.runtimeReport = 'installed-smoke.json';
     report.runtimeCheckCount = smoke.checks.length;
     report.appImage = smoke.appImage;

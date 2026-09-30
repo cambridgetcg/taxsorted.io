@@ -17,7 +17,7 @@ export function LocalAppNotice() {
           Local app · offline
         </p>
         <div className="flex flex-wrap items-center gap-x-5">
-          <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center font-semibold text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep">
+          <Link href="/backups" className="inline-flex min-h-11 items-center font-semibold text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep">
             Back up or restore
           </Link>
           <Link href="/download#your-data" className="inline-flex min-h-11 items-center text-ink-soft underline decoration-line-strong underline-offset-4 hover:text-accent">

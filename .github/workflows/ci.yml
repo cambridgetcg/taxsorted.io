@@ -26,8 +26,12 @@ jobs:
 
       - run: npm ci
       - run: npm test
+      - name: Test infrastructure safety and the frontend release contract offline
+        run: npm run test:infrastructure
       - run: npm run lint --workspace frontend
       - run: npm run typecheck
       - run: npm run validate:learn
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
+      - name: Verify the generated frontend page contract
+        run: node scripts/release/frontend-contract.mjs check-build

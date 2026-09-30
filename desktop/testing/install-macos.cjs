@@ -12,6 +12,7 @@ const { spawnSync } = require('node:child_process');
 const { parseArgs } = require('node:util');
 const { childEnvironment, normalProfile, safeError, checkoutState } = require('./runtime-smoke.cjs');
 const { inspectPackage } = require('./inspect-package.cjs');
+const { validateInstalledRuntime } = require('./runtime-evidence.cjs');
 
 const project = path.resolve(__dirname, '../..');
 const results = path.join(project, 'desktop/test-results');
@@ -119,19 +120,7 @@ async function run(options) {
       const runtime = JSON.parse(await fs.readFile(evidence, 'utf8'));
       runtimeClosed = runtime.cleanup?.appClosed === true;
       succeeded(smoke, 'Installed app runtime failed');
-      assert.equal(runtime.schema, 'taxsorted.desktop-runtime-smoke/1');
-      assert.equal(runtime.status, 'passed');
-      assert.equal(runtime.mode, 'packaged');
-      assert.equal(runtime.platform, process.platform);
-      assert.equal(runtime.arch, process.arch);
-      assert.equal(runtime.runtime?.isPackaged, true);
-      assert.equal(runtime.checkoutCommit, report.checkoutCommit);
-      assert.equal(runtime.checkoutHadLocalChanges, report.checkoutHadLocalChanges);
-      assert.ok(Date.parse(runtime.startedAt) >= runtimeStart, 'Installed runtime evidence must be fresh');
-      assert.equal(runtime.checks.length, 7);
-      assert.equal(runtime.rendererErrorCount, 0);
-      assert.equal(runtime.remoteObserverHits, 0);
-      for (const key of ['appClosed', 'observerClosed', 'temporaryFilesRemoved', 'packagedProfileRemoved']) assert.equal(runtime.cleanup?.[key], true);
+      validateInstalledRuntime(runtime, { ...report, startedAt: runtimeStart });
       report.runtimeEvidence = 'installed-smoke.json';
       check('Copied application passes complete packaged runtime after DMG ejection');
     }

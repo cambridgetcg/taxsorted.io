@@ -61,11 +61,11 @@ test("copies current tracked and new source; excludes personal/generated paths e
   }
 });
 
-test("copies the reviewed Backups route without admitting adjacent or generated backup material", (t) => {
+test("copies both reviewed Backups routes without admitting adjacent or generated backup material", (t) => {
   const f = fixture(t);
-  const route = "frontend/src/app/books/workspace/backups/page.tsx";
+  const routes = ["frontend/src/app/books/workspace/backups/page.tsx", "frontend/src/app/backups/page.tsx"];
   const source = "export default function BackupsPage() { return null; }\n";
-  f.write(route, source);
+  for (const route of routes) f.write(route, source);
   const excluded = [
     "frontend/src/app/books/workspace/backups/personal-books.json",
     "frontend/src/app/books/workspace/backups/notes.txt",
@@ -77,13 +77,19 @@ test("copies the reviewed Backups route without admitting adjacent or generated 
     "frontend/out/books/workspace/backups/index.html",
     "desktop/bundle/books/workspace/backups/index.html",
     "docs/backups/personal-books.json",
+    "frontend/src/app/backups/personal-workspace.json",
+    "frontend/src/app/backups/notes.txt",
+    "frontend/src/app/backups/private/page.tsx",
+    "frontend/src/app/backups/backups/page.tsx",
+    "frontend/out/backups/index.html",
+    "desktop/bundle/backups/index.html",
   ];
   for (const file of excluded) f.write(file, "synthetic personal or generated fixture\n");
   f.git("add", "--force", ".");
 
   createLocalProject(f);
 
-  assert.equal(readFileSync(path.join(f.targetDir, route), "utf8"), source);
+  for (const route of routes) assert.equal(readFileSync(path.join(f.targetDir, route), "utf8"), source);
   for (const file of excluded) assert.equal(existsSync(path.join(f.targetDir, file)), false, "route exception does not admit backup data or generated files");
 });
 

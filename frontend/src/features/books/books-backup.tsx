@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BOOKS_BACKUP_MAX_BYTES, type BooksBackupSummary, type BooksRestorePreflight } from "@/lib/books-backup";
 import { BOOKS_BACKUP_FILE_MAX_BYTES, BOOKS_BACKUP_PASSWORD_MIN_LENGTH, decryptBooksBackup, encryptBooksBackup, inspectBooksBackupFile, validateBackupPassword } from "@/lib/books-backup-encryption";
@@ -240,6 +241,7 @@ function BooksBackupControls({ store, onRestored, expanded = false }: BooksBacku
       <div className="space-y-5 text-sm leading-6 text-ink-soft">
         <p>Your Books stay in this app or browser on this device. Download a copy regularly and keep it somewhere safe. Password protection encrypts the downloaded file; it does not encrypt the Books stored in this app. Signing in does not save or move these records.</p>
         <p>This is a Books backup: money records, original source data, record decisions and earlier versions. It does not include your Tax Passport, return-preparation drafts, checklist, receipt attachments, account sign-in details or anything already held by HMRC. Files are checked and unlocked on this device and are not uploaded.</p>
+        <p><Link href="/backups" className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Back up saved Books, Passport, preparation and checklists together →</Link></p>
         {!locked && !selected ? <section aria-labelledby="books-save-heading" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="books-save-heading" className="text-xl font-semibold text-ink">Save current Books</h2>

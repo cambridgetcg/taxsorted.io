@@ -6,6 +6,7 @@ const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { appImageName } = require('../testing/linux-userns-profile.cjs');
 const { parseOptions, validateRuntimeEvidence } = require('../testing/install-linux.cjs');
+const { runtimeFixture, expectedFixture } = require('./fixtures/runtime-evidence.cjs');
 
 async function launcherFixture(t) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'taxsorted launcher '));
@@ -55,17 +56,15 @@ test('AppImage installer test requires an explicit artifact and disposable accou
 });
 
 test('AppImage test rejects stale reports, extraction fallback and incomplete cleanup', () => {
-  const fixture = {
-    schema: 'taxsorted.desktop-runtime-smoke/1', status: 'passed', mode: 'packaged', platform: 'linux', arch: 'x64',
-    runId: 'fresh', startedAt: new Date(2_000).toISOString(), rendererErrorCount: 0, remoteObserverHits: 0,
-    appImage: { archiveMatches: true, executableInsideMount: true, fuseMounted: true, readOnlyMount: true, reviewedLauncher: true, sandboxedDesktopEntry: true, mountsReleased: true, payloadInspection: { status: 'pass' } },
-    cleanup: { appClosed: true, observerClosed: true, temporaryFilesRemoved: true, packagedProfileRemoved: true },
-  };
-  validateRuntimeEvidence(fixture, 'older', 1_000, 'x64');
-  assert.throws(() => validateRuntimeEvidence(fixture, 'fresh', 1_000, 'x64'));
-  assert.throws(() => validateRuntimeEvidence(fixture, 'older', 3_000, 'x64'));
+  const fixture = runtimeFixture('linux', 'x64', true);
+  const checkout = expectedFixture('linux', 'x64', true);
+  validateRuntimeEvidence(fixture, 'older', 1_000, 'x64', checkout);
+  assert.throws(() => validateRuntimeEvidence(fixture, 'fresh', 1_000, 'x64', checkout));
+  assert.throws(() => validateRuntimeEvidence(fixture, 'older', 3_000, 'x64', checkout));
   for (const [key, value] of [['fuseMounted', false], ['readOnlyMount', false], ['reviewedLauncher', false], ['sandboxedDesktopEntry', false], ['mountsReleased', false], ['payloadInspection', { status: 'fail' }]]) {
-    assert.throws(() => validateRuntimeEvidence({ ...fixture, appImage: { ...fixture.appImage, [key]: value } }, 'older', 1_000, 'x64'));
+    assert.throws(() => validateRuntimeEvidence({ ...fixture, appImage: { ...fixture.appImage, [key]: value } }, 'older', 1_000, 'x64', checkout));
   }
-  assert.throws(() => validateRuntimeEvidence({ ...fixture, cleanup: { ...fixture.cleanup, appClosed: false } }, 'older', 1_000, 'x64'));
+  assert.throws(() => validateRuntimeEvidence({ ...fixture, cleanup: { ...fixture.cleanup, appClosed: false } }, 'older', 1_000, 'x64', checkout));
+  assert.throws(() => validateRuntimeEvidence({ ...fixture, workspaceRecovery: undefined }, 'older', 1_000, 'x64', checkout));
+  assert.throws(() => validateRuntimeEvidence({ ...fixture, checkoutHadLocalChanges: true }, 'older', 1_000, 'x64', checkout));
 });

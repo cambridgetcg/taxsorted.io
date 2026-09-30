@@ -1,10 +1,9 @@
 import { PASSPORT_EVIDENCE_DEFINITIONS, PASSPORT_INCOME_SOURCE_IDS } from "@taxsorted/engine/uk/passport";
-import { getMany } from "idb-keyval";
+import { createWorkspaceSession } from "@/lib/workspace-storage";
 import {
   BOOKS_LEGACY_STORAGE_KEY,
   BOOKS_MIGRATION_CLOSED_KEY,
   BOOKS_STORAGE_KEY,
-  booksIdbStore,
 } from "@/lib/books-storage";
 import {
   isLocalBooksState,
@@ -168,12 +167,12 @@ function passportProgress(value: unknown): PassportProgress {
 export async function readTaxYearProgress(): Promise<TaxYearProgress> {
   let values: unknown[];
   try {
-    values = await getMany<unknown>([
+    values = await createWorkspaceSession().readMany([
       BOOKS_STORAGE_KEY,
       BOOKS_LEGACY_STORAGE_KEY,
       BOOKS_MIGRATION_CLOSED_KEY,
       PASSPORT_STORAGE_KEY,
-    ], booksIdbStore);
+    ]);
   } catch {
     return {
       period: TAX_YEAR_PERIOD,

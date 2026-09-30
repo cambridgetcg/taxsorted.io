@@ -124,6 +124,25 @@ Native CI additionally pins the expected runtime with doctor flags such as
 `--expect-platform=win32 --expect-arch=x64`; macOS uses `darwin`, Linux uses `linux`.
 On headless Linux use `xvfb-run -a npm run desktop:smoke -- --mode=source`.
 
+The browser recovery check uses installed Google Chrome, a fresh isolated context
+and the current static frontend served on loopback. Start the server in one terminal
+after building, then run the check in another:
+
+```sh
+python3 -m http.server 4318 --bind 127.0.0.1 --directory frontend/out
+```
+
+```sh
+node desktop/testing/workspace-browser-smoke.cjs
+```
+
+It blocks non-loopback requests and uses synthetic data only. It verifies the idle
+backup page's saved-data read boundary, narrow layouts and three open editors
+(Passport, preparation and checklist) refusing writes after an actual encrypted
+restore in another tab. Saved state is compared after every rejection; unsaved edits
+remain visible. The sanitised report is `desktop/test-results/workspace-browser-smoke.json`.
+This browser check does not replace native installer or real file-dialog acceptance.
+
 After packaging, use the actual executable and resource directory for that artifact:
 
 ```sh
@@ -146,6 +165,12 @@ installation cases still remain. Inspect the
 generated report for the assertions actually run, including sandbox settings,
 renderer isolation, local routes, persistence and request blocking. Do not infer a
 pass from command availability or from an uploaded installer alone.
+
+Installer acceptance uses one shared runtime-evidence validator. It requires the
+current workspace-recovery assertions (all saved areas, both preparation years,
+protected safety copy and persistence after relaunch), retained Books recovery,
+navigation, sandbox evidence and complete owned-state cleanup. An older report with
+only a success label or the previous seven-check journey cannot satisfy it.
 
 The workflow declares manual dispatch and source-change pushes on
 `feat/service-oriented-rebuild-20260929`. These campaigns used branch pushes;
@@ -245,7 +270,7 @@ Installer summaries identify artifact bytes with SHA-256 and keep test-checkout
 metadata separate from artifact provenance. Cleanup removes only owned test
 material after confirmed application shutdown or image ejection; an unconfirmed
 shutdown/mount retains material and fails the check. No app profiles or backups
-are included in uploaded evidence. **M01–M14 remain NOT RUN until their manual
+are included in uploaded evidence. **M01–M15 remain NOT RUN until their manual
 observations are recorded.**
 
 ## Manual cases on each native desktop
@@ -264,7 +289,7 @@ Run in order and record **PASS**, **FAIL**, **BLOCKED** or **NOT RUN** for every
 | ID | Action | Required observation |
 |---|---|---|
 | M01 | Install/launch through the OS route above. Open Help → Show app data folder. | Correct architecture, usable window and expected profile location; no unexpected elevation or account requirement. Record all trust/prerequisite friction. |
-| M02 | Visit Individuals, Sole traders and Landlords; open each checklist and follow a records link. Use Navigate → Back / Forward and their native shortcuts (Cmd+[ / Cmd+] on Mac, Alt+Left / Alt+Right elsewhere). Open Backups from its Books section, status bar and File menu. Use keyboard navigation, 200% zoom and a narrow window. | Clear audience/activity context, reachable navigation, visible focus and usable controls without clipped essential actions. History commands retain the visited activity and disable at their respective ends. Backups opens directly; navigating away and returning clears its passwords, file selection and preview. |
+| M02 | Visit Individuals, Sole traders and Landlords; open each checklist and follow a records link. Use Navigate → Back / Forward and their native shortcuts (Cmd+[ / Cmd+] on Mac, Alt+Left / Alt+Right elsewhere). Open Books-only Backups from its Books section and complete workspace recovery from the status bar and File menu. Use keyboard navigation, 200% zoom and a narrow window. | Clear audience/activity context, reachable navigation, visible focus and usable controls without clipped essential actions. History commands retain the visited activity and disable at their respective ends. Recovery opens directly; navigating away and returning clears passwords, file selection and preview. |
 | M03 | Choose checklist items. Open CSV import, cancel the native file picker, then reopen and select the synthetic CSV. Review mapping before importing. | Cancel changes no records; two rows appear for review with £120 in and £20 out. Confirm activity/scope and review decisions before expecting confirmed totals. |
 | M04 | Open Money records → Backups → Save current Books. Keep password-protected export selected. Enter/repeat a synthetic test password and acknowledge no reset. First cancel the native Save dialog, then repeat and save to the test account's folder. | Cancel creates no export and changes no records; save creates a protected file in the chosen location. Verify the file exists before affirming a safety copy. The raw JSON has encrypted payload, not readable record notes. |
 | M05 | With that copy saved, start restore and cancel the native file picker. Reopen, select the protected backup and cancel before unlocking. Repeat, unlock with its test password, then cancel the replacement confirmation. | Each cancellation preserves current Books and clears password fields. The unlocked preview explains replacement and requires a fresh protected safety copy and explicit confirmation before applying it. |
@@ -277,6 +302,7 @@ Run in order and record **PASS**, **FAIL**, **BLOCKED** or **NOT RUN** for every
 | M12 | Export protected Books from a source run using a separate disposable `--profile-dir`. Quit it; unlock/restore in the packaged app's test account. Export from the package and restore into a second fresh source profile. Also open a legacy plain Books backup. | Both protected directions and legacy input preserve synthetic records within the backup contract. Legacy input still defaults to a protected safety copy. Checklist/Passport transfer is not implied. |
 | M13 | Save a safety backup and a snapshot. Uninstall/remove only the test app using the OS's normal route; retain its data. Reinstall the same version and launch. | Previously saved synthetic data survives; otherwise fail the persistence expectation and document recovery. Windows uses its uninstaller; macOS replaces the app bundle; Linux replaces the AppImage file. |
 | M14 | When a genuinely newer candidate version exists, install it over the prior version with the saved synthetic profile, then repeat M04–M08. | No unexpected migration loss or profile/origin change. Keep **NOT RUN** until two distinct versioned builds are available; same-version reinstall is not an upgrade test. |
+| M15 | Save synthetic Books, Passport, both preparation years and checklist. Export from `/backups`; exercise native Save cancellation then save successfully. Change each section, unlock the original backup, download/check the protected current-work safety copy and restore. Quit/relaunch, inspect every section, then repeat in a fresh profile with an absent section. Transfer between website and desktop in disposable profiles. | All saved sections recover together; absent sections clear deliberately; incorrect passwords and cancelled operations preserve current work. Safety copy contains the later work. Old open editors cannot save over restoration and remain able to show unsaved entries until reloaded. File transfer excludes sessions, unsaved forms, original documents and attachments. Record cross-browser/platform results separately. |
 
 For M09, a reversible outbound rule scoped to the test app in the disposable
 environment may supplement adapter disconnection. Record the rule and remove it
@@ -313,7 +339,7 @@ retention as a backup of anybody's records.
 | P3 | Cosmetic defect with all tasks reachable | Record for follow-up |
 
 A target passes consumer acceptance only with matching automated evidence, manual
-M01–M13 passes, and no open P0/P1 issue. M14 remains an explicit release limitation
+M01–M13 and M15 passes, and no open P0/P1 issue. M14 remains an explicit release limitation
 until an upgrade pair is available. **BLOCKED** identifies an unmet environment or
 artifact prerequisite; it does not waive the corresponding acceptance case.
 Developer ID signing, notarisation and publication remain separately authorised

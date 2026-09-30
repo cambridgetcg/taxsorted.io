@@ -517,8 +517,8 @@ async function run(options) {
       await page.getByLabel('Repeat backup password', { exact: true }).fill(backupPassword);
       await page.getByRole('checkbox', { name: 'I understand that TaxSorted cannot reset this password or recover the backup without it.', exact: true }).check();
     }
-    function readProtectedExport(envelope) {
-      assert.equal(envelope.schema, 'taxsorted.encrypted-books-backup/1');
+    function readProtectedExport(envelope, kind = 'books') {
+      assert.equal(envelope.schema, `taxsorted.encrypted-${kind}-backup/1`);
       assert.deepEqual(Object.keys(envelope).sort(), ['cipher', 'ciphertext', 'kdf', 'schema']);
       assert.deepEqual({ ...envelope.kdf, salt: undefined }, { name: 'PBKDF2', hash: 'SHA-256', iterations: 600_000, salt: undefined });
       assert.deepEqual({ ...envelope.cipher, iv: undefined }, { name: 'AES-GCM', keyLength: 256, tagLength: 128, iv: undefined });
@@ -539,7 +539,7 @@ async function run(options) {
         decipher.setAuthTag(ciphertext.subarray(-16));
         plaintext = Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]);
         const decoded = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(plaintext));
-        assert.equal(decoded.schema, 'taxsorted.books-backup/1');
+        assert.equal(decoded.schema, `taxsorted.${kind}-backup/1`);
         return decoded;
       } finally {
         key.fill(0);
@@ -616,16 +616,125 @@ async function run(options) {
     stage = 'open recovery directly from the native File menu';
     const openedBackupPage = await evaluate(({ Menu }) => {
       const file = Menu.getApplicationMenu()?.items.find(item => item.label === 'File');
-      const recovery = file?.submenu?.items.find(item => item.label === 'Back up or restore Books');
+      const recovery = file?.submenu?.items.find(item => item.label === 'Back up or restore workspace');
       if (!recovery || !recovery.enabled) return false;
       recovery.click();
       return true;
     });
     assert.equal(openedBackupPage, true);
-    await page.waitForURL(url => url.pathname.replace(/\/$/, '') === '/books/workspace/backups' && !url.search);
-    await page.getByLabel('Choose a Books backup to restore', { exact: true }).waitFor();
+    await page.waitForURL(url => url.pathname.replace(/\/$/, '') === '/backups' && !url.search);
+    await page.getByLabel('Choose a workspace backup to restore', { exact: true }).waitFor();
     report.navigation = { nativeBackForward: true, propertyContextRetained: true, restoreLinkFocused: true, backupStateClearedOnReturn: true, directBackupMenu: true };
     check('Encrypted export and safety copy independently decrypt; wrong password preserves Books; confirmed restore removes later synthetic record');
+
+    stage = 'save a synthetic Passport and second preparation year';
+    await page.goto('taxsorted://app/passport/');
+    stage = 'answer synthetic Passport employment question';
+    await page.locator('input[name="passport-income-employment"][value="yes"]').check();
+    stage = 'save synthetic Passport';
+    await page.getByRole('button', { name: 'Save this Passport', exact: true }).click();
+    stage = 'observe synthetic Passport save success';
+    await page.getByText(/^Saved in this browser \d/).waitFor();
+    stage = 'open second preparation year';
+    await page.goto('taxsorted://app/prepare/');
+    await page.locator('#prepare-year').selectOption('2026-27');
+    stage = 'start synthetic second-year preparation';
+    await page.getByRole('button', { name: 'Start preparation', exact: true }).click();
+    stage = 'answer synthetic second-year employment question';
+    await page.getByRole('group', { name: 'Employment', exact: true }).getByRole('radio', { name: 'Not sure', exact: true }).check();
+    stage = 'save synthetic second-year preparation';
+    await page.getByRole('button', { name: 'Save preparation on this device', exact: true }).click();
+    await page.getByText('Preparation saved on this device. No information was uploaded.', { exact: true }).waitFor();
+
+    stage = 'export complete encrypted workspace using the actual download flow';
+    const workspaceBackup = path.join(temporary, 'workspace-backup.json');
+    await page.goto('taxsorted://app/backups/');
+    await page.getByRole('button', { name: 'Prepare a workspace backup', exact: true }).click();
+    await page.getByRole('heading', { name: 'Check your saved workspace', exact: true }).waitFor();
+    await prepareProtectedDownload();
+    const workspaceEnvelope = await exportBackup('Download protected workspace backup', workspaceBackup);
+    const workspaceOriginal = readProtectedExport(workspaceEnvelope, 'workspace');
+    assert.equal(JSON.stringify(workspaceEnvelope).includes(baselineNote), false);
+    assert.ok(workspaceOriginal.books.events.some(event => event.description === baselineNote));
+    assert.equal(workspaceOriginal.passport.incomeSources.employment, 'yes');
+    assert.equal(workspaceOriginal.preparations['2025-26'].employmentSources.length, 1);
+    assert.equal(workspaceOriginal.preparations['2026-27'].circumstances.employment, 'unknown');
+    assert.equal(workspaceOriginal.checklist.audience, 'landlords');
+    assert.ok(workspaceOriginal.checklist.checked.landlords.length > 0);
+
+    stage = 'save later changes in every workspace area';
+    await page.goto('taxsorted://app/books/workspace/money/?activity=uk-property');
+    await addRecord(extraNote, '9.99');
+    await page.goto('taxsorted://app/passport/');
+    await page.locator('input[name="passport-income-employment"][value="no"]').check();
+    await page.getByRole('button', { name: 'Save this Passport', exact: true }).click();
+    await page.getByText(/^Saved in this browser \d/).waitFor();
+    await page.goto('taxsorted://app/prepare/');
+    await page.getByRole('button', { name: 'Resume saved preparation', exact: true }).click();
+    await page.getByRole('button', { name: 'Continue to evidence', exact: true }).click();
+    await page.getByLabel('Employer or job label', { exact: true }).fill('Synthetic later employment');
+    await page.getByRole('button', { name: 'Save preparation on this device', exact: true }).click();
+    await page.getByText('Preparation saved on this device. No information was uploaded.', { exact: true }).waitFor();
+    await page.goto('taxsorted://app/checkup/?for=landlords');
+    await page.getByRole('checkbox').first().uncheck();
+    await page.getByRole('button', { name: 'Save checklist', exact: true }).click();
+    await page.getByText('Saved on this device', { exact: true }).waitFor();
+
+    stage = 'reject wrong workspace password before reading or replacing saved data';
+    await page.goto('taxsorted://app/backups/');
+    await page.getByLabel('Choose a workspace backup to restore', { exact: true }).setInputFiles(workspaceBackup);
+    await page.getByLabel('Password for this backup', { exact: true }).fill(randomBytes(32).toString('base64'));
+    await page.getByRole('button', { name: 'Unlock workspace preview', exact: true }).click();
+    const workspaceControls = page.getByRole('region', { name: 'Workspace backup and restore controls', exact: true });
+    await workspaceControls.getByRole('alert').filter({ hasText: 'Unable to unlock this backup.' }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Check before replacing saved work', exact: true }).count(), 0);
+    await page.getByLabel('Password for this backup', { exact: true }).fill(backupPassword);
+    await page.getByRole('button', { name: 'Unlock workspace preview', exact: true }).click();
+    await page.getByRole('heading', { name: 'Check before replacing saved work', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Replace saved workspace', exact: true }).isDisabled(), true);
+    await page.screenshot({ path: path.join(desktopRoot, 'test-results', 'workspace-restore-preview.png'), fullPage: true });
+
+    stage = 'download and independently verify the exact current workspace safety copy';
+    await prepareProtectedDownload();
+    const safetyEnvelope = await exportBackup('Download protected safety copy', path.join(temporary, 'workspace-safety.json'));
+    const safety = readProtectedExport(safetyEnvelope, 'workspace');
+    assert.ok(safety.books.events.some(event => event.description === extraNote));
+    assert.equal(safety.passport.incomeSources.employment, 'no');
+    assert.equal(safety.preparations['2025-26'].employmentSources[0].employerName, 'Synthetic later employment');
+    assert.equal(safety.checklist.checked.landlords.length, 0);
+    await page.getByRole('checkbox', { name: /^I have checked that the safety copy was saved/ }).check();
+    await page.getByRole('button', { name: 'Replace saved workspace', exact: true }).click();
+    await workspaceControls.getByRole('status').filter({ hasText: 'Your saved workspace was replaced.' }).waitFor();
+
+    stage = 'verify complete restored workspace after a full desktop restart';
+    await closeApp();
+    page = await launch();
+    await page.goto('taxsorted://app/backups/');
+    await page.getByRole('button', { name: 'Prepare a workspace backup', exact: true }).click();
+    await page.getByRole('heading', { name: 'Check your saved workspace', exact: true }).waitFor();
+    await prepareProtectedDownload();
+    const recovered = readProtectedExport(await exportBackup('Download protected workspace backup', path.join(temporary, 'workspace-recovered.json')), 'workspace');
+    assert.deepEqual(recovered.passport, workspaceOriginal.passport);
+    assert.deepEqual(recovered.preparations, workspaceOriginal.preparations);
+    assert.deepEqual(recovered.checklist, workspaceOriginal.checklist);
+    assert.deepEqual(recovered.books.events, workspaceOriginal.books.events);
+    assert.notEqual(recovered.books.replica.id, workspaceOriginal.books.replica.id);
+    assert.ok(recovered.books.ledgers.every(ledger => ledger.scopeState === 'needs-confirmation'));
+    await page.goto('taxsorted://app/checkup/');
+    await waitUntil(() => page.getByRole('checkbox').first().isChecked(), 'restored workspace checklist');
+    await page.goto('taxsorted://app/passport/');
+    assert.equal(await page.locator('input[name="passport-income-employment"][value="yes"]').isChecked(), true);
+    await page.goto('taxsorted://app/prepare/');
+    await page.getByRole('button', { name: 'Resume saved preparation', exact: true }).click();
+    await page.getByRole('button', { name: 'Continue to evidence', exact: true }).click();
+    assert.equal(await page.getByLabel('Employer or job label', { exact: true }).inputValue(), 'Synthetic employment');
+    report.workspaceRecovery = {
+      schema: 'taxsorted.encrypted-workspace-backup/1', encryptedExport: true,
+      independentDecryption: true, allSavedSections: true, bothPreparationYears: true,
+      wrongPasswordPreservedWork: true, encryptedSafetyCopy: true,
+      confirmedRestore: true, persistedAfterRelaunch: true, oldBooksFormatRetained: true,
+    };
+    check('Complete encrypted workspace recovery preserves Books, Passport, both preparation years and checklist across relaunch');
 
     stage = 'verify external-link cancellation and explicit handoff';
     await page.goto('taxsorted://app/trust/');

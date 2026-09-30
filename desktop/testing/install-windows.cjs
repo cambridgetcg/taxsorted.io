@@ -11,6 +11,7 @@ const crypto = require('node:crypto');
 const { spawn, execFileSync } = require('node:child_process');
 const { parseArgs } = require('node:util');
 const { inspectPackage } = require('./inspect-package.cjs');
+const { validateInstalledRuntime } = require('./runtime-evidence.cjs');
 
 const project = path.resolve(__dirname, '../..');
 const results = path.join(project, 'desktop/test-results');
@@ -106,20 +107,7 @@ function validateRegistration(rows, directory, version) {
 }
 
 function validateRuntimeSmoke(smoke, report) {
-  assert.equal(smoke.schema, 'taxsorted.desktop-runtime-smoke/1');
-  assert.equal(smoke.mode, 'packaged');
-  assert.equal(smoke.platform, 'win32');
-  assert.equal(smoke.arch, 'x64');
-  assert.match(report.checkoutCommit, /^[a-f0-9]{40,64}$/);
-  assert.equal(smoke.checkoutCommit, report.checkoutCommit);
-  assert.equal(smoke.checkoutHadLocalChanges, report.checkoutHadLocalChanges);
-  assert.ok(Date.parse(smoke.startedAt) >= Date.parse(report.startedAt));
-  assert.ok(Date.parse(smoke.finishedAt) >= Date.parse(smoke.startedAt));
-  assert.equal(smoke.status, 'passed');
-  assert.equal(smoke.checks.length, 7);
-  assert.equal(smoke.rendererErrorCount, 0);
-  assert.equal(smoke.remoteObserverHits, 0);
-  for (const name of ['appClosed', 'observerClosed', 'temporaryFilesRemoved', 'packagedProfileRemoved']) assert.equal(smoke.cleanup[name], true);
+  validateInstalledRuntime(smoke, { ...report, platform: 'win32', arch: 'x64' });
 }
 
 function runNative(executable, args, env, { milliseconds = 180_000, verbatim = false } = {}) {

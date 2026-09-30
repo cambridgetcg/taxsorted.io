@@ -104,11 +104,15 @@ the existing stable round ID remains the only saved learning progress.
 ## Trust boundary
 
 - No account is needed to try the public tools.
-- Starter Books is local browser data. It is not encrypted cloud storage; clearing site data
-  can erase it.
+- Starter Books lives in browser storage or the desktop app's separate local profile.
+  TaxSorted does not encrypt that live storage; clearing it can erase the records.
 - Every Books view offers a versioned [backup and deliberate replacement flow](BOOKS-BACKUP.md).
   Restore preserves record evidence and review history, creates a fresh replica and requires
-  business confirmation/provider reconnection. Downloads are unencrypted; signing in is not backup.
+  business confirmation/provider reconnection. Books backups are password-protected by default;
+  an unencrypted compatibility download requires an explicit choice. Signing in is not backup.
+- Books backups do not include Passport facts, return-preparation drafts, personal checklists,
+  sign-in sessions or attachments. Passport, CSV and preparation-summary exports remain
+  unencrypted. There is no complete workspace backup; see [local data custody](LOCAL-APP.md#where-personal-data-lives).
 - Source trails are kept today; receipt and invoice attachments are not.
 - No suggestion changes a figure until the user confirms it.
 - TaxSorted is not yet recognised for production filing with HMRC.

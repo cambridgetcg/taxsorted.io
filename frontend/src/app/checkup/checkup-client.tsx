@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Check, Save, Trash2 } from "lucide-react";
@@ -10,14 +10,15 @@ import {
   type AudienceId, type ServiceId,
 } from "@/lib/tax-services";
 import {
-  CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress, parseSavedChecklist,
+  CHECKLIST_SCHEMA, emptyChecklistProgress, parseSavedChecklist,
   type SavedChecklist,
 } from "./checklist-state";
 import { TaxYearProgressPanel } from "./tax-year-progress";
+import { createChecklistStore } from "@/lib/checklist-store";
 
-async function readSavedChecklist() {
+async function readSavedChecklist(store: ReturnType<typeof createChecklistStore>) {
   try {
-    const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
+    const raw = await store.load();
     const saved = raw === null ? null : parseSavedChecklist(raw);
     return {
       raw,
@@ -36,6 +37,8 @@ async function readSavedChecklist() {
 }
 
 export function CheckupClient() {
+  const store = useMemo(() => createChecklistStore(), []);
+  const [saving, setSaving] = useState(false);
   const searchParams = useSearchParams();
   const requestedAudience = searchParams.get("for");
   const [lastRequest, setLastRequest] = useState(requestedAudience);
@@ -68,7 +71,7 @@ export function CheckupClient() {
 
   useEffect(() => {
     let active = true;
-    void readSavedChecklist().then((result) => {
+    void readSavedChecklist(store).then((result) => {
       if (!active) return;
       lastSavedRaw.current = result.raw;
       setHasSaved(result.raw !== null);
@@ -83,7 +86,7 @@ export function CheckupClient() {
       setReady(true);
     });
     return () => { active = false; };
-  }, []);
+  }, [store]);
 
   function chooseAudience(id: AudienceId) {
     setChosenAudience(id);
@@ -104,29 +107,27 @@ export function CheckupClient() {
     setMessage(null);
   }
 
-  function saveChecklist() {
-    if (!ready || !canSave || snapshot === null) return;
+  async function saveChecklist() {
+    if (!ready || !canSave || snapshot === null || saving) return;
+    setSaving(true);
     try {
-      if (window.localStorage.getItem(CHECKLIST_STORAGE_KEY) !== lastSavedRaw.current) {
-        setCanSave(false);
-        setError("The saved checklist changed in another tab. Reload this page before saving so that its progress is not overwritten. Your changes here are still visible.");
-        return;
-      }
-      window.localStorage.setItem(CHECKLIST_STORAGE_KEY, snapshot);
+      await store.save(snapshot, lastSavedRaw.current);
       lastSavedRaw.current = snapshot;
       setSavedSnapshot(snapshot);
       setHasSaved(true);
       setError(null);
       setMessage("Checklist saved on this device. It includes your selected audience and checkmarks for each audience; no tax figures or identifying details.");
-    } catch {
-      setError("The checklist could not be saved. Your checkmarks are still here for this visit. Check that local storage is available and try again.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The checklist could not be saved. Your checkmarks are still here for this visit.");
       setMessage(null);
-    }
+    } finally { setSaving(false); }
   }
 
-  function clearSavedChecklist() {
+  async function clearSavedChecklist() {
+    if (saving) return;
+    setSaving(true);
     try {
-      window.localStorage.removeItem(CHECKLIST_STORAGE_KEY);
+      await store.clear();
       lastSavedRaw.current = null;
       setSavedSnapshot(null);
       setChecked(emptyChecklistProgress());
@@ -136,10 +137,10 @@ export function CheckupClient() {
       setCanSave(true);
       setError(null);
       setMessage("The saved checklist and its checkmarks have been cleared. Your books, Tax Passport and account are unchanged.");
-    } catch {
-      setError("The saved checklist could not be cleared. Nothing was changed. Check that local storage is available and try again.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The saved checklist could not be cleared. Nothing was changed.");
       setMessage(null);
-    }
+    } finally { setSaving(false); }
   }
 
   const feedback = (
@@ -149,7 +150,7 @@ export function CheckupClient() {
       </div>
       {error && <p role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm leading-6 text-amber-950">{error}</p>}
       {ready && (hasSaved || !canSave) && (
-        <Button type="button" variant="ghost" onClick={clearSavedChecklist} className="mt-3 gap-2 whitespace-normal text-sm">
+        <Button type="button" variant="ghost" disabled={saving} onClick={() => void clearSavedChecklist()} className="mt-3 gap-2 whitespace-normal text-sm">
           <Trash2 aria-hidden="true" className="h-4 w-4 shrink-0" />Clear saved checklist
         </Button>
       )}
@@ -173,13 +174,13 @@ export function CheckupClient() {
               const next = getAudience(event.target.value);
               if (next) chooseAudience(next.id);
             }}
-            disabled={!ready}
+            disabled={!ready || saving}
             className="mt-3 min-h-12 w-full max-w-full rounded-xl border border-line bg-paper px-3 text-base text-ink sm:mt-0 sm:w-80"
           >
             {AUDIENCES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </div>
-      ) : <fieldset disabled={!ready}>
+      ) : <fieldset disabled={!ready || saving}>
         <legend id="checklist-audience-title" className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
           Who are you sorting tax for?
         </legend>
@@ -231,10 +232,13 @@ export function CheckupClient() {
               Only your audience choices and checkmarks stay in this app or browser on this device. This does not save figures in other tools or back up your books. Clearing the app’s or browser’s stored data can erase it.
             </p>
             <p className="mt-4 text-sm font-semibold text-ink">{unsaved ? "Changes are not saved" : "Saved on this device"}</p>
-            <Button type="button" onClick={saveChecklist} disabled={!canSave} className="mt-3 w-full gap-2">
+            <Button type="button" onClick={() => void saveChecklist()} disabled={!canSave || saving} className="mt-3 w-full gap-2">
               <Save aria-hidden="true" className="h-4 w-4" />Save checklist
             </Button>
             {feedback}
+            <Link href="/backups" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">
+              Back up your saved workspace
+            </Link>
             <Link href={`/services/${audience.id}`} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4">
               See all services for {audience.shortName.toLowerCase()}
             </Link>
@@ -275,6 +279,7 @@ export function CheckupClient() {
                         <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-line bg-paper px-3 py-2 text-sm font-medium text-ink">
                           <input
                             type="checkbox"
+                            disabled={saving}
                             checked={isChecked}
                             onChange={(event) => toggleStep(service.id, event.target.checked)}
                             aria-label={`I have checked this step: ${service.name}`}

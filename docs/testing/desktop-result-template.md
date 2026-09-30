@@ -55,6 +55,7 @@ profile contents. Use test labels and record only settings material to the resul
 | M12 Source ↔ native Books backup portability | NOT RUN | |
 | M13 Same-version uninstall/reinstall retains profile | NOT RUN | |
 | M14 Prior-version → new-version upgrade | NOT RUN | Needs two distinct versioned artifacts |
+| M15 Complete workspace recovery and transfer | NOT RUN | Books, Passport, both preparation years and checklist; real native Save cancellation, stale editors and transfer |
 
 Synthetic-data comparison: **NOT RUN**. Record only record counts, synthetic amounts,
 review/history counts and expected changes. Do not attach the backup or app profile.

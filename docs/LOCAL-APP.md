@@ -29,8 +29,11 @@ downloads the pinned Electron executable; Electron 44's npm package does not ins
 that executable during `npm ci`. The environment doctor only inspects it and never
 starts a download. Building stages the static frontend into `desktop/bundle`;
 running the app reads that bundle. No
-personal records are needed to build it. The scoped install deliberately leaves out
-the API workspace's dependencies: its existing AgentTool SDK download is unavailable.
+personal records are needed to build it. The scoped install leaves out the API workspace's
+dependencies because the local app does not need its online service or operator tooling.
+Full-workspace `npm ci` also works: the September 30 infrastructure repair uses the
+existing exact SDK version from npm with the same lockfile integrity, replacing the
+unavailable GitHub download. See the [infrastructure roadmap](../infrastructure/README.md#infrastructure-roadmap).
 The API source still supplies the frontend's local research review check, using the
 shared TypeScript runner installed with the frontend. No API service is started.
 
@@ -101,20 +104,32 @@ replacement app builds reuse that local storage. An app update does not create a
 
 The live profile remains unencrypted by the app. OS account access and disk protection
 matter: another process or person with access to that OS account can access the profile.
-Books backups are password-protected by default, with an explicit unencrypted option
-for compatibility. Other exports, including Passport and CSV, remain unencrypted.
+Workspace backups are always password-protected. Books-only backups are protected
+by default, with an explicit unencrypted option for compatibility. Other exports,
+including Passport and CSV, remain unencrypted.
 This is not an adviser multi-client security boundary. Use device encryption, separate
 OS accounts where needed, and a protected backup location for sensitive records.
 
-Use **Money records → Backups** to save a deliberate backup and
-move Books between the website and desktop edition. Existing website storage is not
-imported automatically. [Books backup and restore](BOOKS-BACKUP.md) documents replacement
-confirmation, password protection, restore checks and its exact coverage. Keep the
-password separately: TaxSorted cannot reset it or recover a protected backup without
-it. Older plain Books backups remain supported. The Books backup does not include
-Passport facts, return-preparation drafts, personal checklists, sign-in sessions or attachments. Those features
-currently have separate persistence/export capabilities; there is no complete encrypted
-workspace backup in this release.
+Use **Back up saved work** at `/backups` to move saved Books, Tax Passport,
+preparation drafts for both supported years (2025–26 and 2026–27), and personal
+checklists between the website and desktop edition. Existing website storage is not
+imported automatically. Save each tool first: unsaved forms, original documents,
+receipt attachments, account sessions, provider credentials, app preferences and
+the synthetic-provider demonstration are outside this copy. Keep the password
+separately: TaxSorted cannot reset it or recover the file without it.
+
+Opening the backup page reads no saved tax data. **Prepare a workspace backup**
+reads a snapshot, shows its coverage, and offers a password-protected download.
+To recover, choose a protected workspace file, unlock and compare it with the
+current work, download the exact current snapshot as a protected safety copy,
+check that the file was saved, and confirm replacement. A started download alone
+does not prove a file exists. Restore replaces all listed areas together; a section
+marked **Not saved** clears that section. It does not merge histories or file a return.
+Reload the app and other open tabs after restoration, then check the recovered work.
+
+**Money records → Backups** still handles existing Books-only files, including
+older plain backups. Its formats, provider-link retirement and compatibility flow
+are documented in [Books backup and restore](BOOKS-BACKUP.md).
 
 Removing app data or an OS account can remove local records. The Windows installer is
 configured to retain app data on uninstall. Do not rely on uninstall or reinstall as a
@@ -135,9 +150,9 @@ saving; keeping editing is the default. Save explicitly for durable recovery.
 
 The desktop **Money records** navigation opens the saved workspace directly.
 **Backups** has its own Books section; the local status bar and **File → Back up or
-restore Books** also open it. An empty workspace offers restore beside manual entry
-and CSV import. Save, unlock, preview and the required safety copy use the same
-local Books store and protection checks.
+restore workspace** open the complete recovery page. An empty Books workspace offers
+Books restore beside manual entry and CSV import. Both recovery pages require a
+preview and protected safety copy before replacement.
 
 **Navigate → Back / Forward** follows the current window's page history, including
 Books activity choices. macOS uses `Cmd+[` / `Cmd+]`; Windows and Linux use
@@ -164,6 +179,7 @@ makes no network requests. Source installs and packaging download build dependen
 | Audience services and personal checklist | Bundled, saved on this device |
 | Supported calculations and bundled tax guidance | Run locally; existing scope/review gates apply |
 | Money records and supported file imports | Local storage and deliberate file selection |
+| Complete saved workspace recovery | Encrypted file for Books, Passport, both preparation years and checklists; atomic replacement |
 | Books backup/restore | Password-protected by default; plain compatibility files require explicit choice |
 | Adviser, Passport and CSV exports | Deliberate unencrypted files; separate from protected Books backups |
 | Passport | Local facts and its existing export; separate from Books backup |
@@ -314,14 +330,55 @@ and refusal to overwrite an existing destination. They do not inspect or copy a 
 person's app profile. Desktop tests cover the local URL and packaged-file boundary;
 native app walkthroughs establish UI and persistence behaviour beyond those unit tests.
 
-Protected Books backups reuse the existing validated, atomic Books replacement.
-Full-workspace recovery remains separate work: Passport uses another writer/lock
-contract, while checklists live in localStorage outside the Books IndexedDB transaction.
-A future complete backup needs a shared restore generation and atomic storage boundary,
-with protection against stale open tabs. Calling each current save API in sequence
-would not provide that guarantee.
+Complete workspace recovery uses a shared [storage boundary](../frontend/src/lib/workspace-storage.ts)
+and [recovery coordinator](../frontend/src/lib/workspace-backup-store.ts). Explicit
+backup/preview first validates the complete saved snapshot, then adopts it in one
+IndexedDB transaction while holding the existing Books and Passport Web Locks.
+Checklist saves now use IndexedDB, reading an older localStorage copy only until
+that slot has been adopted. Ordinary page opening does not activate the workspace.
+Old direct-key writers cannot replace the canonical workspace after adoption.
 
-Before opt-in online connections, extend that coordinated recovery contract to the
-other local features. Any future connected edition needs an explicit view of what
+Replacement compares every covered slot against the preview and commits all of them
+with a fresh generation in one transaction. Intervening writes require a new preview
+and safety copy; failed commits retain the previous workspace. Open editor sessions
+retain their generation and cannot save over a later restore, including previously
+absent drafts and preparation parked during client navigation. Initial adoption alone
+keeps those editors usable. Restore asks the user to reload; it does not erase their
+unsaved forms automatically. Web Locks are required for workspace activation/restore.
+
+The inner `taxsorted.workspace-backup/1` format is limited to 12 MiB; its encrypted
+`taxsorted.encrypted-workspace-backup/1` envelope is limited to 17 MiB. It reuses the
+Books AES-256-GCM/PBKDF2 implementation with a distinct authenticated schema. Plain
+workspace imports and cross-format files are rejected. Books retain their existing
+10 MiB payload bound, historical evidence and validation. Restore gives Books a new
+replica, retires provider bindings/checkpoints and requires business confirmation again.
+Encrypted exports protect files; live profile storage remains unencrypted.
+
+The 30 September local source run on macOS arm64 passed the expanded native
+walkthrough: protected workspace export and independent Node decryption, wrong
+password rejection, the exact current-work safety copy, confirmed replacement and
+full quit/relaunch recovery of Books, Passport, both preparation years and checklist.
+Existing Books-only recovery and offline request blocking passed in the same run.
+The sanitised report is `desktop/test-results/source-smoke.json`, run
+`2026-09-30T15-57-29-980Z-20093`, against local changes on `6175c20`.
+The frontend suite passed 1,147 tests; desktop unit tests passed 51, infrastructure
+checks 33 and scaffold checks 9. Typechecks and frontend lint passed; the build
+generated 83 pages and all 35 selected release contracts passed.
+
+A separate isolated Chrome check passed the real encrypted restore flow with three
+older editor tabs open: Passport, preparation and checklist rejected stale saves,
+retained unsaved entries on screen and left the restored snapshot unchanged. The
+idle backup page made zero observed saved-data reads; layouts had no horizontal
+overflow at 320, 375 and 1,440 pixels. Its sanitised report and mobile screenshot
+are under `desktop/test-results/workspace-browser-*`; the repeatable command is in
+the [testing guide](DESKTOP-TESTING.md#automated-checks).
+
+The shared native harness now runs this journey in source, packaged and installed
+campaigns. Windows, Linux, Intel Mac and packaged/installer runs of this new journey
+remain unrun; earlier native campaigns do not establish this change's result.
+Real native Save cancellation, consumer installation and cross-platform transfer
+remain in [manual acceptance](DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
+
+Any future connected edition needs an explicit view of what
 leaves the device, the party receiving it and the current authorisation; the offline
 edition should remain independently useful.

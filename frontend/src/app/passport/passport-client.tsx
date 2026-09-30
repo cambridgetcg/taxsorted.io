@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   PASSPORT_EVIDENCE_DEFINITIONS,
   type MtdIncomeTaxPassportPosition,
@@ -421,6 +422,10 @@ export function PassportClient({
               : dirty
                 ? `Local revision ${draft.revision} · working copy changed ${formatInstant(draft.updatedAt)}`
                 : `Local revision ${draft.revision} · last saved ${formatInstant(draft.updatedAt)}`}
+          </p>
+          <p className="mt-2 text-sm text-ink-soft">
+            <Link href="/backups" className="font-semibold text-accent underline underline-offset-4">Back up your saved workspace</Link>
+            {" "}includes your saved Passport. Save changes here first.
           </p>
         </div>
         <Button
