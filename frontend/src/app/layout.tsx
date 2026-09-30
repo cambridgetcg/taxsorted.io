@@ -63,7 +63,7 @@ export default function RootLayout({
                   href="/checkup"
                   className="inline-flex min-h-11 items-center font-medium text-accent underline decoration-line-strong underline-offset-4 hover:text-accent-deep"
                 >
-                  My checklist
+                  My tax year
                 </Link>
                 <Link
                   href="/books"

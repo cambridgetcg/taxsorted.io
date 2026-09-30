@@ -3,14 +3,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import CheckupPage from "../page";
 import { CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress } from "../checklist-state";
+import { TAX_YEAR_PERIOD } from "@/lib/tax-year-progress";
 
 const navigation = vi.hoisted(() => ({ query: "" }));
+const progress = vi.hoisted(() => ({ read: vi.fn() }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(navigation.query) }));
+vi.mock("@/lib/tax-year-progress", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/tax-year-progress")>(),
+  readTaxYearProgress: progress.read,
+}));
 
 beforeEach(() => {
   navigation.query = "";
   window.localStorage.clear();
   window.history.replaceState(null, "", "/checkup");
+  progress.read.mockReset().mockResolvedValue({
+    period: TAX_YEAR_PERIOD,
+    readAt: "2026-09-30T10:00:00.000Z",
+    books: { status: "missing" },
+    passport: { status: "missing" },
+  });
 });
 
 afterEach(() => {
@@ -39,12 +51,12 @@ function savedSoleTrader() {
   });
 }
 
-describe("My tax checklist", () => {
+describe("My tax year and personal checklist", () => {
   it("starts without a profile or an implicit save", async () => {
     const writes = vi.spyOn(Storage.prototype, "setItem");
     render(<CheckupPage />);
-    expect(screen.getByRole("heading", { name: "My tax checklist" })).toBeInTheDocument();
-    expect(screen.getByText(/asks for no name, tax reference or tax figures/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "My tax year" })).toBeInTheDocument();
+    expect(screen.getByText(/choose whether to show progress/i)).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     await screen.findByText(/choose who this is for to see/i);
     expect(screen.getAllByRole("radio")).toHaveLength(5);
@@ -56,6 +68,39 @@ describe("My tax checklist", () => {
     expect(screen.getByText("1 of 6 steps checked by you")).toBeInTheDocument();
     expect(writes).not.toHaveBeenCalled();
     expect(window.localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull();
+    expect(progress.read).not.toHaveBeenCalled();
+  });
+
+  it("keeps saved-work consent and personal checkmarks separate, including after an audience switch", async () => {
+    navigation.query = "for=landlords";
+    render(<CheckupPage />);
+    await screen.findByRole("heading", { name: "Landlords checklist" });
+    const writes = vi.spyOn(Storage.prototype, "setItem");
+    expect(progress.read).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Show my saved progress" }));
+    await waitFor(() => expect(progress.read).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole("button", { name: "Refresh saved progress" })).toBeEnabled();
+    expect(screen.getAllByRole("checkbox").every((checkbox) => !(checkbox as HTMLInputElement).checked)).toBe(true);
+    expect(writes).not.toHaveBeenCalled();
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    await choose("Individuals and families");
+    expect(screen.getByRole("button", { name: "Show my saved progress" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hide saved progress" })).not.toBeInTheDocument();
+    expect(progress.read).toHaveBeenCalledTimes(1);
+    await choose("Landlords");
+    expect(screen.getAllByRole("checkbox")[0]).toBeChecked();
+    expect(screen.getByText(/not tied to a tax year/i)).toBeInTheDocument();
+    expect(writes).not.toHaveBeenCalled();
+  });
+
+  it("keeps the adviser and organisation routes as personal checklists without reading personal records", async () => {
+    render(<CheckupPage />);
+    await choose("Accountants and advisers");
+    expect(screen.getByRole("heading", { name: "Advisers checklist" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Show my saved progress" })).not.toBeInTheDocument();
+    await choose("Companies, charities and other organisations");
+    expect(screen.getByRole("heading", { name: "Organisations checklist" })).toBeInTheDocument();
+    expect(progress.read).not.toHaveBeenCalled();
   });
 
   it("opens the landlord path from the URL with the right records and no sole-trade comparison", async () => {

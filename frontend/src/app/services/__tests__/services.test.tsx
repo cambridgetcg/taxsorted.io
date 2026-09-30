@@ -43,7 +43,8 @@ describe("service discovery", () => {
   it.each(AUDIENCES)("generates a static page and checklist for $id", async (audience) => {
     expect(generateStaticParams()).toContainEqual({ audience: audience.id });
     render(await AudiencePage({ params: Promise.resolve({ audience: audience.id }) }));
-    expect(screen.getByRole("link", { name: /Build my checklist/ })).toHaveAttribute("href", `/checkup?for=${audience.id}`);
+    const action = ["individuals", "sole-traders", "landlords"].includes(audience.id) ? "Open my tax year" : "Build my checklist";
+    expect(screen.getByRole("link", { name: action })).toHaveAttribute("href", `/checkup?for=${audience.id}`);
     expect(screen.getByText(audience.scope)).toBeInTheDocument();
   });
 });

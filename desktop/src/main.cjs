@@ -85,7 +85,7 @@ if (!app.requestSingleInstanceLock()) {
       ...(process.platform === 'darwin' ? [{ role: 'appMenu' }] : []),
       { label: 'File', submenu: [
         { label: 'Home', click: () => openPage('/') },
-        { label: 'My checklist', click: () => openPage('/checkup/') },
+        { label: 'My tax year', click: () => openPage('/checkup/') },
         { label: 'Money records', click: () => openPage('/books/workspace/') },
         { label: 'Back up or restore Books', click: () => openPage('/books/workspace/backups/') },
         { type: 'separator' }, { role: process.platform === 'darwin' ? 'close' : 'quit' },

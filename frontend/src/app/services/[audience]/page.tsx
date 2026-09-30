@@ -40,7 +40,7 @@ export default async function AudiencePage({ params }: Props) {
           <p className="section-label">For {audience.name.toLowerCase()} · UK</p>
           <h1 className="hero-title mt-5 text-ink">{intro.title}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">{intro.outcome}</p>
-          <Link href={`/checkup?for=${audience.id}`} className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-accent px-6 font-semibold text-white hover:bg-accent-deep">Build my checklist<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+          <Link href={`/checkup?for=${audience.id}`} className="mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-accent px-6 font-semibold text-white hover:bg-accent-deep">{["individuals", "sole-traders", "landlords"].includes(audience.id) ? "Open my tax year" : "Build my checklist"}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
           <p className="mt-3 text-sm text-ink-soft">No account needed to explore or start a checklist.</p>
         </div>
         <aside className="rounded-2xl border border-line bg-surface p-6 sm:p-7">

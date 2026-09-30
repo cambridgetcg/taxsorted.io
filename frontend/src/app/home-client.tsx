@@ -13,9 +13,9 @@ const STEPS = [
   {
     number: "01",
     title: "Know what to do next",
-    description: "Choose your situation for a practical checklist. Go straight to the checks, explanations and tools that fit.",
+    description: "See what needs attention in your saved work, keep a personal checklist and go straight to the next useful task.",
     href: "/checkup",
-    action: "Build my checklist",
+    action: "Open my tax year",
     icon: ListChecks,
   },
   {
@@ -59,7 +59,7 @@ export function HomeClient() {
               href="/checkup"
               className="inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-accent px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-deep"
             >
-              See my steps <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              See my tax year <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link
               href="/books/workspace"

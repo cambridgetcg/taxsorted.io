@@ -50,7 +50,7 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     expect(screen.getByRole("link", { name: "Services" })).toHaveAttribute("href", "/services");
-    expect(screen.getByRole("link", { name: "My checklist" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "My tax year" })).toHaveAttribute("href", "/checkup");
     expect(screen.getByRole("link", { name: "Money records" })).toHaveAttribute("href", "/books");
     expect(screen.getByRole("link", { name: "Tax guides" })).toHaveAttribute("href", "/learn");
     expect(screen.getByRole("link", { name: "Help & corrections" })).toHaveAttribute("href", "/put-it-right");
@@ -71,7 +71,7 @@ describe("SiteNav", () => {
     navigation.pathname = "/itsa/am-i-in/";
     render(<SiteNav />);
 
-    expect(screen.getByRole("link", { name: "My checklist" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "My tax year" })).toHaveAttribute(
       "aria-current",
       "true",
     );
@@ -116,8 +116,8 @@ describe("SiteNav", () => {
     ["/file/", "Services"],
     ["/vat/", "Services"],
     ["/dashboard/", "Services"],
-    ["/uk/tax-expert/", "My checklist"],
-    ["/uk/personal-tax/", "My checklist"],
+    ["/uk/tax-expert/", "My tax year"],
+    ["/uk/personal-tax/", "My tax year"],
     ["/tools/mileage/", "Money records"],
     ["/itsa/records/", "Money records"],
     ["/itsa/quarter/", "Services"],
@@ -149,7 +149,7 @@ describe("SiteNav", () => {
     navigation.pathname = "/tools/";
     render(<SiteNav />);
 
-    for (const name of ["Services", "My checklist", "Money records", "Tax guides", "Help & corrections"]) {
+    for (const name of ["Services", "My tax year", "Money records", "Tax guides", "Help & corrections"]) {
       expect(screen.getByRole("link", { name })).not.toHaveAttribute("aria-current");
     }
   });
@@ -166,7 +166,7 @@ describe("SiteNav", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByRole("link", { name: "My checklist" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "My tax year" })).toHaveAttribute(
       "href",
       "/checkup",
     );
@@ -224,7 +224,7 @@ describe("SiteNav", () => {
     render(<SiteNav />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
-    const checkupLink = screen.getByRole("link", { name: "My checklist" });
+    const checkupLink = screen.getByRole("link", { name: "My tax year" });
     checkupLink.addEventListener("click", (event) => event.preventDefault(), { once: true });
     fireEvent.click(checkupLink);
 
@@ -249,7 +249,7 @@ describe("SiteNav", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Language" }), { target: { value: "ur" } });
 
     expect(screen.getByRole("link", { name: "خدمات" })).toHaveAttribute("href", "/services");
-    expect(screen.getByRole("link", { name: "میرے کاموں کی فہرست" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "میرا ٹیکس سال" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("combobox", { name: "زبان" })).toHaveValue("ur");
     expect(document.documentElement).toHaveAttribute("dir", "rtl");
   });

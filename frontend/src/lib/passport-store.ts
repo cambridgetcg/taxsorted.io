@@ -1,5 +1,6 @@
 import {
   buildTaxPositionPassport,
+  PASSPORT_EVIDENCE_DEFINITIONS,
   PASSPORT_EVIDENCE_IDS,
   PASSPORT_INCOME_SOURCE_IDS,
   type MtdIncomeTaxPassportPosition,
@@ -18,7 +19,7 @@ import {
 export const TAX_POSITION_PASSPORT_DRAFT_SCHEMA =
   "taxsorted.uk.tax-position-passport.draft/1" as const;
 
-const STORAGE_KEY = "taxsorted-tax-position-passport-draft-v1";
+export const PASSPORT_STORAGE_KEY = "taxsorted-tax-position-passport-draft-v1";
 
 export interface TaxPositionPassportDraft {
   schema: typeof TAX_POSITION_PASSPORT_DRAFT_SCHEMA;
@@ -29,6 +30,17 @@ export interface TaxPositionPassportDraft {
   incomeSources: Record<PassportIncomeSourceId, PassportAnswer>;
   evidence: Record<PassportEvidenceId, PassportEvidenceState>;
   mtdIncomeTaxPosition: MtdIncomeTaxPassportPosition | null;
+}
+
+/** Match the saved evidence label to the Passport's source-map exclusions. */
+export function effectivePassportEvidenceState(
+  draft: TaxPositionPassportDraft,
+  definition: (typeof PASSPORT_EVIDENCE_DEFINITIONS)[number],
+): PassportEvidenceState {
+  if (definition.supportsIncomeSourceIds.every(id => draft.incomeSources[id] === "no")) {
+    return "not-expected";
+  }
+  return draft.evidence[definition.id];
 }
 
 export interface PassportStoreBackend {
@@ -239,16 +251,16 @@ export function createPassportStore(
   }
 
   const getValue = async (): Promise<unknown> =>
-    useIdb ? await idbGet(STORAGE_KEY) : await map!.get(STORAGE_KEY);
+    useIdb ? await idbGet(PASSPORT_STORAGE_KEY) : await map!.get(PASSPORT_STORAGE_KEY);
 
   const setValue = async (value: unknown): Promise<void> => {
-    if (useIdb) await idbSet(STORAGE_KEY, value);
-    else await map!.set(STORAGE_KEY, structuredClone(value));
+    if (useIdb) await idbSet(PASSPORT_STORAGE_KEY, value);
+    else await map!.set(PASSPORT_STORAGE_KEY, structuredClone(value));
   };
 
   const deleteValue = async (): Promise<void> => {
-    if (useIdb) await idbDelete(STORAGE_KEY);
-    else await map!.delete(STORAGE_KEY);
+    if (useIdb) await idbDelete(PASSPORT_STORAGE_KEY);
+    else await map!.delete(PASSPORT_STORAGE_KEY);
   };
 
   const serialize = <T>(operation: () => Promise<T>): Promise<T> => {
@@ -257,7 +269,7 @@ export function createPassportStore(
       : (backendMutationChains.get(map as object) ?? Promise.resolve());
     const run = (): Promise<T> => {
       if (useIdb && typeof navigator !== "undefined" && navigator.locks) {
-        return navigator.locks.request(STORAGE_KEY, operation) as unknown as Promise<T>;
+        return navigator.locks.request(PASSPORT_STORAGE_KEY, operation) as unknown as Promise<T>;
       }
       return operation();
     };

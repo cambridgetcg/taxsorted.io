@@ -31,9 +31,9 @@ describe("homepage service starting point", () => {
   it("connects the start and return journeys to the existing tools", () => {
     render(<HomeClient />);
 
-    expect(screen.getByRole("link", { name: "See my steps" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "See my tax year" })).toHaveAttribute("href", "/checkup");
     expect(screen.getByRole("link", { name: "Continue to my records" })).toHaveAttribute("href", "/books/workspace");
-    expect(screen.getByRole("link", { name: "Build my checklist" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "Open my tax year" })).toHaveAttribute("href", "/checkup");
     expect(screen.getByRole("link", { name: "Explore money records" })).toHaveAttribute("href", "/books");
     expect(screen.getByRole("link", { name: "See preparation and filing" })).toHaveAttribute("href", "/file");
     expect(screen.getByRole("link", { name: "Find help with a problem" })).toHaveAttribute("href", "/put-it-right");

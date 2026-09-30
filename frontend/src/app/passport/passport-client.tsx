@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import {
   createEmptyPassportDraft,
   createPassportStore,
+  effectivePassportEvidenceState,
   type PassportStore,
   type TaxPositionPassportDraft,
 } from "@/lib/passport-store";
@@ -92,20 +93,6 @@ function evidenceLabel(state: PassportEvidenceState): string {
       "not-expected": "Not expected for the source map",
     } satisfies Record<PassportEvidenceState, string>
   )[state];
-}
-
-function effectiveEvidenceState(
-  draft: TaxPositionPassportDraft,
-  definition: (typeof PASSPORT_EVIDENCE_DEFINITIONS)[number],
-): PassportEvidenceState {
-  if (
-    definition.supportsIncomeSourceIds.every(
-      (sourceId) => draft.incomeSources[sourceId] === "no",
-    )
-  ) {
-    return "not-expected";
-  }
-  return draft.evidence[definition.id];
 }
 
 function isNotExplicitZero(value: number | "unknown"): boolean {
@@ -563,7 +550,7 @@ export function PassportClient({
         </p>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {PASSPORT_EVIDENCE_DEFINITIONS.map((definition) => {
-            const state = effectiveEvidenceState(draft, definition);
+            const state = effectivePassportEvidenceState(draft, definition);
             const notExpected = state === "not-expected";
             return (
               <article
@@ -853,18 +840,18 @@ function HandoffSummary({
   const materialUnknowns =
     position?.answer.facts.unknown.filter((fact) => fact.material) ?? [];
   const heldEvidence = PASSPORT_EVIDENCE_DEFINITIONS.filter(
-    (definition) => effectiveEvidenceState(draft, definition) === "held",
+    (definition) => effectivePassportEvidenceState(draft, definition) === "held",
   ).length;
   const neededEvidence = PASSPORT_EVIDENCE_DEFINITIONS.filter(
-    (definition) => effectiveEvidenceState(draft, definition) === "missing",
+    (definition) => effectivePassportEvidenceState(draft, definition) === "missing",
   ).length;
   const notCheckedEvidence = PASSPORT_EVIDENCE_DEFINITIONS.filter(
     (definition) =>
-      effectiveEvidenceState(draft, definition) === "not-checked",
+      effectivePassportEvidenceState(draft, definition) === "not-checked",
   ).length;
   const notExpectedEvidence = PASSPORT_EVIDENCE_DEFINITIONS.filter(
     (definition) =>
-      effectiveEvidenceState(draft, definition) === "not-expected",
+      effectivePassportEvidenceState(draft, definition) === "not-expected",
   ).length;
   const sourceMapComplete =
     draft.answeredIncomeSourceIds.length === INCOME_SOURCES.length;
@@ -935,7 +922,7 @@ function HandoffSummary({
           <h3 className="text-lg font-semibold text-ink">Evidence index</h3>
           <dl className="mt-3 space-y-2 text-sm">
             {PASSPORT_EVIDENCE_DEFINITIONS.map((definition) => {
-              const state = effectiveEvidenceState(draft, definition);
+              const state = effectivePassportEvidenceState(draft, definition);
               return (
                 <div
                   key={definition.id}

@@ -24,7 +24,7 @@ be kept? What happens next?
 | `/services/landlords` | Keep property work distinct from a sole trade | MTD, property records, landlord guidance, quarter totals |
 | `/services/advisers` | Help someone prepare an inspectable handover | Expert coverage, deeper MTD check, Passport export |
 | `/services/organisations` | Understand scope before entering data | Tax-identity map, labelled VAT test workspace, guidance |
-| `/checkup?for=landlords` | Keep a checklist for the chosen situation | Catalogue destinations and explicit personal progress |
+| `/checkup?for=landlords` | Resume saved work in My tax year and keep personal reminders | Optional local Books/Passport progress; catalogue destinations and explicit checkmarks |
 | `/books` | Choose and open money records | Existing browser-local Books workspace |
 | `/books/connect` | Bring in existing records | Manual entry and CSV; truthful provider availability |
 | `/file` | Prepare and find an actual filing route | Existing quarter/VAT preparation and official authority routes |
@@ -41,7 +41,7 @@ and storage keys. Rename visible tasks to explain what the person can do.
 
 | Previous public name | New entry name | Stable destination |
 |---|---|---|
-| Check / Tax Checkup | My checklist | `/checkup` |
+| Check / Tax Checkup | My tax year | `/checkup` |
 | Books / Starter Books | Money records | `/books` and `/books/workspace` |
 | File and pay | Prepare a return | `/file` |
 | Tax Position Passport | Tax summary and handover | `/passport` |
@@ -49,7 +49,7 @@ and storage keys. Rename visible tasks to explain what the person can do.
 | Put it right | Help & corrections | `/put-it-right` |
 | Plan | Compare sole-trader choices, where supported | `/plan` |
 
-Global navigation: Services, My checklist, Money records, Tax guides, and Help &
+Global navigation: Services, My tax year, Money records, Tax guides, and Help &
 corrections, with Account and language controls as utilities. The old capability
 families remain available through their existing routes.
 
@@ -62,10 +62,21 @@ families remain available through their existing routes.
   catalogue does not own tax rates or eligibility.
 - `engine/` still owns calculations, effective dates and source-review stops.
   This rebuild does not change them or renew their evidence dates.
-- The checklist saves only its selected audience and manually checked service
-  steps after an explicit save. It never reads Books/Passport facts, signs into
-  an account or infers completion from opening a tool. Checked steps are personal
-  notes, not evidence of a valid calculation or a filed return.
+- My tax year reads local Books and Passport progress only after **Show my saved
+  progress**. It displays a temporary snapshot and up to three next actions for
+  individuals, sole traders or landlords. The reader uses the existing stored
+  values without creating or migrating records. Refresh is explicit; hiding the
+  snapshot, changing audience or leaving the page clears it. No snapshot or
+  permission preference is saved, and no tax figures are displayed or uploaded.
+- Books counts cover **6 April 2026–5 April 2027** and keep trading/property
+  activities separate. Passport progress is general, not tied to that tax year.
+  Missing, older, damaged and inaccessible records remain distinct from an empty
+  review queue. The view does not establish completeness, eligibility, tax due,
+  reviewed evidence or filing readiness.
+- The personal checklist retains its established storage key and format. It
+  saves only the selected audience and manually checked service steps after an
+  explicit save. These reminders are not year-specific and never change when a
+  snapshot is read or a tool is opened. No account is required.
 - `frontend/src/lib/books-navigation.ts` carries only a recognised activity
   through workspace links. Existing `start=csv|manual` and fragment targets
   survive. No identifiers or arbitrary incoming query parameters are copied.
@@ -151,3 +162,47 @@ The full-workspace dependency install hit an existing HTTP 404 for the API's
 succeeded without dependency changes. The API suite was not run; backend code,
 credentials and deployment configuration were not changed. No push or deployment
 was performed. The public site still serves the previously deployed version.
+
+## My tax year — 30 September 2026
+
+`/checkup` now joins optional saved-work progress to the existing personal
+checklist. The primary audience pages, homepage, six navigation translations,
+footer and desktop menu use **My tax year**. Adviser and organisation journeys
+retain their personal checklist without reading records for a client.
+
+`frontend/src/lib/tax-year-progress.ts` reads four existing IndexedDB keys in one
+read-only transaction after the visitor's request. It validates Books before
+counting events in the fixed 2026–27 period. Excluded-only business groups do not
+prompt confirmation. Older formats or unseen legacy records prompt opening Books
+for its existing migration path; the overview never migrates them. Passport
+evidence uses the same effective-state helper as the Passport page, so sources
+marked absent do not produce irrelevant evidence tasks. Only counts, status and
+timestamps reach the panel. Opening IndexedDB may initialise an empty database
+on a fresh profile; the overview writes no saved tax records or consent preference.
+
+The panel puts up to three next actions before detailed counts. It distinguishes
+when the snapshot was read from when the Passport was saved, requires an explicit
+refresh for later changes, and discards pending results after hide, unmount or
+audience change. Existing checklist storage is unchanged. Books action links keep
+activity context, but their destinations still show all saved dates/businesses.
+
+Verified locally with Node 22:
+
+| Check | Result |
+|---|---|
+| Frontend suite | 933 tests across 112 files passed, including 47 reader and 20 panel cases; 36 affected page/panel tests rerun after final layout changes |
+| Desktop boundary suite | 51 tests passed |
+| Source scaffold | Nine tests passed; fresh copy includes the new module/tests and Backups route, excludes generated browser evidence |
+| Frontend TypeScript and ESLint | Passed |
+| Static export and offline staging | 81 pages; research publication gate remained closed |
+| Source Electron walkthrough | Seven existing runtime checks passed; synthetic checklist, navigation, encrypted recovery and cleanup preserved |
+| Isolated browser walkthrough | Opt-in only, four IndexedDB reads and zero record writes; period/activity separation, unknown versus unanswered, maximum three actions, hide/focus, audience change and checklist persistence checked |
+| Layout | 320px, 390px and 200% zoom without horizontal overflow; wide and narrow views reviewed |
+
+Browser checks used synthetic records in a fresh context, with zero renderer errors
+and zero external request attempts; the context was closed afterwards. The retained
+sanitised report and screenshots are under `desktop/test-results/my-tax-year-*`.
+The source Electron report is supplementary local evidence, not a new native
+installer campaign. Existing downloaded installers retain their earlier recorded
+revision. No tax calculations, accounts, provider connections or HMRC submissions
+were added, and no production deployment was performed.

@@ -13,6 +13,7 @@ import {
   CHECKLIST_SCHEMA, CHECKLIST_STORAGE_KEY, emptyChecklistProgress, parseSavedChecklist,
   type SavedChecklist,
 } from "./checklist-state";
+import { TaxYearProgressPanel } from "./tax-year-progress";
 
 async function readSavedChecklist() {
   try {
@@ -218,6 +219,8 @@ export function CheckupClient() {
       {!ready && <p role="status" className="mt-6 text-sm text-ink-soft">Loading your checklist…</p>}
 
       {ready && audience ? (
+        <>
+        <TaxYearProgressPanel audience={audience.id} />
         <div className="mt-9 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <aside className="rounded-2xl border border-line bg-accent-soft/50 p-5 lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1" aria-labelledby="keep-checklist-title">
             <h2 id="keep-checklist-title" className="text-lg font-semibold text-ink">Keep your place</h2>
@@ -238,9 +241,13 @@ export function CheckupClient() {
           </aside>
           <div className="lg:col-start-1 lg:row-start-1">
             <div className="rounded-t-2xl border border-line bg-surface px-5 py-6 sm:px-7">
-              <p className="section-label">Your next steps</p>
+              <p className="section-label">Your personal checklist</p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">{audience.shortName} checklist</h2>
               <p className="mt-3 text-sm leading-6 text-ink-soft">{audience.scope}</p>
+              <p className="mt-3 text-sm leading-6 text-ink-soft">
+                These are your own reminders, kept separately from saved-work progress.
+                They are not tied to a tax year and never change automatically.
+              </p>
               <p className="mt-4 text-sm font-semibold text-accent" aria-live="polite" aria-atomic="true">
                 {checkedCount} of {services.length} steps checked by you
               </p>
@@ -284,6 +291,7 @@ export function CheckupClient() {
           </div>
 
         </div>
+        </>
       ) : ready ? (
         <p className="mt-8 rounded-2xl border border-dashed border-line bg-surface p-6 leading-7 text-ink-soft">
           Choose who this is for to see the relevant services in order. Nothing is saved until you choose Save checklist.

@@ -3,8 +3,11 @@
 **Tax, understood. Then sorted.**
 
 The service rebuild starts with **individuals, sole traders and landlords**.
-Choose a situation at `/services`, follow a personal checklist at `/checkup`,
+Choose a situation at `/services`, resume work in **My tax year** at `/checkup`,
 and open the existing checks, money records, preparation and handover tools.
+Choose **Show my saved progress** to read local Books and Passport status for this
+visit. Books counts cover 2026–27; Passport and personal checklist reminders remain
+general. The overview changes no records and does not establish filing readiness.
 Advisers and organisations have separate pages explaining their current scope.
 See [the service map and delivery plan](docs/SERVICE-REBUILD.md) for purpose,
 renaming, module ownership and remaining integration work.
@@ -59,9 +62,9 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/books/connect` — Bring records to tax.** Import a CSV now, inspect the planned Xero,
   QuickBooks, FreeAgent and Sage bridges, or follow neutral links to official software plans.
   Accounting sources and HMRC modules remain separate boundaries.
-- **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
-  narrowest current check, record tool or guide. This routing step asks for no tax identifier and
-  does not calculate or file anything itself.
+- **`/checkup` — My tax year.** Choose your situation, optionally show saved local
+  Books and Passport progress, and open up to three useful next tasks. Keep personal
+  checkmarks separately. The overview does not calculate tax, change records or file.
 - **`/plan` — Compare my choices.** Minimise total lawful burden rather than one tax number.
   The first live module calculates a clearly labelled full-year projection for trading allowance
   and ordinary-deduction profit routes side by side. Year-to-date figures, transition profit,
