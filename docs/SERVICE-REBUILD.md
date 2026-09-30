@@ -1,6 +1,7 @@
 # TaxSorted roadmap and service map
 
-Progress reviewed **30 September 2026**, against implementation through `4486638`.
+Progress reviewed **30 September 2026**, including the selected-year preparation
+overview described below. Earlier native installer evidence remains at `af4a5ab`.
 This is the current product roadmap: audience needs, implemented modules, delivery
 priorities and the evidence needed to finish them. Detailed contracts remain in the
 linked accounting, infrastructure and testing documents. The rebuild began from
@@ -10,7 +11,7 @@ linked accounting, infrastructure and testing documents. The rebuild began from
 preview are implemented. Automated native tests pass on Windows, Linux, Intel Mac
 and Apple silicon. Consumer acceptance, trusted public installers and production
 filing remain separate unfinished outcomes. This branch has not been released to
-the public site. This review changes documentation, not tax rules or source dates.
+the public site. The preparation overview does not change tax rules or source dates.
 
 ## Purpose
 
@@ -32,7 +33,7 @@ from this review. Test results do not imply publication or external approval.
 | Area | Current progress | Remaining boundary and evidence |
 |---|---|---|
 | Service entry and navigation | Implemented: shared catalogue, search, audience pages, contextual Books links and six navigation locales | Individuals, sole traders and landlords lead. Audience choice is not a tax-status determination. The secondary `/tools` page still needs copy alignment. [Catalogue](../frontend/src/lib/tax-services.ts) |
-| My tax year | Implemented: explicit saved-progress read, up to three next actions and separately saved manual checklist | Books counts cover 2026–27; Passport/checkmarks are general. Preparation drafts are not yet included. [Progress reader](../frontend/src/lib/tax-year-progress.ts) |
+| My tax year | Implemented: selected-year preparation progress and resume, explicit saved-progress read, up to three next actions and separately saved manual checklist | Preparation supports 2025–26/2026–27. Books counts cover 2026–27; Passport/checkmarks are general. Counts do not establish completeness or readiness to file. [Progress reader](../frontend/src/lib/tax-year-progress.ts) |
 | Individual preparation | Partial: separate 2025–26/2026–27 drafts, circumstances, evidence tasks, P60 review, selective summary and stale-save protection | P45 and other employment sources stay unresolved; other income types have evidence tasks. No complete annual calculation, filing-obligation decision or submission. [Preparation contract](../frontend/src/lib/return-preparation.ts) |
 | Tax summary and adviser handover | Implemented: explicit local Passport save, versioned JSON and print; separate year-specific preparation summary | No shared adviser workspace, document inspection or client authority. Exported handovers are unencrypted. [Passport contract](TAX-POSITION-PASSPORT.md) |
 | Money records and accounting | Partial: manual/CSV intake, review/history, supported trade/property separation and cumulative Income Tax quarter figures | Cash records and tax-category postings, without bank reconciliation, full double-entry accounts or Books-to-VAT derivation. [Accounting scope](ACCOUNTING-PRODUCT.md) |
@@ -48,7 +49,9 @@ profile. Earlier frontend, engine, API, scaffold and database results retain the
 own revisions and scopes in the [testing plan](DESKTOP-TESTING.md) and
 [infrastructure record](../infrastructure/README.md#first-implementation-batch).
 The latest rebuild export contains 83 generated pages; that inventory is not a count
-of fully supported tax services. This documentation review does not rerun those tests.
+of fully supported tax services. Current local checks are recorded in the
+[preparation overview verification](#preparation-overview-verification); they do not
+extend the older installer evidence to this change.
 
 ## How the service closes the knowledge gap
 
@@ -56,14 +59,14 @@ of fully supported tax services. This documentation review does not rerun those 
 |---|---|---|
 | Know where to begin | Situation-based services, circumstances questions, explanations and bounded checks | Keep secondary navigation and capability descriptions consistent with the main service paths |
 | Know what to collect | Named evidence tasks, unknown/missing states and guided P60 entry | Extend one document/source journey at a time, with reviewed sources and overlap checks |
-| Know what remains to do | Saved Books/Passport overview, manual reminders and preparation review | Bring the selected year's saved preparation into My tax year without implying filing readiness |
+| Know what remains to do | Selected-year preparation progress, saved Books/Passport overview, manual reminders and direct resume | Deepen one evidence journey at a time while preserving uncertainty and year separation |
 | Keep control of sensitive work | Offline desktop, explicit local saves, encrypted workspace transfer and selective handover | Complete consumer recovery/installation checks and explain profile protection alongside export protection |
 | Get help or finish filing | General Passport, year-specific summary, adviser path and official filing routes | Make the two handovers easier to distinguish; admit actual filing only within a proven scope |
 
 The intended journey is **choose a situation → choose a year and purpose → gather
 evidence → review records and unresolved questions → prepare a handover or use an
-available filing route → keep a recoverable copy**. Today the missing connection is
-the selected preparation draft's progress in the overview. A completed checklist,
+available filing route → keep a recoverable copy**. My tax year now connects the
+selected preparation draft's progress to an explicit resume action. A completed checklist,
 reviewed P60 or exported handover does not mean a complete return has been filed.
 
 ## Service map
@@ -77,12 +80,12 @@ reviewed P60 or exported handover does not mean a complete return has been filed
 | `/services/landlords` | Keep property work distinct from a sole trade | MTD, property records, landlord guidance, quarter totals |
 | `/services/advisers` | Help someone prepare an inspectable handover | Expert coverage, deeper MTD check, Passport export |
 | `/services/organisations` | Understand scope before entering data | Tax-identity map, labelled VAT test workspace, guidance |
-| `/checkup?for=landlords` | Resume saved work in My tax year and keep personal reminders | Optional local Books/Passport progress; catalogue destinations and explicit checkmarks |
+| `/checkup?for=landlords` | Resume saved work in My tax year and keep personal reminders | Optional selected-year preparation and Books/Passport progress; catalogue destinations and explicit checkmarks |
 | `/books` | Choose and open money records | Existing browser-local Books workspace |
 | `/books/connect` | Bring in existing records | Manual entry and CSV; truthful provider availability |
 | `/file` | Prepare and find an actual filing route | Existing quarter/VAT preparation and official authority routes |
 | `/passport` | Prepare a tax summary and handover | Existing Passport contract, save, export and print |
-| `/prepare` | Prepare evidence for a particular tax year | Separate local drafts, circumstances, evidence checklist, P60 capture and summary preview |
+| `/prepare?year=2025-26` | Prepare evidence for a particular tax year | Allowlisted year preselection, explicit Start/Resume, separate local drafts, circumstances, evidence checklist, P60 capture and summary preview |
 | `/backups` | Keep or recover the saved workspace | Encrypted complete-workspace export and atomic restore; explicit safety copy and replacement |
 | `/download` | Choose local installation or personal scaffolding | Platform scope, source setup and data-custody explanation; public installer links pending |
 
@@ -118,12 +121,17 @@ families remain available through their existing routes.
   catalogue does not own tax rates or eligibility.
 - `engine/` still owns calculations, effective dates and source-review stops.
   This rebuild does not change them or renew their evidence dates.
-- My tax year reads local Books and Passport progress only after **Show my saved
-  progress**. It displays a temporary snapshot and up to three next actions for
+- My tax year derives local preparation, Books and Passport progress only after
+  **Show my saved progress**. Preparation uses the explicitly selected 2025–26 or
+  2026–27 draft. It displays a temporary snapshot and up to three next actions for
   individuals, sole traders or landlords. The reader uses the existing stored
   values without creating or migrating records. Refresh is explicit; hiding the
-  snapshot, changing audience or leaving the page clears it. No snapshot or
+  snapshot, changing year or audience, or leaving the page clears it. No snapshot or
   permission preference is saved, and no tax figures are displayed or uploaded.
+  The existing checklist can read the shared storage envelope while restoring its
+  own reminders; the preparation slot is selected and summarised only on Show.
+  Resume links preselect the exact supported year without opening its saved draft.
+  An open or recovered unsaved draft keeps its original year and save destination.
 - Books counts cover **6 April 2026–5 April 2027** and keep trading/property
   activities separate. Passport progress is general, not tied to that tax year.
   Missing, older, damaged and inaccessible records remain distinct from an empty
@@ -194,7 +202,7 @@ prerequisite for offline preparation. Owner labels describe roles, not assigned 
 | Priority and state | Outcome | Completion evidence and dependencies | Responsible role |
 |---|---|---|---|
 | Now · environment needed | Exercise consumer installation and recovery | Use the [exact-candidate packs](DESKTOP-TESTING.md#consumer-acceptance-preparation--30-september-2026) on Windows 11 x64, stock Ubuntu x64 GNOME, Intel Mac and the Apple silicon control in disposable accounts. Record M01 trust/prerequisite blocks and run reachable cases; feed findings into the release candidate. Do not bypass security to complete the current preview. | Release maintainer and native-device testers |
-| Next code · ready to start | Join preparation into My tax year | Explicit year choice, read-only saved-draft status and a useful resume action; preserve opt-in reads, year separation, unknown states and existing Books-period limits. See the bounded slice below. | Frontend and local-storage maintainer |
+| Implemented · locally verified | Join preparation into My tax year | Explicit year choice, read-only saved-draft status and exact-year resume; opt-in summaries, year separation, unknown states and Books-period limits preserved. See verification below. New native installers are not yet tested. | Frontend and local-storage maintainer |
 | Next code · ready to start | Align trust and task copy | Update secondary `/tools` labels and its unsupported Books-to-VAT wording; update `/download` to distinguish automated testing from consumer acceptance. Distinguish general Passport from year-specific handover. Validate affected links/copy and keyboard paths. | Product/frontend maintainer |
 | Dated · due 12 October 2026 | Renew MTD source evidence | Assign an accountable reviewer; inspect the primary sources and record outcomes before the 13 October overdue stop. Preserve the stop if review is incomplete. This is a source review, not a date-only edit. [PG-02](PRODUCTION-GAPS.md#pg-02--renew-mtd-source-evidence-without-weakening-the-stop) | Engine/source reviewer; person unassigned |
 | Parallel · implementation and operations | Prove hosted continuity | Run the prepared synthetic database CI; implement readiness/redacted diagnostics and alert checks; inventory real backup/key dependencies and define recovery objectives before an authorised isolated hosted restore and API/frontend rollback exercise. [INF-03–05](../infrastructure/README.md#infrastructure-roadmap) | Infrastructure and service operator |
@@ -204,24 +212,30 @@ prerequisite for offline preparation. Owner labels describe roles, not assigned 
 | Separate online track · planned | Reliable integrations and supported filing | PG-05 VAT review context → PG-07 grant lifecycle → PG-08 durable attempts → PG-09 declared annual filing scope. A read-only provider pilot follows its own PG-04/PG-11/PG-12 gates; it is not required for a manual/CSV filing path. Books-to-VAT is PG-10. [Detailed dependencies](PRODUCTION-GAPS.md#concrete-batches-and-parallel-sequence) | API/accounting maintainers and operating-evidence owners |
 | Later · unadmitted | Shared adviser service and wider coverage | Client authority, tenant isolation, explicit sharing/revocation and support/privacy evidence before shared client data. Additional providers, company accounts and jurisdictions require their own supported scope. | Product, security and service owners |
 
-### Next development slice
+### Preparation overview verification
 
-Connect `/checkup` to saved preparation without introducing another store or tax
-calculation. This is the recommended next implementation, still **planned**:
+The selected-year connection is implemented without another store or tax calculation:
 
-1. Let the person choose 2025–26 or 2026–27 deliberately and resume that exact saved
-   preparation year. Keep Passport/checkmarks labelled general and Books labelled
-   2026–27 until a separate year-aware Books contract is implemented.
-2. Extend the existing opt-in progress read with counts/status from the saved draft.
-   Show unanswered, unknown, unreviewed and unsupported work distinctly. Opening
+1. Choose 2025–26 or 2026–27 and explicitly show that saved draft's progress, then
+   follow its year-specific Start/Resume link. Passport/checkmarks stay general;
+   Books stays labelled 2026–27 until a separate year-aware Books contract is implemented.
+2. The existing opt-in progress read now includes minimal draft counts and status.
+   Unanswered, unknown, unreviewed and unsupported work remain distinct. Opening
    the page, hiding the snapshot or changing year must not copy, save or relabel facts.
-3. Offer at most three relevant next actions through the existing catalogue/domain
-   helpers. State what the year-specific summary covers and how it differs from a
-   Passport; do not infer tax due, an obligation to file or return completeness.
-4. Verify no reads before consent, no record writes, both years, missing/damaged
-   storage, stale asynchronous reads after a year change, exact resume navigation,
-   keyboard/focus and narrow layouts. Recheck desktop staging and source scaffolding
-   because both editions share the same frontend.
+3. At most three actions give preparation, relevant Books work and the general
+   Passport a place. Counts do not infer tax due, an obligation to file or return
+   completeness; employment overlap notices remain visible.
+4. Tests cover explicit reads, no record writes, both years, missing/damaged
+   storage, stale reads after a year change, exact resume navigation and focus.
+   Query changes preserve open drafts and in-flight saves; same-tab memory recovery
+   retains the selected next year without moving the recovered draft's save destination.
+
+Local verification: **1,202 frontend tests**, **79 desktop tests** and **9 scaffold
+tests** passed; frontend lint/typecheck, static export, desktop staging and the
+**35-route** release contract passed. Browser/native observations are recorded in
+the [desktop validation plan](DESKTOP-TESTING.md). The next code priority is the
+secondary task/capability copy alignment above. Consumer acceptance, signing,
+publication and the MTD source-review deadline remain unchanged.
 
 ### Release dependencies
 

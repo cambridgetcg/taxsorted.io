@@ -5,8 +5,10 @@
 The service rebuild starts with **individuals, sole traders and landlords**.
 Choose a situation at `/services`, resume work in **My tax year** at `/checkup`,
 and open the existing checks, money records, preparation and handover tools.
-Choose **Show my saved progress** to read local Books and Passport status for this
-visit. Books counts cover 2026–27; Passport and personal checklist reminders remain
+Choose a preparation year and **Show my saved progress** to read its saved draft
+status alongside local Books and Passport progress for this visit. Resume links
+preselect that year and wait for an explicit Start or Resume. Books counts cover
+2026–27; Passport and personal checklist reminders remain
 general. The overview changes no records and does not establish filing readiness.
 Advisers and organisations have separate pages explaining their current scope.
 **Prepare my tax return** at `/prepare` keeps separate 2025–26 and 2026–27
@@ -71,7 +73,8 @@ The site keeps its depth, but the way in is deliberately small:
   QuickBooks, FreeAgent and Sage bridges, or follow neutral links to official software plans.
   Accounting sources and HMRC modules remain separate boundaries.
 - **`/checkup` — My tax year.** Choose your situation, optionally show saved local
-  Books and Passport progress, and open up to three useful next tasks. Keep personal
+  preparation for 2025–26 or 2026–27 alongside Books and Passport progress, and open
+  up to three useful next tasks. Keep personal
   checkmarks separately. The overview does not calculate tax, change records or file.
 - **`/prepare` — Prepare my tax return.** Keep a year-specific evidence checklist,
   record employment sources and check supported P60 figures. Missing answers,

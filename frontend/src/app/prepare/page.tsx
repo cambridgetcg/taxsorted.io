@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { PrepareClient } from "./prepare-client";
+import { PrepareEntry } from "./prepare-entry";
 
 export const metadata: Metadata = {
   title: "Prepare my tax return | TaxSorted",
@@ -32,7 +33,9 @@ export default function PreparePage() {
           complete.
         </p>
       </header>
-      <PrepareClient />
+      <Suspense fallback={<p className="mt-9" role="status">Loading preparation choices…</p>}>
+        <PrepareEntry />
+      </Suspense>
     </div>
   );
 }

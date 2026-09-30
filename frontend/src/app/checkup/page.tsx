@@ -6,7 +6,7 @@ import { CheckupClient } from "./checkup-client";
 
 export const metadata: Metadata = {
   title: "My tax year | TaxSorted",
-  description: "Pick up your saved local work, see what needs attention and keep a personal tax checklist. Choose when to show progress from Books and your Tax Passport.",
+  description: "Pick up your saved local work, see what needs attention and keep a personal tax checklist. Choose when to show progress from preparation, Books and your Tax Passport.",
 };
 
 export default function CheckupPage() {
@@ -21,7 +21,7 @@ export default function CheckupPage() {
           open the next useful task and keep your own checklist alongside it.
         </p>
         <p className="mt-4 text-sm leading-6 text-ink-soft">
-          No account needed. Choose whether to show progress from this device’s Books and
+          No account needed. Choose whether to show progress from this device’s preparation, Books and
           Tax Passport. Nothing is sent or filed by showing your progress.
         </p>
       </header>

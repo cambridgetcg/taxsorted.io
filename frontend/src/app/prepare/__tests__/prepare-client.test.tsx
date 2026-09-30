@@ -25,6 +25,10 @@ const io = vi.hoisted(() => ({
   get: vi.fn(),
   update: vi.fn(),
   generation: 0,
+  search: "",
+}));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(io.search),
 }));
 vi.mock("@/lib/workspace-storage", () => ({
   createWorkspaceSession: () => {
@@ -113,6 +117,7 @@ async function save() {
 }
 
 beforeEach(() => {
+  io.search = "";
   io.values.clear();
   io.generation = 0;
   io.get.mockReset();
@@ -144,6 +149,101 @@ afterEach(() => {
 });
 
 describe("guided return preparation", () => {
+  it.each(["2025-26", "2026-27"] as const)("preselects the linked %s year without reading until Resume", async (year) => {
+    io.search = `year=${year}`;
+    io.values.set(preparationStorageKey(year), savedDraft(year));
+    render(<PreparePage />);
+    expect(screen.getByLabelText("Tax year")).toHaveValue(year);
+    expect(io.get).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "1. Circumstances" });
+    expect(io.get).toHaveBeenCalledExactlyOnceWith(preparationStorageKey(year));
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it.each(["year=2027-28", "year=", "year=2026-27&year=2025-26", "year=2026-27&year=2026-27"])("defaults safely for an invalid or ambiguous year link: %s", (query) => {
+    io.search = query;
+    render(<PreparePage />);
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2025-26");
+    expect(io.get).not.toHaveBeenCalled();
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("ignores a pending resume when the link changes years and requires a fresh explicit read", async () => {
+    const pending = deferred<PreparationDraft>();
+    io.get.mockReturnValueOnce(pending.promise);
+    const view = render(<PreparePage />);
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    io.search = "year=2026-27";
+    view.rerender(<PreparePage />);
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2026-27");
+    expect(screen.getByRole("button", { name: "Resume saved preparation" })).toBeEnabled();
+    await act(async () => { pending.resolve(savedDraft()); });
+    expect(screen.queryByRole("heading", { name: "1. Circumstances" })).not.toBeInTheDocument();
+    expect(io.get).toHaveBeenCalledTimes(1);
+    io.values.set(preparationStorageKey("2026-27"), savedDraft("2026-27"));
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "1. Circumstances" });
+    expect(io.get).toHaveBeenLastCalledWith(preparationStorageKey("2026-27"));
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("keeps an open draft when the linked year changes, including its explicit save destination", async () => {
+    const view = render(<PreparePage />);
+    await start();
+    answer("Employment", "Yes");
+    io.search = "year=2026-27";
+    view.rerender(<PreparePage />);
+    expect(screen.getByText(/Your 2025–26 preparation is still open/)).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Employment" })).getByRole("radio", { name: "Yes", checked: true })).toBeInTheDocument();
+    expect(io.get).toHaveBeenCalledTimes(1);
+    await save();
+    expect(io.update).toHaveBeenCalledExactlyOnceWith(preparationStorageKey("2025-26"), expect.any(Function));
+    expect(io.values.has(preparationStorageKey("2026-27"))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Choose another tax year" }));
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2026-27");
+  });
+
+  it("offers unsaved tab work before following a different year link", async () => {
+    const view = render(<PreparePage />);
+    await start();
+    answer("Employment", "Yes");
+    view.unmount();
+    io.search = "year=2026-27";
+    render(<PreparePage />);
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2026-27");
+    expect(screen.getByRole("button", { name: "Start preparation" })).toBeDisabled();
+    expect(io.get).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Resume unsaved work in this tab" }));
+    await screen.findByRole("heading", { name: "1. Circumstances" });
+    expect(screen.getByText(/Your 2025–26 preparation is still open/)).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Employment" })).getByRole("radio", { name: "Yes", checked: true })).toBeInTheDocument();
+    await save();
+    expect(io.update).toHaveBeenCalledExactlyOnceWith(preparationStorageKey("2025-26"), expect.any(Function));
+    fireEvent.click(screen.getByRole("button", { name: "Choose another tax year" }));
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2026-27");
+  });
+
+  it("allows a requested save to finish for its original draft during a year-link change", async () => {
+    const pending = deferred<void>();
+    io.update.mockImplementation(async (key: string, updater: (value: unknown) => unknown) => {
+      await pending.promise;
+      io.values.set(key, structuredClone(updater(io.values.get(key))));
+    });
+    const view = render(<PreparePage />);
+    await start();
+    fireEvent.click(screen.getByRole("button", { name: "Save preparation on this device" }));
+    io.search = "year=2026-27";
+    view.rerender(<PreparePage />);
+    await act(async () => { pending.resolve(); });
+    await screen.findByText("Preparation saved on this device. No information was uploaded.");
+    expect(io.update).toHaveBeenCalledExactlyOnceWith(preparationStorageKey("2025-26"), expect.any(Function));
+    expect(io.values.has(preparationStorageKey("2026-27"))).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Choose another tax year" }));
+    expect(screen.getByLabelText("Tax year")).toHaveValue("2026-27");
+    expect(screen.getByRole("button", { name: "Resume saved preparation" })).toBeEnabled();
+  });
+
   it("opens the route without reading or saving tax facts and defaults to the ended return year", async () => {
     render(<PreparePage />);
     expect(
@@ -400,6 +500,8 @@ describe("guided return preparation", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Save preparation on this device" }),
       );
+      expect(screen.getByRole("button", { name: "Step 2 Evidence" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Continue to evidence" })).toBeDisabled();
       view.unmount();
       if (timing === "after")
         await act(async () => {

@@ -12,8 +12,15 @@ import {
 } from "@/lib/local-books";
 import { validateLocalBooksState } from "@/lib/local-books-validation";
 import { assertPassportDraft, effectivePassportEvidenceState, PASSPORT_STORAGE_KEY } from "@/lib/passport-store";
+import {
+  assertPreparationDraft,
+  derivePreparationReview,
+  type PreparationPurpose,
+  type PreparationYear,
+} from "@/lib/return-preparation";
+import { preparationStorageKey } from "@/lib/return-preparation-store";
 
-/** This period applies to Books records only, never to the saved Passport. */
+/** This period applies to Books only, independently of Passport and preparation. */
 export const TAX_YEAR_PERIOD = Object.freeze({
   id: "2026-27",
   label: "2026–27",
@@ -52,11 +59,36 @@ export type PassportProgress =
     }
   | { status: "missing" | "invalid" | "unavailable" };
 
+/** Only the explicitly selected year's saved draft contributes to these counts. */
+export type PreparationProgress =
+  | {
+      year: PreparationYear;
+      status: "saved";
+      savedAt: string;
+      purpose: PreparationPurpose;
+      circumstances: { unanswered: number; explicitlyUnknown: number };
+      /** Active Yes circumstances only; counts categories, not documents. */
+      evidence: { missing: number; collected: number; reviewed: number; unresolved: number };
+      employment: {
+        active: boolean;
+        total: number;
+        reviewed: number;
+        unresolved: number;
+        inactive: number;
+        /** Active P45/other records whose figures cannot be reviewed here. */
+        unsupported: number;
+      };
+      /** Count of overlap notices, including notices about inactive records. */
+      overlapWarnings: number;
+    }
+  | { year: PreparationYear; status: "missing" | "invalid" | "unavailable" };
+
 export interface TaxYearProgress {
   period: typeof TAX_YEAR_PERIOD;
   readAt: string;
   books: BooksProgress;
   passport: PassportProgress;
+  preparation: PreparationProgress;
 }
 
 function emptyActivity(): BooksActivityProgress {
@@ -157,6 +189,42 @@ function passportProgress(value: unknown): PassportProgress {
   }
 }
 
+function preparationProgress(value: unknown, year: PreparationYear): PreparationProgress {
+  if (value === undefined) return { year, status: "missing" };
+  try {
+    assertPreparationDraft(value);
+    // Match the preparation store: an unsaved draft or a value filed under a
+    // different year must not become apparent saved progress.
+    if (value.year !== year || value.revision < 1) return { year, status: "invalid" };
+    const review = derivePreparationReview(value);
+    const evidence = { missing: 0, collected: 0, reviewed: 0, unresolved: 0 };
+    for (const item of review.checklist) {
+      if (value.circumstances[item.id] !== "yes") continue;
+      if (item.status in evidence) evidence[item.status as keyof typeof evidence] += 1;
+    }
+    return {
+      year,
+      status: "saved",
+      savedAt: value.updatedAt,
+      purpose: value.purpose,
+      circumstances: { unanswered: review.unanswered.length, explicitlyUnknown: review.uncertain.length },
+      evidence,
+      employment: {
+        active: review.employment.active,
+        total: review.employment.total,
+        reviewed: review.employment.reviewed,
+        unresolved: review.employment.unresolved,
+        inactive: review.employment.inactive,
+        unsupported: review.employment.active ? value.employmentSources.filter(source => source.documentType !== "P60").length : 0,
+      },
+      overlapWarnings: review.warnings.length,
+    };
+  } catch {
+    // Validation/review details can contain source data; only the status leaves.
+    return { year, status: "invalid" };
+  }
+}
+
 /**
  * Call only after the visitor asks to read saved local progress. One shared
  * readonly transaction; no store instances, migration, saved tax-data writes,
@@ -164,7 +232,9 @@ function passportProgress(value: unknown): PassportProgress {
  * empty database/object store on a fresh profile. Only minimised status leaves
  * this function; source values and identifiers are not retained by a cache.
  */
-export async function readTaxYearProgress(): Promise<TaxYearProgress> {
+export async function readTaxYearProgress(year: PreparationYear = "2025-26"): Promise<TaxYearProgress> {
+  // Validate before opening a transaction, including calls from untyped input.
+  const preparationKey = preparationStorageKey(year);
   let values: unknown[];
   try {
     values = await createWorkspaceSession().readMany([
@@ -172,6 +242,7 @@ export async function readTaxYearProgress(): Promise<TaxYearProgress> {
       BOOKS_LEGACY_STORAGE_KEY,
       BOOKS_MIGRATION_CLOSED_KEY,
       PASSPORT_STORAGE_KEY,
+      preparationKey,
     ]);
   } catch {
     return {
@@ -179,6 +250,7 @@ export async function readTaxYearProgress(): Promise<TaxYearProgress> {
       readAt: new Date().toISOString(),
       books: { status: "unavailable" },
       passport: { status: "unavailable" },
+      preparation: { year, status: "unavailable" },
     };
   }
   return {
@@ -186,5 +258,6 @@ export async function readTaxYearProgress(): Promise<TaxYearProgress> {
     readAt: new Date().toISOString(),
     books: booksProgress(values[0], values[1], values[2]),
     passport: passportProgress(values[3]),
+    preparation: preparationProgress(values[4], year),
   };
 }

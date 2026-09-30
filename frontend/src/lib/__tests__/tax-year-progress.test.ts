@@ -1,5 +1,5 @@
-// Real idb-keyval getMany against a deterministic request harness. This proves
-// the readonly transaction boundary, not native-browser IndexedDB behaviour.
+// Shared workspace reads against a deterministic IndexedDB request harness.
+// This proves the readonly transaction boundary, not native-browser behaviour.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TAX_POSITION_PASSPORT_EXAMPLE } from "@taxsorted/engine/uk/passport";
 import type { SourceType } from "@taxsorted/engine/uk/itsa";
@@ -17,6 +17,13 @@ import {
   type ReviewState,
 } from "../local-books";
 import { createEmptyPassportDraft, PASSPORT_STORAGE_KEY } from "../passport-store";
+import {
+  createEmploymentSource,
+  createPreparationDraft,
+  type EmploymentSource,
+  type PreparationYear,
+} from "../return-preparation";
+import { preparationStorageKey } from "../return-preparation-store";
 import { readTaxYearProgress, TAX_YEAR_PERIOD } from "../tax-year-progress";
 import { WORKSPACE_KEYS, WORKSPACE_SCHEMA, WORKSPACE_STORAGE_KEY } from "../workspace-storage";
 
@@ -33,8 +40,8 @@ vi.mock("idb-keyval", async importOriginal => {
   const actual = await importOriginal<typeof import("idb-keyval")>();
   return {
     ...actual,
-    // Keep the real getMany implementation, including its readonly mode and
-    // request error propagation, while modelling this test's source database.
+    // Keep the shared workspace transaction and error propagation, while
+    // modelling this test's source database.
     createStore: (name: string, objectStore: string) => {
       if (name !== "keyval-store" || objectStore !== "keyval") throw new Error("Unexpected database");
       return async <T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => T) => {
@@ -123,6 +130,25 @@ function passport() {
   return draft;
 }
 
+function preparation(year: PreparationYear = "2025-26") {
+  const draft = createPreparationDraft(year, "prepare-return", SAVED_AT);
+  draft.revision = 1;
+  return draft;
+}
+
+function employment(patch: Partial<EmploymentSource> = {}): EmploymentSource {
+  return {
+    ...createEmploymentSource("private-employment-id"),
+    employerName: "Private employer",
+    sourceLabel: "Private document label",
+    notes: "Private employment notes",
+    documentYear: "2025-26",
+    pay: "987654.32",
+    tax: "12345.67",
+    ...patch,
+  };
+}
+
 beforeEach(() => {
   database.values.clear();
   database.modes.length = database.keys.length = 0;
@@ -157,17 +183,19 @@ describe("explicit local tax-year progress read", () => {
     expect(result.passport.status).toBe("saved");
     expect(database.modes).toEqual(["readonly"]);
   });
-  it("reads exactly the four source keys together without creating records or conflating missing with zero", async () => {
+  it("reads the source keys and only the selected preparation key together without creating records or conflating missing with zero", async () => {
     expect(database.modes).toEqual([]);
     expect(await readTaxYearProgress()).toEqual({
       period: { id: "2026-27", label: "2026–27", start: "2026-04-06", end: "2027-04-05" },
       readAt: NOW,
       books: { status: "missing" },
       passport: { status: "missing" },
+      preparation: { year: "2025-26", status: "missing" },
     });
     expect(database.modes).toEqual(["readonly"]);
     expect(database.keys).toEqual([
       WORKSPACE_STORAGE_KEY, BOOKS_STORAGE_KEY, BOOKS_LEGACY_STORAGE_KEY, BOOKS_MIGRATION_CLOSED_KEY, PASSPORT_STORAGE_KEY,
+      preparationStorageKey("2025-26"),
     ]);
     expect(database.values.size).toBe(0);
   });
@@ -294,6 +322,7 @@ describe("explicit local tax-year progress read", () => {
         evidence: { held: 0, missing: 0, notChecked: 8, notExpected: 0 },
         hasMtdCheck: false,
       },
+      preparation: { year: "2025-26", status: "missing" },
     });
     expect(JSON.stringify(result)).not.toMatch(/Private|private-|987654|employment":"yes/);
     expect(database.values).toEqual(before);
@@ -393,6 +422,7 @@ describe("explicit local tax-year progress read", () => {
     expect(await readTaxYearProgress()).toEqual({
       period: TAX_YEAR_PERIOD, readAt: NOW,
       books: { status: "unavailable" }, passport: { status: "unavailable" },
+      preparation: { year: "2025-26", status: "unavailable" },
     });
   });
 
@@ -405,6 +435,209 @@ describe("explicit local tax-year progress read", () => {
     expect(first.books).toMatchObject({ activities: { "self-employment": { records: 0 } } });
     expect(database.modes).toEqual(["readonly"]);
     expect((await readTaxYearProgress()).books).toMatchObject({ activities: { "self-employment": { records: 1 } } });
+    expect(database.modes).toEqual(["readonly", "readonly"]);
+  });
+});
+
+describe("selected preparation progress", () => {
+  it.each(["2025-26", "2026-27"] as const)("reads only %s and leaves Books on its independent 2026–27 period", async year => {
+    const draft = preparation(year);
+    const otherYear = year === "2025-26" ? "2026-27" : "2025-26";
+    database.values.set(preparationStorageKey(year), draft);
+    database.values.set(preparationStorageKey(otherYear), { private: "unselected malformed draft" });
+    const before = structuredClone(database.values);
+    const result = await readTaxYearProgress(year);
+    expect(result.period).toEqual(TAX_YEAR_PERIOD);
+    expect(result.preparation).toEqual({
+      year, status: "saved", savedAt: SAVED_AT, purpose: "prepare-return",
+      circumstances: { unanswered: 8, explicitlyUnknown: 0 },
+      evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 0 },
+      employment: { active: false, total: 0, reviewed: 0, unresolved: 0, inactive: 0, unsupported: 0 },
+      overlapWarnings: 0,
+    });
+    expect(database.keys).toContain(preparationStorageKey(year));
+    expect(database.keys).not.toContain(preparationStorageKey(otherYear));
+    expect(database.modes).toEqual(["readonly"]);
+    expect(database.values).toEqual(before);
+  });
+
+  it.each(["2024-25", "", "2026–27", "2026-27/other", null])("rejects unsupported year %j before any storage access", async year => {
+    await expect(readTaxYearProgress(year as PreparationYear)).rejects.toThrow("Choose a supported preparation year.");
+    expect(database.modes).toEqual([]);
+    expect(database.keys).toEqual([]);
+  });
+
+  it("uses the canonical selected year and ignores stale direct-key writes and an invalid unselected year", async () => {
+    const draft = preparation("2026-27");
+    draft.purpose = "organise-records";
+    database.values.set(WORKSPACE_STORAGE_KEY, {
+      schema: WORKSPACE_SCHEMA,
+      generation: "private-workspace-generation",
+      values: {
+        ...Object.fromEntries(WORKSPACE_KEYS.map(key => [key, undefined])),
+        [BOOKS_STORAGE_KEY]: books(),
+        [PASSPORT_STORAGE_KEY]: passport(),
+        [preparationStorageKey("2026-27")]: draft,
+        [preparationStorageKey("2025-26")]: { private: "unselected damaged contents" },
+      },
+    });
+    database.values.set(preparationStorageKey("2026-27"), { schema: "private-stale-direct-write" });
+    const before = structuredClone(database.values);
+    const result = await readTaxYearProgress("2026-27");
+    expect(result.preparation).toMatchObject({ year: "2026-27", status: "saved", purpose: "organise-records" });
+    expect(result.books.status).toBe("saved");
+    expect(result.passport.status).toBe("saved");
+    expect(database.keys).not.toContain(preparationStorageKey("2025-26"));
+    expect(JSON.stringify(result)).not.toMatch(/private|damaged|stale|schema|revision|generation/);
+    expect(database.values).toEqual(before);
+  });
+
+  it("counts active evidence topics, unanswered and Not sure separately without returning source details", async () => {
+    const draft = preparation();
+    draft.circumstances = {
+      employment: "yes", trading: "yes", property: "yes", pension: "yes",
+      "savings-investments": "yes", "other-income": "unknown", "life-changes": null, "hmrc-letter": "no",
+    };
+    draft.evidence = {
+      trading: "missing", property: "collected", pension: "reviewed", "savings-investments": "unresolved",
+      "other-income": "reviewed", "life-changes": "reviewed", "hmrc-letter": "reviewed",
+    };
+    draft.employmentSources = [
+      employment({ reviewed: true }),
+      employment({ id: "private-second-id", documentType: "P45", reviewed: false }),
+    ];
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    const before = structuredClone(database.values);
+    const result = await readTaxYearProgress();
+    expect(result.preparation).toEqual({
+      year: "2025-26", status: "saved", savedAt: SAVED_AT, purpose: "prepare-return",
+      circumstances: { unanswered: 1, explicitlyUnknown: 1 },
+      evidence: { missing: 1, collected: 1, reviewed: 1, unresolved: 2 },
+      employment: { active: true, total: 2, reviewed: 1, unresolved: 1, inactive: 0, unsupported: 1 },
+      overlapWarnings: 1,
+    });
+    expect(JSON.stringify(result)).not.toMatch(/Private|private-|987654|12345|P45|sourceLabel|employerName|documentYear|notes|employmentSources|warnings|revision/);
+    expect(database.values).toEqual(before);
+  });
+
+  it.each([null, "unknown", "no"] as const)("keeps employment sources inactive when the answer is %j", async answer => {
+    const draft = preparation();
+    draft.circumstances.employment = answer;
+    draft.employmentSources = [employment({ reviewed: true }), employment({ id: "private-other", documentType: "other" })];
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    expect((await readTaxYearProgress()).preparation).toEqual({
+      year: "2025-26", status: "saved", savedAt: SAVED_AT, purpose: "prepare-return",
+      circumstances: { unanswered: answer === null ? 8 : 7, explicitlyUnknown: answer === "unknown" ? 1 : 0 },
+      evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 0 },
+      employment: { active: false, total: 2, reviewed: 0, unresolved: 0, inactive: 2, unsupported: 0 },
+      overlapWarnings: 1,
+    });
+  });
+
+  it.each([
+    { label: "no employment document", sources: [], evidence: { missing: 1, collected: 0, reviewed: 0, unresolved: 0 }, reviewed: 0 },
+    { label: "complete unreviewed P60", sources: [employment()], evidence: { missing: 0, collected: 1, reviewed: 0, unresolved: 0 }, reviewed: 0 },
+    { label: "reviewed P60", sources: [employment({ reviewed: true })], evidence: { missing: 0, collected: 0, reviewed: 1, unresolved: 0 }, reviewed: 1 },
+    { label: "incomplete P60", sources: [employment({ pay: "" })], evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 1 }, reviewed: 0 },
+    { label: "wrong-year P60", sources: [employment({ documentYear: "2026-27" })], evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 1 }, reviewed: 0 },
+  ])("matches the existing review for $label", async ({ sources, evidence, reviewed }) => {
+    const draft = preparation();
+    draft.circumstances.employment = "yes";
+    draft.employmentSources = sources;
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    expect((await readTaxYearProgress()).preparation).toMatchObject({
+      status: "saved", evidence,
+      employment: { active: true, total: sources.length, reviewed, unresolved: sources.length - reviewed, inactive: 0, unsupported: 0 },
+    });
+  });
+
+  it("does not count a future reviewed P60 flag until that preparation year has ended", async () => {
+    const draft = preparation("2026-27");
+    draft.circumstances.employment = "yes";
+    draft.employmentSources = [employment({ documentYear: "2026-27", reviewed: true })];
+    database.values.set(preparationStorageKey("2026-27"), draft);
+    const before = structuredClone(draft);
+    expect((await readTaxYearProgress("2026-27")).preparation).toMatchObject({
+      status: "saved", evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 1 },
+      employment: { reviewed: 0, unresolved: 1 },
+    });
+    vi.setSystemTime(new Date("2027-04-05T23:59:59.999Z"));
+    expect((await readTaxYearProgress("2026-27")).preparation).toMatchObject({ employment: { reviewed: 0, unresolved: 1 } });
+    vi.setSystemTime(new Date("2027-04-06T00:00:00.000Z"));
+    expect((await readTaxYearProgress("2026-27")).preparation).toMatchObject({
+      evidence: { missing: 0, collected: 0, reviewed: 1, unresolved: 0 }, employment: { reviewed: 1, unresolved: 0 },
+    });
+    expect(database.values.get(preparationStorageKey("2026-27"))).toEqual(before);
+  });
+
+  it.each(["P45", "other"] as const)("counts active %s documents as unsupported and unresolved", async documentType => {
+    const draft = preparation();
+    draft.circumstances.employment = "yes";
+    draft.employmentSources = [employment({ documentType })];
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    expect((await readTaxYearProgress()).preparation).toMatchObject({
+      status: "saved", evidence: { missing: 0, collected: 0, reviewed: 0, unresolved: 1 },
+      employment: { active: true, total: 1, reviewed: 0, unresolved: 1, inactive: 0, unsupported: 1 },
+    });
+  });
+
+  it.each(["wrong-year", "unsaved", "negative-revision", "fractional-revision", "unsafe-revision", "bad-schema", "bad-date", "reviewed-unsupported", "private-extra-field"])("reports invalid %s preparation independently of valid Books and Passport", async damage => {
+    const draft = preparation();
+    if (damage === "wrong-year") draft.year = "2026-27";
+    if (damage === "unsaved") draft.revision = 0;
+    if (damage === "negative-revision") draft.revision = -1;
+    if (damage === "fractional-revision") draft.revision = 1.5;
+    if (damage === "unsafe-revision") draft.revision = Number.MAX_SAFE_INTEGER + 1;
+    if (damage === "bad-schema") Object.assign(draft, { schema: "private-future-schema" });
+    if (damage === "bad-date") draft.updatedAt = "private-invalid-date";
+    if (damage === "reviewed-unsupported") draft.employmentSources = [employment({ documentType: "P45", reviewed: true })];
+    if (damage === "private-extra-field") Object.assign(draft, { private: "private extra value" });
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    database.values.set(BOOKS_STORAGE_KEY, books());
+    database.values.set(PASSPORT_STORAGE_KEY, passport());
+    const before = structuredClone(database.values);
+    const result = await readTaxYearProgress();
+    expect(result.preparation).toEqual({ year: "2025-26", status: "invalid" });
+    expect(result.books.status).toBe("saved");
+    expect(result.passport.status).toBe("saved");
+    expect(JSON.stringify(result)).not.toContain("private");
+    expect(database.values).toEqual(before);
+  });
+
+  it.each([null, {}, "private malformed source"])("treats saved %j as invalid rather than missing", async value => {
+    database.values.set(preparationStorageKey("2025-26"), value);
+    expect((await readTaxYearProgress()).preparation).toEqual({ year: "2025-26", status: "invalid" });
+  });
+
+  it("preserves valid preparation when Books and Passport values are malformed", async () => {
+    database.values.set(BOOKS_STORAGE_KEY, { private: "bad Books" });
+    database.values.set(PASSPORT_STORAGE_KEY, { private: "bad Passport" });
+    database.values.set(preparationStorageKey("2025-26"), preparation());
+    const result = await readTaxYearProgress();
+    expect(result.books.status).toBe("invalid");
+    expect(result.passport.status).toBe("invalid");
+    expect(result.preparation.status).toBe("saved");
+  });
+
+  it("reports unavailable for all sources if the selected preparation request aborts the shared read", async () => {
+    database.values.set(BOOKS_STORAGE_KEY, books());
+    database.values.set(PASSPORT_STORAGE_KEY, passport());
+    database.values.set(preparationStorageKey("2026-27"), preparation("2026-27"));
+    database.failKey = preparationStorageKey("2026-27");
+    expect(await readTaxYearProgress("2026-27")).toEqual({
+      period: TAX_YEAR_PERIOD, readAt: NOW,
+      books: { status: "unavailable" }, passport: { status: "unavailable" },
+      preparation: { year: "2026-27", status: "unavailable" },
+    });
+  });
+
+  it("keeps a returned preparation summary unchanged until another explicit read", async () => {
+    const draft = preparation();
+    database.values.set(preparationStorageKey("2025-26"), draft);
+    const first = await readTaxYearProgress();
+    draft.circumstances.employment = "yes";
+    expect(first.preparation).toMatchObject({ circumstances: { unanswered: 8 }, evidence: { missing: 0 } });
+    expect((await readTaxYearProgress()).preparation).toMatchObject({ circumstances: { unanswered: 7 }, evidence: { missing: 1 } });
     expect(database.modes).toEqual(["readonly", "readonly"]);
   });
 });

@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TaxYearProgressPanel } from "../tax-year-progress";
 import { TAX_YEAR_PERIOD, type TaxYearProgress } from "@/lib/tax-year-progress";
+import { PREPARATION_PERIODS } from "@/lib/return-preparation";
 
 const reader = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/tax-year-progress", () => ({
@@ -20,6 +21,13 @@ function snapshot(overrides: Partial<TaxYearProgress> = {}): TaxYearProgress {
       "uk-property": { records: 8, checked: 4, needsReview: 4, excluded: 0, businesses: 1, unconfirmedBusinesses: 0 },
     } },
     passport: { status: "saved", savedAt: "2026-09-29T08:00:00.000Z", sourceQuestions: { total: 5, unanswered: 2, explicitlyUnknown: 1 }, evidence: { held: 2, missing: 1, notChecked: 3, notExpected: 0 }, hasMtdCheck: true },
+    preparation: {
+      status: "saved", year: "2025-26", savedAt: "2026-09-29T09:00:00.000Z", purpose: "prepare-return",
+      circumstances: { unanswered: 3, explicitlyUnknown: 1 },
+      evidence: { missing: 1, collected: 2, reviewed: 1, unresolved: 1 },
+      employment: { active: true, total: 4, reviewed: 1, unresolved: 3, inactive: 0, unsupported: 1 },
+      overlapWarnings: 1,
+    },
     ...overrides,
   };
 }
@@ -52,7 +60,7 @@ describe("My tax year saved progress", () => {
     expect(screen.queryByRole("heading", { name: "Your sole-trader records" })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     await show();
-    expect(reader).toHaveBeenCalledExactlyOnceWith();
+    expect(reader).toHaveBeenCalledExactlyOnceWith("2025-26");
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 
@@ -87,20 +95,87 @@ describe("My tax year saved progress", () => {
     expectCount(books, "Records to check", 4);
     const actions = within(screen.getByRole("region", { name: "Choose a next step" })).getAllByRole("link");
     expect(actions).toHaveLength(3);
-    expect(actions[0]).toHaveAccessibleName("Check your money records");
-    expect(actions[0]).toHaveAttribute("href", "/books/workspace/money?activity=uk-property#money-inbox-heading");
-    expect(actions[1]).toHaveAttribute("href", "/books/workspace/business?activity=uk-property#ledger-scope-heading");
+    expect(actions[0]).toHaveAccessibleName("Resume your 2025–26 preparation");
+    expect(actions[0]).toHaveAttribute("href", "/prepare?year=2025-26");
+    expect(actions[1]).toHaveAccessibleName("Check your money records");
+    expect(actions[1]).toHaveAttribute("href", "/books/workspace/money?activity=uk-property#money-inbox-heading");
     expect(actions[2]).toHaveAttribute("href", "/passport#passport-income-title");
+    expectCount(books, "Businesses to confirm", 1);
     expect(screen.queryByRole("link", { name: "Review your evidence notes" })).not.toBeInTheDocument();
   });
 
-  it("keeps an individual's overview on Passport facts instead of implying business records apply", async () => {
+  it("shows an individual's preparation and general Passport without implying business records apply", async () => {
     render(<TaxYearProgressPanel audience="individuals" />);
     await show();
     expect(screen.queryByRole("region", { name: "Your sole-trader records" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Your property records" })).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Your income sources and evidence notes" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link").every(link => link.getAttribute("href")?.startsWith("/passport"))).toBe(true);
+    expect(screen.getByRole("region", { name: "Your 2025–26 preparation" })).toBeInTheDocument();
+    const actions = within(screen.getByRole("region", { name: "Choose a next step" })).getAllByRole("link");
+    expect(actions.map(link => link.getAttribute("href"))).toEqual(["/prepare?year=2025-26", "/passport#passport-income-title"]);
+  });
+
+  it.each(["2025-26", "2026-27"] as const)("reads and links the selected %s preparation, while Books retains its own period", async year => {
+    const value = snapshot();
+    value.preparation.year = year;
+    reader.mockResolvedValue(value);
+    render(<TaxYearProgressPanel audience="sole-traders" />);
+    const selector = screen.getByRole("combobox", { name: "Preparation tax year" });
+    expect(selector).toHaveValue("2025-26");
+    fireEvent.change(selector, { target: { value: year } });
+    expect(reader).not.toHaveBeenCalled();
+    await show();
+    expect(reader).toHaveBeenCalledExactlyOnceWith(year);
+    const preparation = screen.getByRole("region", { name: `Your ${PREPARATION_PERIODS[year].label} preparation` });
+    expectCount(preparation, "Unanswered questions", 3);
+    expectCount(preparation, "Answers marked “Not sure”", 1);
+    expectCount(preparation, "Evidence marked missing", 1);
+    expectCount(preparation, "Evidence collected", 2);
+    expectCount(preparation, "Evidence marked reviewed", 1);
+    expectCount(preparation, "Evidence unresolved", 1);
+    expectCount(preparation, "P60 records reviewed", 1);
+    expectCount(preparation, "Employment records unresolved", 3);
+    expect(within(preparation).getByText(/1 P45 or other record needs a review route/)).toBeInTheDocument();
+    expect(within(preparation).getByText(/1 employment overlap warning needs checking/)).toBeInTheDocument();
+    expect(within(preparation).getByText(/Evidence counts are categories, not documents/)).toBeInTheDocument();
+    expect(within(preparation).getByText(/Last saved/).querySelector("time")).toHaveAttribute("datetime", "2026-09-29T09:00:00.000Z");
+    expect(screen.getByRole("link", { name: `Resume your ${PREPARATION_PERIODS[year].label} preparation` })).toHaveAttribute("href", `/prepare?year=${year}`);
+    expect(within(screen.getByRole("region", { name: "Your sole-trader records" })).getByText("Books · 2026–27")).toBeInTheDocument();
+    expect(screen.getByText(/Passport facts and your personal checklist are not year-specific/)).toBeInTheDocument();
+  });
+
+  it.each([
+    ["missing", /No saved preparation was found for 2026–27/, "Start"],
+    ["invalid", /saved 2026–27 preparation could not be read/, "Check"],
+    ["unavailable", /Preparation storage is unavailable for 2026–27/, "Check"],
+  ] as const)("shows %s preparation without invented counts or replacing other tools", async (status, message, verb) => {
+    reader.mockResolvedValue(snapshot({ preparation: { status, year: "2026-27" } }));
+    render(<TaxYearProgressPanel audience="landlords" />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Preparation tax year" }), { target: { value: "2026-27" } });
+    await show();
+    const preparation = screen.getByRole("region", { name: "Your 2026–27 preparation" });
+    expect(within(preparation).getByText(message)).toBeInTheDocument();
+    expect(preparation.querySelector("dl")).toBeNull();
+    expect(screen.getByRole("link", { name: `${verb} your 2026–27 preparation` })).toHaveAttribute("href", "/prepare?year=2026-27");
+    expectCount(screen.getByRole("region", { name: "Your property records" }), "Records saved", 8);
+    expectCount(screen.getByRole("region", { name: "Your income sources and evidence notes" }), "Unanswered income-source questions", 2);
+    if (status !== "missing") expect(screen.getByText(/has not started a replacement/)).toBeInTheDocument();
+  });
+
+  it("keeps inactive employment visible without describing it as reviewed", async () => {
+    const value = snapshot();
+    if (value.preparation.status === "saved") {
+      value.preparation.purpose = "organise-records";
+      value.preparation.employment = { active: false, total: 2, reviewed: 0, unresolved: 0, inactive: 2, unsupported: 0 };
+    }
+    reader.mockResolvedValue(value);
+    render(<TaxYearProgressPanel audience="individuals" />);
+    await show();
+    const preparation = screen.getByRole("region", { name: "Your 2025–26 preparation" });
+    expect(within(preparation).getByText(/Saved purpose: Organise records for this year/)).toBeInTheDocument();
+    expect(within(preparation).getByText(/2 saved employment records are inactive until you review that answer/)).toBeInTheDocument();
+    expect(within(preparation).queryByText("P60 records reviewed")).not.toBeInTheDocument();
+    expect(within(preparation).getByText(/employment overlap warning/)).toBeInTheDocument();
   });
 
   it.each([
@@ -140,6 +215,12 @@ describe("My tax year saved progress", () => {
       Object.assign(value.passport.sourceQuestions, { unanswered: 0, explicitlyUnknown: 0 });
       Object.assign(value.passport.evidence, { missing: 0, notChecked: 0 });
     }
+    if (value.preparation.status === "saved") {
+      Object.assign(value.preparation.circumstances, { unanswered: 0, explicitlyUnknown: 0 });
+      Object.assign(value.preparation.evidence, { missing: 0, collected: 0, unresolved: 0 });
+      Object.assign(value.preparation.employment, { reviewed: 4, unresolved: 0, unsupported: 0 });
+      value.preparation.overlapWarnings = 0;
+    }
     reader.mockResolvedValue(value);
     render(<TaxYearProgressPanel audience="sole-traders" />);
     await show();
@@ -148,6 +229,7 @@ describe("My tax year saved progress", () => {
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByText(/ready to file|all complete|all done/i)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Review your saved records" })).toBeInTheDocument();
+    expect(screen.getByText(/Counts do not establish that this preparation is complete/)).toBeInTheDocument();
   });
 
   it("refreshes only on request, then hiding clears the snapshot and returns focus to the consent button", async () => {
@@ -193,6 +275,76 @@ describe("My tax year saved progress", () => {
     expect(screen.queryByText(/Snapshot read/)).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Your property records" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Choose a next step" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Your 2025–26 preparation" })).not.toBeInTheDocument();
+  });
+
+  it("clears displayed progress on a year change, keeps focus on the selector and requires another explicit read", async () => {
+    render(<TaxYearProgressPanel audience="individuals" />);
+    await show();
+    await waitFor(() => expect(screen.getByRole("status")).toHaveFocus());
+    const selector = screen.getByRole("combobox", { name: "Preparation tax year" });
+    selector.focus();
+    fireEvent.change(selector, { target: { value: "2026-27" } });
+    expect(selector).toHaveFocus();
+    expect(screen.queryByRole("region", { name: "Your 2025–26 preparation" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Your income sources and evidence notes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Choose a next step" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show my saved progress" })).toBeInTheDocument();
+    expect(reader).toHaveBeenCalledTimes(1);
+    const changed = snapshot();
+    changed.preparation.year = "2026-27";
+    reader.mockResolvedValueOnce(changed);
+    await show();
+    expect(reader).toHaveBeenLastCalledWith("2026-27");
+    expect(screen.getByRole("region", { name: "Your 2026–27 preparation" })).toBeInTheDocument();
+    reader.mockResolvedValueOnce(changed);
+    fireEvent.click(screen.getByRole("button", { name: "Refresh saved progress" }));
+    await screen.findByText(/Snapshot read/);
+    expect(reader).toHaveBeenLastCalledWith("2026-27");
+    fireEvent.click(screen.getByRole("button", { name: "Hide saved progress" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Show my saved progress" })).toHaveFocus());
+    expect(selector).toHaveValue("2026-27");
+  });
+
+  it.each(["resolve", "reject"] as const)("ignores an old year's late %s after showing another year's snapshot", async outcome => {
+    const old = deferred<TaxYearProgress>();
+    reader.mockReturnValueOnce(old.promise);
+    render(<TaxYearProgressPanel audience="landlords" />);
+    fireEvent.click(screen.getByRole("button", { name: "Show my saved progress" }));
+    const selector = screen.getByRole("combobox", { name: "Preparation tax year" });
+    selector.focus();
+    fireEvent.change(selector, { target: { value: "2026-27" } });
+    expect(selector).toHaveFocus();
+    expect(reader).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    const next = snapshot();
+    next.preparation.year = "2026-27";
+    reader.mockResolvedValueOnce(next);
+    await show();
+    await act(async () => {
+      if (outcome === "resolve") old.resolve(snapshot({ preparation: { status: "invalid", year: "2025-26" } }));
+      else old.reject(new Error("Private old-year failure"));
+      await old.promise.catch(() => undefined);
+    });
+    expect(screen.getByRole("region", { name: "Your 2026–27 preparation" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Your 2025–26 preparation" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Saved progress could not be read|Private old-year failure/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refresh saved progress" })).toBeEnabled();
+    expect(reader.mock.calls.map(call => call[0])).toEqual(["2025-26", "2026-27"]);
+  });
+
+  it("clears a failed read when the year changes without reading the new year", async () => {
+    reader.mockRejectedValueOnce(new Error("Private diagnostic"));
+    render(<TaxYearProgressPanel audience="individuals" />);
+    fireEvent.click(screen.getByRole("button", { name: "Show my saved progress" }));
+    await screen.findByText(/Saved progress could not be read/);
+    const selector = screen.getByRole("combobox", { name: "Preparation tax year" });
+    selector.focus();
+    fireEvent.change(selector, { target: { value: "2026-27" } });
+    expect(selector).toHaveFocus();
+    expect(screen.queryByText(/Saved progress could not be read/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show my saved progress" })).toBeInTheDocument();
+    expect(reader).toHaveBeenCalledTimes(1);
   });
 
   it("requires fresh consent after an audience change and ignores the previous audience's pending read", async () => {

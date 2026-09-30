@@ -126,8 +126,9 @@ function downloadSummary(text: string, year: PreparationYear) {
   }
 }
 
-export function PrepareClient() {
-  const [year, setYear] = useState<PreparationYear>("2025-26");
+export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: PreparationYear }) {
+  const [year, setYear] = useState<PreparationYear>(requestedYear);
+  const [lastRequestedYear, setLastRequestedYear] = useState(requestedYear);
   const [purpose, setPurpose] = useState<PreparationPurpose>("prepare-return");
   const [draft, setDraft] = useState<PreparationDraft | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -155,6 +156,24 @@ export function PrepareClient() {
   const dirty = draft !== null && JSON.stringify(draft) !== saved;
   const hasDraft = draft !== null;
   const latestWork = useRef<UnsavedWork | null>(null);
+  const entryVersion = useRef(0);
+
+  // URL changes select the next draft, never replace work already open here.
+  if (lastRequestedYear !== requestedYear) {
+    setLastRequestedYear(requestedYear);
+    setYear(requestedYear);
+    if (!draft && !hasUnsavedWork) {
+      setBusy(null);
+      setError(null);
+      setMessage(null);
+      setExisting(false);
+      setTemporaryAvailable(false);
+    }
+  }
+  useEffect(() => {
+    // Fence only opening reads: a URL change must not interrupt an explicit save.
+    entryVersion.current += 1;
+  }, [requestedYear]);
 
   useEffect(() => {
     latestWork.current =
@@ -223,6 +242,7 @@ export function PrepareClient() {
 
   async function open(mode: "start" | "resume") {
     const operation = ++request.current;
+    const openedFrom = entryVersion.current;
     setBusy("loading");
     setError(null);
     setMessage(null);
@@ -231,7 +251,7 @@ export function PrepareClient() {
     const selectedStore = createReturnPreparationStore(year);
     try {
       const loaded = await selectedStore.load();
-      if (operation !== request.current) return;
+      if (operation !== request.current || openedFrom !== entryVersion.current) return;
       if (loaded && mode === "start") {
         setExisting(true);
         setMessage(
@@ -257,13 +277,13 @@ export function PrepareClient() {
           : "Your new preparation is in memory. Choose Save preparation on this device when you want to keep it.",
       );
     } catch {
-      if (operation !== request.current) return;
+      if (operation !== request.current || openedFrom !== entryVersion.current) return;
       setError(
         "The saved preparation could not be read. Existing saved data has been left untouched. Try again, or use a temporary preparation without saving.",
       );
       setTemporaryAvailable(true);
     } finally {
-      if (operation === request.current) setBusy(null);
+      if (operation === request.current && openedFrom === entryVersion.current) setBusy(null);
     }
   }
   function edit(next: PreparationDraft) {
@@ -371,7 +391,6 @@ export function PrepareClient() {
     setStep(recovered.step);
     setTemporary(recovered.temporary);
     setBusy(null);
-    setYear(recoveredDraft.year);
     setPurpose(recoveredDraft.purpose);
     store.current = recovered.store;
     setMessage(
@@ -411,6 +430,13 @@ export function PrepareClient() {
           </p>
         </details>
       </div>
+      {draft && draft.year !== requestedYear && year === requestedYear && (
+        <p className="mt-5 rounded-xl border border-line bg-surface p-4 text-sm leading-6 text-ink-soft" role="status">
+          Your {PREPARATION_PERIODS[draft.year].label} preparation is still open.
+          To prepare {PREPARATION_PERIODS[requestedYear].label}, use
+          “Choose another tax year” below. Keep or save your current work first.
+        </p>
+      )}
       {!draft ? (
         <div className="mt-6 rounded-2xl border border-line bg-surface p-5 sm:p-7">
           <h2 className="text-2xl font-semibold text-ink">

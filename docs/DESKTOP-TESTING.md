@@ -17,6 +17,49 @@ acceptance remains **NOT RUN**. Start each new build's
 does not transfer automatically. Earlier local checks are recorded in
 [Local app](LOCAL-APP.md#verification-and-next-work).
 
+## Preparation progress local checks — 30 September 2026
+
+The current source connects saved preparation to My tax year with an explicit year
+choice and exact-year resume links. These checks cover the local change after
+`b008869`; the four-platform installer campaign below still covers `af4a5ab`.
+No new Windows, Linux or Intel Mac installer has been tested for this overview.
+
+| Check | Observed result |
+|---|---|
+| Frontend | 1,202 tests across 120 files passed, including selected-year summary, privacy, stale reads, resume navigation, unsaved recovery and in-flight save cases |
+| Build and static contract | Frontend lint/typecheck, static export and desktop staging passed; all 35 contracted routes passed |
+| Desktop and scaffold tests | 79 desktop and 9 scaffold tests passed |
+| Isolated Chrome journey | Six checks passed: selected-year summaries, explicit reads/resume, context-correct actions, unchanged saved data, keyboard flow and missing/damaged drafts; zero page errors or external requests |
+| Layout | No horizontal overflow at 320, 375 or 1440 pixels, or 200% CSS zoom; browser toolbar zoom and assistive technology were not exercised |
+| Source Electron on Apple silicon | All eight existing runtime checks passed against the staged build, with zero renderer errors and network observer hits; app, observer and disposable profile cleanup passed |
+
+The source Electron walkthrough verifies offline navigation, native leave prompts,
+saved preparation across relaunch and complete workspace recovery. It is not an
+installer test or consumer acceptance. The report is
+`desktop/test-results/source-smoke.json`; results and synthetic screenshots are
+ignored by Git. The overview does not change tax rules, source-review dates or the
+manual M01–M15 statuses.
+
+The browser report is `desktop/test-results/preparation-progress-browser-smoke.json`.
+It records zero preparation requests or observed slot accesses during checklist
+hydration. The first explicit Show reads the selected 2025–26 slot once, with zero
+requests/accesses for 2026–27 and zero storage writes. Both years' resume links were
+then exercised with distinct saved answers, followed by missing/damaged draft cases.
+
+To repeat the new browser journey, serve `frontend/out` at
+`http://127.0.0.1:4318` after `npm run desktop:build`, then run:
+
+```sh
+node desktop/testing/preparation-progress-browser-smoke.cjs
+```
+
+It requires installed Google Chrome and the project's Playwright dependency. It
+creates isolated synthetic drafts and blocks non-local requests. The checklist
+already fetches the shared IndexedDB envelope during hydration; its read is not
+evidence that preparation progress was requested. Browser instrumentation tracks
+the selected preparation slot separately, and compares saved state before and after
+the overview/resume journey.
+
 ## Complete workspace recovery campaign — 30 September 2026
 
 [Run 36742667838](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838)

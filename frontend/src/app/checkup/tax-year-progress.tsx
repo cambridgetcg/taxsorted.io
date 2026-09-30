@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { withBooksActivity } from "@/lib/books-navigation";
+import { PREPARATION_PERIODS, PREPARATION_PURPOSES, PREPARATION_YEARS, type PreparationYear } from "@/lib/return-preparation";
 import { readTaxYearProgress, TAX_YEAR_PERIOD, type TaxYearProgress } from "@/lib/tax-year-progress";
 import type { AudienceId } from "@/lib/tax-services";
 
@@ -18,6 +19,18 @@ function activityFor(audience: SupportedAudience): Activity | null {
 
 function nextActions(snapshot: TaxYearProgress, audience: SupportedAudience): NextAction[] {
   const actions: NextAction[] = [];
+  const preparation = snapshot.preparation;
+  const yearLabel = PREPARATION_PERIODS[preparation.year].label;
+  const preparationAction: NextAction = {
+    id: "preparation",
+    title: preparation.status === "saved" ? `Resume your ${yearLabel} preparation`
+      : preparation.status === "missing" ? `Start your ${yearLabel} preparation`
+        : `Check your ${yearLabel} preparation`,
+    detail: preparation.status === "saved" ? "Open this tax year, then choose to resume its saved draft. Review your answers and evidence there."
+      : preparation.status === "missing" ? "Choose your purpose and start a draft for this year. Nothing is created until you choose to start."
+        : "Open this year to check the saved draft. This overview has left it untouched; it has not started a replacement.",
+    href: `/prepare?year=${preparation.year}`,
+  };
   const activity = activityFor(audience);
   const booksLink = (path: string) => withBooksActivity(path, activity ?? undefined);
   if (activity) {
@@ -37,6 +50,10 @@ function nextActions(snapshot: TaxYearProgress, audience: SupportedAudience): Ne
     }
   }
 
+  // Keep one action for each available tool, so business review items cannot
+  // push preparation or the general Passport out of the next-step choices.
+  const booksAction = actions[0];
+  actions.length = 0;
   const passport = snapshot.passport;
   if (passport.status === "missing") {
     actions.push({ id: "passport-start", title: "Start your Tax Passport", detail: "Note your income sources and what you still need to find out.", href: "/passport#passport-income-title" });
@@ -47,7 +64,7 @@ function nextActions(snapshot: TaxYearProgress, audience: SupportedAudience): Ne
     if (passport.evidence.missing > 0 || passport.evidence.notChecked > 0) actions.push({ id: "passport-evidence", title: "Review your evidence notes", detail: "Your saved labels include missing or unchecked evidence. No documents have been inspected here.", href: "/passport#passport-evidence-title" });
     if (passport.sourceQuestions.unanswered === 0 && passport.sourceQuestions.explicitlyUnknown === 0 && passport.evidence.missing === 0 && passport.evidence.notChecked === 0) actions.push({ id: "passport-open", title: "Review your Tax Passport", detail: "Check that its saved facts still fit your situation. They are not tied to this tax year.", href: "/passport" });
   }
-  return actions.slice(0, 3);
+  return [preparationAction, ...(booksAction ? [booksAction] : []), ...actions.slice(0, 1)];
 }
 
 function Counts({ values }: { values: readonly (readonly [string, number])[] }) {
@@ -57,6 +74,53 @@ function Counts({ values }: { values: readonly (readonly [string, number])[] }) 
       <dd className="mt-1 font-display text-3xl font-semibold text-ink">{value}</dd>
     </div>)}
   </dl>;
+}
+
+function PreparationProgress({ snapshot }: { snapshot: TaxYearProgress }) {
+  const preparation = snapshot.preparation;
+  const yearLabel = PREPARATION_PERIODS[preparation.year].label;
+  return <section aria-labelledby="tax-year-preparation-heading" className="mt-5 rounded-2xl border border-line bg-surface p-5">
+    <p className="section-label">Preparation · {yearLabel}</p>
+    <h3 id="tax-year-preparation-heading" className="mt-2 text-lg font-semibold text-ink">Your {yearLabel} preparation</h3>
+    {preparation.status === "saved" ? <>
+      <p className="mt-2 text-sm leading-6 text-ink-soft">Saved purpose: {PREPARATION_PURPOSES.find(purpose => purpose.id === preparation.purpose)?.label}. Last saved <time dateTime={preparation.savedAt}>{new Date(preparation.savedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</time>.</p>
+      <div className="mt-4 grid gap-5 md:grid-cols-2">
+        <div>
+          <h4 className="font-semibold text-ink">Circumstances for this year</h4>
+          <Counts values={[
+            ["Unanswered questions", preparation.circumstances.unanswered],
+            ["Answers marked “Not sure”", preparation.circumstances.explicitlyUnknown],
+          ]} />
+        </div>
+        <div>
+          <h4 className="font-semibold text-ink">Evidence for answers marked “Yes”</h4>
+          <Counts values={[
+            ["Evidence marked missing", preparation.evidence.missing],
+            ["Evidence collected", preparation.evidence.collected],
+            ["Evidence marked reviewed", preparation.evidence.reviewed],
+            ["Evidence unresolved", preparation.evidence.unresolved],
+          ]} />
+        </div>
+      </div>
+      <div className="mt-5 border-t border-line pt-4">
+        <h4 className="font-semibold text-ink">Employment records</h4>
+        {preparation.employment.active ? <>
+          <p className="mt-2 text-sm leading-6 text-ink-soft">{preparation.employment.total} employment {preparation.employment.total === 1 ? "record" : "records"} saved in this draft. P60 review covers the entered figures and your confirmation; it does not verify the document.</p>
+          <Counts values={[
+            ["P60 records reviewed", preparation.employment.reviewed],
+            ["Employment records unresolved", preparation.employment.unresolved],
+          ]} />
+          {preparation.employment.unsupported > 0 ? <p className="mt-3 text-sm leading-6 text-ink-soft">{preparation.employment.unsupported} P45 or other {preparation.employment.unsupported === 1 ? "record needs" : "records need"} a review route beyond the current P60 step.</p> : null}
+        </> : <p className="mt-2 text-sm leading-6 text-ink-soft">Employment is not marked “Yes” in this draft. {preparation.employment.inactive > 0 ? `${preparation.employment.inactive} saved employment ${preparation.employment.inactive === 1 ? "record is" : "records are"} inactive until you review that answer.` : "No employment review count is shown."}</p>}
+        {preparation.overlapWarnings > 0 ? <p className="mt-3 text-sm leading-6 text-ink-soft">{preparation.overlapWarnings} employment overlap {preparation.overlapWarnings === 1 ? "warning needs" : "warnings need"} checking before combining figures.</p> : null}
+      </div>
+      <p className="mt-4 text-sm leading-6 text-ink-soft">These are saved answers and review labels for {yearLabel}. Evidence counts are categories, not documents. Unanswered or uncertain circumstances may mean more evidence is needed. Counts do not establish that this preparation is complete.</p>
+    </> : <p className="mt-4 rounded-xl bg-paper p-3 text-sm leading-6 text-ink">
+      {preparation.status === "missing" ? `No saved preparation was found for ${yearLabel} on this device. You can start a draft for this year. This does not mean you have nothing to report.`
+        : preparation.status === "invalid" ? `The saved ${yearLabel} preparation could not be read. It is untouched; no answer, evidence or employment counts are shown.`
+          : `Preparation storage is unavailable for ${yearLabel}. No counts are shown. Try refreshing, or open this year to check the draft.`}
+    </p>}
+  </section>;
 }
 
 function BooksProgress({ snapshot, activity }: { snapshot: TaxYearProgress; activity: Activity }) {
@@ -113,6 +177,7 @@ export function TaxYearProgressPanel({ audience }: { audience: AudienceId }) {
 }
 
 function SavedProgress({ audience }: { audience: SupportedAudience }) {
+  const [year, setYear] = useState<PreparationYear>("2025-26");
   const [shown, setShown] = useState(false);
   const [reading, setReading] = useState(false);
   const [snapshot, setSnapshot] = useState<TaxYearProgress | null>(null);
@@ -137,7 +202,7 @@ function SavedProgress({ audience }: { audience: SupportedAudience }) {
     setSnapshot(null);
     setFailure(false);
     try {
-      const next = await readTaxYearProgress();
+      const next = await readTaxYearProgress(year);
       if (request.current === current) setSnapshot(next);
     } catch {
       if (request.current === current) setFailure(true);
@@ -146,9 +211,9 @@ function SavedProgress({ audience }: { audience: SupportedAudience }) {
     }
   }
 
-  function hide() {
+  function hide(returnFocus = true) {
     request.current += 1;
-    focusAfterHide.current = true;
+    focusAfterHide.current = returnFocus;
     setShown(false);
     setReading(false);
     setSnapshot(null);
@@ -159,18 +224,28 @@ function SavedProgress({ audience }: { audience: SupportedAudience }) {
   return <section aria-labelledby="tax-year-progress-heading" className="mt-9 rounded-[2rem] border border-line bg-paper p-5 sm:p-7">
     <p className="section-label">On this device</p>
     <h2 id="tax-year-progress-heading" className="mt-3 font-display text-2xl font-semibold text-ink">Your saved progress</h2>
-    <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-soft">Show a read-only overview of Books and Tax Passport saved on this device. No information is uploaded, copied between tools or saved by this overview. Your choice lasts for this visit; you can hide it at any time.</p>
-    <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-soft">Books counts cover {TAX_YEAR_PERIOD.label} only. Passport facts are not year-specific. {audience === "individuals" ? "For individuals, this view shows Passport progress; business and property counts appear under those situations." : "You will see counts for your selected activity alongside your saved Passport."}</p>
+    <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-soft">Show a read-only overview of your saved preparation, Books and Tax Passport on this device. No information is uploaded, copied between tools or saved by this overview. Your choice lasts for this visit; you can hide it at any time.</p>
+    <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-soft">Choose the year for preparation below. Books counts cover {TAX_YEAR_PERIOD.label} only. Passport facts and your personal checklist are not year-specific. {audience === "individuals" ? "Business and property counts appear under those situations." : "Books counts use your selected activity."}</p>
+    <div className="mt-5 max-w-sm">
+      <label htmlFor="progress-preparation-year" className="block text-sm font-semibold text-ink">Preparation tax year</label>
+      <select id="progress-preparation-year" aria-describedby="progress-year-help" value={year} onChange={event => {
+        setYear(event.target.value as PreparationYear);
+        hide(false);
+      }} className="mt-2 min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+        {PREPARATION_YEARS.map(value => <option key={value} value={value}>{PREPARATION_PERIODS[value].label}</option>)}
+      </select>
+      <p id="progress-year-help" className="mt-2 text-sm leading-6 text-ink-soft">Changing the year hides this overview. Choose “Show my saved progress” to read the selected year.</p>
+    </div>
     <div className="mt-5 flex flex-wrap gap-3">
       {!shown ? <Button ref={showButton} type="button" onClick={() => void refresh()}>Show my saved progress</Button> : <>
         <Button type="button" variant="outline" disabled={reading} onClick={() => void refresh()}>Refresh saved progress</Button>
-        <Button type="button" variant="ghost" onClick={hide}>Hide saved progress</Button>
+        <Button type="button" variant="ghost" onClick={() => hide()}>Hide saved progress</Button>
       </>}
     </div>
     {reading ? <p role="status" className="mt-4 text-sm text-ink-soft">Reading saved progress on this device…</p> : null}
     {failure ? <p ref={status} tabIndex={-1} role="status" className="mt-4 rounded-xl border border-line bg-surface p-4 text-sm text-ink">Saved progress could not be read. Nothing has been changed. Try refreshing, or hide this overview.</p> : null}
     {snapshot ? <>
-      <p ref={status} tabIndex={-1} role="status" className="mt-4 text-sm text-ink-soft">Snapshot read {new Date(snapshot.readAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}. Refresh to see later saved changes.</p>
+      <p ref={status} tabIndex={-1} role="status" className="mt-4 text-sm text-ink-soft">Snapshot read {new Date(snapshot.readAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}. Preparation year: {PREPARATION_PERIODS[snapshot.preparation.year].label}. Refresh to see later saved changes.</p>
       <section aria-labelledby="tax-year-next-actions" className="mt-6">
         <h3 id="tax-year-next-actions" className="text-lg font-semibold text-ink">Choose a next step</h3>
         <ol className="mt-3 grid gap-3 md:grid-cols-3">
@@ -183,6 +258,7 @@ function SavedProgress({ audience }: { audience: SupportedAudience }) {
           </li>)}
         </ol>
       </section>
+      <PreparationProgress snapshot={snapshot} />
       <div className={`mt-5 grid gap-4 ${activity ? "lg:grid-cols-2" : ""}`}>
         {activity ? <BooksProgress snapshot={snapshot} activity={activity} /> : null}
         <PassportProgress snapshot={snapshot} />

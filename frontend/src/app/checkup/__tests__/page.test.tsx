@@ -28,6 +28,7 @@ beforeEach(() => {
     readAt: "2026-09-30T10:00:00.000Z",
     books: { status: "missing" },
     passport: { status: "missing" },
+    preparation: { year: "2025-26", status: "missing" },
   });
 });
 
@@ -264,7 +265,7 @@ describe("My tax year and personal checklist", () => {
     navigation.query = "for=landlords";
     render(<CheckupPage />);
     await screen.findByRole("heading", { name: "Landlords checklist" });
-    await waitFor(() => expect(screen.getByRole("combobox")).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Who are you sorting tax for?" })).toBeEnabled());
     window.localStorage.setItem(CHECKLIST_STORAGE_KEY, savedSoleTrader());
     fireEvent.click(screen.getAllByRole("checkbox")[0]);
     fireEvent.click(screen.getByRole("button", { name: "Save checklist" }));
