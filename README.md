@@ -7,13 +7,16 @@ Choose a situation at `/services`, resume work in **My tax year** at `/checkup`,
 and open the existing checks, money records, preparation and handover tools.
 Choose a preparation year and **Show my saved progress** to read its saved draft
 status alongside local Books and Passport progress for this visit. Resume links
-preselect that year and wait for an explicit Start or Resume. Books counts cover
+preselect that year and wait for an explicit Start or Resume. Resuming saved work
+from the overview opens its tasks and questions. Books counts cover
 2026–27; Passport and personal checklist reminders remain
 general. The overview changes no records and does not establish filing readiness.
 Advisers and organisations have separate pages explaining their current scope.
 **Prepare my tax return** at `/prepare` keeps separate 2025–26 and 2026–27
 drafts. Choose a purpose, map your circumstances, collect evidence and check P60
-employment figures before previewing a preparation summary. Saving is explicit
+employment figures before previewing a preparation summary. Review turns missing
+answers and evidence into tasks with reasons, places to look and questions to ask.
+Tasks update from the draft and are included in the summary. Saving is explicit
 and local; this does not calculate or file a complete return.
 See [the current roadmap and service map](docs/SERVICE-REBUILD.md) for reviewed
 progress, module ownership, the next development slice and release dependencies.

@@ -26,10 +26,10 @@ function nextActions(snapshot: TaxYearProgress, audience: SupportedAudience): Ne
     title: preparation.status === "saved" ? `Resume your ${yearLabel} preparation`
       : preparation.status === "missing" ? `Start your ${yearLabel} preparation`
         : `Check your ${yearLabel} preparation`,
-    detail: preparation.status === "saved" ? "Open this tax year, then choose to resume its saved draft. Review your answers and evidence there."
+    detail: preparation.status === "saved" ? `${preparation.circumstances.unanswered} unanswered questions; ${preparation.circumstances.explicitlyUnknown} marked “Not sure”. Resume to see what to find, where to look and questions to ask.`
       : preparation.status === "missing" ? "Choose your purpose and start a draft for this year. Nothing is created until you choose to start."
         : "Open this year to check the saved draft. This overview has left it untouched; it has not started a replacement.",
-    href: `/prepare?year=${preparation.year}`,
+    href: `/prepare?year=${preparation.year}${preparation.status === "saved" ? "&view=tasks" : ""}`,
   };
   const activity = activityFor(audience);
   const booksLink = (path: string) => withBooksActivity(path, activity ?? undefined);

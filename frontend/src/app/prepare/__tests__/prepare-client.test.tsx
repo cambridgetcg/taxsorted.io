@@ -149,6 +149,117 @@ afterEach(() => {
 });
 
 describe("guided return preparation", () => {
+  it.each(["2025-26", "2026-27"] as const)("opens %s tasks only after an explicit saved-draft resume", async (year) => {
+    io.search = `year=${year}&view=tasks`;
+    io.values.set(preparationStorageKey(year), savedDraft(year));
+    render(<PreparePage />);
+    expect(io.get).not.toHaveBeenCalled();
+    expect(screen.queryByRole("region", { name: "Your tasks and questions" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "3. Review" });
+    expect(screen.getByRole("region", { name: "Your tasks and questions" })).toHaveTextContent(year.replace("-", "–"));
+    expect(io.get).toHaveBeenCalledExactlyOnceWith(preparationStorageKey(year));
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("starts an empty preparation with circumstances even through a tasks link", async () => {
+    io.search = "year=2026-27&view=tasks";
+    render(<PreparePage />);
+    await start();
+    expect(screen.queryByRole("region", { name: "Your tasks and questions" })).not.toBeInTheDocument();
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it.each(["view=other", "view=tasks&view=tasks", "view=tasks&view=other"])("ignores unsupported or ambiguous task views: %s", async (query) => {
+    io.search = query;
+    io.values.set(preparationStorageKey("2025-26"), savedDraft());
+    render(<PreparePage />);
+    expect(io.get).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "1. Circumstances" });
+    expect(screen.queryByRole("region", { name: "Your tasks and questions" })).not.toBeInTheDocument();
+  });
+
+  it("fences a pending resume when the requested view changes", async () => {
+    const pending = deferred<PreparationDraft>();
+    io.get.mockReturnValueOnce(pending.promise);
+    io.values.set(preparationStorageKey("2025-26"), savedDraft());
+    const view = render(<PreparePage />);
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    io.search = "view=tasks";
+    view.rerender(<PreparePage />);
+    await act(async () => { pending.resolve(savedDraft()); });
+    expect(screen.queryByRole("heading", { name: "1. Circumstances" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Resume saved preparation" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "3. Review" });
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("takes an unanswered task to its selected radio without changing or saving the answer", async () => {
+    render(<PrepareClient />);
+    await start();
+    fireEvent.click(screen.getByRole("button", { name: "Step 3 Review" }));
+    const task = screen.getByRole("heading", { name: "Answer: Employment" }).closest("li")!;
+    fireEvent.click(within(task).getByRole("button", { name: "Review this answer" }));
+    const unchanged = within(screen.getByRole("group", { name: "Employment" })).getByRole("radio", { name: "Unanswered" });
+    await waitFor(() => expect(unchanged).toHaveFocus());
+    expect(unchanged).toBeChecked();
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("takes an evidence task to the exact field and updates the live plan without an implicit save", async () => {
+    render(<PrepareClient />);
+    await start();
+    answer("Property income", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: "Step 3 Review" }));
+    const task = screen.getByRole("heading", { name: "Gather records: Property income" }).closest("li")!;
+    fireEvent.click(within(task).getByRole("button", { name: "Open this evidence" }));
+    const select = within(screen.getByRole("region", { name: "Property income" })).getByRole("combobox", { name: "Evidence status" });
+    await waitFor(() => expect(select).toHaveFocus());
+    expect(select).toHaveValue("missing");
+    fireEvent.change(select, { target: { value: "reviewed" } });
+    fireEvent.click(screen.getByRole("button", { name: "Step 3 Review" }));
+    expect(screen.queryByRole("heading", { name: "Gather records: Property income" })).not.toBeInTheDocument();
+    expect(io.update).not.toHaveBeenCalled();
+  });
+
+  it("keeps uncertainty open despite reviewed evidence and includes questions in the deliberate summary", async () => {
+    const draft = savedDraft();
+    draft.circumstances.property = "unknown";
+    draft.evidence.property = "reviewed";
+    draft.circumstances.employment = "yes";
+    draft.employmentSources = [{ ...createEmploymentSource(), employerName: "Private employer", sourceLabel: "Private folder", documentType: "P45", pay: "12345.67", notes: "Private note" }];
+    io.values.set(preparationStorageKey("2025-26"), draft);
+    io.search = "view=tasks";
+    render(<PreparePage />);
+    fireEvent.click(screen.getByRole("button", { name: "Resume saved preparation" }));
+    await screen.findByRole("heading", { name: "3. Review" });
+    const region = screen.getByRole("region", { name: "Your tasks and questions" });
+    expect(region).not.toHaveTextContent("Private employer");
+    expect(region).not.toHaveTextContent("Private folder");
+    const task = screen.getByRole("heading", { name: "Clarify: Property income" }).closest("li")!;
+    fireEvent.click(within(task).getByRole("button", { name: "Review this answer" }));
+    const unsure = within(screen.getByRole("group", { name: "Property income" })).getByRole("radio", { name: "Not sure" });
+    await waitFor(() => expect(unsure).toHaveFocus());
+    expect(unsure).toBeChecked();
+    answer("Property income", "No");
+    fireEvent.click(screen.getByRole("button", { name: "Step 3 Review" }));
+    expect(screen.queryByRole("heading", { name: "Clarify: Property income" })).not.toBeInTheDocument();
+    const employmentTask = screen.getByRole("heading", { name: "Follow up P45 or other employment documents" }).closest("li")!;
+    fireEvent.click(within(employmentTask).getByRole("button", { name: "Open this evidence" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Your employment documents" })).toHaveFocus());
+    fireEvent.click(screen.getByRole("button", { name: "Step 3 Review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Preview summary" }));
+    const preview = screen.getByLabelText("Preparation summary preview");
+    expect(preview).toHaveTextContent("Preparation actions and questions");
+    expect(preview).toHaveTextContent("Question for HMRC or an adviser");
+    expect(preview).not.toHaveTextContent("12345.67");
+    expect(preview).not.toHaveTextContent("Private note");
+    expect(io.update).not.toHaveBeenCalled();
+    expect(io.values.get(preparationStorageKey("2025-26"))).toEqual(draft);
+  });
+
   it.each(["2025-26", "2026-27"] as const)("preselects the linked %s year without reading until Resume", async (year) => {
     io.search = `year=${year}`;
     io.values.set(preparationStorageKey(year), savedDraft(year));

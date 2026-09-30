@@ -14,6 +14,10 @@ const origin = 'http://127.0.0.1:4318';
 const results = path.resolve(__dirname, '../test-results');
 const preparationKey = year => `taxsorted-return-preparation-v1:${year}`;
 const label = year => year.replace('-', '–');
+const syntheticEmployment = {
+  name: 'Synthetic browser fixture', pay: '12345.67', tax: '2345.67',
+  notes: 'Synthetic private preparation note',
+};
 
 // Installed before app JavaScript. The checklist legitimately fetches the
 // canonical envelope on mount. Counting that fetch alone cannot establish
@@ -135,6 +139,41 @@ async function destination(link, expected) {
   assert.equal(actual.hash, target.hash);
 }
 
+async function focused(locator) {
+  await locator.waitFor();
+  await locator.page().waitForFunction(element => document.activeElement === element, await locator.elementHandle());
+}
+
+async function checkLayout(page, report, surface) {
+  const prefix = surface === 'tasks' ? 'preparation-tasks' : 'preparation-progress';
+  for (const width of [1440, 375, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await settled(page);
+    const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    report.viewportChecks.push({ surface, width, height: 1000, zoomPercent: 100, horizontalOverflow });
+    assert.equal(horizontalOverflow, false);
+    if (width !== 320) {
+      const filename = `${prefix}-${width}.png`;
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await settled(page);
+      await page.screenshot({ path: path.join(results, filename), fullPage: true });
+      report.screenshots.push(filename);
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+  await settled(page);
+  const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  report.viewportChecks.push({ surface, width: 1440, height: 1000, zoomPercent: 200, method: 'CSS zoom; browser toolbar zoom and assistive technology not exercised', horizontalOverflow });
+  assert.equal(horizontalOverflow, false);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await settled(page);
+  const filename = `${prefix}-200-percent.png`;
+  await page.screenshot({ path: path.join(results, filename), fullPage: true });
+  report.screenshots.push(filename);
+  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+}
+
 async function savePreparation(page, year, step) {
   step(`open synthetic ${year} preparation`);
   await page.goto(`${origin}/prepare/?year=${year}`);
@@ -154,7 +193,10 @@ async function savePreparation(page, year, step) {
     await page.getByRole('button', { name: 'Add an employment', exact: true }).click();
     const employment = page.getByRole('region', { name: 'Employment 1', exact: true });
     step(`name synthetic ${year} employment record`);
-    await employment.getByLabel('Employer or job label', { exact: true }).fill('Synthetic browser fixture');
+    await employment.getByLabel('Employer or job label', { exact: true }).fill(syntheticEmployment.name);
+    await employment.locator('input[id$="-pay"]').fill(syntheticEmployment.pay);
+    await employment.locator('input[id$="-tax"]').fill(syntheticEmployment.tax);
+    await employment.locator('textarea[id$="-notes"]').fill(syntheticEmployment.notes);
     step(`choose synthetic ${year} document type`);
     await employment.locator('select[id$="-type"]').selectOption('P45');
     step(`choose synthetic ${year} document year`);
@@ -251,7 +293,7 @@ async function run() {
     stage = 'verify context-correct next-action destinations';
     const actions = page.getByRole('region', { name: 'Choose a next step', exact: true }).getByRole('link');
     assert.equal(await actions.count(), 3);
-    await destination(actions.nth(0), '/prepare?year=2025-26');
+    await destination(actions.nth(0), '/prepare?year=2025-26&view=tasks');
     await destination(actions.nth(1), '/books/workspace?activity=uk-property');
     await destination(actions.nth(2), '/passport#passport-income-title');
     stage = 'verify unchanged checklist and saved workspace after progress read';
@@ -259,31 +301,7 @@ async function run() {
     assert.deepEqual(await savedState(setup), baseline);
 
     stage = 'verify responsive layout and enlarged rendering';
-    for (const width of [1440, 375, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
-      await settled(page);
-      const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-      report.viewportChecks.push({ width, height: 1000, zoomPercent: 100, horizontalOverflow });
-      assert.equal(horizontalOverflow, false);
-      if (width !== 320) {
-        const filename = `preparation-progress-${width}.png`;
-        await page.evaluate(() => window.scrollTo(0, 0));
-        await settled(page);
-        await page.screenshot({ path: path.join(results, filename), fullPage: true });
-        report.screenshots.push(filename);
-      }
-    }
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
-    await settled(page);
-    const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-    report.viewportChecks.push({ width: 1440, height: 1000, zoomPercent: 200, method: 'CSS zoom; browser toolbar zoom and assistive technology not exercised', horizontalOverflow: zoomOverflow });
-    assert.equal(zoomOverflow, false);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await settled(page);
-    await page.screenshot({ path: path.join(results, 'preparation-progress-200-percent.png'), fullPage: true });
-    report.screenshots.push('preparation-progress-200-percent.png');
-    await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+    await checkLayout(page, report, 'overview');
 
     stage = 'switch preparation year without another read or loss of selector focus';
     const selector = page.getByRole('combobox', { name: 'Preparation tax year', exact: true });
@@ -305,7 +323,7 @@ async function run() {
     await count(second, 'Evidence marked reviewed', 1);
     await count(second, 'Evidence unresolved', 1);
     await second.getByText(/Employment is not marked “Yes”/).waitFor();
-    await destination(page.getByRole('link', { name: 'Resume your 2026–27 preparation', exact: true }), '/prepare?year=2026-27');
+    await destination(page.getByRole('link', { name: 'Resume your 2026–27 preparation', exact: true }), '/prepare?year=2026-27&view=tasks');
     assert.ok((await readCounters(page)).preparationSlotAccesses['2026-27'] > 0);
     assert.deepEqual(await savedState(setup), baseline);
     report.checks.push('Explicit Show extracted only the selected year, displayed distinct saved counts, retained three context-correct actions and preserved all saved data');
@@ -320,12 +338,15 @@ async function run() {
       }
       const before = await readCounters(page);
       await page.getByRole('link', { name: `Resume your ${label(year)} preparation`, exact: true }).click();
-      await page.waitForURL(url => url.pathname.replace(/\/$/, '') === '/prepare' && url.searchParams.get('year') === year);
+      await page.waitForURL(url => url.pathname.replace(/\/$/, '') === '/prepare' && url.searchParams.get('year') === year && url.searchParams.get('view') === 'tasks');
       await page.locator('#prepare-year').waitFor();
       assert.equal(await page.locator('#prepare-year').inputValue(), year);
       await settled(page);
       assert.deepEqual(await readCounters(page), before);
       await page.getByRole('button', { name: 'Resume saved preparation', exact: true }).click();
+      await page.getByRole('heading', { name: '3. Review', exact: true }).waitFor();
+      await page.getByRole('region', { name: 'Your tasks and questions', exact: true }).waitFor();
+      await page.getByRole('navigation', { name: 'Preparation steps' }).getByRole('button', { name: 'Step 1 Circumstances', exact: true }).click();
       await page.getByRole('heading', { name: '1. Circumstances', exact: true }).waitFor();
       assert.equal(await page.getByRole('group', { name: 'Employment', exact: true }).getByRole('radio', { name: year === '2025-26' ? 'Yes' : 'No', exact: true }).isChecked(), true);
       const resumed = await readCounters(page);
@@ -333,7 +354,72 @@ async function run() {
       assert.ok(resumed.preparationSlotAccesses[year] > before.preparationSlotAccesses[year]);
       assert.deepEqual(await savedState(setup), baseline);
     }
-    report.checks.push('Both resume links preselected the correct year without reading it; explicit Resume loaded the matching saved answers and changed no saved data');
+    report.checks.push('Both task links preselected the correct year without reading it; explicit Resume opened Review with tasks and the matching saved answers, changing no saved data');
+
+    stage = 'inspect first tasks and reveal remaining questions with keyboard focus';
+    const reviewStep = page.getByRole('navigation', { name: 'Preparation steps' }).getByRole('button', { name: 'Step 3 Review', exact: true });
+    await reviewStep.click();
+    const tasks = page.getByRole('region', { name: 'Your tasks and questions', exact: true });
+    await tasks.waitFor();
+    assert.equal(await tasks.getByRole('listitem').count(), 3);
+    const expand = tasks.getByRole('button', { name: /^Show all \d+ tasks and questions$/ });
+    await expand.focus();
+    await page.keyboard.press('Enter');
+    assert.ok(await tasks.getByRole('listitem').count() > 3);
+    await focused(tasks.getByRole('listitem').nth(3).getByRole('heading'));
+    const taskText = await tasks.textContent();
+    for (const value of Object.values(syntheticEmployment)) assert.equal(taskText.includes(value), false);
+    await tasks.getByRole('button', { name: 'Show first 3 tasks and questions', exact: true }).click();
+    await focused(tasks.getByRole('button', { name: /^Show all \d+ tasks and questions$/ }));
+    stage = 'verify task guidance layout at narrow widths and enlarged rendering';
+    await checkLayout(page, report, 'tasks');
+    report.checks.push('Review shows three concrete tasks initially; expanding reveals remaining questions with keyboard focus and no employment labels, figures or notes in the generated task text');
+
+    stage = 'follow an uncertain property task to its selected answer';
+    const task = title => tasks.getByRole('listitem').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
+    await tasks.getByRole('button', { name: /^Show all \d+ tasks and questions$/ }).click();
+    await task('Clarify: Property income').getByRole('button', { name: 'Review this answer', exact: true }).click();
+    const property = page.getByRole('group', { name: 'Property income', exact: true });
+    await focused(property.getByRole('radio', { name: 'Not sure', exact: true }));
+    await property.getByRole('radio', { name: 'No', exact: true }).check();
+    await reviewStep.click();
+    await tasks.waitFor();
+    const remaining = tasks.getByRole('button', { name: /^Show all \d+ tasks and questions$/ });
+    if (await remaining.count()) await remaining.click();
+    assert.equal(await task('Clarify: Property income').count(), 0);
+    assert.deepEqual(await savedState(setup), baseline);
+    assert.equal((await readCounters(page)).indexedDbWrites, 0);
+    assert.equal((await readCounters(page)).localStorageWrites, 0);
+    report.checks.push('A property question focused its selected Not sure answer; changing it to No removed the corresponding on-page task without saving or changing the persisted workspace');
+
+    stage = 'follow unsupported employment task to the employment heading';
+    await task('Follow up P45 or other employment documents').getByRole('button', { name: 'Open this evidence', exact: true }).click();
+    await focused(page.getByRole('heading', { name: 'Your employment documents', exact: true }));
+    await reviewStep.click();
+    stage = 'preview fixed task questions with the correct year and optional figures excluded';
+    assert.equal(await page.getByRole('checkbox', { name: 'Include employment figures', exact: true }).isChecked(), false);
+    assert.equal(await page.getByRole('checkbox', { name: 'Include my employment notes', exact: true }).isChecked(), false);
+    await page.getByRole('button', { name: 'Preview summary', exact: true }).click();
+    const preview = page.getByLabel('Preparation summary preview', { exact: true });
+    await preview.waitFor();
+    const summary = await preview.textContent();
+    assert.ok(summary.includes('Preparation actions and questions'));
+    assert.ok(summary.includes('Tax year: 2025–26'));
+    assert.ok(summary.includes('Question for HMRC or an adviser:'));
+    assert.ok(summary.includes('How should I use my P45 or other employment documents'));
+    assert.equal(summary.includes(syntheticEmployment.pay), false);
+    assert.equal(summary.includes(syntheticEmployment.tax), false);
+    assert.equal(summary.includes(syntheticEmployment.notes), false);
+    assert.equal(await page.getByRole('button', { name: 'Download plain-text summary', exact: true }).isDisabled(), true);
+    assert.deepEqual(await savedState(setup), baseline);
+    report.checks.push('The P45 follow-up focused employment evidence; the deliberate summary preview included current tasks, adviser questions and the selected year while omitting optional figures and notes, with download still awaiting acknowledgement');
+
+    stage = 'discard only unsaved task-answer edits before choosing another year';
+    await page.getByRole('button', { name: 'Choose another tax year', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard unsaved changes', exact: true }).click();
+    await page.locator('#prepare-year').waitFor();
+    assert.deepEqual(await savedState(setup), baseline);
+    report.checks.push('Explicit discard returned to the year chooser and left the original saved preparations and checklist unchanged');
 
     for (const missing of [true, false]) {
       stage = `check ${missing ? 'missing' : 'damaged'} preparation without fabricated counts or replacement`;

@@ -96,7 +96,7 @@ describe("My tax year saved progress", () => {
     const actions = within(screen.getByRole("region", { name: "Choose a next step" })).getAllByRole("link");
     expect(actions).toHaveLength(3);
     expect(actions[0]).toHaveAccessibleName("Resume your 2025–26 preparation");
-    expect(actions[0]).toHaveAttribute("href", "/prepare?year=2025-26");
+    expect(actions[0]).toHaveAttribute("href", "/prepare?year=2025-26&view=tasks");
     expect(actions[1]).toHaveAccessibleName("Check your money records");
     expect(actions[1]).toHaveAttribute("href", "/books/workspace/money?activity=uk-property#money-inbox-heading");
     expect(actions[2]).toHaveAttribute("href", "/passport#passport-income-title");
@@ -112,7 +112,7 @@ describe("My tax year saved progress", () => {
     expect(screen.getByRole("region", { name: "Your income sources and evidence notes" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Your 2025–26 preparation" })).toBeInTheDocument();
     const actions = within(screen.getByRole("region", { name: "Choose a next step" })).getAllByRole("link");
-    expect(actions.map(link => link.getAttribute("href"))).toEqual(["/prepare?year=2025-26", "/passport#passport-income-title"]);
+    expect(actions.map(link => link.getAttribute("href"))).toEqual(["/prepare?year=2025-26&view=tasks", "/passport#passport-income-title"]);
   });
 
   it.each(["2025-26", "2026-27"] as const)("reads and links the selected %s preparation, while Books retains its own period", async year => {
@@ -139,7 +139,7 @@ describe("My tax year saved progress", () => {
     expect(within(preparation).getByText(/1 employment overlap warning needs checking/)).toBeInTheDocument();
     expect(within(preparation).getByText(/Evidence counts are categories, not documents/)).toBeInTheDocument();
     expect(within(preparation).getByText(/Last saved/).querySelector("time")).toHaveAttribute("datetime", "2026-09-29T09:00:00.000Z");
-    expect(screen.getByRole("link", { name: `Resume your ${PREPARATION_PERIODS[year].label} preparation` })).toHaveAttribute("href", `/prepare?year=${year}`);
+    expect(screen.getByRole("link", { name: `Resume your ${PREPARATION_PERIODS[year].label} preparation` })).toHaveAttribute("href", `/prepare?year=${year}&view=tasks`);
     expect(within(screen.getByRole("region", { name: "Your sole-trader records" })).getByText("Books · 2026–27")).toBeInTheDocument();
     expect(screen.getByText(/Passport facts and your personal checklist are not year-specific/)).toBeInTheDocument();
   });

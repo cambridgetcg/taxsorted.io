@@ -21,7 +21,14 @@ import {
   type PreparationYear,
 } from "@/lib/return-preparation";
 import { createReturnPreparationStore } from "@/lib/return-preparation-store";
+import {
+  PREPARATION_QUESTIONS as circumstanceQuestions,
+  PREPARATION_EVIDENCE_HELP as evidenceHelp,
+  formatPreparationActionPlan,
+  type PreparationAction,
+} from "@/lib/preparation-action-plan";
 import { EmploymentCard, fieldClass, helpLinkClass } from "./employment-card";
+import { PreparationActionPlan } from "./preparation-action-plan";
 
 type Step = "circumstances" | "evidence" | "review";
 type UnsavedWork = {
@@ -52,63 +59,9 @@ const evidenceLabels: Record<EvidenceStatus, string> = {
   unresolved: "Needs a follow-up",
 };
 const recordsUrl = "https://www.gov.uk/keeping-your-pay-tax-records";
-const circumstanceQuestions: Record<CircumstanceId, string> = {
-  employment: "Did you work for an employer during this tax year?",
-  trading: "Did you earn money from work you did for yourself?",
-  property: "Did you receive rent from property or land?",
-  pension: "Did you receive pension income or make pension contributions?",
-  "savings-investments":
-    "Did you receive interest or dividends, or sell investments?",
-  "other-income": "Did you have other income or gains, including overseas?",
-  "life-changes":
-    "Did your circumstances change, such as moving or a change in your family?",
-  "hmrc-letter":
-    "Did HMRC send you a letter or notice asking you to take action?",
-};
 function yearHasEnded(year: PreparationYear) {
   return new Date().toISOString().slice(0, 10) > PREPARATION_PERIODS[year].end;
 }
-const evidenceHelp: Record<
-  Exclude<CircumstanceId, "employment">,
-  { why: string; where: string; href?: string }
-> = {
-  trading: {
-    why: "Business income and costs need their own supporting records; this journey does not calculate a profit.",
-    where:
-      "Look in invoices, receipts, bank statements and your accounting records.",
-    href: "https://www.gov.uk/self-employed-records/what-records-to-keep",
-  },
-  property: {
-    why: "Rental income and costs need checking separately from employment.",
-    where:
-      "Look in rent statements, letting-agent statements, invoices and your property records.",
-  },
-  pension: {
-    why: "Pension income and pension contributions are different facts to check.",
-    where:
-      "Look for pension-provider statements, pension P60s and contribution records.",
-  },
-  "savings-investments": {
-    why: "Interest, dividends and investment disposals can need different records. This journey does not work out their tax treatment.",
-    where:
-      "Look in bank interest summaries, dividend vouchers and investment-provider statements.",
-  },
-  "other-income": {
-    why: "Other or overseas income and gains need a separate review. Marking documents reviewed here does not resolve those tax questions.",
-    where:
-      "Gather the relevant statements and keep a question list for HMRC or an adviser.",
-  },
-  "life-changes": {
-    why: "A change in your circumstances can affect which questions you need to answer.",
-    where:
-      "Keep relevant dates and supporting correspondence, such as moving or a change in family circumstances. Do not enter identifiers here.",
-  },
-  "hmrc-letter": {
-    why: "An HMRC letter may ask for an action or give a deadline that this journey cannot assess.",
-    where:
-      "Find the original letter or message and check its tax year, requested action and deadline. Do not copy reference numbers here.",
-  },
-};
 
 function downloadSummary(text: string, year: PreparationYear) {
   const url = URL.createObjectURL(
@@ -126,9 +79,10 @@ function downloadSummary(text: string, year: PreparationYear) {
   }
 }
 
-export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: PreparationYear }) {
+export function PrepareClient({ requestedYear = "2025-26", requestedView }: { requestedYear?: PreparationYear; requestedView?: "tasks" }) {
   const [year, setYear] = useState<PreparationYear>(requestedYear);
-  const [lastRequestedYear, setLastRequestedYear] = useState(requestedYear);
+  const entry = `${requestedYear}:${requestedView ?? "circumstances"}`;
+  const [lastEntry, setLastEntry] = useState(entry);
   const [purpose, setPurpose] = useState<PreparationPurpose>("prepare-return");
   const [draft, setDraft] = useState<PreparationDraft | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -152,6 +106,8 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
   );
   const request = useRef(0);
   const heading = useRef<HTMLHeadingElement>(null);
+  const preparation = useRef<HTMLElement>(null);
+  const actionTarget = useRef<PreparationAction["target"] | null>(null);
   const feedback = useRef<HTMLParagraphElement>(null);
   const dirty = draft !== null && JSON.stringify(draft) !== saved;
   const hasDraft = draft !== null;
@@ -159,8 +115,8 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
   const entryVersion = useRef(0);
 
   // URL changes select the next draft, never replace work already open here.
-  if (lastRequestedYear !== requestedYear) {
-    setLastRequestedYear(requestedYear);
+  if (lastEntry !== entry) {
+    setLastEntry(entry);
     setYear(requestedYear);
     if (!draft && !hasUnsavedWork) {
       setBusy(null);
@@ -173,7 +129,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
   useEffect(() => {
     // Fence only opening reads: a URL change must not interrupt an explicit save.
     entryVersion.current += 1;
-  }, [requestedYear]);
+  }, [entry]);
 
   useEffect(() => {
     latestWork.current =
@@ -188,7 +144,23 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
     [],
   );
   useEffect(() => {
-    if (hasDraft) heading.current?.focus();
+    if (!hasDraft) return;
+    const target = actionTarget.current;
+    actionTarget.current = null;
+    if (target) {
+      const container = preparation.current;
+      const field = target.step === "circumstances"
+        ? container?.querySelector<HTMLInputElement>(`input[name="circumstance-${target.circumstance}"]:checked`)
+        : target.circumstance === "employment"
+          ? container?.querySelector<HTMLElement>("#preparation-employment-title")
+          : container?.querySelector<HTMLSelectElement>(`#evidence-${target.circumstance}-status`);
+      if (field) {
+        field.focus({ preventScroll: true });
+        (target.step === "circumstances" ? field.closest("fieldset") : field.closest("section"))?.scrollIntoView?.({ block: "start" });
+        return;
+      }
+    }
+    heading.current?.focus();
   }, [step, hasDraft]);
   useEffect(() => {
     if (error) feedback.current?.focus();
@@ -269,7 +241,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
       setDraft(loaded ?? createPreparationDraft(year, purpose));
       setSaved(loaded ? JSON.stringify(loaded) : null);
       setTemporary(false);
-      setStep("circumstances");
+      setStep(mode === "resume" && requestedView === "tasks" ? "review" : "circumstances");
       setLeaving(false);
       setMessage(
         loaded
@@ -358,8 +330,9 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
     setError(null);
     setDownloadAcknowledged(false);
     try {
+      const asOfDate = new Date().toISOString().slice(0, 10);
       setPreview(
-        exportPreparationSummary(draft, { includeFigures, includeNotes }),
+        `${exportPreparationSummary(draft, { includeFigures, includeNotes }, asOfDate)}\n\n${formatPreparationActionPlan(draft, asOfDate)}`,
       );
     } catch {
       setPreview(null);
@@ -403,7 +376,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
   const currentIndex = steps.findIndex((item) => item.id === step);
 
   return (
-    <section className="mt-9 min-w-0" aria-label="Tax return preparation">
+    <section ref={preparation} className="mt-9 min-w-0" aria-label="Tax return preparation">
       <div className="rounded-2xl border border-accent/25 bg-accent-soft p-5 text-sm leading-6 text-ink-soft">
         <p className="font-semibold text-ink">
           Your device, your choice to save
@@ -749,7 +722,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
                     <fieldset
                       key={item.id}
                       aria-describedby={`circumstance-${item.id}-question`}
-                      className="min-w-0 rounded-2xl border border-line bg-surface p-4 sm:p-5"
+                      className="min-w-0 scroll-mt-28 rounded-2xl border border-line bg-surface p-4 sm:p-5"
                     >
                       <legend className="px-1 font-semibold text-ink">
                         {item.label}
@@ -806,10 +779,11 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
                   draft.circumstances.employment === "unknown") && (
                   <section
                     aria-labelledby="preparation-employment-title"
-                    className="mt-6"
+                    className="mt-6 scroll-mt-28"
                   >
                     <h3
                       id="preparation-employment-title"
+                      tabIndex={-1}
                       className="text-xl font-semibold text-ink"
                     >
                       Your employment documents
@@ -915,7 +889,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
                       <section
                         key={id}
                         aria-labelledby={`evidence-${id}-title`}
-                        className="rounded-2xl border border-line bg-surface p-5"
+                        className="scroll-mt-28 rounded-2xl border border-line bg-surface p-5"
                       >
                         <h3
                           id={`evidence-${id}-title`}
@@ -996,11 +970,24 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
             )}
             {step === "review" && review && (
               <>
+                <PreparationActionPlan
+                  draft={draft}
+                  busy={busy !== null}
+                  onNavigate={(target) => {
+                    if (busy) return;
+                    actionTarget.current = target;
+                    setStep(target.step);
+                  }}
+                />
                 <p className="mt-3 text-sm leading-6 text-ink-soft">
                   Use this review to decide what to gather or ask next. It does
                   not confirm that a return is complete, correct or ready to
                   file.
                 </p>
+                <details className="mt-5 rounded-2xl border border-line p-4 sm:p-5">
+                  <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">
+                    All answers and evidence labels
+                  </summary>
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {(
                     ["missing", "collected", "reviewed", "unresolved"] as const
@@ -1052,6 +1039,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
                     </li>
                   ))}
                 </ul>
+                </details>
                 {draft.circumstances["other-income"] !== "no" && (
                   <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
                     Other income remains a follow-up unless you explicitly
@@ -1099,7 +1087,7 @@ export function PrepareClient({ requestedYear = "2025-26" }: { requestedYear?: P
                     unencrypted, is not a restorable backup and does not submit
                     anything. It reflects the draft on this page, including
                     unsaved changes. Circumstance answers and employer and
-                    document labels are included. Figures and employment notes
+                    document labels, tasks and questions are included. Figures and employment notes
                     are optional below.
                   </p>
                   <div className="mt-4 space-y-2">
