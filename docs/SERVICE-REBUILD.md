@@ -1,18 +1,19 @@
 # TaxSorted roadmap and service map
 
-Progress reviewed **30 September 2026**, including the selected-year preparation
-overview and derived tasks/questions described below. Earlier native installer
-evidence remains at `af4a5ab`.
+Progress reviewed **1 October 2026**, including preparation tasks, capability/access
+copy, the Next.js security update and PostgreSQL CI recovery. Release candidate
+`c787af7` and its deployment/native outcomes are tracked in the
+[dated release record](testing/2026-10-01-service-release.md).
 This is the current product roadmap: audience needs, implemented modules, delivery
 priorities and the evidence needed to finish them. Detailed contracts remain in the
 linked accounting, infrastructure and testing documents. The rebuild began from
 `origin/main` at `3e3fa56`; dated verification records below retain their original scope.
 
-**Current position:** a useful local preparation service and recoverable desktop
-preview are implemented. Automated native tests pass on Windows, Linux, Intel Mac
-and Apple silicon. Consumer acceptance, trusted public installers and production
-filing remain separate unfinished outcomes. This branch has not been released to
-the public site. The preparation overview does not change tax rules or source dates.
+**Current position:** the service rebuild is published at **taxsorted.io**, deployed
+from `07941b0` on 1 October. Automated native tests pass on Windows, Linux, Intel Mac
+and Apple silicon at candidate `c787af7`, and current acceptance packets are prepared.
+Consumer acceptance, trusted public installers and production filing remain separate
+unfinished outcomes. The preparation overview does not change tax rules or source dates.
 
 ## Purpose
 
@@ -33,32 +34,30 @@ from this review. Test results do not imply publication or external approval.
 
 | Area | Current progress | Remaining boundary and evidence |
 |---|---|---|
-| Service entry and navigation | Implemented: shared catalogue, search, audience pages, contextual Books links and six navigation locales | Individuals, sole traders and landlords lead. Audience choice is not a tax-status determination. The secondary `/tools` page still needs copy alignment. [Catalogue](../frontend/src/lib/tax-services.ts) |
+| Service entry and navigation | Implemented: shared catalogue, search, audience pages, contextual Books links, aligned secondary tools and six navigation locales | Individuals, sole traders and landlords lead. Audience choice is not a tax-status determination. VAT and source/download access descriptions state current limits. [Catalogue](../frontend/src/lib/tax-services.ts) |
 | My tax year | Implemented: selected-year preparation progress and resume, explicit saved-progress read, up to three next actions and separately saved manual checklist | Preparation supports 2025–26/2026–27. Books counts cover 2026–27; Passport/checkmarks are general. Counts do not establish completeness or readiness to file. [Progress reader](../frontend/src/lib/tax-year-progress.ts) |
 | Individual preparation | Partial: separate 2025–26/2026–27 drafts, circumstances, actionable tasks/questions, P60 review, selective summary and stale-save protection | Tasks explain why, where to look and what to do next. P45 and other unsupported tax questions stay open; no complete annual calculation, filing-obligation decision or submission. [Preparation contract](../frontend/src/lib/return-preparation.ts) |
 | Tax summary and adviser handover | Implemented: explicit local Passport save, versioned JSON and print; separate year-specific preparation summary | No shared adviser workspace, document inspection or client authority. Exported handovers are unencrypted. [Passport contract](TAX-POSITION-PASSPORT.md) |
 | Money records and accounting | Partial: manual/CSV intake, review/history, supported trade/property separation and cumulative Income Tax quarter figures | Cash records and tax-category postings, without bank reconciliation, full double-entry accounts or Books-to-VAT derivation. [Accounting scope](ACCOUNTING-PRODUCT.md) |
 | Workspace recovery and privacy | Implemented and native-tested: encrypted saved-workspace export, protected safety copy, atomic restore and stale-editor protection | Covers saved Books, Passport, both preparation years and checklist. Live profiles remain unencrypted by the app; unsaved forms, original documents, attachments and account credentials are excluded. [Storage contract](LOCAL-APP.md#where-personal-data-lives) |
 | Installers and scaffolding | Automated native checks pass on all four targets; personal source scaffold and acceptance packs are prepared | Consumer M01–M15 remain NOT RUN. Mac previews are ad-hoc and rejected by Gatekeeper; Windows is unsigned; stock Ubuntu remains unproven. Public downloads are not published. [Desktop evidence](DESKTOP-TESTING.md) |
-| Infrastructure foundations | Implemented locally: reproducible full install, shared 35-route release contract and synthetic PostgreSQL 16/17 recovery | Database CI is prepared but not run; real hosted recovery, readiness/alerts and rollback remain unverified or planned. [INF-01–06](../infrastructure/README.md#infrastructure-roadmap) |
+| Infrastructure foundations | Implemented: reproducible full install, shared 35-route release contract and synthetic PostgreSQL 16/17 recovery proven locally and in CI | Real hosted recovery, readiness/alerts and an exercised rollback remain unverified or planned. [INF-01–06](../infrastructure/README.md#infrastructure-roadmap) |
 | Financial providers and HMRC | Partial: account/passkey controls, closed Xero authorisation foundation and separate HMRC sandbox journeys | No real financial-provider reader, complete annual filing or established production scope. Grant lifecycle, durable attempts and external evidence remain work. [Production gaps](PRODUCTION-GAPS.md) |
 
-Recorded verification includes all **12** source/packaged/installed native recovery
-runs at `af4a5ab`, all four installer lifecycle checks, **79** desktop tests after
-acceptance tooling, and three actual Mac native-dialog checks in an isolated source
-profile. Earlier frontend, engine, API, scaffold and database results retain their
-own revisions and scopes in the [testing plan](DESKTOP-TESTING.md) and
-[infrastructure record](../infrastructure/README.md#first-implementation-batch).
-The latest rebuild export contains 83 generated pages; that inventory is not a count
-of fully supported tax services. Current local checks are recorded in the
-[preparation overview verification](#preparation-overview-verification); they do not
-extend the older installer evidence to this change.
+The [1 October release evidence](testing/2026-10-01-service-release.md) records the
+published revision, quality gates, all **35** live route checks and the real-site
+synthetic browser journey. The [current native campaign](DESKTOP-TESTING.md#service-release-native-campaign--1-october-2026)
+includes all **12** source/packaged/installed runtime reports, four installer
+lifecycles and independently verified installer bytes at `c787af7`. Earlier
+`af4a5ab` results and three actual Mac native-dialog checks retain their original
+revisions and scopes. The export's 83 generated pages are not a count of fully
+supported tax services.
 
 ## How the service closes the knowledge gap
 
 | What a person needs | What helps today | Next useful improvement |
 |---|---|---|
-| Know where to begin | Situation-based services, circumstances questions, explanations and bounded checks | Keep secondary navigation and capability descriptions consistent with the main service paths |
+| Know where to begin | Situation-based services, circumstances questions, explanations and consistent task labels | Test the complete journey with people new to tax preparation and use observed confusion to prioritise changes |
 | Know what to collect | Derived tasks explain missing work, why it matters, where to look and the next action; unknown/missing states and guided P60 entry | Extend one document/source journey at a time, with reviewed sources and overlap checks |
 | Know what remains to do | Selected-year preparation progress, saved Books/Passport overview, manual reminders and direct resume | Deepen one evidence journey at a time while preserving uncertainty and year separation |
 | Keep control of sensitive work | Offline desktop, explicit local saves, encrypted workspace transfer and selective handover | Complete consumer recovery/installation checks and explain profile protection alongside export protection |
@@ -208,14 +207,15 @@ prerequisite for offline preparation. Owner labels describe roles, not assigned 
 
 | Priority and state | Outcome | Completion evidence and dependencies | Responsible role |
 |---|---|---|---|
-| Now · environment needed | Exercise consumer installation and recovery | Use the [exact-candidate packs](DESKTOP-TESTING.md#consumer-acceptance-preparation--30-september-2026) on Windows 11 x64, stock Ubuntu x64 GNOME, Intel Mac and the Apple silicon control in disposable accounts. Record M01 trust/prerequisite blocks and run reachable cases; feed findings into the release candidate. Do not bypass security to complete the current preview. | Release maintainer and native-device testers |
-| Implemented · locally verified | Join preparation into My tax year | Explicit year choice, read-only saved-draft status and exact-year resume; opt-in summaries, year separation, unknown states and Books-period limits preserved. See verification below. New native installers are not yet tested. | Frontend and local-storage maintainer |
-| Implemented · locally verified | Turn progress into tasks and questions | Resume into Review, show three immediate tasks with access to all, focus the relevant control, derive completion from actual edits, and include unresolved prompts in the selective summary. Current frontend tests pass; see local verification below. | Frontend and local-storage maintainer |
-| Next code · ready to start | Align trust and task copy | Update secondary `/tools` labels and its unsupported Books-to-VAT wording; update `/download` to distinguish automated testing from consumer acceptance. Distinguish general Passport from year-specific handover. Validate affected links/copy and keyboard paths. | Product/frontend maintainer |
+| Now · environment needed | Exercise consumer installation and recovery | Use the [current c787af7 packs](DESKTOP-TESTING.md#service-release-native-campaign--1-october-2026) on Windows 11 x64, stock Ubuntu x64 GNOME, Intel Mac and the Apple silicon control in disposable accounts. Record M01 trust/prerequisite blocks and run reachable cases; feed findings into the release candidate. Do not bypass security to complete the current preview. | Release maintainer and native-device testers |
+| Implemented · published and native-tested | Join preparation into My tax year | Explicit year choice, read-only saved-draft status and exact-year resume; opt-in summaries, year separation, unknown states and Books-period limits preserved. Current native installers pass automation; consumer acceptance remains separate. | Frontend and local-storage maintainer |
+| Implemented · published and verified | Turn progress into tasks and questions | Resume into Review, show three immediate tasks with access to all, focus the relevant control, derive completion from actual edits, and include unresolved prompts in the selective summary. The real-site synthetic journey passed after deployment. | Frontend and local-storage maintainer |
+| Implemented · verified | Align trust and task copy | Secondary tools use consistent task names; VAT states manual figures and sandbox limits; download distinguishes automated checks from consumer acceptance. General Passport and year-specific preparation summaries are distinguished. Source/feedback routes explicitly require existing repository access. [Release evidence](testing/2026-10-01-service-release.md) | Product/frontend maintainer |
+| Next · distribution and access | Make source and feedback usable for visitors | Prepare a reviewed public source distribution and a working public correction/feature route; verify both while signed out. Keep local profiles and private material excluded. The private development repository and a code licence are not a public download channel. | Maintainer and publisher |
 | Dated · due 12 October 2026 | Renew MTD source evidence | Assign an accountable reviewer; inspect the primary sources and record outcomes before the 13 October overdue stop. Preserve the stop if review is incomplete. This is a source review, not a date-only edit. [PG-02](PRODUCTION-GAPS.md#pg-02--renew-mtd-source-evidence-without-weakening-the-stop) | Engine/source reviewer; person unassigned |
-| Parallel · implementation and operations | Prove hosted continuity | Run the prepared synthetic database CI; implement readiness/redacted diagnostics and alert checks; inventory real backup/key dependencies and define recovery objectives before an authorised isolated hosted restore and API/frontend rollback exercise. [INF-03–05](../infrastructure/README.md#infrastructure-roadmap) | Infrastructure and service operator |
+| Parallel · implementation and operations | Prove hosted continuity | Synthetic PostgreSQL 16/17 CI now passes. Next: readiness/redacted diagnostics and alert checks; inventory real backup/key dependencies and define recovery objectives before an authorised isolated hosted restore and API/frontend rollback exercise. Consolidate duplicate PR quality jobs while preserving the production gates. [INF-03–05](../infrastructure/README.md#infrastructure-roadmap) | Infrastructure and service operator |
 | Pending · alongside consumer findings | Publish trustworthy desktop releases | Configure Mac Developer ID/notarisation and Windows signing; fix target-specific packaging. Retest the resulting bytes with native automation and M01–M13/M15, resolving P0/P1 issues. M14 needs two versions. Retain checksums/versioned download links and record the exact publication decision. | Release maintainer and publisher |
-| Independent release · pending | Publish the website rebuild | Run the existing release contract and API/frontend checks for the selected revision, review visible capability claims and record publication/rollback decisions. Desktop signing and consumer acceptance do not gate this separate delivery. | Web release maintainer and publisher |
+| Complete · 1 October 2026 | Publish the website rebuild | `07941b0` passed the coupled API/frontend deployment, 35 live routes, exact manifests, publication guards and the real-site browser journey. Rollback targets were captured before mutation; rollback itself was not exercised. [Release record](testing/2026-10-01-service-release.md) | Web release maintainer and publisher |
 | Then · scoped product work | Deepen evidence and money-record review | Add one supported document/source journey, starting with employment changes/P45 subject to source review; clarify handover choices. In Books, finish changed-imported-row decisions before widening imports, then prove scope/reconciliation under [PG-04](PRODUCTION-GAPS.md#pg-04--prove-business-scope-and-completeness). | Preparation/engine and accounting maintainers |
 | Separate online track · planned | Reliable integrations and supported filing | PG-05 VAT review context → PG-07 grant lifecycle → PG-08 durable attempts → PG-09 declared annual filing scope. A read-only provider pilot follows its own PG-04/PG-11/PG-12 gates; it is not required for a manual/CSV filing path. Books-to-VAT is PG-10. [Detailed dependencies](PRODUCTION-GAPS.md#concrete-batches-and-parallel-sequence) | API/accounting maintainers and operating-evidence owners |
 | Later · unadmitted | Shared adviser service and wider coverage | Client authority, tenant isolation, explicit sharing/revocation and support/privacy evidence before shared client data. Additional providers, company accounts and jurisdictions require their own supported scope. | Product, security and service owners |
@@ -256,12 +256,12 @@ The next implemented slice turns those counts into a usable preparation plan:
   Figures and employment notes remain optional; download still requires the existing
   acknowledgement that the file is unencrypted. No automatic sharing is added.
 
-Local verification: **1,258 frontend tests**, **79 desktop tests** and **9 scaffold
+Local verification on **30 September**: **1,258 frontend tests**, **79 desktop tests** and **9 scaffold
 tests** passed; frontend lint/typecheck, static export, desktop staging and the
 **35-route** release contract passed. Browser/native observations are recorded in
-the [desktop validation plan](DESKTOP-TESTING.md). The next code priority is the
-secondary task/capability copy alignment above. Consumer acceptance, signing,
-publication and the MTD source-review deadline remain unchanged.
+the [desktop validation plan](DESKTOP-TESTING.md). Later copy, release and infrastructure
+checks are recorded in the [1 October evidence](testing/2026-10-01-service-release.md).
+Consumer acceptance, signing and the MTD source-review deadline remain separate work.
 
 ### Release dependencies
 
