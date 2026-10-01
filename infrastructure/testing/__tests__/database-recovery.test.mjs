@@ -5,7 +5,7 @@ import test from "node:test";
 import {
   assertOwnedContainer, childEnvironment, cleanupOwnedContainer,
   localDockerEndpoint, namesFor, OWNER_LABEL, parseOptions,
-  rehearse, RehearsalError, safeFailure,
+  rehearse, RehearsalError, safeFailure, waitForPostgres,
 } from "../database-recovery.mjs";
 
 const runId = "0123456789abcdef01234567";
@@ -119,6 +119,44 @@ test("failure reports never expose raw exception messages or unknown codes", () 
   assert.equal(safeFailure(new Error("synthetic-private-marker")), "unexpected-failure");
   assert.equal(safeFailure({ code: "synthetic-private-marker" }), "unexpected-failure");
   assert.equal(safeFailure(new RehearsalError("cleanup-failed")), "cleanup-failed");
+});
+
+test("readiness ignores the temporary socket-only bootstrap server", async () => {
+  let phase = "bootstrap";
+  let probes = 0;
+  let pauses = 0;
+  await waitForPostgres((args, settings) => {
+    probes += 1;
+    assert.equal(args[1], id);
+    assert.equal(args[2], "pg_isready");
+    assert.equal(settings.allowFailure, true);
+    assert.equal(settings.timeout, 5000);
+    const host = args[args.indexOf("-h") + 1];
+    const port = args[args.indexOf("-p") + 1];
+    // A socket-only probe would incorrectly pass on the first attempt.
+    return { status: phase === "final" || host !== "127.0.0.1" || port !== "5432" ? 0 : 2 };
+  }, id, () => {}, async () => { pauses += 1; phase = "final"; });
+  assert.equal(probes, 2);
+  assert.equal(pauses, 1);
+  assert.equal(phase, "final");
+});
+
+test("readiness retries rejection and command failures, with a fixed attempt limit", async () => {
+  let probes = 0;
+  let pauses = 0;
+  const failures = [{ status: 1 }, { status: 2 }, { status: null, error: new Error("synthetic-private-marker") }, { status: null, signal: "SIGTERM" }];
+  await assert.rejects(waitForPostgres(() => failures[probes++ % failures.length], id, () => {}, async () => { pauses += 1; }), errorCode("postgres-not-ready"));
+  assert.equal(probes, 60);
+  assert.equal(pauses, 59);
+});
+
+test("readiness checks interruption before issuing another probe", async () => {
+  let probes = 0;
+  let interrupted = false;
+  await assert.rejects(waitForPostgres(() => { probes += 1; return { status: 2 }; }, id, () => {
+    if (interrupted) throw new RehearsalError("interrupted");
+  }, async () => { interrupted = true; }), errorCode("interrupted"));
+  assert.equal(probes, 1);
 });
 
 test("exported rehearsal entry refuses unsafe inputs before accessing Docker", async () => {

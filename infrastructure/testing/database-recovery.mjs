@@ -87,6 +87,18 @@ function json(text) {
   try { return JSON.parse(text); } catch { throw new RehearsalError("invalid-output"); }
 }
 
+export async function waitForPostgres(docker, containerId, proceed, pause = () => new Promise(resolve => setTimeout(resolve, 500))) {
+  // The official image starts a temporary socket-only server during initdb and
+  // then stops it. Only TCP readiness identifies the final server used by the worker.
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    proceed();
+    const result = docker(["exec", containerId, "pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", ROLE, "-d", "postgres"], { allowFailure: true, timeout: 5000 });
+    if (result.status === 0 && !result.error && !result.signal) return;
+    if (attempt < 59) await pause();
+  }
+  throw new RehearsalError("postgres-not-ready");
+}
+
 export async function rehearse(options, environment = process.env) {
   // Keep the exported entry point as strict as the CLI.
   if (!options || Object.keys(options).sort().join(",") !== "major,socket") throw new RehearsalError("unsupported-option");
@@ -140,18 +152,13 @@ export async function rehearse(options, environment = process.env) {
     report.postgresImageId = created.Image;
     docker(["start", containerId]);
     report.stage = "wait-for-postgres";
-    let ready = false;
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      proceed();
-      if (docker(["exec", containerId, "pg_isready", "-U", ROLE, "-d", "postgres"], { allowFailure: true, timeout: 5000 }).status === 0) { ready = true; break; }
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    if (!ready) throw new RehearsalError("postgres-not-ready");
+    await waitForPostgres(docker, containerId, proceed);
     const binding = inspect().NetworkSettings?.Ports?.["5432/tcp"];
     if (!Array.isArray(binding) || binding.length !== 1 || binding[0].HostIp !== "127.0.0.1" || !/^\d{1,5}$/.test(binding[0].HostPort)) throw new RehearsalError("unsafe-port-binding");
     const port = Number(binding[0].HostPort);
     if (port < 1024 || port > 65535) throw new RehearsalError("unsafe-port-binding");
     report.checks.loopbackOnly = true;
+    report.stage = "create-databases";
     for (const name of [names.source, names.restored]) docker(["exec", containerId, "createdb", "--username", ROLE, "--template", "template0", name]);
     const worker = phase => {
       proceed();
