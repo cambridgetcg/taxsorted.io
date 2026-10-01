@@ -1,13 +1,116 @@
-# Infrastructure
+# Infrastructure and data map
 
-The truth, plainly:
+Repository map reviewed **2026-09-30**, against service-rebuild code at `4486638`.
+This is the entry point for the current stack, data custody and integration boundaries.
+The rebuild branch includes features that have not been deployed to `taxsorted.io`.
+Configuration and local tests do not establish live provider access or production filing.
+The [current product roadmap](../docs/SERVICE-REBUILD.md) connects this infrastructure
+work with user journeys, desktop acceptance and release priorities.
 
-The API and frontend smoke checks live in [`scripts/release/`](../scripts/release/README.md).
-The workflow owns their order, credentials and publication-state handoff. See the
-[2026-09-12 architecture audit](../docs/ARCHITECTURE-AUDIT.md) for current release
-verification and remaining gaps; the dated operational observations below are not live checks.
+## Stack and purpose
 
-## What runs today
+| Layer | Implementation | Purpose and boundary |
+|---|---|---|
+| Website | Next.js 16 static export, React 19, TypeScript, Tailwind 4; Cloudflare Pages | Serves the interface and bundled guidance. Local tools run in the browser; there is no Next.js server runtime in this deployment. |
+| Local desktop | Electron, the same static frontend and tax engine; Windows, Linux, Intel and Apple silicon macOS packaging | Runs bundled preparation tools without a TaxSorted account or backend. Remote app requests, account sign-in, provider sync and online filing are unavailable. |
+| Shared rules | `engine/`, TypeScript | Supported calculations, tax contracts, validation and accounting-sync contracts. Its older HMRC subtree still includes browser/network helpers; complete transport separation remains work. |
+| Local records | IndexedDB workspace with compatibility reads for older records and localStorage checklists | Saved Books, Passport, preparation drafts and checklists share a workspace-aware persistence boundary. Explicit backup/restore preview validates and adopts older saved data into the canonical workspace; opening a page does not activate it. Browser and desktop profiles remain separate, with deliberate file transfer and no account sync. |
+| Online API | Node 22, Hono, Zod/OpenAPI; Docker on Fly.io, primary region `lhr` | Account and entity access, provider grants, HMRC sandbox routes and scoped developer APIs. London is the configured API region, not proof of UK-only processing by every service. |
+| Hosted database | PostgreSQL, `postgres.js`, SQL migrations | Accounts, sessions, tax entities, grants, sync-control state and submission payloads/receipts. It is not a cloud copy of local Books or preparation drafts. |
+| Authentication | WebAuthn passkeys and recovery codes; separate scoped workspace API keys | Recovery-only sessions cannot access protected tax data until upgraded with a passkey. Provider OAuth grants and HMRC authorisation are separate from TaxSorted sign-in. |
+| Delivery | GitHub Actions, Fly.io API release, Cloudflare Pages frontend release; Electron Builder for desktop | Web release checks run before publication. Native desktop build/test workflows are separate from website deployment. |
+
+There is **no Supabase or Railway dependency** in this implementation. The former AWS
+Aurora/VPC plan was retired. Vercel is a preview/manual fallback. Keep Cloudflare + Fly +
+PostgreSQL as the current hosted path; adding another provider is not needed for local
+preparation or the existing API. A future hosting replacement should have a concrete
+operational reason and an explicit migration, rather than duplicate this stack.
+
+The desktop runtime needs none of those hosted services. Building or scaffolding from
+source needs Node 22 and downloaded dependencies; see [local setup](../docs/LOCAL-APP.md).
+A local API additionally needs PostgreSQL, `DATABASE_URL` and `TOKEN_KEY`; startup applies
+migrations. HMRC and Xero credentials are separate optional integration configuration,
+not prerequisites for offline preparation. See [API setup](../api/RUNBOOK.md).
+
+## Where information moves
+
+```mermaid
+flowchart LR
+  Pages[Cloudflare Pages] --> Web[Browser interface]
+  Web --> BrowserData[(Local browser records)]
+  Desktop[Bundled Electron interface] --> DesktopData[(Separate local app records)]
+  Web --> Engine[Shared TypeScript rules]
+  Desktop --> Engine
+  Web -->|Online account and authorised actions| API[Hono API on Fly.io]
+  API --> Engine
+  API --> DB[(PostgreSQL)]
+  API -->|Separate approval and selected figures| HMRC[HMRC sandbox]
+  API -->|Closed authorisation pilot only| Xero[Xero]
+```
+
+| Information | Current home and protection |
+|---|---|
+| Books events, review history, imported records | Local IndexedDB through the workspace-aware persistence boundary. The app does not encrypt the live profile. Books-only backup files are password-protected by default; the complete workspace format also includes saved Books. |
+| Passport facts, tax-return preparation drafts, personal checklist | Local workspace data, with compatibility reads before adoption. These remain outside Books-only files but are included in encrypted workspace backups. Separate Passport and preparation-summary exports remain unencrypted. |
+| Complete saved-workspace backup | `/backups` creates a password-protected file covering Books, Passport, both supported preparation years and audience checklists. Restore replaces all covered sections atomically after a protected safety copy and confirmation; unsaved forms, original documents, attachments, account state, provider credentials and preferences are excluded. |
+| Underlying P60s and other preparation documents | Remain with the person. The preparation journey records checklist state and entered figures; it does not upload evidence documents. |
+| Accounts, sessions and tax entity identifiers | Hosted PostgreSQL when online account features are used. Entity fields can include NINO and VAT registration number; local-first is not a claim that the API holds no sensitive data. |
+| Provider/HMRC access and refresh tokens | API-side encrypted token custody. Tokens are not delivered to the browser; token encryption does not encrypt every database field. |
+| Approved HMRC submission | Selected payload and authority receipt are held by the API. A deliberate online submission sends those figures outside the local store. |
+| Accounting sync control | API holds selected organisation bindings, leases, manifests and checkpoints. The working synthetic proof keeps financial records in a separate local replica. Real provider financial import is not implemented. |
+
+## Accounting and integrations: implemented scope
+
+The current accounting path is **manual entry or CSV → review → confirmed business →
+supported cumulative Income Tax quarter totals → separate sandbox approval → receipt**.
+Unreviewed, excluded or unconfirmed records do not enter those quarter totals. Preparation
+P60 figures remain in their separate year-specific draft; they do not feed a complete annual
+return automatically.
+
+Books uses cash events with income/expense tax-category postings and preserved review
+history. It is not yet a balanced double-entry ledger: no chart of accounts, trial balance,
+derived balance sheet, bank reconciliation or statutory accounts. Recorded totals do not
+prove completeness or tax due. Books-to-VAT derivation, complete year-end filing and
+production HMRC filing also remain gaps. See [accounting scope](../docs/ACCOUNTING-PRODUCT.md)
+and [production work](../docs/PRODUCTION-GAPS.md).
+
+| Integration | What exists | What remains |
+|---|---|---|
+| CSV/manual | Local import/entry and human review in Books | Provider connectivity and automatic reconciliation |
+| Synthetic provider | Development-only fictional pages, local atomic commits, exact acknowledgements and completed-run checkpoints; requires a local API, database and full passkey session | Real financial-provider evidence; the demo is disabled in production and does not populate ordinary Books |
+| Xero | Default-closed pilot for OAuth, encrypted grants, organisation selection and entity binding | Financial record reader/import and public customer admission; connecting does not import transactions |
+| QuickBooks, FreeAgent, Sage | Guides/catalogue entries | Callable financial adapters |
+| HMRC VAT/Income Tax | Separate sandbox connections, supported obligations/submission routes and receipts | Production recognition, complete annual-return coverage and durable handling of uncertain submission outcomes |
+
+The connector contract checks a page's identity and digest, commits its records locally,
+then acknowledges that exact page. Only a completed, acknowledged run advances the whole
+checkpoint; expired sync ownership cannot continue writing through a newer run. These are
+the implemented synthetic protocol boundaries, not proof of any live provider's data.
+The [integration design](../docs/ACCOUNTING-INTEGRATIONS.md) also describes future
+reconciliation, attachments and readiness gates; its target diagrams are not current
+capability lists. Provider consent, record review and filing approval remain separate actions.
+
+## Verification and remaining infrastructure work
+
+On **2026-09-30 at 12:37 UTC**, unauthenticated GETs returned HTTP 200 for the homepage
+(response server `cloudflare`) and `/v1/health` (response server `Fly`). Health reported
+`ok=true`, HMRC configured, environment `sandbox`. The [health handler](../api/src/app.ts)
+reports process/configuration state; it does not query PostgreSQL or call HMRC. These
+observations do not verify database recovery, provider credentials, recognition or a deployed
+match to this branch. No private provider account or database was inspected in this review.
+
+The [infrastructure roadmap below](#infrastructure-roadmap) sequences the release,
+installation and database-recovery gaps found in this review. Native installer checks
+do not exercise the website release path; local Books restore tests do not establish
+hosted database disaster recovery.
+
+The [release scripts](../scripts/release/README.md) define smoke contracts; the workflow
+owns their order and publication-state handoff. The [September 12 audit](../docs/ARCHITECTURE-AUDIT.md)
+is historical evidence. [Service ownership](../docs/SERVICE-REBUILD.md), [local packaging
+and privacy](../docs/LOCAL-APP.md), and [Books backup coverage](../docs/BOOKS-BACKUP.md)
+hold the detailed contracts rather than duplicating them here.
+
+## Configured hosting and earlier operator observations
 
 - **Frontend** — Next.js static export on **Cloudflare Pages** (project `taxsorted`).
   A push to `main` deploys it only after the API release and its live checks succeed.
@@ -19,10 +122,9 @@ verification and remaining gaps; the dated operational observations below are no
   It deploys the Fly API first, then Cloudflare Pages only after Fly succeeds. Both deployment
   tokens are required. (Its first three runs, 2026-06-06, ended in `startup_failure` — a
   GitHub-side validation hiccup; re-verified green by manual dispatch 2026-06-12.)
-- **Domain** — Cloudflare. `taxsorted.io` is canonical; a Dynamic Redirect sends
-  `www` to the apex with path and query preserved. DNSSEC was enabled on
-  2026-07-12 and may remain `pending` for one to two days while Cloudflare
-  Registrar publishes the parent DS.
+- **Domain** — Cloudflare. `taxsorted.io` is canonical; earlier operator notes record
+  a Dynamic Redirect sending `www` to the apex with path and query preserved. DNSSEC
+  was enabled on 2026-07-12; its current status was not checked in this review.
 - **Vercel** — preview/manual fallback only. Project `taxsorted-io` stays linked to
   this repository, but `frontend/vercel.json` disables automatic `main` deployments
   and the production custom-domain aliases have been removed. Production must have
@@ -61,8 +163,9 @@ vercel link --yes --scope cambridgetcgs-projects --project taxsorted-io
 `.vercel/` is ignored. Fly linkage is the tracked `api/fly.toml`; GitHub linkage is
 the `origin` remote.
 
-The database is intentionally small today: one Postgres machine and one encrypted
-1 GB volume with Fly snapshots. It is healthy but not highly available. Do not
+Earlier operator notes describe one Postgres machine and one encrypted 1 GB volume
+with Fly snapshots, without high availability. Current machine health, capacity,
+snapshot retention and restore success were not reverified on 2026-09-30. Do not
 blindly redeploy its internal staged secrets merely to clear their CLI status;
 verify runtime behavior and take a snapshot before any database-machine change.
 
@@ -187,21 +290,130 @@ consumer secret. That off-switch can leave the workspace unable to authenticate.
 recovery uses `issue` with the active workspace UUID. Keys have creation and revocation timestamps
 but no authenticated actor audit trail, and public delivery and self-service remain unavailable.
 
-## What comes next
+## Infrastructure roadmap
 
-- **Continue hardening `api/` on Fly.io** (`lhr` — London, UK data residency):
-  - server-side OAuth per authority (client secrets, code exchange, encrypted token vault)
-  - the data spine: users → entities → registrations → obligations → periods →
-    records → returns → submissions, with immutable receipts and an append-only audit log
-  - rule tables keyed `(jurisdiction, tax, kind, effectiveFrom)` — rates, thresholds,
-    deadline formulas, penalty ladders, rate limits: an update is a data edit
-  - a queue/scheduler for deadline reminders and rate-limited, idempotent,
-    retried submissions
-  - one typed API that the web UI and agents share — both worlds, made structural
+Started **2026-09-30**. Keep the existing Cloudflare Pages + Fly.io + PostgreSQL
+deployment and the separate offline desktop edition. This roadmap strengthens that
+path; no additional hosting provider, background service or cloud record sync is
+required by the first batch. Status distinguishes repository implementation from
+an exercised hosted release or recovery operation.
+
+| Order | Work package and purpose | Completion evidence | Status |
+|---|---|---|---|
+| INF-01 · implemented | Share one frontend release contract between artifact checks and live smoke checks. Catch broken rebuilt routes before an API deployment starts. | Current generated pages pass; missing/wrong pages fail; core service, preparation and download routes are covered; existing publication, header and exact-byte checks remain. | Implemented; 35 generated routes, including workspace recovery, and 9 offline tests passed on 30 September. Live release not run. |
+| INF-02 · implemented | Restore a reproducible full install by using the available npm artifact for the existing exact SDK version. | npm artifact matches the existing lockfile integrity; clean Node 22 `npm ci`, all workspace tests/types and production dependency audit; existing mirror behaviour and tests retained without an SDK upgrade or stub. | Implemented; isolated install and combined checks passed on 30 September. Full and production audits reported zero findings at that check. |
+| INF-03 · implemented; local rehearsal passed | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | Implemented; PostgreSQL 16.14 and 17.10 passed locally on 30 September. CI prepared, not run; hosted recovery unverified. |
+| INF-04 · next | Establish actual hosted recovery and continuity. | Dated inventory of current database/version, backup location/retention, agreed recovery-time/data-loss objectives and token-key recovery dependency; authorised restore into an isolated target, verified outcome and cleanup. | Pending scoped operator exercise; synthetic tests cannot close it |
+| INF-05 · next | Make service health and release rollback observable. | Separate process/configuration health from database readiness; bounded/redacted failures, observed alert path, permitted API + frontend rollback rehearsal; review edge abuse controls and database concurrency evidence. | Planned; see PG-08 and PG-12 |
+| INF-06 · implemented and native-tested | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Implemented; Windows, Linux, Intel Mac and Apple silicon passed source/packaged/installed recovery and installer checks at `af4a5ab`. Exact-candidate acceptance packs are prepared; supplemental Mac native-dialog checks passed. Manual consumer acceptance awaits target environments; see [acceptance preparation](../docs/DESKTOP-TESTING.md#consumer-acceptance-preparation--30-september-2026) and [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838). |
+| INF-07 · after the foundations | Complete the online accounting and filing service within explicit supported scope. | VAT validation and exact review context, durable submission intent and uncertain-outcome recovery, grant lifecycle control, annual-return coverage and one read-only financial-provider pilot; recorded approval for each admitted capability. | Separate product work: PG-04–05 and PG-07–12 in [production gaps](../docs/PRODUCTION-GAPS.md) |
+
+INF-01–03 were built and tested without production data or new cloud resources.
+INF-04 requires a concrete recovery plan naming the existing backup and isolated
+destination before requesting any external mutation. A passing health endpoint is
+not its acceptance test. INF-05 must not make offline preparation depend on the API.
+INF-06 now coordinates the covered stores through one canonical IndexedDB workspace;
+an interrupted replacement cannot leave only some sections restored. The boundary
+does not include account state, attachments, unsaved forms or server/database recovery.
+
+For each completed package, record the repository revision, commands/results,
+environment, retained non-sensitive evidence and remaining limits here or in the
+linked owning guide. Keep customer records, backup contents, credentials and private
+operating approvals outside the repository. The [operating evidence inventory](../docs/OPERATING-EVIDENCE.md)
+remains the place for production-scope decisions; this roadmap does not grant them.
+
+### First implementation batch
+
+The shared contract lives in [frontend-pages.json](../scripts/release/frontend-pages.json).
+Both CI quality jobs exercise its failure cases and validate the generated site;
+the deployed smoke script consumes that same contract. Source/publication gates,
+protected-content checks and exact manifest/media checks remain separate and unchanged.
+
+The SDK stays at `0.16.3`, with the same locked SHA-512 artifact integrity, now fetched
+from npm. A clean disposable install with an empty cache and isolated npm configuration
+installed all 763 packages without credentials. Three development-only lock entries
+also receive permitted patch versions for the reported audit findings:
+`brace-expansion` 1.1.21 and 5.0.12, and `fast-uri` 3.1.8. No SDK implementation,
+parent dependency range, override or workspace test was removed.
+
+Combined local verification on 30 September, using Node 22:
+
+| Check | Result |
+|---|---|
+| `npm ci` | Full-workspace install passed |
+| `npm test` | 2,557 passed: engine 388, frontend 1,032, API 1,086, desktop 51; one existing API TODO remains |
+| `npm run typecheck`, frontend lint | Passed |
+| `npm run validate:learn` | Passed; professional-opportunity publication remains closed/pending |
+| Full and production-only `npm audit` | Zero reported findings |
+| `npm run build`, `npm run check:release-pages` | 82 generated pages; all 34 selected route contracts passed |
+| Desktop staging and source scaffold tests | Passed; 9 scaffold tests |
+| `npm run test:infrastructure` | 33 passed: 9 frontend contract tests and 24 database admission/cleanup tests |
+| PostgreSQL restore rehearsal | 16.14 and 17.10 passed: 8 real migrations, all 21 public tables/29 rows compared, 16 checks true, owned container/config cleanup complete |
+
+The [database rehearsal guide](testing/README.md) explains admission, cleanup and
+limits. Both successful runs retained sanitised OS-temp reports:
+`taxsorted-db-recovery-pQET7B/report.json` (16.14) and
+`taxsorted-db-recovery-JHWuDO/report.json` (17.10). Reports record the exact local
+image ID, version and dirty working-tree status. Dumps never reached the host.
+These checks preserve exact large integers, reject a truncated archive without
+leaving tables, compare restored rows/schema and exercise constraint failures.
+They do not test production roles/privileges, token decryption or a hosted backup.
+The [CI matrix](../.github/workflows/database-recovery.yml) runs the same mechanism
+with synthetic data only; it has not been run in this batch.
+
+Useful local commands:
+
+```sh
+npm run test:infrastructure
+npm run check:release-pages             # after npm run build
+npm run infrastructure:restore          # cached postgres:17 image and local Docker needed
+```
+
+No production deployment, provider connection, customer-data import or hosted restore
+is part of this batch. Local results describe the working changes on the `6175c20`
+baseline; a later CI run must identify its own exact commit and retained reports.
+
+### Local workspace recovery follow-up
+
+INF-06 adds `/backups`, encrypted-only complete workspace files and one shared
+IndexedDB generation. It covers saved Books, Passport, 2025–26/2026–27 preparation
+and audience checklists. Restore validates the selected file and current snapshot,
+requires a protected safety copy and confirmation, rejects intervening edits, then
+commits all covered slots together. Existing Books-only formats remain supported.
+No cloud service or profile encryption was added.
+
+On 30 September, the expanded source desktop walkthrough passed on macOS arm64,
+including independent decryption, wrong-password preservation and complete recovery
+after quit/relaunch. The [local recovery guide](../docs/LOCAL-APP.md#verification-and-next-work)
+records its run ID and exact verification limits. At that source-only checkpoint,
+checks passed: 1,147
+frontend tests, 51 desktop tests, 33 infrastructure tests, 9 scaffold tests, types,
+frontend lint, an 83-page build and 35 release contracts. A fresh 912-file scaffold
+included the new source and excluded generated profiles, bundles and recovery evidence.
+
+The subsequent [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838)
+completed successfully on all four targets at 16:33 UTC. Its tested revision is
+`af4a5abfc05d773447bed8d88477e4de5bd1868a`; all 12 runtime reports identify that clean
+checkout. Source, packaged and installed recovery passed, along with NSIS lifecycle,
+actual FUSE AppImage and both DMG installation paths. All six downloaded packages
+match their manifests/checksum lists and all four installer files match their
+installer reports. Retained packages, sanitised reports and the combined audit are
+under `desktop/dist/workspace-36742667838/`.
+
+Before the campaign, a Windows React focus assertion was changed to await the
+required focus effect, and all installer helpers adopted one shared recovery-evidence
+validator. Local preparation tests passed 24/24; desktop tests passed 56/56. The
+campaign passed those checks natively, including the formerly failing Windows suite.
+No website or production deployment was performed. The later `4486638` acceptance
+preparation adds verified installer packs, synthetic fixtures and result sheets;
+79 desktop tests and supplemental source-profile Mac Cancel/Save checks passed.
+Those checks do not close manual consumer acceptance on the installed candidates.
+Manual target-OS installation, accessibility, recovery and cross-platform transfer remain
+unrun as specified in the [desktop testing plan](../docs/DESKTOP-TESTING.md#manual-cases-on-each-native-desktop).
 
 ## What was retired
 
 The AWS Aurora/VPC terraform plan (committed 2026-03) was removed 2026-06-12: it
-referenced a module that exists in no checkout, assumed Vercel hosting we no longer
-use, and priced at ~$45–356/month what Fly.io gives more simply. It lives in git
-history if ever needed.
+referenced a module that exists in no checkout and assumed Vercel production hosting
+we no longer use. It lives in git history if ever needed; it is not part of the current
+deployment or a current cost comparison.

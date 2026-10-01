@@ -59,7 +59,7 @@ case-commons-training-examples-ndjson: GET https://api.taxsorted.io/v1/case-comm
 case-commons-training-schema: GET https://api.taxsorted.io/v1/case-commons/uk/training/schema
 case-commons-openapi: GET https://api.taxsorted.io/openapi/case-commons-uk.json
 case-commons-agenttool-local-mirror: https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/case-commons/AGENTTOOL.md
-case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact npm artifact with verified lockfile integrity; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
 case-commons-scope: curated approved public packets from decided public records; one England-and-Wales deep case; source-resolving remedies and money meanings
 case-commons-derived-gate: case interpretations, WhyGraphs and training records require a separate exact derived-release approval
 case-commons-reasoning-boundary: TaxSorted-labelled concise public reasons, not hidden chain-of-thought; official judicial propositions remain source-linked
@@ -82,7 +82,7 @@ professional-opportunities-assessment-schema: GET https://api.taxsorted.io/v1/pr
 professional-opportunities-rights: GET https://api.taxsorted.io/v1/professional-opportunities/uk/rights
 professional-opportunities-openapi: GET https://api.taxsorted.io/openapi/professional-opportunities-uk.json
 professional-opportunities-agenttool-guide: https://github.com/cambridgetcg/taxsorted.io/blob/main/research/uk/professional-opportunities/AGENTTOOL.md
-professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
+professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact npm artifact with verified lockfile integrity; direct HTTPS remains the universal door; no hosted AgentTool write
 professional-opportunities-scope: source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a blank finite local assessment
 professional-opportunities-status-boundary: the user must independently verify the status required for the exact work; TaxSorted verifies no professional; no claim that all UK tax work has one universal licence
 professional-opportunities-effects: read-only research; no client intake, private upload, probability, expected value, ranking, matching, outreach, recommendation, case assignment, representation, filing, payment or referral fee
@@ -154,9 +154,10 @@ tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
 authentication: none on this doorway and public read resources
 authentication-scope: secured task tools declare authentication separately
-corrections-account: a GitHub account is required to submit a public correction
+corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators
 wishes: https://github.com/cambridgetcg/taxsorted.io/issues/new?template=wish.yml
-wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
+wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators
+feedback-availability: public feedback route not yet available
 account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway

@@ -195,7 +195,7 @@ case-commons-training-examples-ndjson: GET ${apiOrigin}${caseCommonsTrainingExam
 case-commons-training-schema: GET ${apiOrigin}${caseCommonsTrainingSchemaPath}
 case-commons-openapi: GET ${apiOrigin}${caseCommonsOpenApiPath}
 case-commons-agenttool-local-mirror: ${caseCommonsAgentToolGuide}
-case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact official GitHub release artifact; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
+case-commons-agenttool-sdk: optional @agenttool/sdk 0.16.3 DataClient; exact npm artifact with verified lockfile integrity; one verified public packet to a caller-operated loopback agent-data/v1 node; dry-run by default; no hosted AgentTool write
 case-commons-scope: curated approved public packets from decided public records; one England-and-Wales deep case; source-resolving remedies and money meanings
 case-commons-derived-gate: case interpretations, WhyGraphs and training records require a separate exact derived-release approval
 case-commons-reasoning-boundary: TaxSorted-labelled concise public reasons, not hidden chain-of-thought; official judicial propositions remain source-linked
@@ -218,7 +218,7 @@ professional-opportunities-assessment-schema: GET ${apiOrigin}${professionalOppo
 professional-opportunities-rights: GET ${apiOrigin}${professionalOpportunitiesRightsPath}
 professional-opportunities-openapi: GET ${apiOrigin}${professionalOpportunitiesOpenApiPath}
 professional-opportunities-agenttool-guide: ${professionalOpportunitiesAgentToolGuide}
-professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact official GitHub release artifact; direct HTTPS remains the universal door; no hosted AgentTool write
+professional-opportunities-agenttool-sdk: optional @agenttool/sdk 0.16.3; exact npm artifact with verified lockfile integrity; direct HTTPS remains the universal door; no hosted AgentTool write
 professional-opportunities-scope: source-backed classes of specialist UK tax work, institutional scrutiny, separate money meanings and a blank finite local assessment
 professional-opportunities-status-boundary: the user must independently verify the status required for the exact work; TaxSorted verifies no professional; no claim that all UK tax work has one universal licence
 professional-opportunities-effects: read-only research; no client intake, private upload, probability, expected value, ranking, matching, outreach, recommendation, case assignment, representation, filing, payment or referral fee
@@ -290,9 +290,10 @@ tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract
 corrections: ${correctionsUrl}
 authentication: none on this doorway and public read resources
 authentication-scope: secured task tools declare authentication separately
-corrections-account: a GitHub account is required to submit a public correction
+corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators
 wishes: ${correctionsUrl}/new?template=wish.yml
-wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
+wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators
+feedback-availability: public feedback route not yet available
 account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway
@@ -675,6 +676,9 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
       corrections: {
         href: correctionsUrl,
         accountRequired: true,
+        repositoryAccessRequired: true,
+        visibility: "repository-collaborators",
+        publicFeedbackAvailable: false,
         privateOrSensitiveIntakeAvailable: false,
       },
       manifests: {
@@ -1095,7 +1099,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         id: "rights-and-corrections",
         title: "Rights and corrections",
         description:
-          "Mixed-rights guidance and the public correction channel. Never submit private or safety-sensitive material to the public issue tracker.",
+          "Mixed-rights guidance and a correction tracker for repository collaborators. A GitHub account and repository access are required; a public feedback route is not yet available. Do not submit private or safety-sensitive material to the issue tracker.",
         resources: [
           { resource: "rights", href: rightsPath },
           { resource: "corrections", href: correctionsUrl },
@@ -1229,7 +1233,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         href: correctionsUrl,
         accepts: ["text/html"],
         description:
-          "Open the external public issue tracker. Submitting needs a GitHub account; do not put private or safety-sensitive material there.",
+          "Open the external issue tracker with a GitHub account and repository access. Issues are visible to repository collaborators; a public feedback route is not yet available. Do not put private or safety-sensitive material there.",
       },
     ],
     attribution: {

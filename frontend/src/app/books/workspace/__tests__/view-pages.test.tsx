@@ -6,6 +6,7 @@ import BooksWorkspacePage from "../page";
 import BooksMoneyPage from "../money/page";
 import BooksBusinessPage from "../business/page";
 import BooksTaxPage from "../tax/page";
+import BooksBackupsPage from "../backups/page";
 
 vi.mock("@/features/books/records-client", () => ({
   default: ({ entry, view }: { entry: string; view: string }) => (
@@ -21,6 +22,7 @@ describe("Books workspace view pages", () => {
     ["money", BooksMoneyPage],
     ["business", BooksBusinessPage],
     ["tax", BooksTaxPage],
+    ["backups", BooksBackupsPage],
   ] as const)("opens the %s view", (view, Page) => {
     render(<Page />);
 

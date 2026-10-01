@@ -18,5 +18,8 @@ describe("Trust page", () => {
     expect(screen.getByText(/no accessibility certification or independent security certification/i)).toBeInTheDocument();
     expect(screen.getByText(/no HMRC endorsement/i)).toBeInTheDocument();
     expect(screen.getByText(/confidential support and correction channel is not live/i)).toBeInTheDocument();
+    expect(screen.getByText(/The development repository is private/)).toHaveTextContent(/requires repository access/);
+    expect(screen.getByRole("link", { name: /source availability and developer setup/i })).toHaveAttribute("href", "/download#source");
+    expect(screen.getByRole("link", { name: /feedback access and limits/i })).toHaveAttribute("href", "/feedback");
   });
 });

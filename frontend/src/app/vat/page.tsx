@@ -12,22 +12,22 @@ import CockpitClient from "./cockpit-client";
 export const metadata: Metadata = {
   title: "VAT — your records, your return | TaxSorted",
   description:
-    "Add your business, connect to HMRC, see the VAT returns you must send, and file with a receipt.",
+    "Practise a VAT return with manually entered figures and HMRC's sandbox. Books does not supply the VAT boxes; production filing is unavailable.",
 };
 
 export default function VatCockpitPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ href: "/file", label: "File and pay" }]} current="VAT" />
+      <Breadcrumbs items={[{ href: "/file", label: "Prepare a return" }]} current="VAT" />
 
       <h1 className="mt-4 text-2xl font-bold text-ink sm:text-3xl">
         VAT — your records, your return
       </h1>
       <p className="mt-2 max-w-2xl text-base text-ink-soft">
-        Add your business, connect it to HM Revenue &amp; Customs (HMRC), see what you must
-        send, and build a return from your records. Connections here use HMRC&apos;s practice
-        system — production filing is not available yet. Your list lives in this browser —
-        no account needed.
+        Add a test business and practise entering VAT figures manually. Books does not
+        calculate or populate the VAT boxes. Connections and submissions here use HM Revenue
+        &amp; Customs&apos; (HMRC) practice system; production filing is not available.
+        Your business list stays in this browser, without an account.
       </p>
 
       <Suspense

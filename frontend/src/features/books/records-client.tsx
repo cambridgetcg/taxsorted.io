@@ -2,8 +2,9 @@
 
 // Shared local-books workspace for the Books views and the Income Tax records route.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import {
   BooksWorkspaceNav,
@@ -40,6 +41,7 @@ import { todayIsoLocal } from "@/lib/local-date";
 import { useMounted } from "@/lib/use-mounted";
 import { summariseBooks, type BooksSummary } from "@/lib/books-summary";
 import { BooksBackup } from "@/features/books/books-backup";
+import { withBooksActivity } from "@/lib/books-navigation";
 
 const TAX_YEAR: TaxYear = "2026-27";
 const TAX_YEAR_START = "2026-04-06";
@@ -54,10 +56,21 @@ export interface RecordsClientProps {
   view?: BooksWorkspaceView;
 }
 
-export default function RecordsClient({
+export default function RecordsClient(props: RecordsClientProps = {}) {
+  return (
+    <Suspense fallback={<p role="status" className="mx-auto max-w-6xl px-4 py-10 text-ink-soft sm:px-6 lg:px-8">Loading your records workspace…</p>}>
+      <RecordsWorkspace {...props} />
+    </Suspense>
+  );
+}
+
+function RecordsWorkspace({
   entry = "mtd",
   view = "today",
 }: RecordsClientProps = {}) {
+  // Router context already holds the destination query during client navigation.
+  // window.location may still describe the previous page until Next commits it.
+  const searchParams = useSearchParams();
   const store = useMemo<RecordsStore>(() => createRecordsStore(), []);
   const [books, setBooks] = useState<LocalBooksState | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -67,10 +80,8 @@ export default function RecordsClient({
   const focusedStart = useRef<"manual" | "csv" | null>(null);
   const mounted = useMounted();
   const enteredFromBooks = entry === "books";
-  const requestedStart =
-    enteredFromBooks && mounted && typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("start")
-      : null;
+  const backupsView = enteredFromBooks && view === "backups";
+  const requestedStart = enteredFromBooks && view === "money" ? searchParams.get("start") : null;
   const queryStart = requestedStart === "manual" || requestedStart === "csv" ? requestedStart : null;
   const emptyStart =
     startChoice === null ? queryStart : startChoice === "closed" ? null : startChoice;
@@ -79,9 +90,7 @@ export default function RecordsClient({
   };
   const preferredSource: SourceType =
     enteredFromBooks &&
-    mounted &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("activity") === "uk-property"
+    searchParams.get("activity") === "uk-property"
       ? "uk-property"
       : "self-employment";
 
@@ -198,25 +207,28 @@ export default function RecordsClient({
                 { href: "/itsa", label: "Income Tax" },
               ]
         }
-        current={enteredFromBooks ? "Your records" : "Starter Books"}
+        current={backupsView ? "Backups" : enteredFromBooks ? "Your records" : "Starter Books"}
       />
 
       <header className="mt-5">
-        {enteredFromBooks ? <p className="section-label">Books in plain words</p> : null}
+        {enteredFromBooks ? <p className="section-label">{backupsView ? "Money records · Backups" : "Books in plain words"}</p> : null}
         <h1 className={`${enteredFromBooks ? "font-display" : ""} mt-4 text-3xl font-bold text-ink sm:text-4xl`}>
-          {enteredFromBooks ? "Your business money" : "Starter Books"}
+          {backupsView ? "Back up or restore your Books" : enteredFromBooks ? "Your business money" : "Starter Books"}
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-7 text-ink-soft">
-          {enteredFromBooks
+          {backupsView
+            ? "Save a protected copy of your money records, or bring an existing Books backup onto this device. You will review it before replacing anything."
+            : enteredFromBooks
             ? "Keep a checked record of money in and money out. We show what each item changes before it counts."
             : "Bring in money movements, answer one plain question at a time, and keep books you can explain. Suggestions never enter your figures until you confirm them."}
         </p>
-        {enteredFromBooks ? (
+        {enteredFromBooks && !backupsView ? (
           <p className="mt-5 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink-soft">
             <strong className="text-ink">Available now:</strong>{" "}up to one UK sole-trader
             business and one UK property business, kept separate, in pounds, with a 2026–27
-            Income Tax view. These records stay only in this browser. TaxSorted does not encrypt
-            or automatically back them up, and signing in does not put them on another device. Limited companies
+            Income Tax view. These records stay in this app or browser. TaxSorted does not encrypt
+            the live records or back them up automatically. Download a password-protected Books
+            backup regularly. Signing in does not put them on another device. Limited companies
             and full annual accounts are not supported yet.
           </p>
         ) : null}
@@ -224,7 +236,7 @@ export default function RecordsClient({
 
       {enteredFromBooks ? (
         <div className="mt-6 border-y border-line py-3">
-          <BooksWorkspaceNav view={view} />
+          <BooksWorkspaceNav view={view} activity={preferredSource === "uk-property" ? preferredSource : undefined} />
         </div>
       ) : (
         <div className="mt-6"><EducationNotice /></div>
@@ -252,7 +264,7 @@ export default function RecordsClient({
       ) : (
         <>
           {enteredFromBooks && view === "today" && booksSummary ? (
-            <div className="mt-8"><BooksToday summary={booksSummary} /></div>
+            <div className="mt-8"><BooksToday summary={booksSummary} activity={preferredSource === "uk-property" ? preferredSource : undefined} /></div>
           ) : null}
 
           {(!enteredFromBooks || view === "money") ? (
@@ -288,6 +300,12 @@ export default function RecordsClient({
                       Bring in a CSV file
                     </Button>
                   </div>
+                  {enteredFromBooks && events.length === 0 ? (
+                    <p className="mt-4 text-sm leading-6 text-ink-soft">
+                      Already have a Books backup?{" "}
+                      <Link href={withBooksActivity("/books/workspace/backups#restore-books-backup", preferredSource === "uk-property" ? preferredSource : undefined)} className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Restore a Books backup →</Link>
+                    </p>
+                  ) : null}
                   <div className="mt-6">
                     <section
                       id="manual-start-panel"
@@ -401,7 +419,7 @@ export default function RecordsClient({
 
           {enteredFromBooks && view === "tax" && booksSummary ? (
             <div className="mt-8">
-              <BooksTaxView books={books} summary={booksSummary} quarter={quarter} />
+              <BooksTaxView books={books} summary={booksSummary} quarter={quarter} activity={preferredSource === "uk-property" ? preferredSource : undefined} />
             </div>
           ) : null}
 
@@ -442,7 +460,7 @@ export default function RecordsClient({
                           Review this Income Tax quarter →
                         </Link>
                         <Link
-                          href="/books/connect"
+                          href={withBooksActivity("/books/connect", preferredSource === "uk-property" ? preferredSource : undefined)}
                           className="inline-flex min-h-11 items-center text-accent underline underline-offset-4"
                         >
                           See how records could reach HMRC →
@@ -479,7 +497,14 @@ export default function RecordsClient({
               </div>
             </>
           ) : null}
-          <BooksBackup store={store} onRestored={refresh} />
+          {backupsView || !enteredFromBooks ? (
+            <BooksBackup store={store} onRestored={refresh} expanded={backupsView} />
+          ) : (
+            <p className="mt-8 border-t border-line pt-4 text-sm text-ink-soft">
+              Keep a copy outside this app. {" "}
+              <Link href={withBooksActivity("/books/workspace/backups", preferredSource === "uk-property" ? preferredSource : undefined)} className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Back up or restore your Books →</Link>
+            </p>
+          )}
         </>
       )}
     </div>
@@ -590,10 +615,12 @@ function BooksTaxView({
   books,
   summary,
   quarter,
+  activity,
 }: {
   books: LocalBooksState;
   summary: BooksSummary;
   quarter: ReturnType<typeof quarterForDate>;
+  activity?: SourceType;
 }) {
   const totals = quarter
     ? summary.ledgers.flatMap((ledgerSummary) => {
@@ -694,7 +721,7 @@ function BooksTaxView({
           <Link href="/itsa/quarter" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             Check this quarter before sending anything →
           </Link>
-          <Link href="/books/connect" className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
+          <Link href={withBooksActivity("/books/connect", activity)} className="inline-flex min-h-11 items-center text-accent underline underline-offset-4">
             See how records could reach HMRC →
           </Link>
         </div>

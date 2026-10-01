@@ -6,6 +6,15 @@ that must be reconciled with the operator's private records. No private approval
 pack, live edge configuration, provider account or production database was inspected.
 An unverified gate does not mean the external work has not been done.
 
+**Code follow-up — 30 September:** the [infrastructure roadmap](../infrastructure/README.md#infrastructure-roadmap)
+records repaired release checks, a reproducible full install and an exercised
+[synthetic database restore](../infrastructure/testing/README.md) on PostgreSQL 16.14
+and 17.10. The rehearsal applies all eight migrations and compares all 21 public
+tables, with constraint and rollback checks. This adds local implementation evidence;
+it does not verify the hosted database version, snapshots, retention, production
+roles/privileges, encryption-key recovery or disaster-recovery objectives. The
+production decisions and unverified operational gates below remain unchanged.
+
 The proposed scopes are independent: local preparation, HMRC VAT filing, HMRC Income
 Tax filing, and a customer accounting-provider pilot. Passing the software release
 checks only establishes the tested repository state. Each broader scope needs its

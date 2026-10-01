@@ -1,5 +1,6 @@
 // The typed client for the taxsorted api — the same surface an agent would call.
 
+import { isLocalApp } from "./local-runtime";
 import {
   collectFraudPreventionHeaders,
   headersToRecord,
@@ -23,6 +24,7 @@ import type {
 } from "@simplewebauthn/browser";
 
 export function apiBase(): string {
+  assertOnlineRuntime();
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== "undefined" && window.location.hostname === "localhost") {
     return "http://localhost:8787";
@@ -287,6 +289,16 @@ export class ApiError extends Error {
   }
 }
 
+function assertOnlineRuntime(): void {
+  if (isLocalApp()) {
+    throw new ApiError(
+      0,
+      "local_app_offline",
+      "This connection needs an online service and is unavailable in the local app. Your local records are still available. See Local app → Your data for details."
+    );
+  }
+}
+
 /**
  * Thrown instead of the plain ApiError when the api answers 401 `signed_out`
  * — a door that needs a signed-in session was reached (the api IS reachable)
@@ -307,6 +319,8 @@ export class SignedOutError extends ApiError {
 }
 
 async function call<T>(path: string, init?: RequestInit & { fraud?: boolean }): Promise<T> {
+  // Stop before collecting browser metadata or constructing a remote request.
+  assertOnlineRuntime();
   const headers: Record<string, string> = {
     ...(init?.body ? { "Content-Type": "application/json" } : {}),
     ...(init?.headers as Record<string, string>),

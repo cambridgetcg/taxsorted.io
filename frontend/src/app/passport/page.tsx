@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { PassportClient } from "./passport-client";
 
 export const metadata: Metadata = {
-  title: "Tax Position Passport — TaxSorted",
+  title: "Tax summary and handover — TaxSorted",
   description:
     "Build a browser-local UK tax position from explicit facts, unknowns, evidence states and a source-backed MTD Income Tax check, then export a portable JSON or accountant handoff.",
 };
@@ -17,21 +17,21 @@ export default function PassportPage() {
     >
       <div className="print:hidden">
         <Breadcrumbs
-          items={[{ href: "/checkup", label: "Check" }]}
-          current="Tax Position Passport"
+          items={[{ href: "/services", label: "Services" }]}
+          current="Tax summary and handover"
         />
 
         <header className="mt-6 max-w-4xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-            Tax Position Passport
+            Tax summary and handover · Tax Position Passport
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-            Understanding that travels.
+            Your tax position, ready to explain.
           </h1>
           <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-            Map the income sources you know, keep unknown facts visible, name the
-            evidence you hold and carry a complete source-backed MTD check into a
-            JSON or printable accountant handoff.
+            Gather the income sources you know, the evidence you hold and the questions
+            still to answer. Save a Tax Position Passport in this browser, or export a
+            copy to review with an accountant. The supported tax check covers MTD Income Tax.
           </p>
         </header>
 

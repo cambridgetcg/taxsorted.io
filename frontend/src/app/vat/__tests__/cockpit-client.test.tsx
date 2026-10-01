@@ -45,8 +45,8 @@ describe("VAT cockpit boundary", () => {
     expect(
       screen.getByRole("heading", { name: /VAT — your records, your return/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/production filing is not available yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/HMRC's practice\s+system/i)).toBeInTheDocument();
+    expect(screen.getByText(/production filing is not available/i)).toBeInTheDocument();
+    expect(screen.getByText(/\(HMRC\) practice system/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Tax Checkup/i })).toHaveAttribute(
       "href",
       "/checkup",

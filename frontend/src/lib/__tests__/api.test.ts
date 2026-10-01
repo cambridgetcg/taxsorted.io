@@ -8,7 +8,8 @@
 // headers are asserted directly.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { api, ApiError, SignedOutError } from "../api";
+import { api, apiBase, ApiError, SignedOutError } from "../api";
+import * as hmrc from "@taxsorted/engine/uk/hmrc";
 import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -54,8 +55,40 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+});
+
+describe("API client in the offline desktop app", () => {
+  it("rejects an HMRC request before collecting device metadata or sending data", async () => {
+    const fetch = mockFetchOnce();
+    const collect = vi.spyOn(hmrc, "collectFraudPreventionHeaders");
+    vi.stubGlobal("window", { location: new URL("taxsorted://app/itsa/quarter/") });
+
+    await expect(api.itsaObligations("entity-1")).rejects.toMatchObject({
+      status: 0,
+      code: "local_app_offline",
+      message: expect.stringContaining("Your local records are still available"),
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(collect).not.toHaveBeenCalled();
+  });
+
+  it("never falls back to a hosted API or a configured URL", () => {
+    vi.stubGlobal("window", { location: new URL("taxsorted://app/") });
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "https://example.com");
+    expect(apiBase).toThrow(ApiError);
+    expect(apiBase).toThrow(/unavailable in the local app/);
+  });
+
+  it("also blocks account operations without asking for a session", async () => {
+    const fetch = mockFetchOnce();
+    vi.stubGlobal("window", { location: new URL("taxsorted://app/account/") });
+    await expect(api.getAccount()).rejects.toMatchObject({ code: "local_app_offline" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
 
 describe("api client — fraud-header piggyback (fraud: true calls)", () => {

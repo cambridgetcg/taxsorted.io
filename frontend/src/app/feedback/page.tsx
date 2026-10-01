@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "Tell us what to build",
+  title: "Feedback access and limits — TaxSorted",
   description:
-    "TaxSorted grows by request. Wishes and corrections are public on GitHub, so everyone can see what was asked and what got built.",
+    "The current TaxSorted issue tracker requires access to the private development repository. Public feedback and confidential support channels are not available yet.",
 };
 
 const WISH_URL =
@@ -22,12 +22,12 @@ export default function FeedbackPage() {
           Feedback
         </p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-          Tell us what to build.
+          Feedback access and limits.
         </h1>
         <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-          If something here is confusing, missing or wished-for, say so. We read everything,
-          and what people ask for is what gets built next. We don&apos;t track you on this
-          site, so we can&apos;t hear you unless you speak.
+          The current feedback tracker is inside a private GitHub repository. You need a
+          GitHub account with access to that repository to suggest a feature or report a
+          correction. A public feedback channel is not available yet.
         </p>
       </header>
 
@@ -40,14 +40,13 @@ export default function FeedbackPage() {
             Make a wish
           </h2>
           <p className="mt-3 text-base text-ink-soft">
-            A feature, a guide, a country, a tool — anything. Wishes live as
-            public GitHub issues, so everyone can see what has been asked, what
-            we said, and what got built.
+            If you already have repository access, use a GitHub issue to suggest a feature,
+            guide or tool. Explain the task you want to complete and where you get stuck.
           </p>
           <p className="mt-3 text-base text-ink-soft">
-            <span className="font-medium text-ink">The one gate:</span> GitHub
-            requires a free account. We use it because it keeps the whole
-            conversation public — no forms that vanish into a private inbox.
+            <span className="font-medium text-ink">Access required:</span> Creating a GitHub
+            account alone does not grant access. The link below may show a missing-page
+            response if you are not an authorised collaborator.
           </p>
           <a
             href={WISH_URL}
@@ -55,7 +54,7 @@ export default function FeedbackPage() {
             rel="noreferrer noopener"
             className="mt-4 inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-medium text-white hover:bg-accent-deep"
           >
-            Open a wish <span aria-hidden="true">&nbsp;↗</span>
+            Open a wish (repository access required) <span aria-hidden="true">&nbsp;↗</span>
           </a>
         </section>
 
@@ -67,9 +66,9 @@ export default function FeedbackPage() {
             Report something wrong
           </h2>
           <p className="mt-3 text-base text-ink-soft">
-            A figure that looks off, a rule explained badly, a source that
-            moved — corrections go through the same public channel, and fixes
-            land in the open.
+            A figure that looks off, a rule explained badly, a source that moved:
+            collaborators can report these in the same private issue tracker. Include
+            the page and public source, using made-up examples instead of personal tax data.
           </p>
           <a
             href={CORRECTIONS_URL}
@@ -77,10 +76,16 @@ export default function FeedbackPage() {
             rel="noreferrer noopener"
             className="mt-4 inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 py-2 text-base font-medium text-accent hover:text-accent-deep"
           >
-            Open a correction <span aria-hidden="true">&nbsp;↗</span>
+            Open a correction (repository access required) <span aria-hidden="true">&nbsp;↗</span>
           </a>
         </section>
       </div>
+
+      <p className="mt-6 rounded-2xl border border-warm/40 bg-warm/5 p-4 text-sm leading-6 text-ink-soft">
+        Confidential support is not available. Do not put personal tax records, account
+        details or identity documents in an issue. The tracker is for product feedback,
+        not tax advice or handling an individual case.
+      </p>
 
       <section
         className="mt-8 rounded-3xl border border-line bg-accent-soft p-6"
@@ -95,9 +100,8 @@ export default function FeedbackPage() {
           >
             /agent.txt
           </a>{" "}
-          lists the corrections channel; wishes travel through it too. Say
-          you&apos;re an agent if you like — it changes nothing about how the
-          wish is read.
+          lists the corrections route. The same repository-access requirement applies to
+          people and agents; the machine doorway does not grant access to GitHub.
         </p>
       </section>
 

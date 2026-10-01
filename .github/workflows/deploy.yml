@@ -78,6 +78,9 @@ jobs:
       # Quality gate — every workspace's tests must pass before anything ships.
       - run: npm test
 
+      - name: Test infrastructure safety and the frontend release contract offline
+        run: npm run test:infrastructure
+
       - run: npm run lint --workspace frontend
 
       - run: npm run typecheck
@@ -91,6 +94,9 @@ jobs:
           UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_PUBLIC_DATA_ENABLED }}
           UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP: ${{ vars.UK_PROFESSIONAL_OPPORTUNITIES_EMERGENCY_STOP }}
         run: npm run build
+
+      - name: Verify the generated frontend before production changes
+        run: node scripts/release/frontend-contract.mjs check-build
 
   # The API ships first. A failed or skipped API deploy must never leave a new
   # frontend pointing at an older API contract.
@@ -454,25 +460,8 @@ jobs:
             exit 1
           fi
 
-      - name: Verify the generated people-power doors
-        run: |
-          set -euo pipefail
-          for page_and_marker in \
-            'frontend/out/index.html|Pay what the law requires. Claim what the law allows.' \
-            'frontend/out/books/index.html|Know where every number came from.' \
-            'frontend/out/books/workspace/index.html|TaxSorted does not encrypt or automatically back them up' \
-            'frontend/out/checkup/index.html|Find where you stand. Then take the next honest step.' \
-            'frontend/out/plan/index.html|See covered lawful choices. Keep the decision yours.' \
-            'frontend/out/file/index.html|Nothing moves without your eyes and consent.' \
-            'frontend/out/put-it-right/index.html|A mistake is not the end of the road.' \
-            'frontend/out/trust/index.html|The boundary should be as visible as the feature.' \
-            'frontend/out/learn/index.html|Play the books. Keep the money you can prove.'
-          do
-            page=${page_and_marker%%|*}
-            marker=${page_and_marker#*|}
-            test -f "${page}"
-            grep --fixed-strings --quiet "${marker}" "${page}"
-          done
+      - name: Verify the exact frontend release against the shared page contract
+        run: node scripts/release/frontend-contract.mjs check-build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4

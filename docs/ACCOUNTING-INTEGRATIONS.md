@@ -7,7 +7,9 @@ Implementation-status correction: 2026-09-12; external-source review dates are u
 Status: **target design, not a claim of live provider access.** CSV/manual local books and the
 labelled HMRC sandbox paths exist. A made-up, local-development provider proves the account-owned
 organisation selection, browser-local page commit, exact acknowledgement and whole-run checkpoint
-protocol without credentials, network access or customer data. A separate, default-closed Xero
+protocol without external provider credentials, provider network calls or customer data.
+The interactive proof still requires a running API, PostgreSQL and a full passkey session;
+it is not available in the offline desktop edition. A separate, default-closed Xero
 pilot now implements OAuth, encrypted versioned token custody, organisation selection and explicit
 binding to a TaxSorted profile. It has no financial dataset reader and cannot import invoices,
 bank transactions or payments. Enabling that private pilot requires the operator configuration
@@ -45,8 +47,10 @@ not part of the working proof yet.
 
 ## The boundary
 
-An accounting connection proves that TaxSorted can read some provider data. It does not prove
-that the books are complete, reconciled, correctly mapped to tax, or ready to file.
+A successful authorisation establishes a provider grant; it does not establish financial
+read capability. The current Xero pilot can select an organisation but has no financial
+reader. Even a successful future financial import would not prove that the books are complete,
+reconciled, correctly mapped to tax, or ready to file.
 
 Keep three things separate:
 

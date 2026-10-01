@@ -5,6 +5,9 @@ import BooksWorkspacePage from "../page";
 import BooksBusinessPage from "../business/page";
 import BooksMoneyPage from "../money/page";
 import BooksTaxPage from "../tax/page";
+import BooksBackupsPage from "../backups/page";
+import RecordsClient from "@/features/books/records-client";
+import { BOOKS_BACKUP_SCHEMA, summariseBooksBackup } from "@/lib/books-backup";
 import {
   emptyLocalBooks,
   eventFromRecord,
@@ -12,6 +15,13 @@ import {
 } from "@/lib/local-books";
 
 const NOW = "2026-08-20T12:00:00.000Z";
+const navigation = vi.hoisted(() => ({ query: null as string | null, pending: null as Promise<void> | null }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => {
+    if (navigation.pending) throw navigation.pending;
+    return new URLSearchParams(navigation.query ?? window.location.search);
+  },
+}));
 
 const store = vi.hoisted(() => ({
   state: vi.fn(),
@@ -23,6 +33,7 @@ const store = vi.hoisted(() => ({
   reopenLedger: vi.fn(),
   exportJson: vi.fn(),
   exportCsv: vi.fn(),
+  previewRestore: vi.fn(),
 }));
 
 vi.mock("@/lib/records", () => ({
@@ -136,6 +147,8 @@ function mixedBooks(): LocalBooksState {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  navigation.query = null;
+  navigation.pending = null;
   store.state.mockResolvedValue(emptyBooks());
   store.add.mockResolvedValue({});
   store.importMany.mockResolvedValue({ added: [], duplicateCount: 0, conflicts: [] });
@@ -147,6 +160,36 @@ afterEach(() => {
 });
 
 describe("Books workspace entry", () => {
+  it("uses the destination router query before window.location catches up", async () => {
+    window.history.replaceState({}, "", "/checkup?for=landlords");
+    navigation.query = "activity=uk-property&start=manual";
+    render(<BooksMoneyPage />);
+
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+    await screen.findByRole("heading", { name: "Add money in or out" });
+    expect(screen.getByRole("radio", { name: "A property I let" })).toBeChecked();
+    expect(window.location.search).toBe("?for=landlords");
+  });
+
+  it("updates navigation when the router changes activity without relying on document history", async () => {
+    navigation.query = "activity=uk-property";
+    const view = render(<BooksWorkspacePage />);
+    await screen.findByRole("heading", { name: "No records yet" });
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+
+    navigation.query = "activity=self-employment";
+    view.rerender(<BooksWorkspacePage />);
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money");
+  });
+
+  it("offers a loading status rather than links with a guessed activity before the router is ready", () => {
+    navigation.pending = new Promise(() => {});
+    render(<BooksMoneyPage />);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading your records workspace");
+    expect(screen.queryByRole("navigation", { name: "Books sections" })).not.toBeInTheDocument();
+    expect(store.state).not.toHaveBeenCalled();
+  });
+
   it("gives Today one truthful status and no completeness claim", async () => {
     render(<BooksWorkspacePage />);
 
@@ -154,7 +197,7 @@ describe("Books workspace entry", () => {
     expect(await screen.findByRole("heading", { name: "No records yet" })).toBeInTheDocument();
     expect(screen.getByText(/up to one UK sole-trader business and one UK property business/i))
       .toBeInTheDocument();
-    expect(screen.getByText(/TaxSorted does not encrypt or automatically back them up/i)).toBeInTheDocument();
+    expect(screen.getByText(/TaxSorted does not encrypt the live records or back them up automatically/i)).toHaveTextContent(/Download a password-protected Books backup regularly/i);
     expect(screen.getByText(/signing in does not put them on another device/i))
       .toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add money in or out/ }))
@@ -174,6 +217,7 @@ describe("Books workspace entry", () => {
     expect(manual).toHaveAttribute("aria-controls", "manual-start-panel");
     expect(csv).toHaveAttribute("aria-expanded", "false");
     expect(csv).toHaveAttribute("aria-controls", "csv-start-panel");
+    expect(screen.getByRole("link", { name: "Restore a Books backup →" })).toHaveAttribute("href", "/books/workspace/backups#restore-books-backup");
 
     fireEvent.click(manual);
     const manualHeading = await screen.findByRole("heading", {
@@ -188,6 +232,65 @@ describe("Books workspace entry", () => {
     expect(screen.getByLabelText("Bank or bookkeeping file (.csv)")).toBeVisible();
     await waitFor(() => expect(manual).toHaveAttribute("aria-expanded", "false"));
     expect(csv).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("makes backups an expanded task view without money entry or business-scope clutter", async () => {
+    navigation.query = "activity=uk-property&start=manual";
+    render(<BooksBackupsPage />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Back up or restore your Books" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Save current Books" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Restore a backup" })).toBeVisible();
+    expect(screen.getByLabelText("Choose a Books backup to restore")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Backups" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Money" })).toHaveAttribute("href", "/books/workspace/money?activity=uk-property");
+    expect(screen.queryByText(/up to one UK sole-trader business and one UK property business/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add money in or out" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "No records yet" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Restore a backup" })).toHaveAttribute("id", "restore-books-backup");
+    expect(screen.getByRole("region", { name: "Restore a backup" })).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("region", { name: "Books backup and restore controls" }).closest("details")).toBeNull();
+  });
+
+  it.each([
+    ["today", BooksWorkspacePage], ["money", BooksMoneyPage], ["business", BooksBusinessPage], ["tax", BooksTaxPage],
+  ] as const)("links the %s view to backups instead of repeating password and restore controls", async (_view, Page) => {
+    navigation.query = "activity=uk-property";
+    render(<Page />);
+
+    expect(await screen.findByRole("link", { name: "Back up or restore your Books →" })).toHaveAttribute("href", "/books/workspace/backups?activity=uk-property");
+    expect(screen.queryByLabelText("Backup password", { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Choose a Books backup to restore")).not.toBeInTheDocument();
+    if (_view === "money") expect(screen.getByRole("link", { name: "Restore a Books backup →" })).toHaveAttribute("href", "/books/workspace/backups?activity=uk-property#restore-books-backup");
+  });
+
+  it("clears backup passwords, chosen file and preview when leaving the mounted Backups view", async () => {
+    const books = emptyBooks();
+    const json = JSON.stringify({ schema: BOOKS_BACKUP_SCHEMA, exportedAt: NOW, books });
+    store.previewRestore.mockResolvedValue({
+      existingBackup: json,
+      existing: summariseBooksBackup(books),
+      incoming: summariseBooksBackup(books),
+      exportedAt: NOW,
+    });
+    const view = render(<RecordsClient entry="books" view="backups" />);
+    const fileInput = await screen.findByLabelText("Choose a Books backup to restore");
+    const selected = new File([json], "synthetic-backup.json", { type: "application/json" });
+    Object.defineProperty(selected, "text", { value: async () => json });
+    fireEvent.change(fileInput, { target: { files: [selected] } });
+    await screen.findByRole("heading", { name: "Check before replacing your Books" });
+    fireEvent.change(screen.getByLabelText("Backup password", { exact: true }), { target: { value: "synthetic draft password" } });
+    fireEvent.change(screen.getByLabelText("Repeat backup password"), { target: { value: "synthetic draft password" } });
+    expect((fileInput as HTMLInputElement).files).toHaveLength(1);
+
+    view.rerender(<RecordsClient entry="books" view="money" />);
+    expect(screen.queryByLabelText("Backup password", { exact: true })).not.toBeInTheDocument();
+    view.rerender(<RecordsClient entry="books" view="backups" />);
+    expect(await screen.findByLabelText("Backup password", { exact: true })).toHaveValue("");
+    expect(screen.getByLabelText("Repeat backup password")).toHaveValue("");
+    expect((screen.getByLabelText("Choose a Books backup to restore") as HTMLInputElement).files).toHaveLength(0);
+    expect(screen.queryByRole("heading", { name: "Check before replacing your Books" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download a Books backup" })).toBeDisabled();
   });
 
   it("keeps an unfinished draft when switching first actions", async () => {

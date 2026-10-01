@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RecordsClient from "@/features/books/records-client";
 import { emptyLocalBooks, eventFromRecord } from "@/lib/local-books";
 
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
+
 const store = vi.hoisted(() => ({
   state: vi.fn(),
   subscribe: vi.fn(() => () => undefined),
@@ -76,5 +78,7 @@ describe("MTD records entry", () => {
     expect(businessCheck.compareDocumentPosition(backup) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.queryByRole("navigation", { name: "Books sections" })).not.toBeInTheDocument();
+    const recovery = screen.getByText("Back up or restore your Books").closest("details");
+    expect(recovery).not.toHaveAttribute("open");
   });
 });

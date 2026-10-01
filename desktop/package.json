@@ -1,0 +1,22 @@
+{
+  "name": "@taxsorted/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TaxSorted Local — offline tax preparation and personal records",
+  "author": "TaxSorted contributors",
+  "license": "AGPL-3.0-only",
+  "main": "src/main.cjs",
+  "scripts": {
+    "install-runtime": "install-electron",
+    "start": "electron .",
+    "stage": "node scripts/stage.cjs",
+    "package": "electron-builder --config electron-builder.yml --publish never",
+    "test": "node --test test/*.test.cjs"
+  },
+  "devDependencies": {
+    "@electron/asar": "3.4.1",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0"
+  }
+}

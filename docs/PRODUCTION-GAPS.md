@@ -8,15 +8,34 @@ admission by itself.
 
 The existing local preparation product, a reproducible release, a financial provider
 import and recognised production filing have different completion conditions. The
-current three-workspace architecture can support them; a rewrite is unnecessary.
+existing architecture can support them; a rewrite is unnecessary. The September 12
+baseline had three workspaces; the [current stack](../infrastructure/README.md) adds
+the desktop workspace and records later implementation and verification boundaries.
+
+## Current progress at 30 September 2026
+
+Use the [product roadmap](SERVICE-REBUILD.md#next-delivery-work) for overall delivery
+order. This document owns the detailed PG acceptance contracts for accounting and
+online production scope; original gap descriptions below are dated audit evidence,
+not a claim that every original defect is still present.
+
+| Packages | Current disposition | Remaining work |
+|---|---|---|
+| PG-01 | Implemented; later SDK download repair and shared route checks are recorded in [infrastructure](../infrastructure/README.md#first-implementation-batch) | Keep the release gate green for each candidate; no public rebuild release is recorded |
+| PG-02 | September review admitted through 12 October 2026 | Assign the reviewer and renew from primary sources before the 13 October stop; this roadmap edit does not renew evidence |
+| PG-03 | Books recovery implemented; complete encrypted saved-workspace recovery now passes all four native targets | [Consumer desktop acceptance](DESKTOP-TESTING.md) remains NOT RUN; live profiles are not encrypted by the app |
+| PG-06 | Browser mutation Origin guard implemented and regression-tested | Deployed abuse/rate controls still require separate operating evidence |
+| PG-04, PG-05, PG-07–11 | Broader accounting, VAT review, grant lifecycle, durable filing, annual scope and real provider data remain incomplete | Follow the package-specific dependencies below; preparation and offline use do not require all these capabilities |
+| PG-12 | Operating inventory exists; external decisions and actual hosted recovery remain unverified | Reconcile private evidence and named owners; unverified does not establish absence |
+| PG-13 | First extractions are recorded; additional retirement/consolidation remains later work | Preserve public routes, compatibility and runtime research inputs |
 
 ## First implementation batch — 2026-09-12
 
-| Package | Current result | Remaining boundary |
+| Package | Result recorded on 12 September | Boundary recorded at that batch |
 |---|---|---|
 | PG-01 | Implemented: clean Node 22 install, valid dependency tree, zero full/production audit findings, all workspace tests, lint, types, corpus validators and 73-page static build pass | Local verification; deployment is a separate action |
 | PG-02 | Ten primary sources reviewed; cessation provenance repaired; source admission renewed through 12 October with the 13 October stop preserved | Existing classifier scope remains; named human owner for the next review is unassigned |
-| PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough remain unverified |
+| PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough were unverified at this batch. See the [later protected-backup and native recovery evidence](#pg-03--restore-local-books-safely). |
 | PG-06 | Shared pre-session Origin guard implemented; duplicate exact-root session execution fixed; real-router tests pass with mocked SQL/provider calls | Does not prove live Postgres, provider or edge rate-limit behavior |
 | PG-12 | [Operating evidence inventory](OPERATING-EVIDENCE.md) prepared with responsible roles and next actions | External decisions and private operating evidence remain unverified |
 
@@ -56,6 +75,10 @@ additional jurisdictions does not invalidate a clearly bounded local preparation
 
 ### PG-01 — Restore a reproducible release gate
 
+**Current disposition:** implemented in the recorded hardening/infrastructure batches
+above. The gap and implementation path below preserve the original audit and repair
+contract; they are not instructions to repeat an already-completed dependency repair.
+
 **Gap and evidence.** The audit's production dependency check reported seven affected
 entries, including critical Next and high sharp entries. [Root overrides](../package.json)
 and the [frontend manifest](../frontend/package.json) pin the relevant dependency
@@ -83,10 +106,12 @@ avoid dependency edits until this patch is integrated.
 
 ### PG-02 — Renew MTD source evidence without weakening the stop
 
-**Gap and evidence.** [MTD expert rules](../engine/jurisdictions/uk/expert/mtd-income-tax.ts)
-set `reviewDueOn` to 2026-08-11 and return `source_review_required` after that date.
-The release canary accepts the explicit degraded state. Corpus shape validation does
-not prove that a source is current.
+**Historical gap and evidence.** At the September 12 audit baseline,
+[MTD expert rules](../engine/jurisdictions/uk/expert/mtd-income-tax.ts) set
+`reviewDueOn` to 2026-08-11 and returned `source_review_required` after that date.
+The subsequent source review moved the due date to **2026-10-12**, preserving the
+overdue stop. The release canary accepts the explicit degraded state. Corpus shape
+validation does not prove that a source is current.
 
 **Implementation path.** Review every admitted primary source against its supported
 claims, applicable periods and stated limits. Record retrieval/review evidence and
@@ -105,17 +130,43 @@ replace it with a mechanical date change.
 
 ### PG-03 — Restore local books safely
 
-**Gap and evidence.** [RecordsStore](../frontend/src/lib/records.ts) exposes JSON/CSV
-exports but no complete backup restore operation. [Local books](../frontend/src/lib/local-books.ts)
+**Historical gap — 12 September audit baseline.** [RecordsStore](../frontend/src/lib/records.ts)
+exposed JSON/CSV exports but no complete backup restore operation. [Local books](../frontend/src/lib/local-books.ts)
 retain review state, revisions, conflicts, provider identities and replica metadata
 that a transaction CSV alone cannot preserve.
 
-**Implementation path.** Define a versioned backup envelope and strict restore
+**Original implementation path.** Define a versioned backup envelope and strict restore
 validation. First ship an explicit replace-from-backup flow with a preflight summary
 and an export of existing work; defer merging two histories to a separate contract.
 Restore atomically, preserve evidence/revision links and assign a fresh local replica
 identity. Provider coverage and account/HMRC bindings must be invalidated or explicitly
 re-established, never silently inherited as current authority.
+
+**Subsequent implementation and verification.** Versioned backup and deliberate replacement
+are implemented. The [current Books contract](BOOKS-BACKUP.md) adds password-protected
+downloads by default, an explicit plain-file compatibility option, and a protected safety
+copy before restore. Protected files have a 14 MiB encoded limit; decoded Books retain
+the 10 MiB limit and the contract's collection bounds. Restore still requires Web Locks
+and atomically replaces the Books keys after checking the preview's saved-state baseline.
+
+The [29 September navigation and recovery campaign](testing/2026-09-29-desktop-navigation.md)
+records all 12 source, unpacked and installed runtime reports passing on Windows x64,
+Linux x64, Intel Mac and Apple silicon Mac at clean commit
+`fd73870d08e3e14fbd279c924e012539c4b973ee`. Each verifies encrypted export, independent
+decryption, observed wrong-password rejection with current records preserved, a protected
+safety copy and confirmed restore. These are synthetic tests in disposable profiles at
+that recorded revision. They do not establish recovery of a person's existing profile,
+cross-browser recovery, real native-dialog acceptance, reinstall/upgrade persistence or
+disaster recovery. [Manual consumer acceptance](DESKTOP-TESTING.md#manual-cases-on-each-native-desktop)
+remains NOT RUN.
+
+Protection applies to exported Books files. The live browser/app profile is not encrypted
+by TaxSorted. Passport facts, return-preparation drafts, personal checklists, sign-in
+sessions and attachments are outside the Books backup. Available Passport, CSV and
+preparation-summary exports remain unencrypted. The later INF-06 workspace flow
+adds one encrypted file and atomic restore for Books, Passport, both preparation
+years and checklists. Accounts and attachments remain excluded. See
+[local data custody](LOCAL-APP.md#where-personal-data-lives).
 
 **Acceptance.** Export → clear a disposable store → restore reproduces supported book
 facts, money, review states and history. Malformed/oversized files, duplicate IDs,
@@ -364,6 +415,9 @@ are settled; do not combine them with a behavior fix merely to reduce file size.
 
 ## Concrete batches and parallel sequence
 
+These batches describe the accounting/online track. Local service improvements and
+desktop release readiness are sequenced in the [product roadmap](SERVICE-REBUILD.md).
+
 | Batch | Parallel work | Integration and exit condition |
 |---|---|---|
 | 1 — Release and source recovery | PG-01 dependency owner; PG-02 source-review owner; PG-12 evidence inventory | Reproducible checks pass; evidence is renewed or the source-overdue stop remains explicit. No capability switch opens automatically |
@@ -372,9 +426,10 @@ are settled; do not combine them with a behavior fix merely to reduce file size.
 | 4 — Provider ingress | PG-11 bounded financial reader alongside PG-09 tax completion, after PG-03/PG-04 and applicable PG-12 gates | Authorised read-only pilot, exact local review/checkpoint evidence and off-switch. Provider completeness and tax readiness remain distinct |
 | 5 — Additional coverage | PG-10 Books-to-VAT, further accounting depth and PG-13 extractions | Admit each capability independently; wider provider/company/country scope follows evidence rather than navigation changes |
 
-The immediate recommended implementation batch is **PG-01**, with **PG-02 evidence
-review** and **PG-12 operating-evidence inventory** running independently. Next, ship
-PG-03 and PG-06 as bounded preparation/security improvements while PG-05 is reproduced
-and fixed. Give migrations, lockfile changes and the record-store schema one owner per
-batch. Source review, external decisions and permission to release remain explicit
-dependencies throughout.
+PG-01, PG-03 and PG-06 now have implementation evidence; do not restart their original
+repair batches. The next online code sequence is **PG-05 → PG-07 → PG-08**, followed
+by PG-09 within the declared filing scope. PG-04/PG-11 follow their own accounting
+and provider dependencies. Run **PG-02 source renewal** and **PG-12 operating-evidence
+reconciliation** concurrently, including INF-04/05 hosted recovery and observability.
+Give migrations, lockfile changes and the record-store schema one owner per batch.
+Source review, external decisions and permission to release remain dependencies.

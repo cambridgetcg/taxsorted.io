@@ -76,7 +76,7 @@ export default function TrustPage() {
             <li>Disconnect an HMRC sandbox module without giving it another permission.</li>
             <li>Provider sign-in connections are not live yet; when they are, scoped disconnect must be an ordinary product path.</li>
             <li>Keep public explanations and sources available without a paid account.</li>
-            <li>Use open-source code and documented formats rather than depending on one vendor.</li>
+            <li>Keep portable exports in documented formats; public source downloads are still being prepared.</li>
           </ul>
         </div>
         <div>
@@ -93,20 +93,24 @@ export default function TrustPage() {
 
       <section aria-labelledby="build-title" className="mt-20">
         <p className="section-label">04 · Inspect the build</p>
-        <h2 id="build-title" className="section-title mt-4 text-ink">Sources, code and corrections stay open.</h2>
+        <h2 id="build-title" className="section-title mt-4 text-ink">Inspect the evidence and current limits.</h2>
         <p className="mt-4 max-w-3xl leading-7 text-ink-soft">
           TaxSorted is built by one human and AI collaborators. Tax calculations live in tested,
           versioned TypeScript rules rather than being invented by a language model at the point
           of use. Sources, unknowns and effective dates stay beside bounded answers.
         </p>
+        <p className="mt-4 max-w-3xl leading-7 text-ink-soft">
+          The development repository is private. Public source downloads and a public feedback
+          channel are not available yet; the current GitHub issue tracker requires repository access.
+        </p>
         <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-          <a href="https://github.com/cambridgetcg/taxsorted.io" target="_blank" rel="noreferrer noopener" className="font-medium text-accent underline underline-offset-4">Read the source code ↗ <span className="sr-only">(opens in a new tab)</span></a>
+          <Link href="/download#source" className="font-medium text-accent underline underline-offset-4">Source availability and developer setup →</Link>
           <Link href="/understanding" className="font-medium text-accent underline underline-offset-4">See how understanding is built →</Link>
           <Link href="/philosophy" className="font-medium text-accent underline underline-offset-4">Read the philosophy →</Link>
-          <Link href="/feedback" className="font-medium text-accent underline underline-offset-4">Report a public issue →</Link>
+          <Link href="/feedback" className="font-medium text-accent underline underline-offset-4">Feedback access and limits →</Link>
         </div>
         <p className="mt-5 rounded-2xl border border-warm/40 bg-warm/5 p-4 text-sm leading-6 text-ink-soft">
-          <strong className="text-ink">Do not post personal tax facts to the public feedback tracker.</strong>{" "}
+          <strong className="text-ink">Do not post personal tax facts to the issue tracker.</strong>{" "}
           A confidential support and correction channel is not live yet.
         </p>
       </section>

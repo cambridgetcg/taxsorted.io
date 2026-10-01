@@ -5,6 +5,18 @@ import { politicsApi } from "../politics-api";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("public politics client", () => {
+  it("does not fetch live public data from the offline desktop app", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    vi.stubGlobal("window", {
+      location: new URL("taxsorted://app/uk/politics/"),
+      setTimeout: globalThis.setTimeout,
+      clearTimeout: globalThis.clearTimeout,
+    });
+    await expect(politicsApi.system()).rejects.toMatchObject({ code: "local_app_offline" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("loads the non-personal system record from its public door", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>(
       async () => new Response(JSON.stringify({ schema: "taxsorted.uk.political-system/1" })),

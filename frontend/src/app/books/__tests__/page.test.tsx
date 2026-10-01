@@ -8,10 +8,10 @@ describe("Books front door", () => {
     render(<BooksPage />);
 
     expect(
-      screen.getByRole("heading", { name: /know where every number came from/i }),
+      screen.getByRole("heading", { name: /income and expenses, in order/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/without an in-house accounting team/i)).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /open starter books|start my books|open my local books/i })[0])
+    expect(screen.getByText(/one UK sole-trader business and one UK property business/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /open sole-trader records|open my records|continue to my records/i })[0])
       .toHaveAttribute("href", "/books/workspace");
     expect(screen.getByRole("link", { name: /open property books/i })).toHaveAttribute(
       "href",

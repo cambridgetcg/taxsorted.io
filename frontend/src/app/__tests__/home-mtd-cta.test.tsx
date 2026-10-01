@@ -1,89 +1,69 @@
 // @vitest-environment jsdom
 import { afterEach, describe, it, expect } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { configFor } from "@taxsorted/engine/uk/itsa";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { HomeClient } from "../home-client";
 import { I18nProvider } from "@/i18n/I18nProvider";
-import { gbpCompact, formatUkDate } from "@/lib/format";
+import { AUDIENCES } from "@/lib/tax-services";
 
-describe("homepage front door", () => {
+describe("homepage service starting point", () => {
   afterEach(() => {
     window.localStorage.clear();
     document.documentElement.lang = "en";
     document.documentElement.dir = "ltr";
   });
 
-  it("starts with position and choice, keeps the six powers close, and keeps MTD time-sensitive", () => {
-    render(
-      <I18nProvider>
-        <HomeClient />
-      </I18nProvider>,
-    );
+  it("prioritises individuals, sole traders and landlords and explains each destination", () => {
+    render(<HomeClient />);
 
-    expect(screen.getByRole("link", { name: "Check where I stand" })).toHaveAttribute(
-      "href",
-      "/checkup",
-    );
-    expect(screen.getByRole("link", { name: "Compare my choices" })).toHaveAttribute(
-      "href",
-      "/plan",
-    );
-    expect(screen.getByText(/sole-trader and landlord books are open now/i)).toBeInTheDocument();
-
-    const amIIn = screen.getByRole("link", { name: /am i in.*60.second check/i });
-    expect(amIIn).toHaveAttribute("href", "/itsa/am-i-in");
-    expect(screen.getByRole("link", { name: /what is actually true/i })).toHaveAttribute(
-      "href",
-      "/learn/mtd-income-tax",
-    );
-
-    // The date and threshold stay pinned to the engine rather than homepage copy.
-    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const [firstPhase] = configFor("2026-27").mtdThresholds.value;
-    const mandatedFrom = escapeRegex(formatUkDate(firstPhase.mandatedFrom));
-    const qualifyingIncomeOver = escapeRegex(gbpCompact(firstPhase.qualifyingIncomeOver));
-    expect(
-      screen.getByText(new RegExp(`first phase started ${mandatedFrom}.*${qualifyingIncomeOver}`, "i")),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/check the other entry conditions and exemptions/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open plan/i })).toHaveAttribute("href", "/plan");
-    expect(screen.getByRole("link", { name: /open books/i })).toHaveAttribute("href", "/books");
-    expect(screen.getByRole("link", { name: /open file and pay/i })).toHaveAttribute("href", "/file");
-    expect(screen.getByRole("link", { name: /find the right route/i })).toHaveAttribute("href", "/put-it-right");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveAccessibleName("A clearer way to sort your tax.");
+    const choices = screen.getByRole("region", { name: "Who are you sorting tax for?" });
+    expect(within(choices).getAllByRole("link")).toHaveLength(3);
+    for (const id of ["individuals", "sole-traders", "landlords"]) {
+      const audience = AUDIENCES.find((entry) => entry.id === id)!;
+      const link = within(choices).getByRole("link", { name: audience.shortName });
+      expect(link).toHaveAttribute("href", `/services/${id}`);
+      expect(link).toHaveAccessibleDescription(audience.description);
+    }
+    expect(screen.getByRole("link", { name: "For advisers" })).toHaveAttribute("href", "/services/advisers");
+    expect(screen.getByRole("link", { name: "For organisations" })).toHaveAttribute("href", "/services/organisations");
   });
 
-  it("keeps the wider system and machine-readable understanding one step away", () => {
-    render(
-      <I18nProvider>
-        <HomeClient />
-      </I18nProvider>,
-    );
+  it("connects the start and return journeys to the existing tools", () => {
+    render(<HomeClient />);
 
-    expect(screen.getByRole("link", { name: /follow public money and power/i })).toHaveAttribute(
-      "href",
-      "/uk",
-    );
-    expect(screen.getByRole("link", { name: /reuse the understanding/i })).toHaveAttribute(
-      "href",
-      "https://api.taxsorted.io/v1/uk/tax-expert",
-    );
-    expect(screen.getByText(/not yet recognised for production filing/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See my tax year" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "Continue to my records" })).toHaveAttribute("href", "/books/workspace");
+    expect(screen.getByRole("link", { name: "Open my tax year" })).toHaveAttribute("href", "/checkup");
+    expect(screen.getByRole("link", { name: "Explore money records" })).toHaveAttribute("href", "/books");
+    expect(screen.getByRole("link", { name: "See preparation and filing" })).toHaveAttribute("href", "/file");
+    expect(screen.getByRole("link", { name: "Find help with a problem" })).toHaveAttribute("href", "/put-it-right");
+    expect(screen.getByRole("link", { name: "Explore all services" })).toHaveAttribute("href", "/services");
   });
 
-  it("marks untranslated fallback copy as English under an Urdu interface", async () => {
+  it("keeps the MTD quick check and sourced explanation visible", () => {
+    render(<HomeClient />);
+
+    const mtd = screen.getByRole("region", { name: "Check if Making Tax Digital applies to you." });
+    expect(within(mtd).getByRole("link", { name: "Check MTD requirements" })).toHaveAttribute("href", "/itsa/am-i-in");
+    expect(screen.getByRole("link", { name: "Making Tax Digital" })).toHaveAttribute("href", "/learn/mtd-income-tax");
+  });
+
+  it("states the local storage and filing limits alongside the tools", () => {
+    render(<HomeClient />);
+
+    expect(screen.getByText(/money records stay in this app or browser/i)).toHaveTextContent(/an account does not back them up/i);
+    expect(screen.getByText(/HMRC filing journeys are sandbox tests/i)).toHaveTextContent(/production filing is not live/i);
+  });
+
+  it("marks new English copy correctly under an Urdu interface", async () => {
     window.localStorage.setItem("taxsorted.locale", "ur");
-    render(
-      <I18nProvider>
-        <HomeClient />
-      </I18nProvider>,
-    );
+    render(<I18nProvider><HomeClient /></I18nProvider>);
 
-    const heading = screen.getByRole("heading", { level: 1 });
-    await waitFor(() => expect(heading).toHaveAttribute("lang", "ur"));
-    expect(heading).toHaveAttribute("dir", "rtl");
-
-    const intro = screen.getByText(/pay what the law requires/i);
-    expect(intro).toHaveAttribute("lang", "en");
-    expect(intro.closest("div[lang='en']")).toHaveAttribute("dir", "ltr");
+    await waitFor(() => expect(document.documentElement).toHaveAttribute("lang", "ur"));
+    expect(document.documentElement).toHaveAttribute("dir", "rtl");
+    const english = screen.getByRole("heading", { level: 1 }).closest("[lang]");
+    expect(english).toHaveAttribute("lang", "en");
+    expect(english).toHaveAttribute("dir", "ltr");
+    expect(screen.getByRole("link", { name: "Individuals" }).closest("[lang]")).toBe(english);
   });
 });

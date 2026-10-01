@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { AUDIENCES } from "@/lib/tax-services";
 import {
   ukProfessionalOpportunityCorpus,
   ukProfessionalOpportunityPublicationAvailable,
@@ -11,6 +12,9 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths: Array<[string, number]> = [
     ["/", 1],
+    ["/services/", 1],
+    ["/download/", 0.9],
+    ...AUDIENCES.map((audience): [string, number] => [`/services/${audience.id}/`, 0.9]),
     ["/books/", 1],
     ["/books/connect/", 0.9],
     ["/checkup/", 1],

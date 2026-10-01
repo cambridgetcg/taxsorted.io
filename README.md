@@ -2,13 +2,53 @@
 
 **Tax, understood. Then sorted.**
 
+The service rebuild starts with **individuals, sole traders and landlords**.
+Choose a situation at `/services`, resume work in **My tax year** at `/checkup`,
+and open the existing checks, money records, preparation and handover tools.
+Choose a preparation year and **Show my saved progress** to read its saved draft
+status alongside local Books and Passport progress for this visit. Resume links
+preselect that year and wait for an explicit Start or Resume. Resuming saved work
+from the overview opens its tasks and questions. Books counts cover
+2026–27; Passport and personal checklist reminders remain
+general. The overview changes no records and does not establish filing readiness.
+Advisers and organisations have separate pages explaining their current scope.
+**Prepare my tax return** at `/prepare` keeps separate 2025–26 and 2026–27
+drafts. Choose a purpose, map your circumstances, collect evidence and check P60
+employment figures before previewing a preparation summary. Review turns missing
+answers and evidence into tasks with reasons, places to look and questions to ask.
+Tasks update from the draft and are included in the summary. Saving is explicit
+and local; this does not calculate or file a complete return.
+See [the current roadmap and service map](docs/SERVICE-REBUILD.md) for reviewed
+progress, module ownership, the next development slice and release dependencies.
+The [infrastructure and data map](infrastructure/README.md) explains the hosted and
+desktop stack, where information lives, current accounting/integration capabilities
+and what still needs verification before the rebuild can be published.
+
+**TaxSorted Local** reuses these tools in an offline desktop app. Installer-first
+packaging covers macOS, Windows and Linux; a source scaffold is available for
+customisation. The app has its own local profile, blocks remote app requests and
+needs no account. Encrypted workspace backups cover saved Books, Passport,
+preparation drafts and checklists. The live profile is not encrypted by the app,
+and online filing is unavailable.
+See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
+
+```sh
+# Node 22; install only the workspaces needed by the local app
+npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm run desktop:install-runtime
+npm run desktop:build
+npm run desktop:start
+# Optional source copy into a new directory:
+npm run scaffold:local -- ../my-taxsorted
+```
+
 Browser-local books are open now for UK sole traders and landlords: bring in money
 movements, review every suggestion, and understand how confirmed records become tax
 figures. TaxSorted is growing from that honest base into accounting software for people
 and small organisations without an in-house accounting team.
 
 The wider aim remains international tax made simple for everyone — a person, a business,
-a charity, a trust: same plain words, same engine. The public journey returns six powers:
+a charity, a trust: same plain words, same engine. The underlying tools cover six kinds of work:
 
 - **Check** — know what applies, what is known and what remains uncertain.
 - **Plan** — compare lawful choices across tax, cash flow, work, risk and wider consequences.
@@ -35,9 +75,14 @@ The site keeps its depth, but the way in is deliberately small:
 - **`/books/connect` — Bring records to tax.** Import a CSV now, inspect the planned Xero,
   QuickBooks, FreeAgent and Sage bridges, or follow neutral links to official software plans.
   Accounting sources and HMRC modules remain separate boundaries.
-- **`/checkup` — Check my tax.** Choose what changed and get an ordered route to the
-  narrowest current check, record tool or guide. This routing step asks for no tax identifier and
-  does not calculate or file anything itself.
+- **`/checkup` — My tax year.** Choose your situation, optionally show saved local
+  preparation for 2025–26 or 2026–27 alongside Books and Passport progress, and open
+  up to three useful next tasks. Keep personal
+  checkmarks separately. The overview does not calculate tax, change records or file.
+- **`/prepare` — Prepare my tax return.** Keep a year-specific evidence checklist,
+  record employment sources and check supported P60 figures. Missing answers,
+  unsupported documents and unresolved circumstances stay visible. Review a
+  plain-text handover with optional figures and notes before downloading it.
 - **`/plan` — Compare my choices.** Minimise total lawful burden rather than one tax number.
   The first live module calculates a clearly labelled full-year projection for trading allowance
   and ordinary-deduction profit routes side by side. Year-to-date figures, transition profit,
@@ -119,12 +164,13 @@ See [PRINCIPLES.md](PRINCIPLES.md) for what we believe.
 ## Project Structure
 
 ```
-taxsorted.io/           # npm workspaces: engine · frontend · api
+taxsorted.io/           # npm workspaces: engine · frontend · api · desktop
 ├── PRINCIPLES.md       # The soul
 ├── engine/             # One engine, countries as plugins — pure TypeScript
 │   └── jurisdictions/uk/   # Plugin #1: tax rules plus the expert contract and coverage registry
 ├── frontend/           # Next.js web application (static export)
 │   └── src/app/        # Landing (the map), dashboard, vat/ (real cockpit + demo)
+├── desktop/            # Electron app: bundled frontend, isolated local profile, OS packaging
 ├── api/                # The rails — Hono on Fly.io: browser accounts + workspace API keys
 │   ├── migrations/     # Postgres: sessions → entities → connections → submissions
 │   └── RUNBOOK.md      # How the HMRC rail switches on
@@ -149,13 +195,17 @@ npm test       # the quality gate — tax math is tested as data-driven cases
 ## Tech Stack
 
 - **Frontend**: Next.js 16 (App Router, static export), React 19, TypeScript, Tailwind CSS 4
+- **Desktop**: Electron + Electron Builder, sharing the static frontend and engine.
+  Local tools use IndexedDB/localStorage in a separate app profile; online account,
+  provider and filing features are unavailable. See [the stack and data map](infrastructure/README.md).
 - **Deployment**: Fly API first, then Cloudflare Pages. CI runs tests, typechecks, data
   validators, a high-severity production dependency audit and the static build on every push;
   frontend deployment proceeds only after the API deploy succeeds.
-- **Backend**: `api/` — Hono + Postgres on Fly.io (London): anonymous device
-  sessions, server-side HMRC OAuth with an encrypted token vault, engine-validated
-  submission, immutable receipts. One typed API for humans and agents alike.
-  Sandbox first; production filing follows HMRC's approval (see `api/RUNBOOK.md`)
+- **Backend**: `api/` — Hono + Postgres on Fly.io (configured London region): device
+  sessions, passkey accounts, server-side HMRC OAuth with encrypted token custody,
+  engine-validated sandbox submission and stored payloads/receipts. One typed API
+  for humans and agents alike. Production filing requires HMRC recognition plus
+  the remaining implementation and operating evidence (see [the runbook](api/RUNBOOK.md)).
 - **Developer API**: server-to-server workspace keys (SHA-256 digests at rest), OpenAPI 3.1,
   public `GET /v1/uk/professional-tools` integration boundaries and task-sized OpenAPI,
   authenticated no-task-scope `GET /v1/api-workspace` inspection of only the presented key,
@@ -274,6 +324,7 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
 
 ## Documentation
 
+- [`docs/SERVICE-REBUILD.md`](docs/SERVICE-REBUILD.md) — current roadmap, progress map, user needs, next development and release dependencies
 - [`docs/README.md`](docs/README.md) — current contracts, workflow ownership and historical plans
 - [`docs/PRODUCTION-GAPS.md`](docs/PRODUCTION-GAPS.md) — prioritized fixes, dependencies and acceptance checks
 - [`docs/CONSOLIDATION.md`](docs/CONSOLIDATION.md) — GitHub baseline and preserved local-only commits
@@ -306,7 +357,7 @@ are never published or shared (HMRC policy). See `api/RUNBOOK.md`.
   public-power case method, source ledger, money-language rules, local custody boundary and first
   evidence-bounded Haworth deep dive
 - [`research/uk/case-commons/AGENTTOOL.md`](research/uk/case-commons/AGENTTOOL.md) —
-  optional, exact-pinned AgentTool SDK 0.16.3 GitHub release artifact for verifying one public
+  optional, exact-pinned AgentTool SDK 0.16.3 npm artifact for verifying one public
   packet and placing it in a caller-operated loopback `agent-data/v1` node; dry-run by default and
   no hosted write
 - `/uk/cases` — public case commons and `/uk/cases/haworth-v-hmrc` — the first deep case

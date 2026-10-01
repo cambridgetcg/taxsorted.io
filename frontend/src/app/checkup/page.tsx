@@ -1,85 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CheckupClient } from "./checkup-client";
 
 export const metadata: Metadata = {
-  title: "Tax Checkup — find the right next step | TaxSorted",
-  description:
-    "Start with what changed. TaxSorted routes you to the right UK tax check, record tool or source-backed guide without pretending one form covers everyone.",
+  title: "My tax year | TaxSorted",
+  description: "Pick up your saved local work, see what needs attention and keep a personal tax checklist. Choose when to show progress from preparation, Books and your Tax Passport.",
 };
-
-const STAGES = [
-  {
-    name: "Understand",
-    status: "Open now",
-    body: "Plain guides and source-linked rule paths explain what a rule means and when it applies.",
-  },
-  {
-    name: "Check",
-    status: "Two deep paths",
-    body: "MTD Income Tax and adjusted-net-income checks show facts used, unknowns and boundaries.",
-  },
-  {
-    name: "Prepare",
-    status: "Browser tools open",
-    body: "Browser records feed the estimate and quarter figures so those numbers are derived, not retyped.",
-  },
-  {
-    name: "File",
-    status: "Sandbox only",
-    body: "Production filing waits for HMRC recognition. Prepared, approved, submitted and received remain different states.",
-  },
-] as const;
 
 export default function CheckupPage() {
   return (
-    <div lang="en" dir="ltr" className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <Link href="/" className="text-sm font-medium text-accent hover:text-accent-deep">
-        ← TaxSorted
-      </Link>
-
-      <header className="mt-6 max-w-4xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-          Tax Checkup
+    <div lang="en" dir="ltr" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <Breadcrumbs items={[{ href: "/services", label: "Tax services" }]} current="My tax year" />
+      <header className="mt-7 max-w-3xl">
+        <p className="section-label">One useful step at a time</p>
+        <h1 className="hero-title mt-4 text-ink">My tax year</h1>
+        <p className="mt-6 text-lg leading-8 text-ink-soft">
+          Pick up where you left off. See what needs attention in your saved work,
+          open the next useful task and keep your own checklist alongside it.
         </p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-6xl">
-          Find where you stand. Then take the next honest step.
-        </h1>
-        <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-          Tax is not one giant form. Start with the thing that changed and we will take you to the
-          narrowest check, record tool or guide that fits. If TaxSorted does not know, it says so.
+        <p className="mt-4 text-sm leading-6 text-ink-soft">
+          No account needed. Choose whether to show progress from this device’s preparation, Books and
+          Tax Passport. Nothing is sent or filed by showing your progress.
         </p>
-        <ul className="mt-5 flex flex-wrap gap-2 text-sm text-ink-soft" aria-label="Checkup promises">
-          <li className="rounded-full border border-line bg-white px-3 py-1">No account to start</li>
-          <li className="rounded-full border border-line bg-white px-3 py-1">Coverage and boundaries visible</li>
-          <li className="rounded-full border border-line bg-white px-3 py-1">Bounded checks keep unknowns unknown</li>
-        </ul>
       </header>
-
-      <CheckupClient />
-
-      <section className="mt-16" aria-labelledby="stages-title">
-        <p className="text-sm font-semibold uppercase tracking-wide text-accent">One honest journey</p>
-        <h2 id="stages-title" className="mt-2 text-3xl font-bold tracking-tight text-ink">
-          The words tell you what power the tool has
-        </h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STAGES.map((stage) => (
-            <article key={stage.name} className="rounded-2xl border border-line bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-accent">{stage.status}</p>
-              <h3 className="mt-2 text-lg font-semibold text-ink">{stage.name}</h3>
-              <p className="mt-2 text-sm text-ink-soft">{stage.body}</p>
-            </article>
-          ))}
+      <section aria-labelledby="prepare-year-title" className="mt-8 rounded-2xl border border-accent/25 bg-accent-soft p-5 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-6">
+        <div className="max-w-2xl">
+          <h2 id="prepare-year-title" className="text-xl font-semibold text-ink">Prepare a particular tax year</h2>
+          <p className="mt-2 text-sm leading-6 text-ink-soft">Choose the year you are working on, collect your evidence and check employment figures. Each year keeps its own preparation draft.</p>
         </div>
+        <Link href="/prepare" className="mt-4 inline-flex min-h-12 shrink-0 items-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-accent-deep sm:mt-0">Start or resume preparation →</Link>
       </section>
-
-      <aside className="mt-10 rounded-2xl border border-line bg-paper p-5 text-sm text-ink-soft">
-        <strong className="text-ink">Safety boundary:</strong>{" "}TaxSorted is educational and
-        preparation software, not a substitute for advice on facts outside a tool&apos;s stated scope.
-        No tax figures or quarterly updates are sent to HMRC unless you deliberately connect the
-        sandbox and separately review and consent to that submission.
-      </aside>
+      <Suspense fallback={<p className="mt-10 text-ink-soft">Loading your checklist…</p>}>
+        <CheckupClient />
+      </Suspense>
     </div>
   );
 }

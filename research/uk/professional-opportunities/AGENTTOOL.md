@@ -9,10 +9,11 @@ already public on GitHub; “closed” here means the official TaxSorted hosted
 projection.
 
 TaxSorted already exact-pins
-[`@agenttool/sdk` 0.16.3](https://github.com/cambridgetcg/agenttool/releases/tag/sdk-v0.16.3).
-The stable GitHub releases, npm `latest` tag and public AgentTool source were
-checked on 24 July 2026. The official 0.16.3 release artifact is pinned with
-lockfile integrity because npm `latest` still points to 0.16.0.
+[`@agenttool/sdk` 0.16.3](https://www.npmjs.com/package/@agenttool/sdk/v/0.16.3).
+The public npm artifact was verified on 30 September 2026 against the existing
+lockfile SHA-512 integrity and contains the same SDK bytes as the former GitHub
+release download. The exact version and integrity stay pinned; no moving npm
+tag or SDK upgrade is involved.
 
 This atlas does not add a second storage writer. Agents discover it through
 TaxSorted's plain-text manifest, wake response and task-sized OpenAPI, then use
