@@ -6,34 +6,39 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Tax tools — TaxSorted",
   description:
-    "Check if you're in, keep records, and build your returns — Income Tax, VAT and mileage.",
+    "Find your next tax task: review your tax year, prepare evidence, organise money records or build a handover.",
 };
 
 const TOOLS = [
   {
-    href: "/books",
-    title: "Starter Books",
-    line: "Turn money movements into reviewed records you can explain.",
+    href: "/checkup",
+    title: "My tax year",
+    line: "Choose your situation, see saved progress and find your next step.",
   },
   {
-    href: "/checkup",
-    title: "Tax Checkup",
-    line: "Start here — find the right check for you.",
+    href: "/prepare",
+    title: "Prepare my tax return",
+    line: "Choose a year, gather evidence and work through outstanding tasks and questions. Export a year-specific preparation summary.",
+  },
+  {
+    href: "/books",
+    title: "Money records",
+    line: "Organise and review income and expenses for a sole trade or UK property business.",
   },
   {
     href: "/passport",
-    title: "Tax Position Passport",
-    line: "Keep facts, unknowns, evidence states and checked positions together.",
+    title: "Tax summary and handover",
+    line: "Keep a general Tax Position Passport of income sources, evidence and unknowns to discuss with an adviser.",
   },
   {
     href: "/itsa",
-    title: "Income Tax",
-    line: "Check if you're in, keep records, see deadlines.",
+    title: "MTD Income Tax",
+    line: "Check Making Tax Digital requirements and prepare quarterly figures from reviewed records.",
   },
   {
     href: "/vat",
-    title: "VAT",
-    line: "Build your return from your records.",
+    title: "VAT test return",
+    line: "Review manually entered VAT figures and try an HMRC test submission. Money records do not yet derive a VAT return.",
   },
   {
     href: "/tools/mileage",
@@ -41,14 +46,14 @@ const TOOLS = [
     line: "Record business miles.",
   },
   {
-    href: "/uk/tax-expert",
-    title: "Check my tax position",
-    line: "See which rules apply to you.",
+    href: "/uk/tax-expert#first-deep-path",
+    title: "Detailed MTD check",
+    line: "Work through the supported MTD Income Tax rules, including unknown facts and exemptions.",
   },
   {
     href: "/dashboard",
-    title: "Dashboard",
-    line: "Your saved businesses.",
+    title: "Saved businesses",
+    line: "Open the businesses saved in this browser and review their next steps.",
   },
 ] as const;
 
@@ -57,10 +62,14 @@ export default function ToolsPage() {
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold text-ink sm:text-4xl">Tax tools</h1>
       <p className="mt-3 text-base text-ink-soft">
-        Pick the job, or use the new ordered doors: <Link href="/checkup" className="font-medium text-accent underline underline-offset-4">Check</Link>{" "}
-        your position, <Link href="/plan" className="font-medium text-accent underline underline-offset-4">Plan</Link>{" "}
-        a choice, or follow <Link href="/file" className="font-medium text-accent underline underline-offset-4">File and pay</Link>.
-        Your books stay in this browser; an Account does not back them up or encrypt them.
+        Start with <Link href="/services" className="font-medium text-accent underline underline-offset-4">Services</Link>{" "}
+        for your situation, or choose a task below. You can also <Link href="/plan" className="font-medium text-accent underline underline-offset-4">compare a choice</Link>{" "}
+        or find <Link href="/file" className="font-medium text-accent underline underline-offset-4">filing and payment routes</Link>.
+      </p>
+      <p className="mt-3 text-sm leading-6 text-ink-soft">
+        Saved money records and preparation drafts stay in this browser. Signing in does not back them up
+        or encrypt them; use <Link href="/backups" className="font-medium text-accent underline underline-offset-4">Workspace backups</Link>{" "}
+        to keep a protected copy. Preparation does not file a return, and HMRC submissions use the test system.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

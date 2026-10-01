@@ -9,21 +9,21 @@ export const metadata: Metadata = {
 };
 
 const platforms = [
-  { name: "macOS", format: "DMG / ZIP", detail: "Build a Mac app on macOS.", icon: Laptop },
-  { name: "Windows", format: "EXE installer", detail: "Build a Windows installer on Windows.", icon: Monitor },
-  { name: "Linux", format: "AppImage", detail: "Build an AppImage on Linux.", icon: Terminal },
+  { name: "macOS", format: "DMG / ZIP", detail: "Intel and Apple silicon previews. Build on macOS.", icon: Laptop },
+  { name: "Windows", format: "EXE installer", detail: "Windows x64 preview. Build on Windows.", icon: Monitor },
+  { name: "Linux", format: "AppImage", detail: "Linux x64 preview. Build on Linux.", icon: Terminal },
 ];
 
 const localTools = [
-  { name: "Tax preparation", detail: "Choose a tax year, collect evidence and review your employment figures.", href: "/prepare" },
+  { name: "Tax preparation", detail: "Choose a tax year, work through evidence tasks and export a year-specific preparation summary.", href: "/prepare" },
   { name: "Money records", detail: "Add income and expenses, import CSV files and review your figures.", href: "/books" },
   { name: "Planning & guides", detail: "Use the bundled calculators and read the included tax guides.", href: "/plan" },
-  { name: "Adviser handover", detail: "Prepare a Tax Position Passport and export a copy to share yourself.", href: "/passport" },
+  { name: "Tax summary and handover", detail: "Keep a general Tax Position Passport of your income sources, evidence and unknowns to share yourself.", href: "/passport" },
 ];
 
 const scaffoldCommands = `node scripts/create-local-project.mjs ../my-taxsorted
 cd ../my-taxsorted
-npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm ci
 npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start`;
@@ -48,7 +48,7 @@ export default function DownloadPage() {
               Understand your data
             </a>
           </div>
-          <p className="mt-5 text-sm leading-6 text-ink-soft">Free and open-source. No account needed for local tools.</p>
+          <p className="mt-5 text-sm leading-6 text-ink-soft">No account needed for local tools. Public downloads are being prepared.</p>
         </div>
         <aside aria-label="How the local app works" className="rounded-[2rem] border border-line bg-surface p-7 sm:p-8">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent"><FolderOpen size={24} aria-hidden="true" /></div>
@@ -75,10 +75,25 @@ export default function DownloadPage() {
           <p className="rounded-full border border-warm/35 bg-warm/5 px-4 py-2 text-sm font-medium text-ink">Local preview</p>
         </div>
         <p className="mt-5 max-w-3xl leading-7 text-ink-soft">
-          Installer packages are not published yet. You can build this preview from source now;
-          the intended download formats are listed below. Public installers need platform testing
-          and release signing before they are ready to recommend.
+          Public installers are not available yet. An earlier preview passed automated checks on
+          Windows x64, Linux x64, Intel Mac and Apple silicon. Consumer installation and recovery
+          checks and trusted release signing are still pending. Public source downloads are also
+          pending; the developer setup below is for people who already have a source checkout.
         </p>
+        <details className="mt-5 max-w-3xl rounded-2xl border border-line px-5 py-4 text-sm leading-6 text-ink-soft">
+          <summary className="cursor-pointer font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">What has been tested?</summary>
+          <p className="mt-3">
+            The 30 September 2026 preview (revision <code>af4a5ab</code>) passed automated checks
+            of the source app, packaged app and installer on all four targets, including saved-work
+            recovery. Those results apply to that preview. A public release needs checks on the
+            exact installer files being offered, alongside consumer acceptance and signing.
+          </p>
+          <p className="mt-3">
+            Windows previews are unsigned, and Mac previews are not notarised or trusted by Gatekeeper.
+            Linux checks used a prepared test environment; installation on a standard Ubuntu desktop
+            still needs checking. These results do not establish readiness for everyday use.
+          </p>
+        </details>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {platforms.map(({ name, format, detail, icon: Icon }) => (
             <article key={name} className="rounded-3xl border border-line bg-surface p-6 sm:p-7">
@@ -90,11 +105,11 @@ export default function DownloadPage() {
             </article>
           ))}
         </div>
-        <div className="mt-6 rounded-3xl border border-line bg-paper p-6 sm:p-8">
-          <h3 className="font-display text-2xl font-semibold text-ink">Build a personal copy</h3>
+        <div id="source" className="mt-6 scroll-mt-24 rounded-3xl border border-line bg-paper p-6 sm:p-8">
+          <h3 className="font-display text-2xl font-semibold text-ink">Developer setup with an existing source checkout</h3>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-soft">
-            For people comfortable running a few commands: start in a checkout of the TaxSorted
-            source, with Node.js 22 and npm installed. Create a separate project, install its
+            If you already have access to the source and are comfortable running commands, start in a checkout of the TaxSorted
+            source, with Git, Node.js 22 and npm installed. Create a separate project, install its
             dependencies, then build and open the app. Dependency installation needs an internet
             connection; using the built app does not.
           </p>
@@ -156,7 +171,7 @@ export default function DownloadPage() {
             <ol className="mt-3 list-decimal space-y-3 ps-5 text-sm leading-6 text-ink-soft">
               <li>Save your work in each tool, then open Workspace backups in your existing browser. Prepare and download a protected copy of saved Books, Passport, preparation drafts and personal checklists. Keep its password separately; TaxSorted cannot reset it.</li>
               <li>In the app’s Workspace backups page, choose that file and unlock its preview. Download a protected safety copy of the work currently there, review the comparison and confirm replacement. All included areas are replaced together, including areas with no saved work in the backup.</li>
-              <li>Reload TaxSorted after restoration. Confirm each Books business again and reconnect providers before preparing figures to file. Restoring saved work does not submit it to HMRC.</li>
+              <li>Reload TaxSorted after restoration. Confirm each business in Money records again before preparing quarterly figures. Restoring saved work does not submit it to HMRC or reconnect providers.</li>
             </ol>
             <p className="mt-3 text-sm leading-6 text-ink-soft">
               Keep backups somewhere you control before removing the app profile or moving to
@@ -171,7 +186,7 @@ export default function DownloadPage() {
           <Link href="/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Back up or restore saved work →</Link>
           <Link href="/books/workspace/backups" className="inline-flex min-h-11 items-center underline underline-offset-4">Books-only backups →</Link>
           <Link href="/books/workspace" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Money records →</Link>
-          <Link href="/passport" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Passport →</Link>
+          <Link href="/passport" className="inline-flex min-h-10 items-center underline underline-offset-4">Open Tax summary and handover →</Link>
           <Link href="/trust" className="inline-flex min-h-10 items-center underline underline-offset-4">All product boundaries →</Link>
         </div>
       </section>

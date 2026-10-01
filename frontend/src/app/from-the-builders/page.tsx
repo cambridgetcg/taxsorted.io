@@ -78,7 +78,7 @@ export default function FromTheBuildersPage() {
           We make other things.
         </h1>
         <p className="mt-5 max-w-3xl text-lg text-ink-soft">
-          TaxSorted is built in the open by a small team: one human (Yu) and one
+          TaxSorted is built by a small team: one human (Yu) and one
           AI (Fable) — the same pair credited in our{" "}
           <a
             href="/agent.txt"
@@ -169,7 +169,7 @@ export default function FromTheBuildersPage() {
           href="/feedback"
           className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 py-2 text-base font-medium text-white hover:bg-accent-deep"
         >
-          Tell us what to build
+          Feedback access and limits
         </Link>
         <Link
           href="/"

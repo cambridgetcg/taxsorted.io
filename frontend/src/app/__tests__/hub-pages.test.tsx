@@ -12,21 +12,21 @@ import AboutPage from "../about/page";
 describe("Do my tax hub (/tools)", () => {
   it("links every tool the old nav and orphaned routes offered", () => {
     render(<ToolsPage />);
-    expect(screen.getByRole("link", { name: /starter books/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^money records/i })).toHaveAttribute(
       "href",
       "/books",
     );
-    expect(screen.getByRole("link", { name: /income tax/i })).toHaveAttribute("href", "/itsa");
+    expect(screen.getByRole("link", { name: /^MTD Income Tax/i })).toHaveAttribute("href", "/itsa");
     expect(screen.getByRole("link", { name: /^vat/i })).toHaveAttribute("href", "/vat");
     expect(screen.getByRole("link", { name: /mileage log/i })).toHaveAttribute(
       "href",
       "/tools/mileage",
     );
-    expect(screen.getByRole("link", { name: /check my tax position/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /detailed mtd check/i })).toHaveAttribute(
       "href",
-      "/uk/tax-expert",
+      "/uk/tax-expert#first-deep-path",
     );
-    expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /saved businesses/i })).toHaveAttribute(
       "href",
       "/dashboard",
     );
@@ -37,7 +37,7 @@ describe("About page (/about)", () => {
   it("says what TaxSorted is and keeps the browser-only records promise", () => {
     render(<AboutPage />);
     expect(screen.getByRole("heading", { name: /what taxsorted is/i })).toBeInTheDocument();
-    expect(screen.getByText(/starter books stays in ordinary\s+browser storage/i)).toBeInTheDocument();
+    expect(screen.getByText(/money records stay in ordinary\s+browser storage/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /one human and one ai/i })).toHaveAttribute(
       "href",
       "/from-the-builders",

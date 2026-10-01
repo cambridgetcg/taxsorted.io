@@ -18,7 +18,7 @@ tools. Bundling a guide does not extend its review period.
 Install Node.js 22 and Git. From the project root:
 
 ```sh
-npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm ci
 npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start
@@ -29,13 +29,14 @@ downloads the pinned Electron executable; Electron 44's npm package does not ins
 that executable during `npm ci`. The environment doctor only inspects it and never
 starts a download. Building stages the static frontend into `desktop/bundle`;
 running the app reads that bundle. No
-personal records are needed to build it. The scoped install leaves out the API workspace's
-dependencies because the local app does not need its online service or operator tooling.
-Full-workspace `npm ci` also works: the September 30 infrastructure repair uses the
+personal records are needed to build it. The recommended full-workspace `npm ci`
+also installs dependencies for the API source used by frontend build checks. The
+September 30 infrastructure repair uses the
 existing exact SDK version from npm with the same lockfile integrity, replacing the
 unavailable GitHub download. See the [infrastructure roadmap](../infrastructure/README.md#infrastructure-roadmap).
 The API source still supplies the frontend's local research review check, using the
-shared TypeScript runner installed with the frontend. No API service is started.
+shared TypeScript runner. No API service is started. The scoped install used by native
+CI remains a narrower tested configuration; the desktop still needs no online API to run.
 
 The desktop build requires the professional-opportunity publication gate to be
 closed. An admitted hosted research feed depends on a live expiry guard that is not
@@ -58,7 +59,7 @@ From an existing TaxSorted Git checkout:
 ```sh
 node scripts/create-local-project.mjs ../my-taxsorted
 cd ../my-taxsorted
-npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+npm ci
 npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start

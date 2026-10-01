@@ -267,7 +267,13 @@ describe("agent interface", () => {
     expect(body).toContain("xenia-credit: XENIA by Yu and Fable");
     expect(body).toContain("xenia-conformance-claim: none");
     expect(body).toContain(
-      "corrections-account: a GitHub account is required to submit a public correction",
+      "corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators",
+    );
+    expect(body).toContain(
+      "wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators",
+    );
+    expect(body).toContain(
+      "feedback-availability: public feedback route not yet available",
     );
     expect(await mirror.text()).toBe(body);
     expect(mirror.headers.get("etag")).toBe(primary.headers.get("etag"));
@@ -702,6 +708,9 @@ describe("agent interface", () => {
     expect(body.resources.corrections).toEqual({
       href: "https://github.com/cambridgetcg/taxsorted.io/issues",
       accountRequired: true,
+      repositoryAccessRequired: true,
+      visibility: "repository-collaborators",
+      publicFeedbackAvailable: false,
       privateOrSensitiveIntakeAvailable: false,
     });
     expect(body.access).toMatchObject({

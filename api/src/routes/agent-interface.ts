@@ -290,9 +290,10 @@ tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract
 corrections: ${correctionsUrl}
 authentication: none on this doorway and public read resources
 authentication-scope: secured task tools declare authentication separately
-corrections-account: a GitHub account is required to submit a public correction
+corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators
 wishes: ${correctionsUrl}/new?template=wish.yml
-wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
+wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators
+feedback-availability: public feedback route not yet available
 account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway
@@ -675,6 +676,9 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
       corrections: {
         href: correctionsUrl,
         accountRequired: true,
+        repositoryAccessRequired: true,
+        visibility: "repository-collaborators",
+        publicFeedbackAvailable: false,
         privateOrSensitiveIntakeAvailable: false,
       },
       manifests: {
@@ -1095,7 +1099,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         id: "rights-and-corrections",
         title: "Rights and corrections",
         description:
-          "Mixed-rights guidance and the public correction channel. Never submit private or safety-sensitive material to the public issue tracker.",
+          "Mixed-rights guidance and a correction tracker for repository collaborators. A GitHub account and repository access are required; a public feedback route is not yet available. Do not submit private or safety-sensitive material to the issue tracker.",
         resources: [
           { resource: "rights", href: rightsPath },
           { resource: "corrections", href: correctionsUrl },
@@ -1229,7 +1233,7 @@ export function buildAgentWakePayload(options: AgentInterfaceOptions = {}) {
         href: correctionsUrl,
         accepts: ["text/html"],
         description:
-          "Open the external public issue tracker. Submitting needs a GitHub account; do not put private or safety-sensitive material there.",
+          "Open the external issue tracker with a GitHub account and repository access. Issues are visible to repository collaborators; a public feedback route is not yet available. Do not put private or safety-sensitive material there.",
       },
     ],
     attribution: {

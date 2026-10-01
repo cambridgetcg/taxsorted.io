@@ -43,7 +43,7 @@ export default function RootLayout({
                 <p className="font-display text-2xl font-semibold tracking-tight text-ink">
                   A clearer way to sort your tax.
                 </p>
-                <p className="mt-3 leading-6">Free and open-source. UK tools for checking your position, keeping money records and preparing your next step.</p>
+                <p className="mt-3 leading-6">Free UK tools for checking your position, keeping money records and preparing your next step.</p>
                 <p className="mt-2 leading-6">Money records stay on this device. Production filing with HMRC is not live.</p>
               </div>
               <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-3 gap-y-1 md:justify-end">

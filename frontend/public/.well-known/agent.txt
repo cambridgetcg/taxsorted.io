@@ -154,9 +154,10 @@ tax-expert-assessment-errors: follow the task OpenAPI TaxExpertApiError contract
 corrections: https://github.com/cambridgetcg/taxsorted.io/issues
 authentication: none on this doorway and public read resources
 authentication-scope: secured task tools declare authentication separately
-corrections-account: a GitHub account is required to submit a public correction
+corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators
 wishes: https://github.com/cambridgetcg/taxsorted.io/issues/new?template=wish.yml
-wishes-account: a GitHub account is required; wishes are public so anyone can see what was asked and what got built
+wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators
+feedback-availability: public feedback route not yet available
 account: none on this doorway
 session: none on this doorway
 cookies: none on this doorway

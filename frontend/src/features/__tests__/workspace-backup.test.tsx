@@ -166,7 +166,8 @@ describe("Workspace backup and restore", () => {
   it("selects an encrypted file without reading current data, then previews only after deliberate unlock", async () => {
     render(<WorkspaceBackup />); choose();
     const input = await screen.findByLabelText("Password for this backup");
-    expect(input).toHaveFocus(); expect(stores.preview).not.toHaveBeenCalled(); expect(stores.capture).not.toHaveBeenCalled();
+    await waitFor(() => expect(input).toHaveFocus());
+    expect(stores.preview).not.toHaveBeenCalled(); expect(stores.capture).not.toHaveBeenCalled();
     fireEvent.change(input, { target: { value: PASSWORD } });
     fireEvent.click(screen.getByRole("button", { name: "Unlock workspace preview" }));
     await screen.findByRole("heading", { name: "Check before replacing saved work" });

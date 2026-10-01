@@ -669,7 +669,13 @@ grep --fixed-strings --line-regexp \
   'methods-scope: this doorway only; linked task tools declare methods separately' \
   "${api_agent_manifest}"
 grep --fixed-strings --line-regexp \
-  'corrections-account: a GitHub account is required to submit a public correction' \
+  'corrections-account: a GitHub account and repository access are required; issues are visible to repository collaborators' \
+  "${api_agent_manifest}"
+grep --fixed-strings --line-regexp \
+  'wishes-account: a GitHub account and repository access are required; wishes are visible to repository collaborators' \
+  "${api_agent_manifest}"
+grep --fixed-strings --line-regexp \
+  'feedback-availability: public feedback route not yet available' \
   "${api_agent_manifest}"
 grep --fixed-strings --line-regexp \
   'openapi-public: GET https://api.taxsorted.io/openapi-public.json' \
@@ -1213,6 +1219,9 @@ jq --exit-status '
   .resources.observerAccountability.status == "schema-only-not-admitted" and
   .resources.observerAccountability.recordsAvailable == false and
   .resources.corrections.accountRequired == true and
+  .resources.corrections.repositoryAccessRequired == true and
+  .resources.corrections.visibility == "repository-collaborators" and
+  .resources.corrections.publicFeedbackAvailable == false and
   .resources.corrections.privateOrSensitiveIntakeAvailable == false and
   .resources.openApi.publicHref == "/openapi-public.json" and
   .resources.openApi.datasetSlices.charities == "/openapi/charities-uk.json" and

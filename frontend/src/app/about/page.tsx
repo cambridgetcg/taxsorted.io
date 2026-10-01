@@ -24,7 +24,7 @@ export default function AboutPage() {
           one UK property business; guides and bounded checks reach further.
         </p>
         <p>
-          It is free and open-source. You do not need an account. Starter Books stays in ordinary
+          The local tools are free and need no account. Money records stay in ordinary
           browser storage on your device; an Account does not back it up or encrypt it, and
           clearing site data can erase it. The{" "}
           <Link href="/trust" className={externalLink}>
@@ -33,7 +33,7 @@ export default function AboutPage() {
           keeps these limits and the current filing state in one place.
         </p>
         <p>
-          It is built in the open by{" "}
+          It is built by{" "}
           <Link href="/from-the-builders" className={externalLink}>
             one human and one AI
           </Link>
@@ -66,7 +66,7 @@ export default function AboutPage() {
       </h2>
       <div className="mt-3 space-y-3 text-base text-ink-soft">
         <p>
-          TaxSorted&apos;s own code is free and open-source, under the{" "}
+          TaxSorted&apos;s own code is licensed under the{" "}
           <a
             href="https://www.gnu.org/licenses/agpl-3.0.en.html"
             target="_blank"
@@ -114,7 +114,12 @@ export default function AboutPage() {
           does not replace those terms.
         </p>
         <p>
-          TaxSorted.io is a free, open-source software project. It is not connected to
+          Public source and desktop installer downloads are being prepared. The developer
+          setup instructions require an existing source checkout; the development repository
+          is currently private.
+        </p>
+        <p>
+          TaxSorted.io is a free software project. It is not connected to
           taxsorted.co.uk (a tax-refund service) or to Tax-Sorted Ltd.
         </p>
       </div>
