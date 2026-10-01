@@ -148,16 +148,19 @@ describe("encrypted whole-workspace format", () => {
     ]);
   });
 
-  it("gives one generic unlock error for wrong passwords, tampering, truncation and authenticated invalid payloads", async () => {
-    await expect(decryptWorkspaceBackup(encrypted, "Another synthetic password")).rejects.toThrow(UNLOCK_ERROR);
-    for (const json of [
-      changed(v => { v.kdf.salt = flip(v.kdf.salt); }),
-      changed(v => { v.cipher.iv = flip(v.cipher.iv); }),
-      changed(v => { v.ciphertext = flip(v.ciphertext); }),
-      changed(v => { v.ciphertext = v.ciphertext.slice(0, -4); }),
-      nodeSeal(Buffer.from(booksPlain)), nodeSeal(Buffer.from([0xff, 0xfe])),
-      nodeSeal(Buffer.from(plain.replace('"revision": 1', '"revision": 0'))),
-    ]) await expect(decryptWorkspaceBackup(json, PASSWORD)).rejects.toThrow(UNLOCK_ERROR);
+  // Each case keeps the real 600,000-iteration KDF, with its own test deadline.
+  // Grouping all eight unlock attempts under one deadline starves slower runners.
+  it.each<{ label: string; file: () => string; password?: string }>([
+    { label: "a wrong password", file: () => encrypted, password: "Another synthetic password" },
+    { label: "a changed salt", file: () => changed(v => { v.kdf.salt = flip(v.kdf.salt); }) },
+    { label: "a changed nonce", file: () => changed(v => { v.cipher.iv = flip(v.cipher.iv); }) },
+    { label: "changed ciphertext", file: () => changed(v => { v.ciphertext = flip(v.ciphertext); }) },
+    { label: "truncated ciphertext", file: () => changed(v => { v.ciphertext = v.ciphertext.slice(0, -4); }) },
+    { label: "an authenticated Books payload", file: () => nodeSeal(Buffer.from(booksPlain)) },
+    { label: "authenticated invalid UTF-8", file: () => nodeSeal(Buffer.from([0xff, 0xfe])) },
+    { label: "an authenticated invalid revision", file: () => nodeSeal(Buffer.from(plain.replace('"revision": 1', '"revision": 0'))) },
+  ])("gives one generic unlock error for $label", async ({ file, password = PASSWORD }) => {
+    await expect(decryptWorkspaceBackup(file(), password)).rejects.toThrow(UNLOCK_ERROR);
   });
 
   it.each([

@@ -737,7 +737,7 @@ async function run(options) {
     check('Complete encrypted workspace recovery preserves Books, Passport, both preparation years and checklist across relaunch');
 
     stage = 'verify external-link cancellation and explicit handoff';
-    await page.goto('taxsorted://app/trust/');
+    await page.goto('taxsorted://app/about/');
     await evaluate(({ dialog, shell }) => {
       globalThis.__taxsortedSmokeExternal = {
         response: 0, prompts: [], opened: [],
@@ -751,17 +751,17 @@ async function run(options) {
       shell.openExternal = async url => { globalThis.__taxsortedSmokeExternal.opened.push(url); };
     });
     try {
-      const sourceLink = page.getByRole('link', { name: /Read the source code/ });
-      await sourceLink.click();
+      const licenceLink = page.getByRole('link', { name: 'GNU AGPL licence', exact: true });
+      await licenceLink.click();
       await waitUntil(() => evaluate(() => globalThis.__taxsortedSmokeExternal.prompts.length === 1), 'observe external link prompt');
       const cancelled = await evaluate(() => ({ prompts: globalThis.__taxsortedSmokeExternal.prompts, opened: globalThis.__taxsortedSmokeExternal.opened }));
       assert.deepEqual(cancelled.prompts[0], { defaultId: 0, cancelId: 0, buttons: ['Cancel', 'Open website'] });
       assert.deepEqual(cancelled.opened, []);
       await evaluate(() => { globalThis.__taxsortedSmokeExternal.response = 1; });
-      await sourceLink.click();
+      await licenceLink.click();
       await waitUntil(() => evaluate(() => globalThis.__taxsortedSmokeExternal.opened.length === 1), 'observe approved browser handoff');
-      assert.deepEqual(await evaluate(() => globalThis.__taxsortedSmokeExternal.opened), ['https://github.com/cambridgetcg/taxsorted.io']);
-      assert.equal(page.url(), 'taxsorted://app/trust/');
+      assert.deepEqual(await evaluate(() => globalThis.__taxsortedSmokeExternal.opened), ['https://www.gnu.org/licenses/agpl-3.0.en.html']);
+      assert.equal(page.url(), 'taxsorted://app/about/');
       check('External link defaults to Cancel; cancellation opens nothing; explicit approval forwards public URL to stubbed browser only');
     } finally {
       await evaluate(({ dialog, shell }) => {
