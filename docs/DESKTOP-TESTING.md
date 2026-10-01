@@ -11,19 +11,82 @@ encrypted recovery flow. The earlier
 all four targets with direct recovery, native Back/Forward and an explicit
 observation of wrong-password rejection. The complete workspace campaign below
 adds recovery of Passport, both preparation years and checklist on all four targets.
+The [1 October campaign](#service-release-native-campaign--1-october-2026) is the
+current automated candidate and includes the preparation progress and task journey.
 Manual consumer
 acceptance remains **NOT RUN**. Start each new build's
 [result template](testing/desktop-result-template.md) at NOT RUN; the previous result
 does not transfer automatically. Earlier local checks are recorded in
 [Local app](LOCAL-APP.md#verification-and-next-work).
 
+## Service release native campaign — 1 October 2026
+
+[Run 36814068231](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814068231)
+passed all four targets at **04:27:25 UTC on 1 October 2026**, testing clean commit
+`c787af75c28441510c971abc14b303914fae3cb0`. This candidate includes selected-year
+preparation progress, actionable tasks and questions, accurate service/access copy
+and Next.js 16.3.8. It supersedes `af4a5ab` as the current automated desktop
+candidate; earlier evidence and acceptance packets remain tied to their original
+revisions.
+
+| Target | Source / packaged / installed runtime | Installer lifecycle |
+|---|---|---|
+| Windows x64 | PASS: 8 / 8 / 8 checks | PASS: five NSIS lifecycle checks and all six cleanup flags |
+| Linux x64 | PASS: 8 / 8 / 9 checks | PASS: three AppImage lifecycle checks, actual FUSE mount and released mounts |
+| Intel Mac x64 | PASS: 8 / 8 / 8 checks | PASS: six DMG lifecycle checks and installation/image cleanup |
+| Apple silicon control | PASS: 8 / 8 / 8 checks | PASS: six DMG lifecycle checks and installation/image cleanup |
+
+All 12 sanitised runtime reports were downloaded and checked against the exact clean
+revision. They record zero renderer errors and network observer hits, the required
+sandbox settings, encrypted Books and whole-workspace recovery, both preparation
+years and recovery after relaunch. The shared runtime validator accepted all eight
+packaged/installed reports. Each target also passed the 1,265 frontend tests, 388
+engine tests, 79 desktop tests and nine scaffold tests before packaging.
+
+The preceding attempt, run `36813409782`, exposed two harness problems: the external
+link test still selected a source-code link removed from the trust page, and an
+Intel crypto test exceeded its five-second limit while running several real KDF
+operations in one case. The link test now uses the public GNU AGPL licence link on
+About while retaining every cancellation and explicit browser-handoff assertion.
+The crypto inputs were split into eight independently reported cases; the real
+work factor, generic-error assertions and per-case timeout were preserved. These
+repairs changed tests, not app behavior. The obsolete run was cancelled after the
+failures; it is not counted as a passing campaign.
+
+Retained evidence and downloads:
+
+- `desktop/test-results/native-2026-10-01/36814068231/` contains the sanitised
+  reports and checksum metadata; predecessor failure evidence is separately named.
+- `desktop/dist/workspace-36814068231/` contains all six downloaded installer/archive
+  files, totalling **784,588,028 bytes**, manifests, reports and
+  `campaign-verification.json`. Every file was independently hashed locally and
+  matched its runner manifest and checksum list. Both DMGs, the EXE and AppImage
+  also match the exact bytes identified by their installer reports. The Mac ZIPs
+  were checksum-verified but were not a separate installed-runtime path.
+- `desktop/dist/acceptance-36814068231/` contains four newly generated acceptance
+  packets, one per target. The existing generator verified and copied the actual
+  installer bytes; each seven-file packet was checked again for its SHA-256,
+  exact candidate provenance and all 15 manual rows remaining **NOT RUN**.
+  `packet-verification.json` records this local preparation. The four copied
+  installers total **513,406,865 bytes**. No installer was launched locally or
+  published during packet preparation.
+
+Both Mac integrity signatures verify, but Gatekeeper rejects these ad-hoc previews
+with exit 3. Windows remains unsigned; Linux testing uses Xvfb, FUSE and the scoped
+CI AppArmor allowance. This campaign does not establish consumer trust prompts,
+stock Ubuntu desktop behavior, native file-dialog acceptance or a supported upgrade.
+Manual M01–M15, trusted signing and public installer publication remain separate
+unfinished outcomes. Use the new candidate's packets for the next manual campaign;
+do not carry forward a result from an older packet.
+
 ## Preparation progress local checks — 30 September 2026
 
 The current source connects saved preparation to My tax year with an explicit year
 choice, exact-year resume links and actionable tasks/questions in Review. These
-checks cover the local change after `234e2c3`; the four-platform installer campaign
-below still covers `af4a5ab`.
-No new Windows, Linux or Intel Mac installer has been tested for this overview.
+checks cover the local change after `234e2c3`. At this checkpoint the four-platform
+installer campaign still covered `af4a5ab`, and no new Windows, Linux or Intel Mac
+installer had been tested for the overview. The 1 October campaign above supplies
+the later native evidence.
 
 | Check | Observed result |
 |---|---|

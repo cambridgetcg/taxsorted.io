@@ -22,19 +22,25 @@ See [the current roadmap and service map](docs/SERVICE-REBUILD.md) for reviewed
 progress, module ownership, the next development slice and release dependencies.
 The [infrastructure and data map](infrastructure/README.md) explains the hosted and
 desktop stack, where information lives, current accounting/integration capabilities
-and what still needs verification before the rebuild can be published.
+and the remaining operating evidence. **Released 1 October 2026:** the service rebuild
+is live at [taxsorted.io](https://taxsorted.io), deployed as `07941b0` with the same
+repository tree as tested candidate `c787af7`. Quality gates, synthetic PostgreSQL
+recovery, all four native desktop targets and production API/frontend checks passed. See the
+[service release record](docs/testing/2026-10-01-service-release.md) for the exact
+tested revisions, deployment status and remaining boundaries.
 
 **TaxSorted Local** reuses these tools in an offline desktop app. Installer-first
-packaging covers macOS, Windows and Linux; a source scaffold is available for
-customisation. The app has its own local profile, blocks remote app requests and
+packaging covers macOS, Windows and Linux; an existing source checkout includes a
+scaffold for customisation. Public source and installer downloads are not available
+yet. The app has its own local profile, blocks remote app requests and
 needs no account. Encrypted workspace backups cover saved Books, Passport,
 preparation drafts and checklists. The live profile is not encrypted by the app,
 and online filing is unavailable.
 See [local setup, storage and packaging](docs/LOCAL-APP.md) and `/download`.
 
 ```sh
-# Node 22; install only the workspaces needed by the local app
-npm ci --workspace frontend --workspace @taxsorted/engine --workspace @taxsorted/desktop
+# In an existing source checkout, use Node 22 and the recommended full install
+npm ci
 npm run desktop:install-runtime
 npm run desktop:build
 npm run desktop:start
@@ -60,9 +66,11 @@ a charity, a trust: same plain words, same engine. The underlying tools cover si
 Underneath sits one engine; every country is rules, dates and words plugged into it —
 never a fork of the product. The UK is drawn first and drawn deep: the proof, not the limit.
 
-TaxSorted's open book, public-law reference corpus and base public datasets are a **commons**:
-free and open-source, no price, no bait tier, no donations button and no percentage of a refund
-or displayed saving. Any future funding route needs a fresh written boundary review and cannot
+TaxSorted's public-law reference corpus and base public datasets are a **commons**:
+no price, no bait tier, no donations button and no percentage of a refund or displayed
+saving. Code and content have the reuse licences described in [CONTENT-LICENSE](CONTENT-LICENSE);
+the development repository is currently private and public source downloads are pending.
+Any future funding route needs a fresh written boundary review and cannot
 become the practical gate to public law or to a person's understandable record. People file their
 own taxes; we pave the road.
 

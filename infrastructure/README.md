@@ -1,8 +1,10 @@
 # Infrastructure and data map
 
-Repository map reviewed **2026-09-30**, against service-rebuild code at `4486638`.
+Repository map reviewed **2026-10-01**, against deployed revision `07941b0`
+(the same repository tree as tested candidate `c787af7`).
 This is the entry point for the current stack, data custody and integration boundaries.
-The rebuild branch includes features that have not been deployed to `taxsorted.io`.
+The website rebuild is published. The [service release record](../docs/testing/2026-10-01-service-release.md)
+tracks quality gates, deployed revisions and live checks separately from native preview evidence.
 Configuration and local tests do not establish live provider access or production filing.
 The [current product roadmap](../docs/SERVICE-REBUILD.md) connects this infrastructure
 work with user journeys, desktop acceptance and release priorities.
@@ -11,7 +13,7 @@ work with user journeys, desktop acceptance and release priorities.
 
 | Layer | Implementation | Purpose and boundary |
 |---|---|---|
-| Website | Next.js 16 static export, React 19, TypeScript, Tailwind 4; Cloudflare Pages | Serves the interface and bundled guidance. Local tools run in the browser; there is no Next.js server runtime in this deployment. |
+| Website | Next.js 16.3.8 static export, React 19, TypeScript, Tailwind 4; Cloudflare Pages | Serves the interface and bundled guidance. Local tools run in the browser; there is no Next.js server runtime in this deployment. |
 | Local desktop | Electron, the same static frontend and tax engine; Windows, Linux, Intel and Apple silicon macOS packaging | Runs bundled preparation tools without a TaxSorted account or backend. Remote app requests, account sign-in, provider sync and online filing are unavailable. |
 | Shared rules | `engine/`, TypeScript | Supported calculations, tax contracts, validation and accounting-sync contracts. Its older HMRC subtree still includes browser/network helpers; complete transport separation remains work. |
 | Local records | IndexedDB workspace with compatibility reads for older records and localStorage checklists | Saved Books, Passport, preparation drafts and checklists share a workspace-aware persistence boundary. Explicit backup/restore preview validates and adopts older saved data into the canonical workspace; opening a page does not activate it. Browser and desktop profiles remain separate, with deliberate file transfer and no account sync. |
@@ -28,6 +30,8 @@ operational reason and an explicit migration, rather than duplicate this stack.
 
 The desktop runtime needs none of those hosted services. Building or scaffolding from
 source needs Node 22 and downloaded dependencies; see [local setup](../docs/LOCAL-APP.md).
+These developer instructions require an existing source checkout. The repository
+is private; public source and installer downloads remain pending.
 A local API additionally needs PostgreSQL, `DATABASE_URL` and `TOKEN_KEY`; startup applies
 migrations. HMRC and Xero credentials are separate optional integration configuration,
 not prerequisites for offline preparation. See [API setup](../api/RUNBOOK.md).
@@ -300,12 +304,12 @@ an exercised hosted release or recovery operation.
 
 | Order | Work package and purpose | Completion evidence | Status |
 |---|---|---|---|
-| INF-01 · implemented | Share one frontend release contract between artifact checks and live smoke checks. Catch broken rebuilt routes before an API deployment starts. | Current generated pages pass; missing/wrong pages fail; core service, preparation and download routes are covered; existing publication, header and exact-byte checks remain. | Implemented; 35 generated routes, including workspace recovery, and 9 offline tests passed on 30 September. Live release not run. |
-| INF-02 · implemented | Restore a reproducible full install by using the available npm artifact for the existing exact SDK version. | npm artifact matches the existing lockfile integrity; clean Node 22 `npm ci`, all workspace tests/types and production dependency audit; existing mirror behaviour and tests retained without an SDK upgrade or stub. | Implemented; isolated install and combined checks passed on 30 September. Full and production audits reported zero findings at that check. |
-| INF-03 · implemented; local rehearsal passed | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | Implemented; PostgreSQL 16.14 and 17.10 passed locally on 30 September. CI prepared, not run; hosted recovery unverified. |
+| INF-01 · implemented and live-tested | Share one frontend release contract between artifact checks and live smoke checks. Catch broken rebuilt routes before an API deployment starts. | Current generated pages pass; missing/wrong pages fail; core service, preparation and download routes are covered; existing publication, header and exact-byte checks remain. | All 35 generated route contracts and production frontend checks passed in [release run 36814914580](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814914580) on 1 October. API and frontend deployed as `07941b0`; see the [release record](../docs/testing/2026-10-01-service-release.md). |
+| INF-02 · implemented | Restore a reproducible full install by using the available npm artifact for the existing exact SDK version. | npm artifact matches the existing lockfile integrity; clean Node 22 `npm ci`, all workspace tests/types and production dependency audit; existing mirror behaviour and tests retained without an SDK upgrade or stub. | Original full-install checks passed on 30 September. Final candidate `c787af7`, with Next.js 16.3.8, passed local and CI quality gates; the production dependency audit reported zero findings. See [current verification](#release-verification--1-october-2026). |
+| INF-03 · local and CI rehearsal passed | Exercise PostgreSQL migrations and backup/restore with synthetic data in a disposable environment. | Repeatable script and CI job apply real migrations, dump, restore to a fresh database and compare meaningful persisted state/constraints; reject remote or reused targets and clean up only resources created by the rehearsal. | PostgreSQL 16.15 and 17.11 passed [CI run 36814072782](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814072782) for `c787af7` on 1 October, following the local 16.14/17.10 rehearsals. Both clean PR-merge reports passed all 16 checks and owned cleanup. Hosted recovery remains unverified. |
 | INF-04 · next | Establish actual hosted recovery and continuity. | Dated inventory of current database/version, backup location/retention, agreed recovery-time/data-loss objectives and token-key recovery dependency; authorised restore into an isolated target, verified outcome and cleanup. | Pending scoped operator exercise; synthetic tests cannot close it |
 | INF-05 · next | Make service health and release rollback observable. | Separate process/configuration health from database readiness; bounded/redacted failures, observed alert path, permitted API + frontend rollback rehearsal; review edge abuse controls and database concurrency evidence. | Planned; see PG-08 and PG-12 |
-| INF-06 · implemented and native-tested | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Implemented; Windows, Linux, Intel Mac and Apple silicon passed source/packaged/installed recovery and installer checks at `af4a5ab`. Exact-candidate acceptance packs are prepared; supplemental Mac native-dialog checks passed. Manual consumer acceptance awaits target environments; see [acceptance preparation](../docs/DESKTOP-TESTING.md#consumer-acceptance-preparation--30-september-2026) and [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36742667838). |
+| INF-06 · implemented and native-tested | Protect the whole local workspace, including preparation drafts. | Versioned encrypted export/restore with one atomic generation boundary, conflict/failed-write handling and native recovery evidence for Books, Passport, drafts and checklist; preserve older Books backups. | Final candidate `c787af7` passed all 12 source/packaged/installed reports and four installer lifecycles in [run 36814068231](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814068231). Six installer archives were checksum-verified and four exact-candidate acceptance packets prepared; all 60 manual cases remain NOT RUN. See the [desktop record](../docs/DESKTOP-TESTING.md). |
 | INF-07 · after the foundations | Complete the online accounting and filing service within explicit supported scope. | VAT validation and exact review context, durable submission intent and uncertain-outcome recovery, grant lifecycle control, annual-return coverage and one read-only financial-provider pilot; recorded approval for each admitted capability. | Separate product work: PG-04–05 and PG-07–12 in [production gaps](../docs/PRODUCTION-GAPS.md) |
 
 INF-01–03 were built and tested without production data or new cloud resources.
@@ -321,6 +325,58 @@ environment, retained non-sensitive evidence and remaining limits here or in the
 linked owning guide. Keep customer records, backup contents, credentials and private
 operating approvals outside the repository. The [operating evidence inventory](../docs/OPERATING-EVIDENCE.md)
 remains the place for production-scope decisions; this roadmap does not grant them.
+
+### Release verification — 1 October 2026
+
+Candidate `9e5cf6f` updates Next.js and its ESLint configuration to **16.3.8**.
+Local checks passed **1,258 frontend**, **1,086 API**, **388 engine** and **79 desktop**
+tests, with one existing API TODO; the build and all **35** release route contracts
+passed, and the dependency audit reported zero findings. Its
+[quality run 36813424720](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36813424720)
+passed. The subsequent `0ae264b` readiness fix passed **36 infrastructure tests**
+locally. Final candidate `c787af7` passed **1,265 frontend tests**, frontend lint and
+typecheck locally. The count increased by splitting eight existing cryptographic
+cases into individual tests, preserving their assertions. The preceding native
+campaign identified a stale source-link expectation and a five-second cryptographic
+test deadline; the candidate repairs those tests. Its final
+[PR quality](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814072751),
+[release quality](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814072766)
+and [native campaign](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814068231)
+all passed. The native campaign completed at **04:27:25 UTC**, with all 12 runtime
+reports validated and six installer archives checksum-verified. Four acceptance
+packets are retained under `desktop/dist/acceptance-36814068231/`; all 60 manual
+cases remain NOT RUN. The [desktop record](../docs/DESKTOP-TESTING.md) owns those
+artifact details and consumer/signing limits.
+
+PR #35 merged at **04:23:42 UTC** as `07941b00116e71a0678b6b0394f43212ad41be8f`,
+with the same repository tree as `c787af7`. Production
+[run 36814914580](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814914580)
+passed all four jobs at **04:35:09 UTC**: build/quality, HMRC fraud-header validation,
+API deployment and smoke, then frontend deployment and the 35-route/manifest/gate
+checks. Separate live API health and manifest comparisons also passed. These
+results establish the observed release; hosted recovery, readiness/alert exercises
+and rollback remain unfinished under INF-04/05. The
+[service release record](../docs/testing/2026-10-01-service-release.md) owns the
+combined deployment and live verification status.
+
+The final-candidate [database CI run](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36814072782)
+for head `c787af7` tested clean PR-merge checkout
+`a7bbd6ed0900017107a0f278620ef56078711881`. PostgreSQL **16.15** and **17.11** each
+applied **8 migrations**, compared all **21 public tables**, passed all **16 checks**
+and removed the owned container and temporary Docker configuration. Dumps remained
+inside the disposable container. Sanitised reports are retained locally under
+`desktop/test-results/database-ci-2026-10-01/36814072782/` and as artifacts of the
+linked run. The earlier readiness-fix
+[run 36813749236](https://github.com/cambridgetcg/taxsorted.io/actions/runs/36813749236)
+also passed at clean PR-merge `cd64f15` for head `0ae264b`.
+
+The readiness fix waits for the final TCP-listening PostgreSQL server, avoiding
+the temporary socket-only server used during image initialisation. Its tests also
+cover bounded retries and unsuccessful probes. This closes a synthetic rehearsal
+startup race; it does not establish hosted database readiness or production
+recovery. The reports explicitly leave production recovery, roles/privileges,
+token decryption and the production PostgreSQL version unverified. INF-04 and
+INF-05 remain the next operating-evidence work.
 
 ### First implementation batch
 
