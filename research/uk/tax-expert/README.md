@@ -1,6 +1,6 @@
 # UK tax expert — architecture of understanding
 
-**Last Updated:** 2026-09-12 (MTD source ledger; other capability reviews retain their own dates)
+**Last Updated:** 2026-10-10 (MTD source ledger; other capability reviews retain their own dates)
 **Confidence:** High for the architecture, admitted MTD sources and 2026/27 ANI threshold spine; capability depth varies by row
 **Status:** Two deep paths implemented; broader UK coverage mapped
 
@@ -68,15 +68,20 @@ The canonical structured records, including source kind, legal force, update dat
 review date, supported claims and limits, live beside the rules in
 `engine/jurisdictions/uk/expert/mtd-income-tax.ts`.
 
-The [12 September 2026 source review](source-review-2026-09-12.md) records the current
-claim-by-claim admission, relocated cessation guidance, known limits and next review due on
-12 October 2026. The accountable review role is **TaxSorted UK tax rules**; a named human owner
-for the next review remains to be assigned. Capability-registry review dates describe product
-coverage reviews, separately from the source freshness dates in each assessment.
+The [10 October 2026 source review](source-review-2026-10-10.md) records the current
+claim-by-claim admission. It first narrowed the engine's wording to what each source supports and
+added the missing limits, keeping every existing stop, null deadline and professional-review route.
+It then renewed admission of all ten sources through **12 November 2026**; from 13 November the
+classifier returns `source_review_required` until the next review. The accountable review role is
+**TaxSorted UK tax rules** and the accountable human owner is **Yu**. The record lists the
+interpretive questions that still need a qualified tax adviser; they remain open, and the review is
+not tax advice. The [12 September 2026 review](source-review-2026-09-12.md) is the earlier record.
+Capability-registry review dates describe product coverage reviews, separately from the source
+freshness dates in each assessment.
 
 The admitted official sources are:
 
-- [Income Tax (Digital Obligations) Regulations 2026](https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf) — regulations 5 to 9, 12 to 15, 18 to 22, 25 to 36 and 38 to 45
+- [Income Tax (Digital Obligations) Regulations 2026](https://www.legislation.gov.uk/uksi/2026/336/pdfs/uksi_20260336_en.pdf) — regulations 5 to 9, 11 to 15, 18 to 23, 25 to 36 and 38 to 45
 - [HMRC: before you use MTD Income Tax](https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/before-you-use-this-guide)
 - [HMRC: work out qualifying income](https://www.gov.uk/guidance/work-out-your-qualifying-income-for-making-tax-digital-for-income-tax)
 - [HMRC: exemptions](https://www.gov.uk/guidance/find-out-if-you-can-get-an-exemption-from-making-tax-digital-for-income-tax)

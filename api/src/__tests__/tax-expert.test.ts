@@ -77,7 +77,7 @@ function mount() {
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
-  vi.setSystemTime(new Date("2026-09-12T12:00:00Z"));
+  vi.setSystemTime(new Date("2026-10-10T12:00:00Z"));
   query.mockReset();
   query.mockResolvedValue([{
     id: "key-1",
@@ -412,8 +412,8 @@ describe("UK tax expert API", () => {
       status: "determined",
       applicability: {
         effectiveDate: "2026-07-11",
-        evaluatedOn: "2026-09-12",
-        knowledgeAsOf: "2026-09-12",
+        evaluatedOn: "2026-10-10",
+        knowledgeAsOf: "2026-10-10",
       },
       answer: { decision: "in_scope" },
       dataUse: { stored: false, usedForTraining: false },
@@ -453,8 +453,27 @@ describe("UK tax expert API", () => {
     ]));
   });
 
+  it("keeps the admitted sources usable on their review due date", async () => {
+    vi.setSystemTime(new Date("2026-11-12T12:00:00Z"));
+    const { app } = mount();
+    const response = await app.request("/v1/uk/tax-expert/mtd-income-tax/assessments", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${rawKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(assessmentBody()),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      status: "determined",
+      applicability: { evaluatedOn: "2026-11-12", knowledgeAsOf: "2026-10-10", effectiveDate: "2026-07-11" },
+      answer: { decision: "in_scope" },
+    });
+    expect(body.evidence.sources.every((source: { reviewDueOn: string }) => source.reviewDueOn === "2026-11-12"))
+      .toBe(true);
+  });
+
   it("stops after the source review deadline even for a historical assessment date", async () => {
-    vi.setSystemTime(new Date("2026-10-13T12:00:00Z"));
+    vi.setSystemTime(new Date("2026-11-13T12:00:00Z"));
     const { app } = mount();
     const response = await app.request("/v1/uk/tax-expert/mtd-income-tax/assessments", {
       method: "POST",
@@ -465,7 +484,7 @@ describe("UK tax expert API", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toMatchObject({
       status: "needs_professional_review",
-      applicability: { evaluatedOn: "2026-10-13", effectiveDate: "2026-07-11" },
+      applicability: { evaluatedOn: "2026-11-13", effectiveDate: "2026-07-11" },
       answer: { decision: "source_review_required", obligations: [] },
       escalation: { required: true, reasonCodes: ["SOURCE_REVIEW_OVERDUE"] },
     });

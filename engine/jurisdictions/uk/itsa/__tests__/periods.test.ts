@@ -26,4 +26,11 @@ describe('ITSA quarters 2026-27', () => {
     expect(p.quarterlyPoints).toBe(false)
     expect(p.note).toMatch(/late payment/i) // the note must keep the true sting visible
   })
+  it('keeps the later-year points note a summary, not a full penalty position', () => {
+    const p = penaltyPosition('2027-28')
+    expect(p.quarterlyPoints).toBe(true)
+    expect(p.note).toMatch(/after 2026-27/)
+    expect(p.note).toMatch(/not a full penalty position/i)
+    expect(p.note).toMatch(/late payment penalties are separate/i)
+  })
 })

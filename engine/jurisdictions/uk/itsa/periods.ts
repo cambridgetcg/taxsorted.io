@@ -30,7 +30,9 @@ function startYearOf(taxYear: TaxYear): number {
 /**
  * The four quarterly periods for a tax year, under the standard (6th-of-month) or calendar
  * (1st-of-month) quarter election. Deadlines are identical between elections — only the
- * period boundaries shift.
+ * period boundaries shift. Checked against SI 2026/336 Tables 1 and 2 for 2026-27 only: for a
+ * later year the first period can start differently when the election changed from the year
+ * before (regs 12(2)(a) and 13(2)(a)), and that transition is not modelled here.
  */
 export function quartersFor(taxYear: TaxYear, election: 'standard' | 'calendar'): Quarter[] {
   const y0 = startYearOf(taxYear)
@@ -73,10 +75,13 @@ export function quarterForDate(date: string, taxYear: TaxYear, election: 'standa
 }
 
 /**
- * The quarterly-update penalty-points position for a tax year. 2026-27 is a one-off easement
- * (Autumn Budget 2025): no points for late quarterly updates, but late-payment penalties and
- * the 31 January return deadline are unaffected. Other years fall under the standard
- * points-based regime (1 point per missed deadline, £200 penalty at 4 points).
+ * The quarterly-update penalty-points position for a tax year. For 2026-27, HMRC's penalties
+ * guidance says there are no penalties for missing a quarterly-update deadline, but late-payment
+ * penalties and the 31 January return deadline are unaffected; the statutory basis is not
+ * admitted here. For quarterly updates in tax years after 2026-27 the guidance describes a
+ * points-based regime, and the note is a summary, not a penalty calculation. Years before
+ * 2026-27 are not modelled: the function still returns the later-year branch for them, so
+ * callers should not pass one.
  */
 export function penaltyPosition(taxYear: TaxYear): { quarterlyPoints: boolean; note: string; source: string } {
   if (taxYear === '2026-27') {
@@ -88,7 +93,7 @@ export function penaltyPosition(taxYear: TaxYear): { quarterlyPoints: boolean; n
   }
   return {
     quarterlyPoints: true,
-    note: 'Points-based regime: 1 penalty point per missed quarterly update deadline; a £200 penalty applies once 4 points are reached.',
+    note: 'Points-based regime for tax years after 2026-27: 1 penalty point per missed quarterly update deadline; a £200 penalty applies once 4 points are reached. This is not a full penalty position: missed tax-return deadlines also earn points, once at the threshold a further £200 penalty applies each time another submission deadline is missed, the threshold can differ (2 points if you become exempt in 2027-28), and late payment penalties are separate.',
     source: PENALTIES_SOURCE,
   }
 }
