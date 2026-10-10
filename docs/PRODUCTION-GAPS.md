@@ -22,7 +22,7 @@ not a claim that every original defect is still present.
 | Packages | Current disposition | Remaining work |
 |---|---|---|
 | PG-01 | Implemented; later SDK download repair and shared route checks are recorded in [infrastructure](../infrastructure/README.md#first-implementation-batch) | Keep the release gate green for each candidate; no public rebuild release is recorded |
-| PG-02 | September review admitted through 12 October 2026 | Assign the reviewer and renew from primary sources before the 13 October stop; this roadmap edit does not renew evidence |
+| PG-02 | Updated 10 October: the [10 October review](../research/uk/tax-expert/source-review-2026-10-10.md) narrowed the engine's wording to what each source supports, added missing limits and renewed admission through 12 November 2026, with Yu as accountable owner | Re-review from primary sources before the 13 November stop; the open interpretive questions in that record still need a qualified tax adviser and keep their existing stops or null outcomes |
 | PG-03 | Books recovery implemented; complete encrypted saved-workspace recovery now passes all four native targets | [Consumer desktop acceptance](DESKTOP-TESTING.md) remains NOT RUN; live profiles are not encrypted by the app |
 | PG-06 | Browser mutation Origin guard implemented and regression-tested | Deployed abuse/rate controls still require separate operating evidence |
 | PG-04, PG-05, PG-07–11 | Broader accounting, VAT review, grant lifecycle, durable filing, annual scope and real provider data remain incomplete | Follow the package-specific dependencies below; preparation and offline use do not require all these capabilities |
@@ -34,7 +34,7 @@ not a claim that every original defect is still present.
 | Package | Result recorded on 12 September | Boundary recorded at that batch |
 |---|---|---|
 | PG-01 | Implemented: clean Node 22 install, valid dependency tree, zero full/production audit findings, all workspace tests, lint, types, corpus validators and 73-page static build pass | Local verification; deployment is a separate action |
-| PG-02 | Ten primary sources reviewed; cessation provenance repaired; source admission renewed through 12 October with the 13 October stop preserved | Existing classifier scope remains; named human owner for the next review is unassigned |
+| PG-02 | Ten primary sources reviewed; cessation provenance repaired; source admission renewed through 12 October with the 13 October stop preserved | Existing classifier scope remains; named human owner for the next review is unassigned at this batch. See the [10 October renewal](#pg-02--renew-mtd-source-evidence-without-weakening-the-stop). |
 | PG-03 | Versioned backup/replace implemented with strict validation, required safety copy, fresh replica, retired authority/coverage and atomic transaction tests | 10 MiB/20,000-item bounds; Web Locks required; native-browser transaction and visual walkthrough were unverified at this batch. See the [later protected-backup and native recovery evidence](#pg-03--restore-local-books-safely). |
 | PG-06 | Shared pre-session Origin guard implemented; duplicate exact-root session execution fixed; real-router tests pass with mocked SQL/provider calls | Does not prove live Postgres, provider or edge rate-limit behavior |
 | PG-12 | [Operating evidence inventory](OPERATING-EVIDENCE.md) prepared with responsible roles and next actions | External decisions and private operating evidence remain unverified |
@@ -112,6 +112,15 @@ avoid dependency edits until this patch is integrated.
 The subsequent source review moved the due date to **2026-10-12**, preserving the
 overdue stop. The release canary accepts the explicit degraded state. Corpus shape
 validation does not prove that a source is current.
+
+**10 October 2026 renewal.** The [10 October source review](../research/uk/tax-expert/source-review-2026-10-10.md)
+re-read all ten admitted sources. With Yu as accountable owner, it first narrowed the
+engine's wording to what each source supports and added the missing limits, without
+adding any mapped obligation, deadline calculation, decision path or coverage, or removing
+any stop; the new limit notes name what is not covered. It then renewed
+admission through **2026-11-12**. Tests check that 12 November is still valid and that
+13 November returns `source_review_required`. The interpretive questions listed in the
+record remain open for a qualified tax adviser; the review is not tax advice.
 
 **Implementation path.** Review every admitted primary source against its supported
 claims, applicable periods and stated limits. Record retrieval/review evidence and

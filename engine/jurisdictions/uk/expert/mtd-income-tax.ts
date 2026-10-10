@@ -63,6 +63,7 @@ export interface MtdIncomeTaxExpertRequest {
   person: {
     /** Regulation 5 tests the duty to deliver, not whether a required return was actually filed. */
     relevantReturnPosition: MtdRelevantReturnPosition;
+    /** Regulation 35 tests 5 April 2026, the last day before 2026/27 began, not 6 April. */
     hadNationalInsuranceNumberAtStartOf2026To27: KnownAnswer;
   };
   income: {
@@ -154,10 +155,10 @@ export interface MtdIncomeTaxDecision {
   boundaries: string[];
 }
 
-// Claim-by-claim review: research/uk/tax-expert/source-review-2026-09-12.md.
+// Claim-by-claim review: research/uk/tax-expert/source-review-2026-10-10.md.
 // These are evidence-admission dates, separate from the classifier version below.
-const retrievedOn = "2026-09-12";
-const reviewDueOn = "2026-10-12";
+const retrievedOn = "2026-10-10";
+const reviewDueOn = "2026-11-12";
 
 export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
   {
@@ -169,7 +170,7 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "binding-law",
     status: "in-force",
     citation:
-      "SI 2026/336, regulations 5 to 9, 12 to 15, 18 to 22, 25 to 36 and 38 to 45",
+      "SI 2026/336, regulations 5 to 9, 11 to 15, 18 to 23, 25 to 36 and 38 to 45",
     territorialExtent: ["United Kingdom"],
     effectiveFrom: "2026-04-01",
     effectiveTo: null,
@@ -251,7 +252,10 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     retrievedOn,
     reviewDueOn,
     supports: ["Cumulative standard and calendar update periods and common deadlines."],
-    doesNotProve: ["Which newly started or separately ceased source needs an update without source-level history."],
+    doesNotProve: [
+      "Which newly started or separately ceased source needs an update without source-level history.",
+      "Which update period each source uses: the page has calendar update periods selected for each source of income, while this path takes one choice for all sources.",
+    ],
   },
   {
     id: "hmrc-mtd-circumstances-change",
@@ -266,8 +270,14 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     versionAsAt: "2026-09-07",
     retrievedOn,
     reviewDueOn,
-    supports: ["Becoming exempt does not remove Self Assessment; the 2026/27 annual return remains due on 31 January 2028."],
-    doesNotProve: ["Cessation notice and final-update details, which moved to the separate add-or-cease guidance."],
+    supports: [
+      "If HMRC has confirmed an exemption, income and gains must still be reported in a Self Assessment tax return.",
+      "Its example gives 31 January 2028 for submitting the 2026/27 return through compatible software.",
+    ],
+    doesNotProve: [
+      "Cessation notice and final-update details, which moved to the separate add-or-cease guidance.",
+      "A deadline for an exempt person's Self Assessment return, or whether its exempt statement covers exemptions HMRC has not confirmed.",
+    ],
   },
   {
     id: "hmrc-mtd-add-or-cease-income-sources",
@@ -282,7 +292,10 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     versionAsAt: "2026-07-16",
     retrievedOn,
     reviewDueOn,
-    supports: ["A ceased source must be notified and receive its final update for the period containing cessation."],
+    supports: [
+      "A ceased source must be notified and receive its final update for the period containing cessation.",
+      "After the tax year in which the income ceased, digital records must still be stored to support the tax return.",
+    ],
     doesNotProve: ["The cessation date or source inventory supplied by a caller."],
   },
   {
@@ -310,10 +323,15 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     legalForce: "official-explanation",
     status: "in-force",
     territorialExtent: ["United Kingdom"],
+    updatedOn: "2025-11-07",
+    versionAsAt: "2025-11-07",
     retrievedOn,
     reviewDueOn,
-    supports: ["The recurring normal paper, electronic-return and balancing-payment timetable after the tax year, including later-issued notice exceptions."],
-    doesNotProve: ["A personalised filing or payment deadline, or the amount payable."],
+    supports: ["The recurring normal paper and electronic-return filing dates and the 31 January payment due date after the tax year, including later-issued notice exceptions."],
+    doesNotProve: [
+      "A personalised filing or payment deadline, or the amount payable.",
+      "Payments on account or balancing payments, which this section does not mention.",
+    ],
   },
   {
     id: "hmrc-self-assessment-deadlines",
@@ -327,7 +345,10 @@ export const MTD_INCOME_TAX_SOURCES: readonly TaxSource[] = [
     retrievedOn,
     reviewDueOn,
     supports: ["Normal Self Assessment paper, online and payment deadlines."],
-    doesNotProve: ["Which filing channel a particular exempt person will use or whether HMRC issued a different deadline."],
+    doesNotProve: [
+      "Which filing channel a particular exempt person will use or whether HMRC issued a different deadline.",
+      "The 2026/27 dates themselves: its examples cover 2025/26, so the recurring rule comes from SALF202.",
+    ],
   },
 ];
 
@@ -474,7 +495,9 @@ function obligationsFor(
   if (includeDigital) {
     obligations.push({
       id: "keep-digital-records",
-      title: cessationDate ? "Keep digital records through the final source cessation" : "Keep digital records in compatible software",
+      title: cessationDate
+        ? "Keep digital records in compatible software, and after the final source cessation still store them to support the tax return"
+        : "Keep digital records in compatible software",
       dueDate: recordStart,
       timing: recordStart === null || input.asOfDate >= recordStart ? "active" : "upcoming",
       conditional: digitalConditional,
@@ -483,7 +506,9 @@ function obligationsFor(
       periodEnd: cessationDate,
       appliesPerBusiness: true,
       expectedSubmissions: null,
-      sourceIds: ["uksi-2026-336", "hmrc-mtd-before-you-start"],
+      sourceIds: cessationDate
+        ? ["uksi-2026-336", "hmrc-mtd-before-you-start", "hmrc-mtd-add-or-cease-income-sources"]
+        : ["uksi-2026-336", "hmrc-mtd-before-you-start"],
     });
     obligations.push(...quarters.map((quarter, index) => {
       const isFinal = cessationDate !== null && !calendarBoundaryCessation && index === quarters.length - 1;
@@ -590,7 +615,7 @@ function obligationsFor(
   }
   obligations.push({
     id: "pay-self-assessment-tax",
-    title: "Pay the 2026/27 Self Assessment tax due",
+    title: "Pay the 2026/27 Self Assessment tax due; payments on account, if any, are not mapped here",
     dueDate: "2028-01-31",
     timing: timingFor(input.asOfDate, "2028-01-31"),
     conditional: false,
@@ -717,7 +742,7 @@ function decide(
   const indicators = input.exemption.returnIndicators;
   const indicatorList = Array.isArray(indicators) ? indicators : [];
   if (input.exemption.digitalExclusion === "hmrc-approved") {
-    return decision("exempt", "determined", "HMRC-approved digital exclusion removes the MTD software obligations while Self Assessment continues.", ["HMRC_APPROVED_DIGITAL_EXCLUSION"], materialPaths, false);
+    return decision("exempt", "determined", "HMRC-approved digital exclusion removes the MTD software obligations its exclusion notice covers, while Self Assessment continues; this path does not check the notice's dates.", ["HMRC_APPROVED_DIGITAL_EXCLUSION"], materialPaths, false);
   }
   if (input.exemption.otherExemptionApplication === "hmrc-approved-for-2026-27") {
     return decision("exempt", "determined", "HMRC has approved another exemption covering 2026/27; later phases and Self Assessment still need checking.", ["HMRC_APPROVED_OTHER_2026_27_EXEMPTION"], materialPaths, false);
@@ -729,7 +754,7 @@ function decide(
     return decision("exempt", "determined", "No National Insurance number before the tax year began gives an automatic 2026/27 exemption; Self Assessment still continues.", ["NO_NINO_AT_TAX_YEAR_START"], materialPaths, false);
   }
   if (indicatorList.some((item) => COMPLEX_RETURN_INDICATORS.has(item))) {
-    return decision("professional_review_needed", "needs_professional_review", "The return contains an exemption indicator whose duration or activity-level effect is outside this first deep path.", ["COMPLEX_RETURN_EXEMPTION_INDICATOR"], materialPaths, true);
+    return decision("professional_review_needed", "needs_professional_review", "The return contains an exemption indicator that this first deep path does not classify; TaxSorted stops for review rather than deciding its duration or activity-level effect.", ["COMPLEX_RETURN_EXEMPTION_INDICATOR"], materialPaths, true);
   }
   if (input.person.hadNationalInsuranceNumberAtStartOf2026To27 === "unknown") {
     materialPaths.add("person.hadNationalInsuranceNumberAtStartOf2026To27");
@@ -852,7 +877,9 @@ function nextActionsFor(work: DecisionWork, input: MtdIncomeTaxExpertRequest): T
   return actions;
 }
 
-function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
+function buildClaims(currentPhase: MtdThresholdPhase, hasCessation: boolean): EvidenceClaim[] {
+  // The add-or-cease page supports these general claims only where a source has ceased.
+  const ceaseSourceIds = hasCessation ? ["hmrc-mtd-add-or-cease-income-sources"] : [];
   return [
     {
       id: "mtd-entry-law",
@@ -893,7 +920,7 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
     },
     {
       id: "mtd-exclusion-notice-law",
-      statement: "A Commissioners-issued exclusion notice disapplies the covered digital obligations for its stated period.",
+      statement: "A Commissioners-issued exclusion notice disapplies the digital obligations described in regulation 18; this path does not work out how far that reaches for a particular notice.",
       kind: "law",
       support: "direct",
       sourceIds: ["uksi-2026-336"],
@@ -938,14 +965,14 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
       statement: "An in-scope person keeps digital records and sends cumulative quarterly updates for each activity by the published deadlines.",
       kind: "hmrc-position",
       support: "direct",
-      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-quarterly-updates", "hmrc-mtd-add-or-cease-income-sources"],
+      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-quarterly-updates", ...ceaseSourceIds],
     },
     {
       id: "mtd-annual-return-obligation",
       statement: "An in-scope person uses compatible software to submit the MTD Income Tax return for the digital-obligation year.",
       kind: "hmrc-position",
       support: "direct",
-      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-circumstances-change", "hmrc-mtd-add-or-cease-income-sources"],
+      sourceIds: ["hmrc-mtd-before-you-start", "hmrc-mtd-circumstances-change", ...ceaseSourceIds],
     },
     {
       id: "mtd-2026-27-penalty-position",
@@ -956,7 +983,7 @@ function buildClaims(currentPhase: MtdThresholdPhase): EvidenceClaim[] {
     },
     {
       id: "self-assessment-deadlines",
-      statement: "An MTD exemption does not remove Self Assessment; normal paper and online filing deadlines differ, while payment is due by 31 January.",
+      statement: "An MTD exemption does not remove Self Assessment; normal paper and online filing deadlines differ, while payment is due by 31 January. HMRC also names a second payment deadline of 31 July for payments on account, which this path does not map.",
       kind: "hmrc-position",
       support: "direct",
       sourceIds: ["hmrc-mtd-exemptions", "hmrc-self-assessment-deadlines", "hmrc-self-assessment-filing-framework"],
@@ -1036,7 +1063,7 @@ export function assessMtdIncomeTax(
   }
   const scalarUnknowns: Array<[string, string, string, unknown]> = [
     ["person.relevantReturnPosition", "Relevant-return duty and filing position", "Being required to deliver, not actual filing, is the regulation 5 entry fact.", input.person.relevantReturnPosition],
-    ["person.hadNationalInsuranceNumberAtStartOf2026To27", "National Insurance number at tax-year start", "No number before the year began creates an automatic exemption.", input.person.hadNationalInsuranceNumberAtStartOf2026To27],
+    ["person.hadNationalInsuranceNumberAtStartOf2026To27", "National Insurance number on 5 April 2026, before the tax year began", "No number before the year began creates an automatic exemption.", input.person.hadNationalInsuranceNumberAtStartOf2026To27],
     ["income.atLeastOneRelevantReturnActivityContinuedAtEntry", "Relevant-return activity at entry", "A different new source cannot replace the regulation 5 activity-continuation test.", input.income.atLeastOneRelevantReturnActivityContinuedAtEntry],
     ["income.lastRelevantActivityCessationDate", "Whether an entry activity still continues and when the final one ceased", "An exact date controls the final update and notice.", input.income.lastRelevantActivityCessationDate],
     ["income.relevantReturnWasAmended", "Return amendment status", "Amendment timing can change the threshold figure used.", input.income.relevantReturnWasAmended],
@@ -1052,7 +1079,7 @@ export function assessMtdIncomeTax(
     }
   }
 
-  const claims = buildClaims(currentPhase);
+  const claims = buildClaims(currentPhase, cessationInCurrentYear(input) !== null);
   const steps: ReasoningStep[] = [
     {
       id: "entry-conditions",
@@ -1160,10 +1187,12 @@ export function assessMtdIncomeTax(
       penaltyPosition: answerPenaltyPosition,
       excludedIncomeTypes: ["employment (PAYE)", "individual partnership profit share", "dividends", "State Pension", "private pensions"],
       boundaries: [
-        "Gross income means before expenses; it is not profit.",
-        "UK-resident totals include foreign property; non-UK-resident cases use only amounts admitted to the UK-return scope.",
+        "Gross income means before expenses; it is not profit. HMRC's guidance names cases this path does not separately compute, including a jointly owned property share notified after expenses and, for a VAT-registered business using the cash basis, VAT if included in business income.",
+        "UK-resident totals include foreign property; non-UK-resident cases use only amounts admitted to the UK-return scope. HMRC's residence guidance is written for the 2024 to 2025 tax year; the later rows reuse it without separate support.",
         "A missing HMRC letter or an unsubmitted required return does not remove the obligation.",
         "Exact per-source workload needs each source's start, prior-return and cessation history; this path does not guess a submission count.",
+        "One standard-or-calendar update-period choice is applied to every source; HMRC's guidance has calendar update periods selected for each source of income, and a mix across sources is not modelled.",
+        "Later phase rows compare each year's figures with that year's threshold only; they do not decide whether digital obligations that already apply continue or stop.",
         "The final entry-activity cessation date does not prove that earlier activity-level cessation notices were completed.",
         "TaxSorted does not approve exemptions, sign anyone up or calculate the final Income Tax bill.",
       ],

@@ -19,7 +19,7 @@ import {
   type MtdWhyGraphNative,
 } from "../mtd-why-graph";
 
-const EVALUATED_ON = "2026-09-12";
+const EVALUATED_ON = "2026-10-10";
 
 function request(): MtdIncomeTaxExpertRequest {
   return {
@@ -671,6 +671,26 @@ describe("MTD Income Tax expert", () => {
     ]));
   });
 
+  it("keeps an approved digital exclusion exempt without claiming to check the notice's dates", () => {
+    const input = request();
+    input.exemption.digitalExclusion = "hmrc-approved";
+    const result = assess(input);
+    expect(result.status).toBe("determined");
+    expect(result.answer?.decision).toBe("exempt");
+    expect(result.answer?.reasonCodes).toEqual(["HMRC_APPROVED_DIGITAL_EXCLUSION"]);
+    expect(result.answer?.headline).toMatch(/its exclusion notice covers/);
+    expect(result.answer?.headline).toMatch(/does not check the notice's dates/);
+  });
+
+  it("says later phase rows do not decide whether existing obligations stop", () => {
+    const result = assess(request());
+    expect(result.answer?.boundaries).toContain(
+      "Later phase rows compare each year's figures with that year's threshold only; they do not decide whether digital obligations that already apply continue or stop.",
+    );
+    expect(result.evidence.sources.find((source) => source.id === "hmrc-mtd-add-or-cease-income-sources")?.supports)
+      .toContain("After the tax year in which the income ceased, digital records must still be stored to support the tax return.");
+  });
+
   it("does not overlook another exemption application based on a future return indicator", () => {
     const unchecked = request();
     unchecked.exemption.otherExemptionApplication = "not-checked";
@@ -724,14 +744,52 @@ describe("MTD Income Tax expert", () => {
     expect(obligationIds).toContain("submit-mtd-tax-return");
     expect(obligationIds).toContain("pay-self-assessment-tax");
     expect(result.answer?.obligations.find((item) => item.id === "quarterly-update-1")?.periodEnd).toBe("2026-05-12");
-    for (const id of ["quarterly-update-1", "notify-hmrc-of-cessation", "submit-mtd-tax-return"]) {
+    for (const id of ["keep-digital-records", "quarterly-update-1", "notify-hmrc-of-cessation", "submit-mtd-tax-return"]) {
       expect(result.answer?.obligations.find((item) => item.id === id)?.sourceIds)
+        .toContain("hmrc-mtd-add-or-cease-income-sources");
+    }
+    expect(result.answer?.obligations.find((item) => item.id === "keep-digital-records")).toMatchObject({
+      title: expect.stringMatching(/still store them to support the tax return/),
+      periodEnd: "2026-05-12",
+    });
+    for (const id of ["mtd-quarterly-obligations", "mtd-annual-return-obligation"]) {
+      expect(result.evidence.claims.find((claim) => claim.id === id)?.sourceIds)
         .toContain("hmrc-mtd-add-or-cease-income-sources");
     }
     expect(result.escalation.nextActions).toContainEqual(expect.objectContaining({
       id: "report-cessation",
       href: "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/add-or-cease-income-sources",
     }));
+  });
+
+  it("cites the add-or-cease guidance only where a source has ceased", () => {
+    const result = assess();
+    expect(result.answer?.decision).toBe("in_scope");
+    for (const id of ["mtd-quarterly-obligations", "mtd-annual-return-obligation"]) {
+      expect(result.evidence.claims.find((claim) => claim.id === id)?.sourceIds)
+        .not.toContain("hmrc-mtd-add-or-cease-income-sources");
+    }
+    expect(result.answer?.obligations.find((item) => item.id === "keep-digital-records")).toMatchObject({
+      title: "Keep digital records in compatible software",
+      periodEnd: null,
+      sourceIds: ["uksi-2026-336", "hmrc-mtd-before-you-start"],
+    });
+  });
+
+  it("names payments on account as unmapped instead of implying one payment date covers them", () => {
+    const result = assess();
+    expect(result.answer?.obligations.find((item) => item.id === "pay-self-assessment-tax")).toMatchObject({
+      title: expect.stringMatching(/payments on account, if any, are not mapped here/),
+      dueDate: "2028-01-31",
+      conditional: false,
+    });
+    expect(result.answer?.obligations.map((item) => item.dueDate)).not.toContain("2027-07-31");
+    expect(result.answer?.obligations.map((item) => item.dueDate)).not.toContain("2028-07-31");
+    expect(result.evidence.claims.find((claim) => claim.id === "self-assessment-deadlines")?.statement)
+      .toMatch(/31 July for payments on account, which this path does not map/);
+    const salf202 = result.evidence.sources.find((source) => source.id === "hmrc-self-assessment-filing-framework");
+    expect(salf202?.supports.join(" ")).not.toMatch(/balancing/i);
+    expect(salf202?.doesNotProve).toContain("Payments on account or balancing payments, which this section does not mention.");
   });
 
   it("uses the chosen period to map a cessation near a quarter boundary", () => {
@@ -801,7 +859,7 @@ describe("MTD Income Tax expert", () => {
     expect(result.answer?.phases[1].assessment).toBe("forecast-above-threshold");
   });
 
-  it("uses the September source admission for a current assessment and a historical asOfDate", () => {
+  it("uses the October source admission for a current assessment and a historical asOfDate", () => {
     const current = request();
     current.asOfDate = EVALUATED_ON;
     for (const input of [current, request()]) {
@@ -810,19 +868,24 @@ describe("MTD Income Tax expert", () => {
       expect(result.answer?.decision).toBe("in_scope");
       expect(result.applicability).toMatchObject({
         effectiveDate: input.asOfDate,
-        evaluatedOn: "2026-09-12",
-        knowledgeAsOf: "2026-09-12",
+        evaluatedOn: "2026-10-10",
+        knowledgeAsOf: "2026-10-10",
       });
-      expect(result.evidence.sources.every((source) => source.retrievedOn === "2026-09-12")).toBe(true);
+      expect(result.evidence.sources.every((source) => source.retrievedOn === "2026-10-10")).toBe(true);
+      expect(result.evidence.sources.every((source) => source.reviewDueOn === "2026-11-12")).toBe(true);
       expect(result.evidence.sources.find((source) => source.id === "hmrc-mtd-qualifying-income"))
         .toMatchObject({ updatedOn: "2026-09-11" });
+      expect(result.evidence.sources.find((source) => source.id === "hmrc-self-assessment-filing-framework"))
+        .toMatchObject({ updatedOn: "2025-11-07", versionAsAt: "2025-11-07" });
+      expect(result.evidence.sources.find((source) => source.id === "hmrc-self-assessment-deadlines")?.updatedOn)
+        .toBeUndefined();
     }
   });
 
   it("keeps the evidence usable on its review due date", () => {
     const input = request();
-    input.asOfDate = "2026-10-12";
-    const result = assess(input, "2026-10-12");
+    input.asOfDate = "2026-11-12";
+    const result = assess(input, "2026-11-12");
     expect(result.status).toBe("determined");
     expect(result.answer?.decision).toBe("in_scope");
   });
@@ -830,7 +893,7 @@ describe("MTD Income Tax expert", () => {
   it("checks source freshness the day after review is due, not caller asOfDate", () => {
     const input = request();
     input.asOfDate = "2026-07-01";
-    const result = assess(input, "2026-10-13");
+    const result = assess(input, "2026-11-13");
     expect(result.status).toBe("needs_professional_review");
     expect(result.answer?.decision).toBe("source_review_required");
     expect(result.answer?.obligations).toEqual([]);
