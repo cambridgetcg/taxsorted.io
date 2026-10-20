@@ -245,10 +245,10 @@ function CompletionReview({
       className="mx-auto min-h-[70vh] max-w-3xl px-4 py-10 sm:px-6"
       aria-labelledby="completion-heading"
     >
-      <div className="rounded-lg border border-line bg-accent-soft p-6 sm:p-10">
+      <div className="rounded-lg border border-line bg-surface p-6 sm:p-10">
         <div className="text-center">
-          <CheckCircle2 aria-hidden="true" className="mx-auto h-12 w-12 text-accent" />
-          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-accent">
+          <CheckCircle2 aria-hidden="true" className="mx-auto h-12 w-12 text-ink-soft" />
+          <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-ink">
             Local calculation complete
           </p>
           <h1

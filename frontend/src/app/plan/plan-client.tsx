@@ -339,7 +339,7 @@ export function PlanClient() {
                 }}
                 aria-describedby={`plan-income-hint${errors.income ? " plan-income-error" : ""}`}
                 aria-invalid={Boolean(errors.income)}
-                className="min-h-12 w-full rounded-xl border border-line bg-white ps-8 pe-4 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="min-h-12 w-full rounded-xl border border-line-strong bg-white ps-8 pe-4 text-ink focus:border-accent"
                 placeholder="5,000"
               />
             </div>
@@ -371,7 +371,7 @@ export function PlanClient() {
                 }}
                 aria-describedby={`plan-deductions-hint${errors.deductions ? " plan-deductions-error" : ""}`}
                 aria-invalid={Boolean(errors.deductions)}
-                className="min-h-12 w-full rounded-xl border border-line bg-white ps-8 pe-4 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="min-h-12 w-full rounded-xl border border-line-strong bg-white ps-8 pe-4 text-ink focus:border-accent"
                 placeholder="600"
               />
             </div>

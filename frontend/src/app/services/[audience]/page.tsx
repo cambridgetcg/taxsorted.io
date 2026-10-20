@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AUDIENCES, getAudience, servicesForAudience, allServicesForAudience } from "@/lib/tax-services";
 import { ServiceCard } from "@/components/services/service-card";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -45,7 +45,7 @@ export default async function AudiencePage({ params }: Props) {
         </div>
         <aside className="rounded-2xl border border-line bg-surface p-6 sm:p-7">
           <h2 className="font-semibold text-ink">What you can do here</h2>
-          <ul className="mt-5 space-y-4">{intro.points.map((point) => <li key={point} className="flex gap-3 text-sm leading-6 text-ink-soft"><Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-accent" />{point}</li>)}</ul>
+          <ul className="mt-5 space-y-4">{intro.points.map((point) => <li key={point} className="flex gap-3 text-sm leading-6 text-ink-soft"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-soft" />{point}</li>)}</ul>
           <p className="mt-6 border-t border-line pt-5 text-sm leading-6 text-ink-soft">{audience.scope}</p>
         </aside>
       </header>

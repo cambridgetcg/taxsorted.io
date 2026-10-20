@@ -66,6 +66,22 @@ describe("SiteNav", () => {
     expect(screen.getAllByRole("link")[0]).toBe(skip);
   });
 
+  it("names the home link in words and keeps the drawn lockup out of the accessibility tree", () => {
+    const { container } = render(<SiteNav />);
+
+    // jsdom applies no CSS, so the 2xl-only tagline joins the name here.
+    const home = screen.getByRole("link", { name: /^TaxSorted/ });
+    expect(home).toHaveAttribute("href", "/");
+    const drawings = home.querySelectorAll("svg");
+    expect(drawings).toHaveLength(2); // small below sm, regular from sm
+    for (const svg of drawings) {
+      expect(svg).toHaveAttribute("aria-hidden", "true");
+      expect(svg).toHaveAttribute("focusable", "false");
+    }
+    // The reader colour comes from :root only, so forced colours can win.
+    expect(container.innerHTML).not.toMatch(/--ts-mark-reader\s*:/);
+  });
+
   it("marks the door you are inside — across its whole route family", () => {
     // The MTD entry check belongs to the checklist while other ITSA tools live in Services.
     navigation.pathname = "/itsa/am-i-in/";
@@ -253,5 +269,7 @@ describe("SiteNav", () => {
     expect(screen.getByRole("link", { name: "میرا ٹیکس سال" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("combobox", { name: "زبان" })).toHaveValue("ur");
     expect(document.documentElement).toHaveAttribute("dir", "rtl");
+    // The brand name is not translated; the home link keeps it.
+    expect(screen.getByRole("link", { name: /^TaxSorted/ })).toHaveAttribute("href", "/");
   });
 });

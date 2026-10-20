@@ -4,6 +4,7 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { TaxSortedLockup } from "@/components/brand/TaxSortedLockup";
 import { LanguageSwitcher } from "@/i18n/LanguageSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
 import { isLocalApp } from "@/lib/local-runtime";
@@ -93,18 +94,17 @@ export function SiteNav() {
         aria-label="Main"
         className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8"
       >
-        <Link href="/" className="group flex min-h-11 items-center gap-3 self-center">
-          <span
-            aria-hidden="true"
-            className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl border border-accent/20 bg-accent-soft font-display text-xl font-bold text-accent-deep"
-          >
-            <span className="absolute inset-x-1.5 bottom-1.5 h-px bg-warm/60" />
-            T
-          </span>
-          <span className="flex flex-col">
-            <span className="text-lg font-semibold tracking-tight text-ink">TaxSorted</span>
-            <span className="hidden text-xs text-ink-soft 2xl:inline">{t("nav.tagline")}</span>
-          </span>
+        {/* The lockup is artwork, so the link takes its name from hidden text.
+            Below sm the small drawing (153px wide) leaves room for the menu
+            button on a 320px phone; the regular drawing never goes under 180px.
+            The 2xl tagline sits under the lockup, and w-min breaks a long one
+            (Polish) onto two lines: a link wider than the lockup pushes the
+            doors onto a second row. */}
+        <Link href="/" className="flex min-h-11 w-min flex-col items-start justify-center self-center text-ink">
+          <span className="sr-only">TaxSorted</span>
+          <TaxSortedLockup size="small" className="h-8 w-auto sm:hidden" />
+          <TaxSortedLockup className="hidden h-9 w-auto sm:block" />
+          <span className="hidden text-xs text-ink-soft 2xl:inline">{t("nav.tagline")}</span>
         </Link>
 
         <button
