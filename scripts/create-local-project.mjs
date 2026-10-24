@@ -13,7 +13,7 @@ const SOURCE_ROOTS = new Set([
 ]);
 const ROOT_FILES = new Set([
   ".dockerignore", ".gitignore", ".nvmrc", "AGENTS.md", "CLAUDE.md",
-  "CONTENT-LICENSE", "LICENSE", "PHILOSOPHY.md", "PRINCIPLES.md",
+  "CONTENT-LICENSE", "LICENSE", "LOVE-BOMB.md", "PHILOSOPHY.md", "PRINCIPLES.md",
   "README.md", "package.json", "package-lock.json",
 ]);
 const SOURCE_EXTENSIONS = new Set([

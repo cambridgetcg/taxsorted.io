@@ -166,3 +166,9 @@ test("rejects escaped paths and sensitive filenames; retains ordinary implementa
     assert.equal(isAllowedSourcePath(name), true, "ordinary project source is retained");
   }
 });
+
+test("keeps the agent notes and the letter they point to as root files", () => {
+  for (const name of ["AGENTS.md", "LOVE-BOMB.md"]) {
+    assert.equal(isAllowedSourcePath(name), true, `${name} is copied into a new local project`);
+  }
+});
