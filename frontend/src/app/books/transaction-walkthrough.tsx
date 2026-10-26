@@ -91,7 +91,7 @@ export function TransactionWalkthrough() {
                 aria-invalid={saleInvalid}
                 aria-describedby={saleInvalid ? errorId : undefined}
                 onChange={(event) => setSale(event.target.value)}
-                className="min-h-11 w-full rounded-xl border border-line bg-surface py-2 pl-7 pr-3 text-base text-ink"
+                className="min-h-11 w-full rounded-xl border border-line-strong bg-surface py-2 pl-7 pr-3 text-base text-ink"
               />
             </span>
           </label>
@@ -108,7 +108,7 @@ export function TransactionWalkthrough() {
                 aria-invalid={feeInvalid}
                 aria-describedby={feeInvalid ? errorId : undefined}
                 onChange={(event) => setFee(event.target.value)}
-                className="min-h-11 w-full rounded-xl border border-line bg-surface py-2 pl-7 pr-3 text-base text-ink"
+                className="min-h-11 w-full rounded-xl border border-line-strong bg-surface py-2 pl-7 pr-3 text-base text-ink"
               />
             </span>
           </label>

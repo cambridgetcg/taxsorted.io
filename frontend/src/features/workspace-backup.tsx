@@ -203,8 +203,8 @@ export function WorkspaceBackup() {
     <legend className="px-1 font-semibold text-ink">{selected ? "Protect the safety copy" : "Protect your workspace backup"}</legend>
     <p id="workspace-password-help">Choose a long, unique phrase of at least {WORKSPACE_BACKUP_PASSWORD_MIN_LENGTH} characters. Keep it separately from the file. TaxSorted cannot reset it.</p>
     <div className="grid gap-4 sm:grid-cols-2">
-      <label className="block font-semibold text-ink">Backup password<input type="password" value={password} autoComplete="off" spellCheck={false} aria-describedby="workspace-password-help" onChange={event => setPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" /></label>
-      <label className="block font-semibold text-ink">Repeat backup password<input type="password" value={repeatPassword} autoComplete="off" spellCheck={false} onChange={event => setRepeatPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" /></label>
+      <label className="block font-semibold text-ink">Backup password<input type="password" value={password} autoComplete="off" spellCheck={false} aria-describedby="workspace-password-help" onChange={event => setPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" /></label>
+      <label className="block font-semibold text-ink">Repeat backup password<input type="password" value={repeatPassword} autoComplete="off" spellCheck={false} onChange={event => setRepeatPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" /></label>
     </div>
     <label className="flex items-start gap-3"><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.currentTarget.checked)} className="mt-1 size-5 shrink-0" /><span>{PASSWORD_ACK}</span></label>
     <Button type="button" disabled={!!busy || !password || !repeatPassword || !acknowledged} onClick={() => void save()} className="whitespace-normal">{selected ? "Download protected safety copy" : "Download protected workspace backup"}</Button>
@@ -240,12 +240,12 @@ export function WorkspaceBackup() {
       <div>
         <label htmlFor="workspace-backup-file" className="block font-semibold text-ink">Choose a workspace backup to restore</label>
         <p id="workspace-file-help" className="mt-1">Choose a password-protected TaxSorted workspace file (.json), up to 17 MiB. Books-only backups and ordinary Passport or preparation exports use different formats.</p>
-        <input ref={fileInput} id="workspace-backup-file" type="file" accept=".json,application/json" aria-describedby="workspace-file-help" disabled={busy === "restoring"} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full min-w-0 rounded-lg border border-line bg-white p-3 text-ink" />
+        <input ref={fileInput} id="workspace-backup-file" type="file" accept=".json,application/json" aria-describedby="workspace-file-help" disabled={busy === "restoring"} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full min-w-0 rounded-lg border border-line-strong bg-white p-3 text-ink" />
       </div>
       {locked ? <div className="space-y-4 rounded-xl border border-line bg-white p-4">
         <h3 className="text-lg font-semibold text-ink">Unlock and compare</h3>
         <p className="break-words">Selected file: {locked.name}. Unlocking checks the backup and reads your currently saved workspace for comparison. Nothing is replaced yet.</p>
-        <label className="block font-semibold text-ink">Password for this backup<input ref={unlockInput} type="password" value={unlockPassword} disabled={!!busy} autoComplete="off" spellCheck={false} onChange={event => setUnlockPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" /></label>
+        <label className="block font-semibold text-ink">Password for this backup<input ref={unlockInput} type="password" value={unlockPassword} disabled={!!busy} autoComplete="off" spellCheck={false} onChange={event => setUnlockPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" /></label>
         <div className="flex flex-wrap gap-3"><Button type="button" disabled={!!busy || !unlockPassword} onClick={() => void unlock()}>Unlock workspace preview</Button><Button type="button" variant="outline" onClick={cancel}>Cancel restore</Button></div>
       </div> : null}
       {selected ? <div className="space-y-4 border-t border-line pt-5">

@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
-/* A calm working room: warm paper, honest ink and one evergreen action
-   colour. Cinnabar and old gold are decorative accents only — never status
-   shortcuts. Provider brands keep their own colours outside this palette.
+/* The Common Reader: warm paper, honest ink and one heather action colour.
+   - Heather (accent) is action and identity: links, primary buttons, focus,
+     eyebrows and the mark's reader. It never marks a status.
+   - Mulberry (accent-deep) is hover and pressed, and small solids only.
+     Large dark panels use ink.
+   - Heather wash (accent-soft) is the quiet callout and selection ground.
+   - Brick (warm) is the one "needs attention" colour, always with words.
+   - Primrose (gold) is a highlighter behind ink, never text. The old gold
+     text colour is retired.
+   - line is the decorative hairline. line-strong is the control edge, at
+     least 3:1 on every light ground: form fields, secondary pills and
+     stronger link underlines.
+   Provider brands keep their own colours outside this palette.
 
    Components use these real tokens (plus Tailwind's stock status colours
    where words also name the state). Tailwind 4 silently drops unknown theme
@@ -12,15 +22,24 @@
   --surface: #fffdf9;
   --surface-muted: #efebe3;
   --ink: #20231f;
-  --ink-soft: #62675f;
-  --ink-faint: #70756e;
-  --accent: #305b4b;
-  --accent-deep: #234638;
-  --accent-soft: #e5ede8;
-  --warm: #b54a3a;
-  --gold: #8a6b2c;
+  --ink-soft: #4f534c;
+  --ink-faint: #62675f;
+  --accent: #86507e;
+  --accent-deep: #581b3e;
+  --accent-soft: #f4eaf0;
+  --warm: #9b3d27;
+  --gold: #eee7ad;
   --line: #ded8cd;
-  --line-strong: #c9c1b5;
+  --line-strong: #827d71;
+  /* The mark's second tone. Set here only: a component that sets it locally
+     would undo the forced-colours rule below. */
+  --ts-mark-reader: var(--accent);
+}
+
+@media (forced-colors: active) {
+  :root {
+    --ts-mark-reader: currentColor;
+  }
 }
 
 @theme inline {
@@ -49,8 +68,8 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 8% 2%, rgb(48 91 75 / 0.07), transparent 27rem),
-    radial-gradient(circle at 92% 7%, rgb(181 74 58 / 0.045), transparent 24rem),
+    radial-gradient(circle at 8% 2%, rgb(134 80 126 / 0.07), transparent 27rem),
+    radial-gradient(circle at 92% 7%, rgb(155 61 39 / 0.045), transparent 24rem),
     var(--paper);
   color: var(--ink);
   font-family: var(--font-sans);
@@ -101,11 +120,14 @@ body {
   gap: 1px;
 }
 
-/* The one keyboard-focus style for the whole site. No component sets
-   focus-visible:outline-none — everything lets this outline win. */
+/* The one keyboard-focus style for the whole site: a 3px heather ring on a
+   3px paper halo, so it reads on paper, cards, heather and ink alike. It sits
+   outside Tailwind's layers, so it wins over any utility. No component
+   removes it. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--paper);
 }
 
 @media (prefers-reduced-motion: reduce) {

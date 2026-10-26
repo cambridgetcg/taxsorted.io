@@ -166,7 +166,7 @@ export function StandGuide() {
                 onClick={() => setSelectedId(candidate.id)}
                 className={`rounded-3xl border p-6 text-left shadow-sm transition ${selected ? "border-accent bg-accent text-white" : "border-line bg-white text-ink hover:border-accent hover:bg-accent-soft"}`}
               >
-                <span className={`text-xs font-semibold uppercase tracking-wide ${selected ? "text-white/70" : "text-accent"}`}>
+                <span className={`text-xs font-semibold uppercase tracking-wide ${selected ? "text-white/90" : "text-accent"}`}>
                   {candidate.identity.jurisdiction}
                 </span>
                 <span className="mt-2 block text-2xl font-semibold">{candidate.identity.name}</span>

@@ -139,7 +139,7 @@ export default function BooksPage() {
                 "Nothing filed silently",
               ].map((promise) => (
                 <li key={promise} className="flex gap-3 py-3 first:pt-0 last:pb-0">
-                  <span aria-hidden="true" className="mt-1 text-accent">✓</span>
+                  <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-soft" />
                   <span>{promise}</span>
                 </li>
               ))}
