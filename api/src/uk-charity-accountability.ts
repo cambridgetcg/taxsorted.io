@@ -5,6 +5,11 @@
 
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import {
+  offsetDateTime as dateTime,
+  publishedJsonSchema,
+  trimmedUrl,
+} from "./json-schema.js";
 
 export const accountabilityDatasetDigestAlgorithm = "sha256" as const;
 export const accountabilityDatasetDigestPreimage =
@@ -25,11 +30,10 @@ const date = z
     const parsed = new Date(`${value}T00:00:00.000Z`);
     return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
   }, "invalid calendar date");
-const dateTime = z.string().datetime({ offset: true });
-const httpsUrl = z
-  .string()
-  .url()
-  .refine((value) => value.startsWith("https://"), "URL must use HTTPS");
+const httpsUrl = trimmedUrl.refine(
+  (value) => value.startsWith("https://"),
+  "URL must use HTTPS",
+);
 const ids = z.array(id);
 const nonEmptyIds = ids.min(1);
 const nonEmptyText = z.array(shortText).min(1);
@@ -3176,7 +3180,7 @@ function deepFreeze<T>(value: T): Readonly<T> {
 }
 
 export const ukCharityAccountabilitySchemaDocument = deepFreeze({
-  ...z.toJSONSchema(ukCharityAccountabilitySchema),
+  ...publishedJsonSchema(ukCharityAccountabilitySchema),
   $id: "https://api.taxsorted.io/v1/charities/uk/accountability/schema",
   title: "UK charity organisation accountability dataset",
   description:
