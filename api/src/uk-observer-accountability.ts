@@ -4,16 +4,17 @@
 // doors but no investigation, action, response or relationship records.
 
 import { z } from "zod";
+import { publishedJsonSchema, trimmedUrl } from "./json-schema.js";
 
 const strictObject = <T extends z.ZodRawShape>(shape: T) =>
   z.object(shape).strict();
 const id = z.string().max(100).regex(/^[a-z0-9][a-z0-9-]*$/);
 const text = z.string().trim().min(1).max(4_000);
 const shortText = z.string().trim().min(1).max(500);
-const httpsUrl = z
-  .string()
-  .url()
-  .refine((value) => value.startsWith("https://"), "URL must use HTTPS");
+const httpsUrl = trimmedUrl.refine(
+  (value) => value.startsWith("https://"),
+  "URL must use HTTPS",
+);
 const date = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -1340,7 +1341,7 @@ function deepFreeze<T>(value: T): Readonly<T> {
 }
 
 export const ukObserverAccountabilitySchemaDocument = deepFreeze({
-  ...z.toJSONSchema(ukObserverAccountabilityCandidateSchema),
+  ...publishedJsonSchema(ukObserverAccountabilityCandidateSchema),
   $id: "https://api.taxsorted.io/v1/accountability/uk/schema",
   title: "UK observer accountability candidate extension",
   description:

@@ -11,6 +11,7 @@ import {
   WHY_GRAPH_RUNTIME_INVARIANTS,
   WHY_GRAPH_SUBJECT_TYPES,
 } from "@taxsorted/engine/why-graph";
+import { publishedJsonSchema } from "./json-schema.js";
 import { ukCharities } from "./uk-charities.js";
 import { ukCaseCommons } from "./uk-case-commons.js";
 import {
@@ -352,7 +353,7 @@ export const WhyGraphAdoptersSchema = z.object({
 }).strict().openapi("WhyGraphAdopters");
 
 export const whyGraphJsonSchemaDocument = {
-  ...z.toJSONSchema(WhyGraphSchema),
+  ...publishedJsonSchema(WhyGraphSchema),
   $id: "https://api.taxsorted.io/v1/why-graph/schema",
   title: "TaxSorted why graph",
   description:

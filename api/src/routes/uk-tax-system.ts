@@ -4,6 +4,7 @@
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
+import { publishedJsonSchema } from "../json-schema.js";
 import {
   attachmentContentDisposition,
   canonicalJson,
@@ -166,7 +167,7 @@ const referenceTargets: Record<CollectionName, Record<string, string | string[]>
 const schemaDocument = {
   $id: `https://api.taxsorted.io${basePath}/schema`,
   title: "TaxSorted UK tax-system corpus",
-  ...z.toJSONSchema(ukTaxSystemSchema),
+  ...publishedJsonSchema(ukTaxSystemSchema),
 };
 
 const mediaTypes: Record<ExportFormat, string> = {

@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { trimmedUrl } from "./json-schema.js";
 
 const date = z
   .string()
@@ -37,7 +38,7 @@ const sourceSchema = strictObject({
   id,
   title: z.string().min(1),
   publisher: z.string().min(1),
-  url: z.string().url(),
+  url: trimmedUrl,
   authorityLevel: z.enum([
     "primary-law",
     "judgment",
@@ -58,7 +59,7 @@ const sourceSchema = strictObject({
   supports: nonEmptyStrings,
   doesNotProve: nonEmptyStrings,
   licence: z
-    .object({ name: z.string().min(1), url: z.string().url().optional() })
+    .object({ name: z.string().min(1), url: trimmedUrl.optional() })
     .strict()
     .nullable(),
 });
@@ -72,7 +73,7 @@ const actorSchema = strictObject({
   roles: nonEmptyStrings,
   explanation: z.string().min(1),
   whyItExists: z.string().min(1),
-  website: z.string().url(),
+  website: trimmedUrl,
   contacts: z.array(contactSchema),
   sourceIds: nonEmptyStrings,
   evidence: evidenceSchema,
@@ -174,7 +175,7 @@ const permissionSchema = strictObject({
   holderTypes: nonEmptyStrings,
   grantedByActorIds: nonEmptyStrings,
   overseenByActorIds: z.array(id),
-  publicRegister: z.string().url().nullable(),
+  publicRegister: trimmedUrl.nullable(),
   enforcement: z.string().min(1),
   notEquivalentTo: nonEmptyStrings,
   sourceIds: nonEmptyStrings,
@@ -239,7 +240,7 @@ export const ukTaxSystemSchema = strictObject({
     coverage: nonEmptyStrings,
     exclusions: nonEmptyStrings,
     editorialRules: nonEmptyStrings,
-    contentLicence: strictObject({ name: z.string().min(1), url: z.string().url() }),
+    contentLicence: strictObject({ name: z.string().min(1), url: trimmedUrl }),
     warning: z.string().min(1),
   }),
   sources: z.array(sourceSchema).min(1),

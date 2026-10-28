@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { publishedJsonSchema, trimmedUrl } from "./json-schema.js";
 import { canonicalJson } from "./open-data.js";
 import { assertNoDuplicateJsonKeys } from "./strict-json.js";
 import {
@@ -25,14 +26,11 @@ const text = z.string().trim().min(1).max(8_000);
 const shortText = z.string().trim().min(1).max(1_000);
 const optionalPrivateNote = z.string().trim().max(8_000);
 const nonEmptyStrings = z.array(shortText).min(1).max(100);
-const httpsUrl = z
-  .string()
-  .url()
-  .refine((value) => {
-    if (!value.startsWith("https://")) return false;
-    const url = new URL(value);
-    return url.username === "" && url.password === "";
-  }, "URL must use HTTPS without embedded credentials");
+const httpsUrl = trimmedUrl.refine((value) => {
+  if (!value.startsWith("https://")) return false;
+  const url = new URL(value);
+  return url.username === "" && url.password === "";
+}, "URL must use HTTPS without embedded credentials");
 function professionalOpportunityTextIsPublicSafe(value: string) {
   return (
     !/@/u.test(value) &&
@@ -1285,7 +1283,7 @@ function stageTupleSchema(
   } as const;
 }
 
-const assessmentBaseJsonSchema = z.toJSONSchema(
+const assessmentBaseJsonSchema = publishedJsonSchema(
   professionalOpportunityAssessmentBaseSchema,
 ) as JsonSchemaObject;
 const assessmentBaseProperties = objectValue(
@@ -2931,7 +2929,7 @@ function publicJsonSchema<T extends z.ZodType>(
   },
 ) {
   return {
-    ...(z.toJSONSchema(schema) as JsonSchemaObject),
+    ...(publishedJsonSchema(schema) as JsonSchemaObject),
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: metadata.id,
     title: metadata.title,

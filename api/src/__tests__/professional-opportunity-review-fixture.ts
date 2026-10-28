@@ -15,8 +15,12 @@ function addDays(value: string, days: number) {
   return date.toISOString().slice(0, 10);
 }
 
+// Every review step happens on reviewDate. It defaults to the corpus
+// retrieval day; a test that runs the seal command, which checks the pack
+// against today, passes today so the pack is still within its review window.
 export function completeProfessionalOpportunityReviewPackFixture(
   corpus: UkProfessionalOpportunities,
+  reviewDate: string = corpus.meta.retrievedAt,
 ): ProfessionalOpportunityReviewPack {
   const pack = structuredClone(
     makePendingProfessionalOpportunityReviewPack(
@@ -24,7 +28,6 @@ export function completeProfessionalOpportunityReviewPackFixture(
       professionalOpportunityCorpusDigest(corpus),
     ),
   ) as any;
-  const reviewDate = corpus.meta.retrievedAt;
   const evidenceIds = {
     qualification: "synthetic-qualification-evidence",
     independence: "synthetic-independence-evidence",
