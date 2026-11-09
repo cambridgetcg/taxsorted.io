@@ -231,7 +231,7 @@ function SavedProgress({ audience }: { audience: SupportedAudience }) {
       <select id="progress-preparation-year" aria-describedby="progress-year-help" value={year} onChange={event => {
         setYear(event.target.value as PreparationYear);
         hide(false);
-      }} className="mt-2 min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+      }} className="mt-2 min-h-11 w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {PREPARATION_YEARS.map(value => <option key={value} value={value}>{PREPARATION_PERIODS[value].label}</option>)}
       </select>
       <p id="progress-year-help" className="mt-2 text-sm leading-6 text-ink-soft">Changing the year hides this overview. Choose “Show my saved progress” to read the selected year.</p>

@@ -452,7 +452,7 @@ function DraftField({
           onBlur={() => onBlur(field)}
           aria-invalid={Boolean(error)}
           aria-describedby={`${helpId}${error ? ` ${errorId}` : ""}`}
-          className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-ink read-only:bg-paper read-only:text-ink-soft"
+          className="min-h-11 w-full rounded-md border border-line-strong bg-white py-2 pl-7 pr-3 text-ink read-only:bg-paper read-only:text-ink-soft"
         />
       </div>
       {error ? (

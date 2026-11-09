@@ -186,7 +186,7 @@ export function RecordForm({
           id={categoryId}
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          className="flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           <optgroup label="Income">
             {categories

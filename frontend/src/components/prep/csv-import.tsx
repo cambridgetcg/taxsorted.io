@@ -506,7 +506,7 @@ function MappingSelect({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink"
+        className="flex min-h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-sm text-ink"
       >
         <option value="">— choose —</option>
         {headers.map((h) => (

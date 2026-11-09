@@ -1,15 +1,32 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { SiteNav } from "@/components/site-nav";
+import { TaxSortedLockup } from "@/components/brand/TaxSortedLockup";
 import { LocalAppNotice } from "@/components/local-app-notice";
 import { LocalAppBoundary } from "@/components/local-app-boundary";
 
+// Icons, the manifest and the social card image come from files beside this
+// layout; Next copies the card to twitter:image. The social title and
+// description stay unset so Next fills them from each page's own; set here,
+// every page would inherit the home page's. There is no og:url: on the 404
+// page Next resolves it to its internal /_not-found/ route, and without one
+// scrapers use the address they fetched. The site name carries ".io", as the
+// naming decision asks (docs/design/brand/BRAND.md §2). A route that sets its
+// own openGraph replaces all of this, image included.
 export const metadata: Metadata = {
+  metadataBase: new URL("https://taxsorted.io"),
   title: "TaxSorted — A clearer way to sort your tax",
   description:
     "Practical UK tax tools for individuals, sole traders and landlords. Find your next steps, organise income and expenses, prepare figures and get help with tax problems.",
+  openGraph: { type: "website", siteName: "TaxSorted.io", locale: "en_GB" },
+  twitter: { card: "summary_large_image" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f7f4ee",
+  colorScheme: "light",
 };
 
 // Runs before first paint (static export — no server): reads the saved
@@ -40,6 +57,12 @@ export default function RootLayout({
           <footer className="mt-20 border-t border-line bg-surface/60">
             <div lang="en" dir="ltr" className="mx-auto grid max-w-7xl gap-7 px-4 py-9 text-sm text-ink-soft sm:px-6 md:grid-cols-2 lg:px-8">
               <div className="max-w-xl">
+                {/* The small drawing at 91 × 19, the size it is drawn for. The ink
+                    colour sits on the wrapper: forced colours only repaint an SVG
+                    whose colour is inherited. */}
+                <span className="mb-4 block text-ink">
+                  <TaxSortedLockup size="small" className="block h-4.75 w-auto" />
+                </span>
                 <p className="font-display text-2xl font-semibold tracking-tight text-ink">
                   A clearer way to sort your tax.
                 </p>

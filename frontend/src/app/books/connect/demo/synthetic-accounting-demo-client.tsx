@@ -279,7 +279,7 @@ export default function SyntheticAccountingDemoClient() {
             value={entityId}
             onChange={(event) => setEntityId(event.target.value)}
             disabled={runState === "running" || boundChoice !== null}
-            className="mt-2 min-h-11 w-full rounded-md border border-line bg-white px-3 text-ink"
+            className="mt-2 min-h-11 w-full rounded-md border border-line-strong bg-white px-3 text-ink"
           >
             <option value="">Choose one—never assumed</option>
             {entities.map((entity) => (
@@ -303,7 +303,7 @@ export default function SyntheticAccountingDemoClient() {
                   onChange={(event) => setNewName(event.target.value)}
                   placeholder="e.g. My sole trade"
                   disabled={boundChoice !== null || runState === "running"}
-                  className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-white px-3 text-ink"
+                  className="min-h-11 min-w-0 flex-1 rounded-md border border-line-strong bg-white px-3 text-ink"
                 />
                 <button
                   type="button"

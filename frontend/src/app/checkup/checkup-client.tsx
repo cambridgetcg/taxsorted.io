@@ -175,7 +175,7 @@ export function CheckupClient() {
               if (next) chooseAudience(next.id);
             }}
             disabled={!ready || saving}
-            className="mt-3 min-h-12 w-full max-w-full rounded-xl border border-line bg-paper px-3 text-base text-ink sm:mt-0 sm:w-80"
+            className="mt-3 min-h-12 w-full max-w-full rounded-xl border border-line-strong bg-paper px-3 text-base text-ink sm:mt-0 sm:w-80"
           >
             {AUDIENCES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>

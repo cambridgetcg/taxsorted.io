@@ -11,11 +11,12 @@ export function LanguageSwitcher() {
       <span className="sr-only">{t("lang.label")}</span>
       <Languages aria-hidden="true" className="h-4 w-4 text-accent" />
       {/* A native select is the most accessible language picker there is —
-          restyled, never replaced. */}
+          restyled, never replaced. It is as wide as the chosen language, not
+          the longest option, so the Polish door row fits beside the lockup. */}
       <select
         value={locale}
         onChange={(event) => setLocale(event.target.value as Locale)}
-        className="min-h-11 cursor-pointer rounded-xl border border-line bg-surface px-2.5 text-base text-ink transition-colors hover:border-accent"
+        className="field-sizing-content min-h-11 cursor-pointer rounded-xl border border-line-strong bg-surface px-2.5 text-base text-ink transition-colors hover:border-accent"
         aria-label={t("lang.label")}
       >
         {LOCALES.map((code) => (

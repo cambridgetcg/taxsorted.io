@@ -285,7 +285,7 @@ function AmountField({
           onBlur={onBlur}
           aria-invalid={Boolean(error)}
           aria-describedby={`${helpId}${error ? ` ${errorId}` : ""}`}
-          className="min-h-11 w-full rounded-md border border-line bg-white py-2 pl-7 pr-3 text-ink disabled:bg-paper disabled:text-ink-soft"
+          className="min-h-11 w-full rounded-md border border-line-strong bg-white py-2 pl-7 pr-3 text-ink disabled:bg-paper disabled:text-ink-soft"
           placeholder="0.00"
         />
       </div>

@@ -287,7 +287,7 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
             }}
             aria-invalid={!validDate}
             aria-describedby={!validDate ? `${dateId}-error` : undefined}
-            className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </label>
         <label htmlFor={amountId} className="space-y-1.5 text-sm font-medium text-ink">
@@ -302,7 +302,7 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
             }}
             aria-invalid={!validAmount}
             aria-describedby={!validAmount ? `${amountId}-error` : undefined}
-            className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           />
         </label>
       </div>
@@ -352,7 +352,7 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
             setDescription(change.target.value);
             setAcknowledged(false);
           }}
-          className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </label>
 
@@ -367,7 +367,7 @@ function MoneyReviewCard({ event, ledger, onDecision, ref }: MoneyReviewCardProp
             setCategory(change.target.value);
             setAcknowledged(false);
           }}
-          className="flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {choices.map((choice) => (
             <option key={choice.key} value={choice.key}>

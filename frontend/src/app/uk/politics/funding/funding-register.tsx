@@ -117,7 +117,7 @@ export function FundingRegister() {
               required
               value={draftDates.from}
               onChange={(event) => setDraftDates((current) => ({ ...current, from: event.target.value }))}
-              className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink"
+              className="mt-1 h-11 w-full rounded-xl border border-line-strong bg-white px-3 text-sm text-ink"
             />
           </label>
           <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
@@ -127,7 +127,7 @@ export function FundingRegister() {
               required
               value={draftDates.to}
               onChange={(event) => setDraftDates((current) => ({ ...current, to: event.target.value }))}
-              className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink"
+              className="mt-1 h-11 w-full rounded-xl border border-line-strong bg-white px-3 text-sm text-ink"
             />
           </label>
           <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
@@ -137,7 +137,7 @@ export function FundingRegister() {
               onChange={(event) => setRecipient(event.target.value)}
               maxLength={100}
               placeholder="e.g. Labour Party"
-              className="mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm normal-case tracking-normal text-ink"
+              className="mt-1 h-11 w-full rounded-xl border border-line-strong bg-white px-3 text-sm normal-case tracking-normal text-ink"
             />
           </label>
           <button type="submit" className="inline-flex min-h-11 items-center self-end rounded-xl bg-accent px-5 text-base font-semibold text-white hover:bg-accent-deep">

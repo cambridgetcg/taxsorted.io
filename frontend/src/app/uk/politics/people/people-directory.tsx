@@ -186,7 +186,7 @@ export function PeopleDirectory() {
               onChange={(event) => setTypedQuery(event.target.value)}
               maxLength={100}
               placeholder="Search a name"
-              className="h-12 w-full rounded-xl border border-line bg-white px-4 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="h-12 w-full rounded-xl border border-line-strong bg-white px-4 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             />
           </label>
           <label>
@@ -197,7 +197,7 @@ export function PeopleDirectory() {
                 setHouse(event.target.value as typeof house);
                 setSkip(0);
               }}
-              className="h-12 w-full rounded-xl border border-line bg-white px-4 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="h-12 w-full rounded-xl border border-line-strong bg-white px-4 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <option value="commons">House of Commons</option>
               <option value="lords">House of Lords</option>
