@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { z as zod } from "zod";
+import { publishedJsonSchema } from "../src/json-schema.js";
 
 const outputUrl = new URL(
   "../src/tax-position-passport.schema.json",
@@ -26,9 +26,8 @@ const { TaxPositionPassportSchema } = await import(
   "../src/routes/tax-expert.js"
 );
 
-const generated = zod.toJSONSchema(
+const generated = publishedJsonSchema(
   TaxPositionPassportSchema,
-  { target: "draft-2020-12" },
 ) as Record<string, unknown>;
 
 function closeTupleSchemas(value: unknown): void {
@@ -48,7 +47,7 @@ function closeTupleSchemas(value: unknown): void {
   Object.values(schema).forEach(closeTupleSchemas);
 }
 
-// Zod 4 currently emits prefixItems without closing Draft 2020-12 tuples.
+// publishedJsonSchema leaves tuples open, with prefixItems only.
 // The runtime tuples are exact, so make that constraint explicit in the
 // published snapshot as well.
 closeTupleSchemas(generated);

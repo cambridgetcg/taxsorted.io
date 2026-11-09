@@ -6,6 +6,11 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import {
+  offsetDateTime as dateTime,
+  publishedJsonSchema,
+  trimmedUrl,
+} from "./json-schema.js";
 import { canonicalJson } from "./open-data.js";
 import { assertNoDuplicateJsonKeys } from "./strict-json.js";
 
@@ -17,7 +22,6 @@ const id = z
   .regex(/^[a-z0-9][a-z0-9-]*$/);
 const sha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const date = z.iso.date();
-const dateTime = z.string().datetime({ offset: true });
 const shortText = z
   .string()
   .min(1)
@@ -26,14 +30,11 @@ const shortText = z
     (value) => value === value.trim(),
     "public review text must already be trimmed",
   );
-const httpsUrl = z
-  .string()
-  .url()
-  .refine((value) => {
-    if (!value.startsWith("https://")) return false;
-    const url = new URL(value);
-    return url.username === "" && url.password === "";
-  }, "URL must use HTTPS without embedded credentials");
+const httpsUrl = trimmedUrl.refine((value) => {
+  if (!value.startsWith("https://")) return false;
+  const url = new URL(value);
+  return url.username === "" && url.password === "";
+}, "URL must use HTTPS without embedded credentials");
 const publicSafeNarrative = shortText.refine(
   (value) =>
     !/@/u.test(value) &&
@@ -1735,7 +1736,7 @@ export function loadProfessionalOpportunityReviewPack(
 }
 
 export const professionalOpportunityReviewPackJsonSchema = {
-  ...(z.toJSONSchema(
+  ...(publishedJsonSchema(
     professionalOpportunityReviewPackBaseSchema,
   ) as Record<string, unknown>),
   $schema: "https://json-schema.org/draft/2020-12/schema",

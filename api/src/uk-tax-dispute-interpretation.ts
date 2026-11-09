@@ -19,6 +19,7 @@ import {
   buildTaxDisputeWhyGraph,
   buildUkTaxDisputeInterpretation,
 } from "@taxsorted/engine/uk/disputes";
+import { publishedJsonSchema } from "./json-schema.js";
 import { canonicalJson } from "./open-data.js";
 import {
   makeCaseCommonsPacket,
@@ -1107,7 +1108,7 @@ export function makeTaxDisputeTrainingResources(
 }
 
 export const taxDisputeInterpretationJsonSchema = {
-  ...z.toJSONSchema(taxDisputeInterpretationSchema),
+  ...publishedJsonSchema(taxDisputeInterpretationSchema),
   $id:
     "https://api.taxsorted.io/v1/case-commons/uk/interpretation/schema",
   title: "TaxSorted UK tax-dispute interpretation",
@@ -1126,7 +1127,7 @@ export const taxDisputeInterpretationJsonSchema = {
 } as const;
 
 export const taxDisputeTrainingJsonSchema = {
-  ...z.toJSONSchema(taxDisputeTrainingExampleSchema),
+  ...publishedJsonSchema(taxDisputeTrainingExampleSchema),
   $id: "https://api.taxsorted.io/v1/case-commons/uk/training/schema",
   title: "TaxSorted UK tax-dispute training example",
   description:

@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Hono, type Context } from "hono";
 import { z } from "zod";
+import { publishedJsonSchema } from "../json-schema.js";
 import {
   attachmentContentDisposition,
   canonicalJson,
@@ -313,7 +314,7 @@ const fieldMeanings: Record<string, string> = {
 const schemaDocument = {
   $id: `https://api.taxsorted.io${basePath}/schema`,
   title: "TaxSorted UK public-funding corpus",
-  ...z.toJSONSchema(ukPublicFundingSchema),
+  ...publishedJsonSchema(ukPublicFundingSchema),
 };
 const mediaTypes: Record<ExportFormat, string> = {
   json: "application/json; charset=utf-8",

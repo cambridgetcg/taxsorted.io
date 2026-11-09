@@ -5,13 +5,14 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { publishedJsonSchema, trimmedUrl } from "./json-schema.js";
 import { findPublicOfficePath } from "./uk-public-office-pathways.js";
 
 const strictObject = <T extends z.ZodRawShape>(shape: T) =>
   z.object(shape).strict();
 const text = z.string().trim().min(1);
 const id = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
-const httpsUrl = z.string().url().refine((value) => value.startsWith("https://"), {
+const httpsUrl = trimmedUrl.refine((value) => value.startsWith("https://"), {
   message: "URL must use HTTPS",
 });
 const date = z
@@ -798,7 +799,7 @@ export function publicDecisionPathwayRelatedData(pathwayId: string) {
 }
 
 export const publicDecisionPathwaysJsonSchema = {
-  ...z.toJSONSchema(publicDecisionPathwaysResponseSchema),
+  ...publishedJsonSchema(publicDecisionPathwaysResponseSchema),
   $id: "https://api.taxsorted.io/v1/politics/uk/public-decision-pathways/schema",
   title: "TaxSorted UK public-decision pathways",
   description:

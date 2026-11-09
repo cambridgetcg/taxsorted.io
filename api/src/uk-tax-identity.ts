@@ -12,6 +12,7 @@ import {
   interpretTaxIdentity,
 } from "@taxsorted/engine/uk/identity";
 import { z } from "zod";
+import { publishedJsonSchema, trimmedUrl } from "./json-schema.js";
 import { assertNoDuplicateJsonKeys } from "./strict-json.js";
 
 const text = z.string().trim().min(1).max(4_000);
@@ -20,10 +21,10 @@ const recordId = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const classificationId = z
   .string()
   .regex(/^[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$/);
-const httpsUrl = z
-  .string()
-  .url()
-  .refine((value) => value.startsWith("https://"), "URL must use HTTPS");
+const httpsUrl = trimmedUrl.refine(
+  (value) => value.startsWith("https://"),
+  "URL must use HTTPS",
+);
 const path = z.string().regex(/^\/[A-Za-z0-9._~!$&'()*+,;=:@%/?{}-]*$/);
 const nonEmptyText = z.array(text).min(1).max(100);
 const strictObject = <T extends z.ZodRawShape>(shape: T) =>
@@ -943,7 +944,7 @@ export function makeUkTaxIdentityExampleDetail(
 }
 
 export const ukTaxIdentityJsonSchemaDocument = deepFreeze({
-  ...z.toJSONSchema(ukTaxIdentityStructuralSchema),
+  ...publishedJsonSchema(ukTaxIdentityStructuralSchema),
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://api.taxsorted.io/v1/tax-identity/uk/schema",
   title: "UK tax identity framework corpus",

@@ -5,13 +5,14 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { trimmedUrl } from "./json-schema.js";
 import { ukTaxSystem } from "./uk-tax-system.js";
 
 const strictObject = <T extends z.ZodRawShape>(shape: T) => z.object(shape).strict();
 const text = z.string().trim().min(1);
 const id = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const nonEmptyStrings = z.array(text).min(1);
-const httpsUrl = z.string().url().refine((value) => value.startsWith("https://"), {
+const httpsUrl = trimmedUrl.refine((value) => value.startsWith("https://"), {
   message: "URL must use HTTPS",
 });
 const date = z

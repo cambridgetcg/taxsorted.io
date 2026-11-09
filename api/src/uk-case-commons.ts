@@ -6,13 +6,14 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { publishedJsonSchema, trimmedUrl } from "./json-schema.js";
 import { canonicalJson } from "./open-data.js";
 
 const strictObject = <T extends z.ZodRawShape>(shape: T) =>
   z.object(shape).strict();
 const text = z.string().trim().min(1);
 const id = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
-const httpsUrl = z.string().url().refine((value) => value.startsWith("https://"), {
+const httpsUrl = trimmedUrl.refine((value) => value.startsWith("https://"), {
   message: "URL must use HTTPS",
 });
 const date = z
@@ -1040,7 +1041,7 @@ export function makeCaseCommonsPacket(
 }
 
 export const caseCommonsJsonSchema = {
-  ...z.toJSONSchema(caseCommonsResponseSchema),
+  ...publishedJsonSchema(caseCommonsResponseSchema),
   $id: "https://api.taxsorted.io/v1/case-commons/uk/schema",
   title: "TaxSorted UK public-power case commons",
   description:
@@ -1058,7 +1059,7 @@ export const caseCommonsJsonSchema = {
 } as const;
 
 export const caseCommonsPacketJsonSchema = {
-  ...z.toJSONSchema(caseCommonsPacketSchema),
+  ...publishedJsonSchema(caseCommonsPacketSchema),
   $id: "https://api.taxsorted.io/v1/case-commons/uk/packet-schema",
   title: "TaxSorted UK public-power case packet",
   description:
@@ -1067,7 +1068,7 @@ export const caseCommonsPacketJsonSchema = {
     "Read-only research; no intake, matching, recommendation, representation, filing, outreach or external state change.",
 } as const;
 
-const generatedCaseAssessmentJsonSchema = z.toJSONSchema(
+const generatedCaseAssessmentJsonSchema = publishedJsonSchema(
   caseAssessmentSchema,
 ) as Record<string, unknown> & {
   properties: Record<string, Record<string, unknown>>;

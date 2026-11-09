@@ -541,9 +541,12 @@ describe("UK professional-opportunity qualified-review pack", () => {
     const directory = temporaryDirectory();
     const input = join(directory, "complete-pack.json");
     const output = join(directory, "sealed");
+    // The seal command checks the review window against today, so the
+    // synthetic review happens today rather than on the corpus retrieval day.
     const pack =
       completeProfessionalOpportunityReviewPackFixture(
         ukProfessionalOpportunities,
+        new Date().toISOString().slice(0, 10),
       );
     writeFileSync(input, JSON.stringify(pack));
     const result = runCli([
