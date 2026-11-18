@@ -220,10 +220,10 @@ function BooksBackupControls({ store, onRestored, expanded = false }: BooksBacku
             <p id="books-backup-password-help">Choose a long, unique phrase of at least {BOOKS_BACKUP_PASSWORD_MIN_LENGTH} characters. Keep it somewhere safe separately from the file. TaxSorted cannot reset this password or recover a backup without it.</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block font-semibold text-ink">Backup password
-                <input type="password" value={password} autoComplete="off" spellCheck={false} aria-describedby="books-backup-password-help" onChange={event => setPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" />
+                <input type="password" value={password} autoComplete="off" spellCheck={false} aria-describedby="books-backup-password-help" onChange={event => setPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" />
               </label>
               <label className="block font-semibold text-ink">Repeat backup password
-                <input type="password" value={repeatPassword} autoComplete="off" spellCheck={false} onChange={event => setRepeatPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" />
+                <input type="password" value={repeatPassword} autoComplete="off" spellCheck={false} onChange={event => setRepeatPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" />
               </label>
             </div>
             <label className="flex items-start gap-3 text-ink"><input type="checkbox" checked={recoveryAcknowledged} onChange={event => setRecoveryAcknowledged(event.currentTarget.checked)} className="mt-1 size-5 shrink-0" /><span>I understand that TaxSorted cannot reset this password or recover the backup without it.</span></label>
@@ -259,14 +259,14 @@ function BooksBackupControls({ store, onRestored, expanded = false }: BooksBacku
         <div>
           <label htmlFor="books-backup-file" className="block font-semibold text-ink">Choose a Books backup to restore</label>
           <p id="books-backup-file-help">Choose a TaxSorted Books backup (.json): up to 14 MB if password-protected, or 10 MB if unencrypted. Older complete-history downloads are not restore files. Restoring replaces all Books currently in this app or browser.</p>
-          <input ref={input} id="books-backup-file" type="file" accept=".json,application/json" aria-describedby="books-backup-file-help" disabled={busy === "restoring"} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full rounded-lg border border-line bg-white p-3 text-ink" />
+          <input ref={input} id="books-backup-file" type="file" accept=".json,application/json" aria-describedby="books-backup-file-help" disabled={busy === "restoring"} onChange={event => void choose(event.currentTarget.files?.[0])} className="mt-2 block w-full rounded-lg border border-line-strong bg-white p-3 text-ink" />
         </div>
         {busy && (busy !== "saving" || selected) ? <p role="status">{busy === "checking" ? "Checking your backup…" : busy === "unlocking" ? "Unlocking your backup on this device…" : busy === "saving" ? "Preparing your backup on this device…" : "Replacing your Books…"}</p> : null}
         {locked ? <section aria-labelledby="books-restore-unlock" className="space-y-3 rounded-xl border border-line bg-white p-4">
           <h2 id="books-restore-unlock" className="text-lg font-semibold text-ink">Unlock your backup</h2>
           <p className="break-words">Backup: {locked.name}. Enter its password to check what is inside. Your current Books will stay as they are until you confirm a replacement.</p>
           <label className="block font-semibold text-ink">Password for this backup
-            <input ref={unlockInput} type="password" value={unlockPassword} disabled={!!busy} autoComplete="off" spellCheck={false} onChange={event => setUnlockPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line p-2 font-normal" />
+            <input ref={unlockInput} type="password" value={unlockPassword} disabled={!!busy} autoComplete="off" spellCheck={false} onChange={event => setUnlockPassword(event.currentTarget.value)} className="mt-1 block min-h-11 w-full rounded-lg border border-line-strong p-2 font-normal" />
           </label>
           <div className="flex flex-wrap gap-3">
             <Button type="button" disabled={!!busy || !unlockPassword} onClick={() => void unlock()}>Unlock preview</Button>

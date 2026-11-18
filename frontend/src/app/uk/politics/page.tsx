@@ -46,15 +46,15 @@ export default function UkPoliticsPage() {
         </Link>
         <Link
           href="/uk/politics/decisions"
-          className="rounded-3xl border border-emerald-700 bg-emerald-50 p-6 shadow-sm transition-transform hover:-translate-y-0.5"
+          className="rounded-3xl border border-line bg-surface p-6 shadow-sm transition-transform hover:-translate-y-0.5"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Start with the change</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Start with the change</p>
           <h2 className="mt-3 text-2xl font-semibold text-ink">Find where the decision lives</h2>
           <p className="mt-3 text-sm text-ink-soft">
             Follow a UK tax change from policy to Commons authority, implementation and review.
             See every public door and where a personal appeal must take another path.
           </p>
-          <p className="mt-5 text-sm font-semibold text-emerald-800">Map the decision →</p>
+          <p className="mt-5 text-sm font-semibold text-accent">Map the decision →</p>
         </Link>
         <Link
           href="/uk/politics/stand"

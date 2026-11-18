@@ -138,8 +138,8 @@ export default function MileageClient() {
               aria-describedby={error ? `${milesId}-error` : undefined}
               onChange={(e) => setMilesInput(e.target.value)}
               className={cn(
-                "flex min-h-11 w-full rounded-md border border-line bg-white px-3 py-2 text-base",
-                "placeholder:text-ink-soft focus-visible:outline-none focus-visible:ring-2",
+                "flex min-h-11 w-full rounded-md border border-line-strong bg-white px-3 py-2 text-base",
+                "placeholder:text-ink-faint focus-visible:outline-none focus-visible:ring-2",
                 "focus-visible:ring-accent focus-visible:ring-offset-2",
                 error ? "border-red-600 focus-visible:ring-red-600" : undefined
               )}

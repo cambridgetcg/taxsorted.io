@@ -363,7 +363,7 @@ export function DecisionGuide() {
                 href={window.officialUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="mt-5 inline-flex min-h-11 items-center rounded-full bg-emerald-900 px-5 text-sm font-semibold text-white hover:bg-emerald-800"
+                className="mt-5 inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-deep"
               >
                 Verify the live official window <span aria-hidden="true" className="ml-1">↗</span>
               </a>

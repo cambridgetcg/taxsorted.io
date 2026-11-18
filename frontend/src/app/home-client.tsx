@@ -69,12 +69,12 @@ export function HomeClient() {
             </Link>
           </div>
           <p className="mt-5 flex items-center gap-2 text-sm text-ink-soft">
-            <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-accent" />
+            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-soft" />
             Free to use. No account needed to get started.
           </p>
         </div>
 
-        <section aria-labelledby="audience-heading" className="soft-shadow rounded-[2rem] bg-accent-deep p-5 sm:p-7">
+        <section aria-labelledby="audience-heading" className="soft-shadow rounded-[2rem] bg-ink p-5 sm:p-7">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-white/75">Your starting point</p>
           <h2 id="audience-heading" className="mt-3 font-display text-3xl font-semibold tracking-tight text-white">Who are you sorting tax for?</h2>
           <div className="mt-6 space-y-3">
@@ -130,7 +130,7 @@ export function HomeClient() {
             <article key={number} className="flex flex-col bg-surface p-6 sm:p-8">
               <div className="flex items-center justify-between">
                 <span aria-hidden="true" className="font-mono text-sm text-ink-faint">{number}</span>
-                <Icon aria-hidden="true" className="h-6 w-6 text-accent" strokeWidth={1.5} />
+                <Icon aria-hidden="true" className="h-6 w-6 text-ink-soft" strokeWidth={1.5} />
               </div>
               <h3 className="mt-7 font-display text-2xl font-semibold leading-tight tracking-tight text-ink">{title}</h3>
               <p className="mb-5 mt-3 text-sm leading-7 text-ink-soft">{description}</p>

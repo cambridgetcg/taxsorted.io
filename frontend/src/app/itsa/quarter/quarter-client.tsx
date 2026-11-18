@@ -477,7 +477,7 @@ function LedgerSubmissionSection({
             </label>
             <select
               id={`entity-link-${oneLedger.id}`}
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3 py-2 text-base text-ink"
+              className="mt-1 w-full rounded-xl border border-line-strong bg-white px-3 py-2 text-base text-ink"
               value={linkedEntity?.id ?? ""}
               disabled={linkingLedgerId === oneLedger.id}
               onChange={(event) => void onLink(oneLedger, event.target.value)}
@@ -542,7 +542,7 @@ function LedgerSubmissionSection({
               </label>
               <select
                 id={`hmrc-business-link-${oneLedger.id}`}
-                className="mt-1 w-full rounded-xl border border-line bg-white px-3 py-2 text-base text-ink"
+                className="mt-1 w-full rounded-xl border border-line-strong bg-white px-3 py-2 text-base text-ink"
                 value={linkedBusiness?.businessId ?? ""}
                 disabled={linkingLedgerId === oneLedger.id}
                 onChange={(event) =>

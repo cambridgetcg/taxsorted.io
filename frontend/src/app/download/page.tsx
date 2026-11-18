@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowDownToLine, ArrowRight, Check, FolderOpen, HardDrive, Laptop, Monitor, Terminal } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, FolderOpen, HardDrive, Laptop, Monitor, Terminal } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "TaxSorted Local — your tax workspace on your computer",
@@ -58,7 +58,7 @@ export default function DownloadPage() {
               "Your working records are saved in the app’s profile on this computer.",
               "The app blocks network requests. No cloud sync or automatic updates.",
               "Export your work when you choose to back it up or share it.",
-            ].map((item) => <li key={item} className="flex items-start gap-3"><Check size={17} className="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{item}</span></li>)}
+            ].map((item) => <li key={item} className="flex items-start gap-3"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ink-soft" /><span>{item}</span></li>)}
           </ul>
           <p className="mt-6 border-t border-line pt-5 text-sm leading-6 text-ink-soft">
             Local storage is not an encrypted vault. Protect your computer and keep your own backups.

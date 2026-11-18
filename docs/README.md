@@ -49,6 +49,7 @@ manual acceptance cases and a result template whose default status is NOT RUN.
 | Answer a tax question | [Tax-expert research](../research/uk/tax-expert/README.md), API contract and Passport | Engine rules own calculations and source-review stops; unknown facts stay visible |
 | Publish a dataset | Public-data charter, the corpus's method/review files and HMRC runbook publication sections | Candidate, schema-only, admitted and publicly enabled are distinct states |
 | Build and release | [Infrastructure](../infrastructure/README.md), [PR checks](../.github/workflows/ci.yml) and [release workflow](../.github/workflows/deploy.yml) | API release and contract checks precede the frontend release |
+| Change the brand, colours or icons | [Brand guide](design/brand/BRAND.md), then [brand pipeline](design/brand/README.md) | Colour tokens live in `frontend/src/app/globals.css`; every icon, social card and lockup is exported by `render-brand.py` from the VectorCraft master; CI checks only the component geometry |
 
 ## Sources and ownership
 

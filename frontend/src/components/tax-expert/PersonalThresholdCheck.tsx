@@ -43,7 +43,7 @@ const exactGbp = new Intl.NumberFormat("en-GB", {
 
 const inputClass = [
   "mt-1 flex h-11 w-full rounded-lg border border-ink-soft bg-white px-3 py-2 text-base text-ink",
-  "placeholder:text-ink-soft focus-visible:outline-none focus-visible:ring-2",
+  "placeholder:text-ink-faint focus-visible:outline-none focus-visible:ring-2",
   "focus-visible:ring-accent focus-visible:ring-offset-2",
 ].join(" ");
 

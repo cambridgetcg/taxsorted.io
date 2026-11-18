@@ -11,7 +11,7 @@ import {
 } from "@/lib/return-preparation";
 
 export const fieldClass =
-  "mt-2 min-h-11 w-full min-w-0 rounded-xl border border-line bg-paper px-3 py-2 text-base text-ink";
+  "mt-2 min-h-11 w-full min-w-0 rounded-xl border border-line-strong bg-paper px-3 py-2 text-base text-ink";
 export const helpLinkClass =
   "inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4";
 
